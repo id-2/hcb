@@ -1,8 +1,13 @@
-<%= link_to task_path, target: "_blank" do %>
+<%= link_to path, target: "_blank" do %>
   <li class="card card--item card--hover flex justify-between overflow-visible line-height-3">
-    <strong><%= human_name %></strong>
-    <% if defined? task_name %>
-      <span class="badge <%= count > 0 ? 'bg-accent' : 'bg-muted' %>"><%= count %></span>
+    <span>
+      <strong><%= name %></strong>
+      <% if (defined? external) && external %>
+        <%= inline_icon 'external', size: 20, class: 'muted', 'aria-label': "External link to #{name}" %>
+      <% end %> 
+    </span>
+    <% if defined? count %>
+      <span class="badge pr2 <%= count > 0 && !((defined? info) && info) ? 'bg-accent' : 'bg-muted' %>"><%= count %></span>
     <% end %>
   </li>
 <% end %>
