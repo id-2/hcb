@@ -234,7 +234,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
     @q = params[:q].present? ? params[:q] : nil
-    @unmapped = params[:unmapped] == "1" ? true : nil
+    @unmapped = params[:unmapped] == "0" ? nil : true # checked by default
     @exclude_top_ups = params[:exclude_top_ups] == "1" ? true : nil
     @mapped_by_human = params[:mapped_by_human] == "1" ? true : nil
     @event_id = params[:event_id].present? ? params[:event_id] : nil
