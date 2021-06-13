@@ -92,6 +92,7 @@ Rails.application.routes.draw do
       get 'invoices', to: 'admin#invoices'
       get 'sponsors', to: 'admin#sponsors'
       get 'google_workspaces', to: 'admin#google_workspaces'
+      get 'v1_links', to: 'admin#v1_links'
     end
 
     member do

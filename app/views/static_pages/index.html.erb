@@ -126,6 +126,7 @@
       <%= render partial: 'static_pages/card', locals: { path: negative_events_path, name: 'Negative Organizations', count: Event.negatives.count, info: true } %>
       <%= render partial: 'static_pages/card', locals: { path: bank_accounts_admin_index_path, name: 'Bank Accounts', count: BankAccount.failing.count } %>
       <%= render partial: 'static_pages/card', locals: { path: bookkeeping_path, name: 'Bookkeeping' } %>
+      <%= render partial: 'static_pages/card', locals: { path: v1_links_admin_index_path, name: 'V1 Links' } %>
     </ul>
     
     <h2>Other Tools</h2>
@@ -134,9 +135,11 @@
       <%= render partial: 'static_pages/card', locals: { path: new_bank_account_path, name: 'Setup HCB' } %>
       <%= render partial: 'static_pages/card', locals: { path: blazer_path, name: 'Blazer (BI tool)' } %>
     </ul>
+
     <p>
       <%= content_tag :strong, render_money(@transaction_volume) %>
       in transactions & counting…
     </p>
+
   <% end %>
 </main>

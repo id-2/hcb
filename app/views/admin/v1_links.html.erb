@@ -1,0 +1,26 @@
+<% title 'V1 Links' %>
+<% page_md %>
+
+<%= render 'users/nav' if signed_in? %>
+
+<main class="flex flex-column items-center center pb3">
+
+  <div class="w-100 center mt3">
+    <h1>V1 Admin Links</h1>
+    <ul class="grid left-align w-100 mt0">
+      <%= render partial: 'static_pages/card', locals: { path: events_path, name: 'Projects' } %>
+      <%= render partial: 'static_pages/card', locals: { path: bank_accounts_path, name: 'Bank accounts' } %>
+      <%= render partial: 'static_pages/card', locals: { path: g_suite_accounts_path, name: 'Google Workspace accounts' } %>
+      <%= render partial: 'static_pages/card', locals: { path: emburse_cards_path, name: 'Emburse cards' } %>
+      <%= render partial: 'static_pages/card', locals: { path: emburse_card_requests_path, name: 'Emburse card requests' } %>
+      <%= render partial: 'static_pages/card', locals: { path: emburse_transfers_path, name: 'Emburse transfers' } %>
+      <%= render partial: 'static_pages/card', locals: { path: emburse_transactions_path, name: 'Emburse transactions' } %>
+      <%= react_component 'admin_task/Card', human_name: 'Transactions (v1)', task_name: :transactions, task_path: transactions_path %>
+      <%= render partial: 'static_pages/card', locals: { path: transaction_dedupe_path, name: 'Duplicated (WIP)' } %>
+      <%= card_to 'Export finances', export_finances_path, { method: :post } %>
+      <%= render partial: 'static_pages/card', locals: { path: all_invoices_path, name: 'Invoices' } %>
+      <%= render partial: 'static_pages/card', locals: { path: sponsors_path, name: 'Sponsors' } %>
+    </ul>
+  </div>
+
+</main>

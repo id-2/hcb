@@ -724,6 +724,9 @@ class AdminController < ApplicationController
   def bookkeeping
   end
 
+  def v1_links
+  end
+
   private
 
   include StaticPagesHelper # for airtable_info
