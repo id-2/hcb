@@ -680,7 +680,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
-    @needs_ops_review = params[:needs_ops_review] == "1" ? true : nil
+    @needs_ops_review = params[:needs_ops_review] == "0" ? nil : true # checked by default
     @configuring = params[:configuring] == "1" ? true : nil
 
     @event_id = params[:event_id].present? ? params[:event_id] : nil
