@@ -85,7 +85,7 @@
       <%= render partial: 'static_pages/card', locals: { path: events_admin_index_path, name: 'Organizations', count: Event.pending.count } %>
       <%= card_to 'Users', users_admin_index_path %>
       <%= card_to 'Search by user', admin_search_path %>
-      <%= render partial: 'static_pages/card', locals: { path: 'https://www.expensify.com/reports', name: "Expensify" } %>
+      <%= render partial: 'static_pages/card', locals: { path: 'https://www.expensify.com/reports?param={%22startDate%22:%22%22,%22endDate%22:%22%22,%22reportName%22:%22%22,%22policyID%22:%22-1%22,%22from%22:%22all%22,%22type%22:%22all%22,%22states%22:{%22Processing%22:true,%22Open%22:false,%22Approved%22:true,%22Reimbursed%22:false,%22Archived%22:false},%22isAdvancedFilterMode%22:true}', name: "Expensify" } %>
       <%= render partial: 'static_pages/card', locals: { path: 'https://www.svbconnect.com/auth/', name: "Silicon Valley Bank" } %>
       <%= render partial: 'static_pages/card', locals: { path: 'https://www.frcorporateonline.com/wcmfd/wcmpw/CustomerLogin', name: "First Republic Bank" } %>
     </ul>
