@@ -1,7 +1,7 @@
 # As a part of the Partner Organizations system, we need to be able to give
 # people access to an organization WITHOUT their active participation in
 # creating a user and accepting an invite.
-#
+
 # Here's how this works:
 # 1. Using an Admin account, we call Hack Club's API to create a user. This
 #    returns their access_token.
@@ -18,7 +18,7 @@ module UserService
       @email = email
       @full_name = full_name
       @phone_number = phone_number
-			@event_id = event_id
+      @event_id = event_id
     end
 
     def run
