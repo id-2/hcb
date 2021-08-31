@@ -220,6 +220,7 @@ Rails.application.routes.draw do
       post "comment"
       post "receipt"
       get "attach_receipt"
+      post "report"
     end
 
     resources :comments

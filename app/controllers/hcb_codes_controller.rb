@@ -54,4 +54,22 @@ class HcbCodesController < ApplicationController
 
     authorize @hcb_code
   end
+
+  def report
+    @hcb_code = HcbCode.find(params[:id])
+    authorize @hcb_code
+
+    report_mailer_params = {
+      user: current_user,
+      hcb_code: @hcb_code
+    }
+
+    begin
+      HcbCodeMailer.report(report_mailer_params).deliver_later
+      redirect_to @hcb_code, flash: { success: "Transaction reported. Please check your email." }
+    rescue => e
+      Airbrake.notify(e)
+      redirect_to @hcb_code, flash: { error: "There was an error reporting this transaction, please contact bank@hackclub.com" }
+    end
+  end
 end

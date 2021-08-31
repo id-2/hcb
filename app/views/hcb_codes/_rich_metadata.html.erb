@@ -1,31 +1,42 @@
+<% has_linked_object_partial = false %>
+
 <!-- donation -->
 <% if @hcb_code.donation? && @hcb_code.donation.present? %>
   <%= render partial: "hcb_codes/donation", locals: {} %>
+  <% has_linked_object_partial = true %>
 <% end %>
 
 <!-- partner donation -->
 <% if @hcb_code.partner_donation? && @hcb_code.partner_donation.present? %>
   <%= render partial: "hcb_codes/partner_donation", locals: {} %>
+  <% has_linked_object_partial = true %>
 <% end %>
 
 <!-- invoice -->
 <% if @hcb_code.invoice? && @hcb_code.invoice.present? %>
   <%= render partial: "hcb_codes/invoice", locals: {} %>
+  <% has_linked_object_partial = true %>
 <% end %>
 
 <!-- ach_transfer -->
 <% if @hcb_code.ach_transfer? && @hcb_code.ach_transfer.present? %>
   <%= render partial: "hcb_codes/ach_transfer", locals: {} %>
+  <% has_linked_object_partial = true %>
 <% end %>
 
 <!-- check -->
 <% if @hcb_code.check? && @hcb_code.check.present? %>
   <%= render partial: "hcb_codes/check", locals: {} %>
+  <% has_linked_object_partial = true %>
 <% end %>
 
 <!-- stripe card -->
 <% if @hcb_code.stripe_card? %>
   <%= render partial: "hcb_codes/stripe_card", locals: {} %>
+  <% has_linked_object_partial = true %>
 <% end %>
 
-
+<!-- basic hcb code info -->
+<% unless has_linked_object_partial %>
+  <%= render partial: "hcb_codes/no_object", locals: {} %>
+<% end %>

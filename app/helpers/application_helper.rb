@@ -3,6 +3,10 @@
 module ApplicationHelper
   include ActionView::Helpers
 
+  # We need to explicitly include LocalTimeHelper to allow local_time to be used in a mailer.
+  # (Otherwise, there is a NoMethodError when this ApplicationHelper calls local_time)
+  include LocalTimeHelper
+
   def render_money(amount, opts = {})
     unit = opts[:unit] || "$"
     trunc = opts[:trunc] || false

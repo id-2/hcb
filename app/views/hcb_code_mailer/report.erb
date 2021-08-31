@@ -1,0 +1,46 @@
+<p>Hey <%= @user.name %>,</p>
+
+<p>You began the reporting process for a transaction of <%= render_money @hcb_code.amount_cents %> for "<%= @hcb_code.memo %>".<br/>
+<a href="<%= @hcb_code_url %>"><%= @hcb_code_url %></a></p>
+<br/>
+
+<p><strong>Transaction information</strong></p>
+<table>
+	<tr>
+		<th>Organization</th>
+		<td><%= @hcb_code.event.name %> (#<%= @hcb_code.event.id %>)</td>
+	</tr>
+	<tr>
+		<th>Memo</th>
+		<td><%= @hcb_code.memo %></td>
+	</tr>
+	<tr>
+		<th>Amount</th>
+		<td><%= render_money @hcb_code.amount_cents %></td>
+	</tr>
+	<tr>
+		<th>Date</th>
+		<td><%= format_datetime @hcb_code.date %></td>
+	</tr>
+	<% if @hcb_code.stripe_card? %>
+		<tr>
+			<th>Cardholder</th>
+			<td><%= @hcb_code.stripe_cardholder.user.name %> (#<%= @hcb_code.stripe_cardholder.user.id %>)</td>
+		</tr>
+	<% end %>
+</table>
+<br/>
+
+<p><strong>Please reply to this email with the following information:</strong></p>
+<ul>
+	<li>
+		Reason for report
+	</li>
+	<li>Supporting evidence (attach to this email)</li>
+	<li>Any other related information</li>
+</ul>
+<br/>
+<p>If you have any questions or need some help, please feel free to reply to this email!</p>
+
+<p>Best,<br/>
+The Hack Club Bank Team</p>
