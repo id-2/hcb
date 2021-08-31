@@ -11,6 +11,6 @@ class HcbCodeMailer < ApplicationMailer
 
     mail to: to,
          subject: subject,
-         cc: 'bank@hackclub.com'
+         cc: "bank@hackclub.com"
   end
 end
