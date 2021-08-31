@@ -1,28 +1,28 @@
 <% type = local_assigns[:type].nil? ? '' : local_assigns[:type] + ' ' %>
 
 <p class="muted m0" style="text-align: right;">
-	<%= link_to "#",
-			data: { behavior: "modal_trigger", modal: "report" } do %>
-		<small class="muted mt1">Report this transaction</small>
-	<% end %>
+  <%= link_to "#",
+      data: { behavior: "modal_trigger", modal: "report" } do %>
+    <small class="muted mt1">Report this transaction</small>
+  <% end %>
 </p>
 
 <%# Report modal %>
 <section class="modal" data-behavior="modal" role="dialog" id="report">
-	<%= modal_header "Report #{type}transaction" %>
-	<p>
-		We understand there are situations where you need to report a transaction (fraud, duplicate, etc.),
-		and we’ve seen that many of these situations requires nuance and context that only humans can provide.
-		Because of this, your request will be sent to a Hack Club Bank staff — and you will receive an email
-		asking for more information to help us understand the situation.
-	</p>
-	<p class="mb3">
-		Best,
-		<br/>
-		The Hack Club Bank Team
-	</p>
+  <%= modal_header "Report #{type}transaction" %>
+  <p>
+    We understand there are situations where you need to report a transaction (fraud, duplicate, etc.),
+    and we’ve seen that many of these situations requires nuance and context that only humans can provide.
+    Because of this, your request will be sent to a Hack Club Bank staff — and you will receive an email
+    asking for more information to help us understand the situation.
+  </p>
+  <p class="mb3">
+    Best,
+    <br/>
+    The Hack Club Bank Team
+  </p>
 
-	<%= form_with(model: nil, local: true, url: report_hcb_code_path(@hcb_code), method: :post) do |form| %>
-		<%= form.submit 'Report this transaction' %>
-	<% end %>
+  <%= form_with(model: nil, local: true, url: report_hcb_code_path(@hcb_code), method: :post) do |form| %>
+    <%= form.submit 'Report this transaction' %>
+  <% end %>
 </section>
