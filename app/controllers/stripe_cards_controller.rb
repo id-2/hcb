@@ -43,6 +43,41 @@ class StripeCardsController < ApplicationController
     end
   end
 
+  def spending_limit
+    @card = StripeCard.find(params[:stripe_card_id])
+
+    authorize @card
+
+    @event = @card.event
+  end
+
+  def set_spending_limit
+    @card = StripeCard.find(params[:stripe_card_id])
+    authorize @card
+
+    if params[:has_spending_limit]
+      attrs = {
+        stripe_card_id: @card.id,
+        amount: params[:amount].to_i,
+        interval: params[:interval],
+      }
+
+      ::StripeCardService::SetSpendingLimit.new(attrs).run
+
+      flash[:success] = "Spending limit set to #{attrs[:amount]}, #{attrs[:amount]}"
+    else
+      ::StripeCardService::SetMaxSpendingLimit.new(stripe_card_id: @card.id).run
+
+      flash[:success] = "Spending limit removed. You will still be limited by your account balance"
+    end
+
+  rescue => e
+    Airbrake.notify(e)
+    flash[:error] = "#{e}"
+  ensure
+    redirect_to @card
+  end
+
   def show
     @card = StripeCard.includes(:event, :user).find(params[:id])
 

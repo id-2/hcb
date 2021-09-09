@@ -100,10 +100,23 @@
 
     <% if using_transaction_engine_v2? %>
       <section class="grid grid--split items-end pt2">
-        <div class="stat tooltipped tooltipped--s" aria-label="This is your account balance">
+        <div class="stat tooltipped tooltipped--s"
+          aria-label="<%= @card.has_spending_limit? ?
+            @card.spending_limit_interval_description :
+            "This is your account balance. This card has no spending limits" %>"
+        >
           <strong class="stat__label">Spending limit</strong>
+          <span class="stat__label">
+            <strong class="mr1">Spending limit</strong>
+            <small style="font-weight: normal;"><%= @card.spending_limit_interval_text %></small>
+          </span>
           <span class="stat__value">
-            <%= render_money_amount @event.balance_v2_cents %>
+            <% if @card.has_spending_limit? %>
+              <%= render_money_amount @card.stripe_spending_control_spending_limit_amount %>
+            <% else %>
+              <%# When the card has no spending limit, display the organization's balance %>
+              <%= render_money_amount @event.balance_v2_cents %>
+            <% end %>
           </span>
         </div>
         <div class="stat stat--small">
@@ -112,6 +125,20 @@
             <%= render_money_amount @card.total_spent %>
           </span>
         </div>
+
+        <p class="muted m0">
+          <%= link_to stripe_card_spending_limit_path(@card),
+              data: { behavior: "modal_trigger", modal: "spending_limit" } do %>
+            <small class="muted mt1">Edit spending limit</small>
+          <% end %>
+        </p>
+
+        <%# Edit spending limit modal %>
+        <section class="modal" data-behavior="modal" role="dialog" id="spending_limit">
+          <%= modal_header "Spending Limit" %>
+          <%= render "spending_limit_form", stripe_card: @card, event: @event %>
+        </section>
+
       </section>
     <% else %>
       <section class="grid grid--split items-end pt2">

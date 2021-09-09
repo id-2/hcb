@@ -1,0 +1,7 @@
+<% title "Spending Limit for Card #{@card.last4}" %>
+<% page_sm %>
+<%= render "events/nav" %>
+
+<h1>Spending Limit</h1>
+
+<%= render "spending_limit_form", stripe_card: @card, event: @event %>

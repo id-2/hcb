@@ -1,0 +1,61 @@
+<% if @card.has_spending_limit? %>
+  <p>
+    The current spending limit for <strong>Card <% stripe_card.last4 %></strong> is 
+    <%= render_money_amount @card.stripe_spending_control_spending_limit_amount %>,
+    <%= @card.spending_limit_interval_text %> (<%= @card.spending_limit_interval_description %>).
+  </p>
+<% else %>
+  <p>
+    <strong>Card <% stripe_card.last4 %></strong> currently has no spending limit.
+    It has access to the full balance (<%= render_money_amount event.balance_v2_cents %>).
+  </p>
+<% end %>
+
+<%= form_with(model: stripe_card, url: stripe_card_spending_limit_path(stripe_card), local: true, method: :put) do |form| %>
+  <fieldset>
+    <legend class="heading h2 pt2 pb2">Place spending limits on this card?</legend>
+    <div class="field field--options">
+      <%= form.radio_button :has_spending_limit, false %>
+      <%= form.label :has_spending_limit, value: false do %>
+        <%= inline_icon "idea", size: 28 %>
+        <strong>No</strong>
+        <small>(full access to balance)</small>
+      <% end %>
+      <%= form.radio_button :has_spending_limit, true %>
+      <%= form.label :has_spending_limit, value: true do %>
+        <%= inline_icon "private", size: 28 %>
+        <strong>Yes</strong>
+        <small>(restrict usage)</small>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <section class="grid grid--split" data-behavior="stripe_card_spending_limit_inputs autohide">
+  <%# TODO: remove %>
+  <% if false %>
+    <div class="field">
+      <%= form.label :amount, "Limit amount" %>
+      <%= form.text_field :amount, value: stripe_card.has_spending_limit? ? stripe_card.stripe_spending_control_spending_limit_amount : nil, placeholder: %>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :amount, "Limit amount" %>
+    <div class="flex items-center">
+      <span class="bold muted" style="width: 1rem;">$</span>
+      <%= form.text_field :amount, value: stripe_card.has_spending_limit? ? stripe_card.stripe_spending_control_spending_limit_amount : nil, placeholder: '500.00', step: 0.01, data: {'behavior': 'money'} %>
+    </div>
+  </div>
+
+  <div class="field">
+    <%= form.label :interval, "Interval" %>
+    <%= form.select :interval,
+      stripe_card.spending_limit_intervals.map { |interval| [interval.humanize, interval] },
+      selected: stripe_card.has_spending_limit? ? stripe_card.stripe_spending_control_spending_limit_interval : nil %>
+  </div>
+  </section>
+
+  <div class="actions">
+    <%= form.submit "Save" %>
+  </div>
+<% end %>

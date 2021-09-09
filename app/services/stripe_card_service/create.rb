@@ -31,7 +31,10 @@ module StripeCardService
         card.stripe_id = remote_stripe_card.id # necessary because of design of sync_from_stripe
         card.sync_from_stripe!
         card.save!
+
+        ::StripeCardService::SetMaxSpendingLimit.new(stripe_card_id: card.id).run
       end
+
     end
 
     private

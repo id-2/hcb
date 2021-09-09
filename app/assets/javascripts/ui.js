@@ -249,6 +249,18 @@ $(document).on('turbolinks:load', function () {
     })
   }
 
+  if (BK.thereIs('card_spending_limit_inputs')) {
+    const spendingLimitInputs = BK.s('stripe_card_spending_limit_inputs')
+    const noSpendingLimitInput = $('#stripe_card_has_spending_limit_false') // TODO: change to match new form
+    const enableSpendingLimitInput = $('#stripe_card_has_spending_limit_true')
+    $(noSpendingLimitInput).on('change', e => {
+      if (e.target.checked) spendingLimitInputs.slideDown()
+    })
+    $(enableSpendingLimitInput).on('change', e => {
+      if (e.target.checked) spendingLimitInputs.hide()
+    })
+  }
+
   const tiltElement = $('[data-behavior~=hover_tilt]')
   const enableTilt = () =>
     tiltElement.tilt({

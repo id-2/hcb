@@ -221,6 +221,43 @@ class StripeCard < ApplicationRecord
     stripe_obj[:shipping][:status]
   end
 
+  def self.spending_limit_max_amount
+    # Used when user sets no spending limit
+    # Stripe allows for much higher spending limits (about 89 trillion... i think)
+    1000000000000.00 # one trillion dollars
+  end
+
+  def self.spending_limit_intervals
+    ["per_authorization", "daily", "weekly", "monthly", "yearly", "all_time"]
+  end
+
+  def has_spending_limit? # TODO: check if this is necessary
+    self.has_spending_limit
+  end
+
+  def spending_limit_interval_text
+    self.stripe_spending_controls_spending_limits_interval.humanize
+  end
+
+  def spending_limit_interval_description
+    case self.stripe_spending_controls_spending_limits_interval
+    when "per_authorization"
+      "Limit applies to each authorization (transaction)"
+    when "daily"
+      "Limit applies to a day, starting at midnight UTC"
+    when "weekly"
+      "Limit applies to a week, starting on Sunday at midnight UTC"
+    when "monthly"
+      "Limit applies to a month, starting on the 1st"
+    when "yearly"
+      "Limit applies to a year, starting on January 1st"
+    when "all_time"
+      "Limit applies to all transactions"
+    else
+      ""
+    end
+  end
+
   private
 
   def canonical_transaction_hcb_codes

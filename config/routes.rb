@@ -177,6 +177,8 @@ Rails.application.routes.draw do
   resources :stripe_cards, only: %i[create index show] do
     post "freeze"
     post "defrost"
+    get "spending_limit", to: "stripe_cards#spending_limit"
+    put "spending_limit", to: "stripe_cards#set_spending_limit"
   end
   resources :emburse_cards, except: %i[new create]
 
