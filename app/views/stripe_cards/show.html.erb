@@ -112,7 +112,7 @@
           </span>
           <span class="stat__value">
             <% if @card.has_spending_limit? %>
-              <%= render_money_amount @card.stripe_spending_control_spending_limit_amount %>
+              <%= render_money_amount [@card.stripe_spending_control_spending_limit_amount, @event.balance_v2_cents].min %>
             <% else %>
               <%# When the card has no spending limit, display the organization's balance %>
               <%= render_money_amount @event.balance_v2_cents %>
@@ -126,7 +126,13 @@
           </span>
         </div>
 
-        <p class="muted m0">
+        <% if @card.has_spending_limit? && @card.stripe_spending_control_spending_limit_amount > @event.balance_v2_cents %>
+          <p>
+            This card's max spending limit is set at <%= render_money_amount @card.stripe_spending_control_spending_limit_amount %>.
+          </p>
+        <% end %>
+
+        <p class="muted">
           <%= link_to stripe_card_spending_limit_path(@card),
               data: { behavior: "modal_trigger", modal: "spending_limit" } do %>
             <small class="muted mt1">Edit spending limit</small>

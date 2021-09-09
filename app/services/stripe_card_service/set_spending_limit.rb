@@ -11,7 +11,7 @@ module StripeCardService
     end
 
     def run
-      raise ArgumentError, "Amount can not be equal to 0, freeze the card instead!" if amount == 0 # Stripe doesn't allow for 0 amount spend limits
+      raise ArgumentError, "Amount can not be equal to 0, freeze the card instead!" if amount == 0 # Stripe doesn't allow for 0 amount spending limits
       raise ArgumentError, "Amount can not be less than 0" if amount < 0
       raise ArgumentError, "Amount is too high. Do you really have that much? 💸" if amount > max_amount
       raise ArgumentError, "Invalid interval" unless valid_intervals.include? interval
