@@ -50,7 +50,7 @@
   <div class="field">
     <%= form.label :interval, "Interval" %>
     <%= form.select :interval,
-      stripe_card.spending_limit_intervals.map { |interval| [interval.humanize, interval] },
+      stripe_card.spending_limit_intervals.map { |interval| [spending_limit_interval_text(interval), interval] },
       selected: stripe_card.has_spending_limit? ? stripe_card.stripe_spending_control_spending_limit_interval : nil %>
   </div>
   </section>

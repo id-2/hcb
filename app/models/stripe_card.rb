@@ -238,14 +238,29 @@ class StripeCard < ApplicationRecord
     self.has_spending_limit
   end
 
-  def spending_limit_interval_text
-    self.stripe_spending_controls_spending_limits_interval.humanize
+  def spending_limit_interval_text(interval = self.stripe_spending_controls_spending_limits_interval)
+    case interval
+    when "per_authorization"
+      "Per Transaction" # Using "Transaction" here to simplify terminology for users
+    when "daily"
+      "Daily"
+    when "weekly"
+      "Weekly"
+    when "monthly"
+      "Monthly"
+    when "yearly"
+      "Yearly"
+    when "all_time"
+      "Lifetime"
+    else
+      self.stripe_spending_controls_spending_limits_interval
+    end
   end
 
   def spending_limit_interval_description
     case self.stripe_spending_controls_spending_limits_interval
     when "per_authorization"
-      "Limit applies to each authorization (transaction)"
+      "Limit applies to each transaction"
     when "daily"
       "Limit applies to a day, starting at midnight UTC"
     when "weekly"
@@ -255,7 +270,7 @@ class StripeCard < ApplicationRecord
     when "yearly"
       "Limit applies to a year, starting on January 1st"
     when "all_time"
-      "Limit applies to all transactions"
+      "Limit applies to all transactions on this card"
     else
       ""
     end
