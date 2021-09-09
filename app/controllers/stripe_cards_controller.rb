@@ -62,6 +62,11 @@ class StripeCardsController < ApplicationController
         interval: params[:interval],
       }
 
+      if interval == "all_time" && attrs[:amount] < @card.total_spent
+        raise "This card has spent #{ApplicationController.helpers.render_money @card.total_spent}.
+              You cannot set a #{@card.spending_limit_interval_text("all_time")} spending limit that is less than that."
+      end
+
       ::StripeCardService::SetSpendingLimit.new(attrs).run
 
       flash[:success] = "Spending limit set to #{attrs[:amount]}, #{attrs[:amount]}"
