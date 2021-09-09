@@ -221,8 +221,11 @@ class StripeCard < ApplicationRecord
     stripe_obj[:shipping][:status]
   end
 
+  # Some context on Stripe Issuing Card spending limits:
+  # On new cards, if we do not set a spending limit, Stripe defaults to a $500/day limit.
+  # This means that for new cards, and for users who want to remove the spending limit,
+  # we must set a very high spending limit.
   def self.spending_limit_max_amount
-    # Used when user sets no spending limit
     # Stripe allows for much higher spending limits (about 89 trillion... i think)
     1000000000000.00 # one trillion dollars
   end
