@@ -3,7 +3,7 @@
 # The purpose of this service is to sync the remote Slash Z meeting status to Bank's copy
 
 module SlashZService
-  class Create
+  class Sync
 
     def initialize
     end
