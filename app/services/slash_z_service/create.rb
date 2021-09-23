@@ -2,9 +2,6 @@
 
 module SlashZService
   class Create
-    BASE_URL = "https://slash-z.hackclub.com"
-    PATH_URL = "/api/endpoints/bank/create-meeting"
-
     def initialize(event_id:, user_id:)
       @event_id = event_id
       @user_id = user_id
@@ -22,7 +19,6 @@ module SlashZService
         host_join_url: remote_slash_z[:hostJoinURL],
         join_url: remote_slash_z[:joinURL],
         host_key: remote_slash_z[:hostKey],
-        host_key: remote_slash_z[:hostKey],
         aasm_state: begin
           case remote_slash_z[:status]
           when "OPEN"
@@ -30,7 +26,7 @@ module SlashZService
           when "ENDED"
             :ended
           else
-            Airbrake.notify("Unknown status '#{remote_slash_z[:status]}' from Slash Z API", res.body); nil
+            nil
           end
         end
       }
@@ -72,10 +68,10 @@ module SlashZService
     end
 
     def create_remote_slash_z
-      conn = Faraday.new(url: BASE_URL)
+      conn = Faraday.new(url: "https://slash-z.hackclub.com")
 
       res = conn.send(:post) do |req|
-        req.url PATH_URL
+        req.url "/api/endpoints/bank/create-meeting"
         req.headers["Content-Type"] = "application/json"
 
         if access_token

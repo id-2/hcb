@@ -4,8 +4,6 @@
 
 module SlashZService
   class Create
-    BASE_URL = "https://slash-z.hackclub.com"
-    PATH_URL = "/api/endpoints/bank/get-meeting"
 
     def initialize
     end
@@ -34,7 +32,7 @@ module SlashZService
     def sync(slash_z)
       remote_slash_z = get_remote_slash_z(slash_z)
 
-      if remote_slash_z[:status] === "ENDED"
+      if remote_slash_z[:status] == "ENDED"
         slash_z.mark_ended!
       end
 
@@ -42,10 +40,10 @@ module SlashZService
     end
 
     def get_remote_slash_z(slash_z)
-      conn = Faraday.new(url: BASE_URL)
+      conn = Faraday.new(url: "https://slash-z.hackclub.com")
 
       res = conn.send(:post) do |req|
-        req.url PATH_URL
+        req.url "/api/endpoints/bank/get-meeting"
         req.headers["Content-Type"] = "application/json"
 
         if access_token
