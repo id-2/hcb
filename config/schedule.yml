@@ -93,3 +93,7 @@ partner_donation_nightly_job:
   class: "PartnerDonationJob::Nightly"
   queue: "default"
 
+slash_z_sync_job:
+  cron: "* * * * *" # run every minute
+  class: "SlashZJob::Sync"
+  queue: "default"

@@ -171,6 +171,8 @@ class Event < ApplicationRecord
 
   has_many :partner_donations
 
+  has_many :slash_zs
+
   validate :point_of_contact_is_admin
 
   validates :name, :sponsorship_fee, :organization_identifier, presence: true
