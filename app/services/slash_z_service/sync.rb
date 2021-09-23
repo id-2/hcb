@@ -34,7 +34,7 @@ module SlashZService
     def sync(slash_z)
       remote_slash_z = get_remote_slash_z(slash_z)
 
-      if remote_slash_z[:status] === 'ENDED'
+      if remote_slash_z[:status] === "ENDED"
         slash_z.mark_ended!
       end
 
