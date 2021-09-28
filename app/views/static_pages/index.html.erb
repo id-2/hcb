@@ -102,6 +102,7 @@
       <%= card_to "Google Workspaces (#{GSuite.needs_ops_review.count})", google_workspaces_admin_index_path %>
       <%= card_to "HCB Codes", hcb_codes_admin_index_path %>
       <%= card_to "Transaction CSVs", transaction_csvs_admin_index_path %>
+      <%= card_to "Selenium Sessions", selenium_sessions_admin_index_path %>
       <%= card_to 'Duplicated (WIP)', transaction_dedupe_path %>
     </ul>
 
@@ -115,10 +116,12 @@
       <%= react_component 'admin_task/Card', human_name: 'Hackathons', task_name: :pending_hackathons_airtable, task_path: link_to_airtable_task(:hackathons) %>
       <%= react_component 'admin_task/Card', human_name: 'Grants', task_name: :pending_grant_airtable, task_path: link_to_airtable_task(:grant) %>
       <%= react_component 'admin_task/Card', human_name: 'StickerMule', task_name: :pending_stickermule_airtable, task_path: link_to_airtable_task(:stickermule) %>
+      <%= react_component 'admin_task/Card', human_name: 'Stickers', task_name: :pending_stickers_airtable, task_path: link_to_airtable_task(:stickers) %>
       <%= react_component 'admin_task/Card', human_name: 'repl.it', task_name: :pending_replit_airtable, task_path: link_to_airtable_task(:replit) %>
       <%= react_component 'admin_task/Card', human_name: 'Sendy', task_name: :pending_sendy_airtable, task_path: link_to_airtable_task(:sendy) %>
-      <%= react_component 'admin_task/Card', human_name: 'Wires', task_name: :wire_transfers, task_path: link_to_airtable_task(:wire_transfers) %> 
+      <%= react_component 'admin_task/Card', human_name: 'Wires', task_name: :pending_wire_transfers_airtable, task_path: link_to_airtable_task(:wire_transfers) %>
       <%= react_component 'admin_task/Card', human_name: 'PVSA', task_name: :pending_pvsa_airtable, task_path: link_to_airtable_task(:pvsa) %>
+      <%= react_component 'admin_task/Card', human_name: 'PayPal', task_name: :pending_paypal_transfers_airtable, task_path: link_to_airtable_task(:paypal_transfers) %>
     </ul>
 
     <h2>Information</h2>

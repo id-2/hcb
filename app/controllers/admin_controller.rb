@@ -2,9 +2,21 @@
 
 class AdminController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  before_action :signed_in_admin
+  skip_before_action :signed_in_user, only: [:twilio_messaging]
+  skip_before_action :verify_authenticity_token, only: [:twilio_messaging] # do not use CSRF token checking for API routes
+  before_action :signed_in_admin, except: [:twilio_messaging]
 
   layout "application"
+
+  def twilio_messaging
+    ::MfaCodeService::Create.new(message: params[:Body]).run
+
+    # Don't reply to incoming sms message
+    # https://support.twilio.com/hc/en-us/articles/223134127-Receive-SMS-and-MMS-Messages-without-Responding
+    respond_to do |format|
+      format.xml { render xml: "<Response></Response>" }
+    end
+  end
 
   def tasks
     @active = pending_tasks
@@ -745,6 +757,28 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
+  def selenium_sessions
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+
+    relation = SeleniumSession
+
+    @count = relation.count
+    @selenium_sessions = relation.page(@page).per(@per).order("created_at desc")
+
+    render layout: "admin"
+  end
+
+  def selenium_sessions_new
+    render layout: "admin"
+  end
+
+  def selenium_sessions_create
+    selenium_session = ::SeleniumService::Create.new(file: params[:file]).run
+
+    redirect_to selenium_sessions_admin_index_path, flash: { success: "Selenium session created" }
+  end
+
   def transaction_csvs
     @page = params[:page] || 1
     @per = params[:per] || 20
@@ -832,14 +866,18 @@ class AdminController < ApplicationController
         airtable_task_size :grant
       when :pending_stickermule_airtable
         airtable_task_size :stickermule
+      when :pending_stickers_airtable
+        airtable_task_size :stickers
       when :pending_replit_airtable
         airtable_task_size :replit
       when :pending_sendy_airtable
         airtable_task_size :sendy
       when :pending_pvsa_airtable
         airtable_task_size :pvsa
-      when :wire_transfers
+      when :pending_wire_transfers_airtable
         airtable_task_size :wire_transfers
+      when :pending_paypal_transfers_airtable
+        airtable_task_size :paypal_transfers
       when :emburse_card_requests
         EmburseCardRequest.under_review.size
       when :emburse_transactions
@@ -878,10 +916,12 @@ class AdminController < ApplicationController
     pending_task :pending_hackathons_airtable
     pending_task :pending_grant_airtable
     pending_task :pending_stickermule_airtable
+    pending_task :pending_stickers_airtable
     pending_task :pending_replit_airtable
     pending_task :pending_sendy_airtable
     pending_task :pending_pvsa_airtable
     pending_task :wire_transfers
+    pending_task :paypal_transfers
     pending_task :emburse_card_requests
     pending_task :checks
     pending_task :ach_transfers

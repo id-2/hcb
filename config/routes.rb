@@ -72,6 +72,10 @@ Rails.application.routes.draw do
 
   resources :admin, only: [] do
     collection do
+      get "twilio_messaging", to: "admin#twilio_messaging"
+      get "selenium_sessions", to: "admin#selenium_sessions"
+      get "selenium_sessions_new", to: "admin#selenium_sessions_new"
+      post "selenium_sessions_create", to: "admin#selenium_sessions_create"
       get "transaction_csvs", to: "admin#transaction_csvs"
       post "upload", to: "admin#upload"
       get "bank_accounts", to: "admin#bank_accounts"
@@ -344,6 +348,8 @@ Rails.application.routes.draw do
   resources :ops_checkins, only: [:create]
 
   get "/integrations/frankly" => "integrations#frankly"
+
+  post "twilio/messaging", to: "admin#twilio_messaging"
 
   get "/events" => "events#index"
   get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"

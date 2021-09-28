@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_08_20_233014) do
+ActiveRecord::Schema.define(version: 2021_09_02_082708) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -770,6 +770,23 @@ ActiveRecord::Schema.define(version: 2021_08_20_233014) do
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
   end
 
+  create_table "mfa_codes", force: :cascade do |t|
+    t.text "message"
+    t.string "code"
+    t.string "provider"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "mfa_requests", force: :cascade do |t|
+    t.string "provider"
+    t.bigint "mfa_code_id"
+    t.string "aasm_state"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
+  end
+
   create_table "ops_checkins", force: :cascade do |t|
     t.bigint "point_of_contact_id"
     t.datetime "created_at", null: false
@@ -966,6 +983,13 @@ ActiveRecord::Schema.define(version: 2021_08_20_233014) do
     t.bigint "receiptable_id"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["user_id"], name: "index_receipts_on_user_id"
+  end
+
+  create_table "selenium_sessions", force: :cascade do |t|
+    t.string "aasm_state"
+    t.jsonb "cookies"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "sponsors", force: :cascade do |t|
@@ -1183,6 +1207,7 @@ ActiveRecord::Schema.define(version: 2021_08_20_233014) do
   add_foreign_key "invoices", "users", column: "manually_marked_as_paid_user_id"
   add_foreign_key "lob_addresses", "events"
   add_foreign_key "login_tokens", "users"
+  add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "ops_checkins", "users", column: "point_of_contact_id"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
