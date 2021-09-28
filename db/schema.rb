@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_02_082708) do
+ActiveRecord::Schema.define(version: 2021_09_23_082815) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -993,6 +993,22 @@ ActiveRecord::Schema.define(version: 2021_09_02_082708) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "slash_zs", force: :cascade do |t|
+    t.string "zoom_id"
+    t.string "aasm_state"
+    t.datetime "started_at"
+    t.datetime "ended_at"
+    t.string "host_join_url"
+    t.string "join_url"
+    t.string "host_key"
+    t.bigint "event_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["event_id"], name: "index_slash_zs_on_event_id"
+    t.index ["user_id"], name: "index_slash_zs_on_user_id"
+  end
+
   create_table "sponsors", force: :cascade do |t|
     t.bigint "event_id"
     t.text "name"
@@ -1221,6 +1237,8 @@ ActiveRecord::Schema.define(version: 2021_09_02_082708) do
   add_foreign_key "organizer_positions", "users"
   add_foreign_key "partner_donations", "events"
   add_foreign_key "receipts", "users"
+  add_foreign_key "slash_zs", "events"
+  add_foreign_key "slash_zs", "users"
   add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
   add_foreign_key "stripe_cardholders", "users"
