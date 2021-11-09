@@ -196,7 +196,7 @@ action {
 @import 'components/faq';
 @import 'components/promos';
 
-.turbo-progress-bar {
+.turbolinks-progress-bar {
   height: 0.125rem;
   background-color: map-get($palette, primary);
 }

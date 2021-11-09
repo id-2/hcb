@@ -1,4 +1,4 @@
-$(document).on('turbo:load', function() {
+$(document).on('turbolinks:load', function() {
   const amountToCheckWords = amount => {
     let [dollarsString = '', centsString = ''] = amount.split('.')
 

@@ -1,4 +1,4 @@
-$(document).on('turbo:load', function() {
+$(document).on('turbolinks:load', function() {
   const currentFilter = () =>
     BK.s('filterbar_item', '[aria-selected=true]').data('name')
 

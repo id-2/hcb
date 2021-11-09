@@ -8,7 +8,7 @@ $(document).ready(function () {
   }
 })
 
-$(document).on('turbo:load', function () {
+$(document).on('turbolinks:load', function () {
   $('[data-behavior~=toggle_theme]').on('click', () => BK.toggleDark())
 
   if (window.location !== window.parent.location) {
@@ -228,6 +228,7 @@ $(document).on('turbo:load', function () {
     if (o.length > 0 || c.length > 0) {
       BK.toggleMenu(o.length > 0 ? o : c)
     }
+    e.stopImmediatePropagation()
   })
   $(document).keydown(function (e) {
     // Close popover menus on esc
