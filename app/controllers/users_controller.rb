@@ -43,7 +43,7 @@ class UsersController < ApplicationController
   rescue Errors::InvalidLoginCode => e
     flash[:error] = e.message
 
-    return render "login_code", status: :unprocessable_entity
+    return render "login_code"
   end
 
   def logout
