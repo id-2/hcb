@@ -27,10 +27,18 @@ class PartneredSignupsController < ApplicationController
     authorize @partnered_signup
 
     if @partnered_signup.save
-      redirect_to @partnered_signup.redirect_url
+      # redirect_to @partnered_signup.redirect_url
+
+      signing_url = ::Partners::Docusign::EmbededSigningService.new(
+        signer_email: @partnered_signup.owner_email,
+        signer_name: @partnered_signup.owner_name,
+        session: session,
+      ).run
+
+      redirect_to signing_url
 
       # Send webhook to let Partner know that the Connect from has been submitted
-      ::PartneredSignupJob::DeliverWebhook.perform_later(@partnered_signup.id)
+      # ::PartneredSignupJob::DeliverWebhook.perform_later(@partnered_signup.id)
     else
       render "edit"
     end

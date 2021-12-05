@@ -113,6 +113,9 @@ gem "google-api-client"
 # Validations on receipt files
 gem "active_storage_validations"
 
+# Embeded contracts on partnered signup forms
+#gem "docusign_esign"
+
 group :development, :test do
   gem "rspec-rails", "~> 4.0.1"
   gem "rubocop", "0.74.0"
