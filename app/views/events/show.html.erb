@@ -1,10 +1,17 @@
 <% title @event.name.html_safe %>
 <% include_modals %>
 
-<%= render 'nav' %>
+<% if organizer_signed_in? %>
+  <%= render 'nav' %>
+<% end %>
+
 
 <h1 class="flex items-center">
-  Financials
+  <% if @event&.is_public && !organizer_signed_in? %>
+    <%= @event.name.html_safe %>
+  <% else %>
+    Financials
+  <% end %>
   <% if admin_signed_in? %>
     <% admin_tools('p0 badge', 'span') do %>
       <span class="m0 badge bg-muted">
@@ -30,7 +37,9 @@
         <%= avatar_for position.user, 36 %>
       </div>
     <% end %>
-    <%= pop_icon_to 'member-add', event_team_path(@event), class: 'mb1' %>
+    <% if organizer_signed_in? %>
+      <%= pop_icon_to 'member-add', event_team_path(@event), class: 'mb1' %>
+    <% end %>
   <% else %>
     <p class="slate bold h3 mr2">No organizers invited yet</p>
     <%= pop_icon_to 'member-add', event_team_path(@event) %>
@@ -65,6 +74,8 @@
     </action>
   <% end %>
 </div>
+
+<%= render 'events/public_message' %>
 
 <h2 class="heading">
   Transactions
@@ -200,4 +211,12 @@
   <% else %>
     <%= blankslate 'No transactions yet' %>
   <% end %>
+<% end %>
+
+<% if @event&.is_public && !organizer_signed_in? %>
+  <style>
+    .header{
+      display: none!important;
+    }
+  </style>
 <% end %>
