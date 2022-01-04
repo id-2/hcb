@@ -30,7 +30,6 @@
         <action type="button" class="pop menu__toggle" data-behavior="menu_toggle" aria-expanded="false" tabindex="0">
           <%= inline_icon 'more' %>
           <div class="menu__content" data-behavior="menu_content">
-            <% if account.accepted? && organizer_signed_in? %>
             <%= link_to 'Reset password',
                 g_suite_account_reset_password_path(account.id),
                 method: :put,
@@ -41,12 +40,10 @@
                 method: :put,
                 'data-confirm': "Do you really want to #{account.suspended? ? 're-activate' : 'suspend'} #{account.address}?"
             %>
-            <% end %>
             <%= link_to 'Delete',
               account,
               method: :delete,
-              'data-confirm': "Deleting #{account.address} is *permanent, irreversible, and does not back up any data*. Think carefully before you click ok.",
-              class: 'admin-tools' if admin_signed_in?
+              'data-confirm': "Deleting #{account.address} is *permanent, irreversible, and does not back up any data*. Think carefully before you click ok."
             %>
           </div>
         </action>
