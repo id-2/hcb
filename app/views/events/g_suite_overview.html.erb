@@ -23,14 +23,6 @@
       <%= inline_icon 'email', size: 32 %>
       <h3 class="mt0 mb0">We’re compiling next steps for <%= @g_suite.domain %>.</h3>
       <p class="mt0">We’ll email you as soon as it’s ready.</p>
-    </section>
-  <% end %>
-
-  <% unless @g_suite.creating? %>
-    <section class="card center mt3 mb3 bg-success white pt3">
-      <%= inline_icon 'rep', size: 32 %>
-      <h3 class="mt0 mb0">Your application was accepted!</h3>
-      <p class="mt0">It’s time to set up your servers.</p>
       <ul class="steps">
           <li><strong>Add a DNS record</strong> to verify ownership.
             <p>Add this TXT record to verify your ownership of the domain so we .</p>
@@ -58,6 +50,14 @@
               hosts also require a trailing period at the end of the server name.</p>
           </li>
         </ul>
+    </section>
+  <% end %>
+
+  <% unless @g_suite.creating? %>
+    <section class="card center mt3 mb3 bg-success white pt3">
+      <%= inline_icon 'rep', size: 32 %>
+      <h3 class="mt0 mb0">Your application was accepted!</h3>
+      <p class="mt0">It’s time to set up your servers.</p>
     </section>
 
     <details <%= @g_suite.verified? ? nil : 'open' %>>
