@@ -23,7 +23,7 @@
       <%= inline_icon 'email', size: 32 %>
       <h3 class="mt0 mb0">We’re compiling next steps for <%= @g_suite.domain %>.</h3>
       <p class="mt0">We’ll email you as soon as it’s ready.</p>
-      <ul class="steps">
+      <ol class="steps">
           <li><strong>Add a DNS record</strong> to verify ownership.
             <p>Add this TXT record to verify your ownership of the domain so we .</p>
             <table summary="Server addresses for use in DNS records configured for verification of requested Google Workspace domain">
@@ -49,7 +49,7 @@
             <p><strong>Note:</strong> Some domain hosts use different labels for the name and value fields, and some
               hosts also require a trailing period at the end of the server name.</p>
           </li>
-        </ul>
+        </ol>
     </section>
   <% end %>
 
