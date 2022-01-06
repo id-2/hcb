@@ -31,6 +31,33 @@
       <%= inline_icon 'rep', size: 32 %>
       <h3 class="mt0 mb0">Your application was accepted!</h3>
       <p class="mt0">It’s time to set up your servers.</p>
+      <ul class="steps">
+          <li><strong>Add a DNS record</strong> to verify ownership.
+            <p>Add this TXT record to verify your ownership of the domain so we .</p>
+            <table summary="Server addresses for use in DNS records configured for verification of requested Google Workspace domain">
+              <thead>
+              <tr class="bold">
+                <th>Name/Host/Alias</th>
+                <th>TTL</th>
+                <th>Record Type</th>
+                <th>Priority</th>
+                <th>Value/Answer/Destination</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr class="shade-neutral">
+                <td>@ <span class="muted">or leave blank</span></td>
+                <td>3600</td>
+                <td>TXT</td>
+                <td>1</td>
+                <td><%"bank.hackclub.com/"{@event.name}"/google_workspace#verify"%></td>
+              </tr>
+              </tbody>
+            </table>
+            <p><strong>Note:</strong> Some domain hosts use different labels for the name and value fields, and some
+              hosts also require a trailing period at the end of the server name.</p>
+          </li>
+        </ul>
     </section>
 
     <details <%= @g_suite.verified? ? nil : 'open' %>>
