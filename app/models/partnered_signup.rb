@@ -22,9 +22,13 @@ class PartneredSignup < ApplicationRecord
                          :owner_name,
                          :owner_email,
                          :owner_phone,
-                         :owner_address,
-                         :owner_birthdate
-                        ], unless: :unsubmitted?
+                         :owner_address_line1,
+                         :owner_address_line2,
+                         :owner_address_city,
+                         :owner_address_state,
+                         :owner_address_postal_code,
+                         :owner_address_country,
+                         :owner_birthdate], unless: :unsubmitted?
 
   def continue_url
     Rails.application.routes.url_helpers.edit_partnered_signups_url(public_id: public_id)
@@ -71,4 +75,5 @@ class PartneredSignup < ApplicationRecord
       errors.add(:base, "Cannot be both accepted and rejected")
     end
   end
+
 end

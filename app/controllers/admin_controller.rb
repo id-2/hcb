@@ -116,7 +116,7 @@ class AdminController < ApplicationController
 
     # Invite users to event
     @partner.add_user_to_partnered_event!(user_email: @partnered_signup.owner_email,
-                                          event:      @organization)
+                                          event: @organization)
 
 
     # Record the org & user in the signup
@@ -223,7 +223,7 @@ class AdminController < ApplicationController
       name: params[:name],
       emails: emails,
       country: params[:country],
-      approved: params[:approved].to_i == 1 ? true : false,
+      approved: params[:approved].to_i == 1,
       sponsorship_fee: params[:sponsorship_fee]
     }
     ::EventService::Create.new(attrs).run
@@ -597,6 +597,44 @@ class AdminController < ApplicationController
     redirect_to check_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
+  def partner_donations
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @q = params[:q].present? ? params[:q] : nil
+    @deposited = params[:deposited] == "1" ? true : nil
+    @in_transit = params[:in_transit] == "1" ? true : nil
+    @pending = params[:pending] == "1" ? true : nil
+    @not_unpaid = params[:not_unpaid] == "1" ? true : nil
+
+    @event_id = params[:event_id].present? ? params[:event_id] : nil
+
+    if @event_id
+      @event = Event.find(@event_id)
+      relation = @event.partner_donations.includes(:event)
+    else
+      relation = PartnerDonation.includes(:event)
+    end
+
+    if @q
+      if @q.to_f != 0.0
+        @q = (@q.to_f * 100).to_i
+        relation = relation.where("payout_amount_cents = ? or payout_amount_cents = ?", @q, -@q)
+      else
+        relation = relation.search_name(@q)
+      end
+    end
+
+    relation = relation.deposited if @deposited
+    relation = relation.in_transit if @in_transit
+    relation = relation.pending if @pending
+    relation = relation.not_unpaid if @not_unpaid
+
+    @count = relation.count
+    @partner_donations = relation.page(@page).per(@per).order("created_at desc")
+
+    render layout: "admin"
+  end
+
   def donations
     @page = params[:page] || 1
     @per = params[:per] || 20
@@ -667,7 +705,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.pending if @pending
-    #relation = relation.processing if @processing # TODO: remove ruby logic from scope
+    # relation = relation.processing if @processing # TODO: remove ruby logic from scope
 
     @count = relation.count
     @disbursements = relation.page(@page).per(@per).order("created_at desc")
@@ -1012,4 +1050,5 @@ class AdminController < ApplicationController
 
     @pending_tasks
   end
+
 end

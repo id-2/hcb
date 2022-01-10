@@ -106,6 +106,7 @@ Rails.application.routes.draw do
       get "event_new", to: "admin#event_new"
       post "event_create", to: "admin#event_create"
       get "donations", to: "admin#donations"
+      get "partner_donations", to: "admin#partner_donations"
       get "disbursements", to: "admin#disbursements"
       get "disbursement_new", to: "admin#disbursement_new"
       post "disbursement_create", to: "admin#disbursement_create"
@@ -314,7 +315,7 @@ Rails.application.routes.draw do
       post "start/:event_name", to: "donations#make_donation", as: "make_donation"
       get "qr/:event_name.png", to: "donations#qr_code", as: "qr_code"
       get ":event_name/:donation", to: "donations#finish_donation", as: "finish_donation"
-
+      get "export"
     end
 
     member do
@@ -322,6 +323,12 @@ Rails.application.routes.draw do
     end
 
     resources :comments
+  end
+
+  resources :partner_donations, only: [:show] do
+    collection do
+      get "export"
+    end
   end
 
   namespace :api do
