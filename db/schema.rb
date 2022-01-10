@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_12_05_051705) do
+ActiveRecord::Schema.define(version: 2022_01_02_083755) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -32,8 +32,8 @@ ActiveRecord::Schema.define(version: 2021_12_05_051705) do
     t.datetime "updated_at", null: false
     t.string "recipient_tel"
     t.datetime "rejected_at"
-    t.text "payment_for"
     t.datetime "scheduled_arrival_date"
+    t.text "payment_for"
     t.string "aasm_state"
     t.text "confirmation_number"
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
@@ -526,6 +526,7 @@ ActiveRecord::Schema.define(version: 2021_12_05_051705) do
     t.date "owner_birthdate"
     t.string "webhook_url"
     t.integer "country"
+    t.boolean "holiday_features", default: true, null: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -613,7 +614,6 @@ ActiveRecord::Schema.define(version: 2021_12_05_051705) do
     t.text "remote_org_unit_id"
     t.text "remote_org_unit_path"
     t.index ["created_by_id"], name: "index_g_suites_on_created_by_id"
-    t.index ["domain"], name: "index_g_suites_on_domain", unique: true
     t.index ["event_id"], name: "index_g_suites_on_event_id"
   end
 
@@ -806,6 +806,8 @@ ActiveRecord::Schema.define(version: 2021_12_05_051705) do
     t.boolean "subject_emails_should_be_forwarded", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "subject_has_outstanding_transactions_stripe", default: false, null: false
+    t.boolean "subject_has_active_cards", default: false, null: false
     t.index ["closed_by_id"], name: "index_organizer_position_deletion_requests_on_closed_by_id"
     t.index ["organizer_position_id"], name: "index_organizer_deletion_requests_on_organizer_position_id"
     t.index ["submitted_by_id"], name: "index_organizer_position_deletion_requests_on_submitted_by_id"
@@ -869,6 +871,14 @@ ActiveRecord::Schema.define(version: 2021_12_05_051705) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.datetime "submitted_at"
+    t.string "docusign_envelope_id"
+    t.boolean "signed_contract"
+    t.string "owner_address_line1"
+    t.string "owner_address_line2"
+    t.string "owner_address_city"
+    t.string "owner_address_state"
+    t.text "owner_address_postal_code"
+    t.integer "owner_address_country"
     t.index ["event_id"], name: "index_partnered_signups_on_event_id"
     t.index ["partner_id"], name: "index_partnered_signups_on_partner_id"
     t.index ["user_id"], name: "index_partnered_signups_on_user_id"
@@ -885,6 +895,7 @@ ActiveRecord::Schema.define(version: 2021_12_05_051705) do
     t.string "public_stripe_api_key"
     t.text "stripe_api_key_ciphertext"
     t.string "webhook_url"
+    t.string "docusign_template_id"
   end
 
   create_table "raw_csv_transactions", force: :cascade do |t|

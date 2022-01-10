@@ -106,6 +106,7 @@ Rails.application.routes.draw do
       get "event_new", to: "admin#event_new"
       post "event_create", to: "admin#event_create"
       get "donations", to: "admin#donations"
+      get "partner_donations", to: "admin#partner_donations"
       get "disbursements", to: "admin#disbursements"
       get "disbursement_new", to: "admin#disbursement_new"
       post "disbursement_create", to: "admin#disbursement_create"
@@ -314,7 +315,7 @@ Rails.application.routes.draw do
       post "start/:event_name", to: "donations#make_donation", as: "make_donation"
       get "qr/:event_name.png", to: "donations#qr_code", as: "qr_code"
       get ":event_name/:donation", to: "donations#finish_donation", as: "finish_donation"
-
+      get "export"
     end
 
     member do
@@ -322,6 +323,12 @@ Rails.application.routes.draw do
     end
 
     resources :comments
+  end
+
+  resources :partner_donations, only: [:show] do
+    collection do
+      get "export"
+    end
   end
 
   namespace :api do
@@ -341,10 +348,11 @@ Rails.application.routes.draw do
   get "partnered_signups/:public_id", to: "partnered_signups#edit", as: :edit_partnered_signups
   patch "partnered_signups/:public_id", to: "partnered_signups#update", as: :update_partnered_signups
 
-  get  "api/v1/events/find", to: "api#event_find" # to be deprecated
+  get "api/v1/events/find", to: "api#event_find" # to be deprecated
   post "api/v1/disbursements", to: "api#disbursement_new" # to be deprecated
 
   post "stripe/webhook", to: "stripe#webhook"
+  get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"
 
   post "export/finances", to: "exports#financial_export"
 
@@ -360,6 +368,9 @@ Rails.application.routes.draw do
   get "/integrations/frankly" => "integrations#frankly"
 
   post "twilio/messaging", to: "admin#twilio_messaging"
+
+  match "/404", to: "errors#not_found", via: :all
+  match "/500", to: "errors#internal_server_error", via: :all
 
   get "/events" => "events#index"
   get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
@@ -389,7 +400,6 @@ Rails.application.routes.draw do
     get "donations", to: "events#donation_overview", as: :donation_overview
     get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overview
     get "bank_fees", to: "events#bank_fees", as: :bank_fees
-    # suspend this while check processing is on hold
     resources :checks, only: [:new, :create]
     resources :ach_transfers, only: [:new, :create]
     resources :organizer_position_invites,

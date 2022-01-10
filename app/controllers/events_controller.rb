@@ -16,15 +16,19 @@ class EventsController < ApplicationController
   # GET /events/1
   def show
     authorize @event
+
+    # The search query name was historically `search`. It has since been renamed
+    # to `q`. This following line retains backwards compatibility.
+    params[:q] ||= params[:search]
+
     @organizers = @event.organizer_positions.includes(:user)
     @pending_transactions = _show_pending_transactions
 
-    if using_transaction_engine_v2?
-      @transactions_flat = [] #paginate(_show_transactions, per_page: 100) # v2. placeholder for flat history.
-      @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:search]).run).page(params[:page]).per(100)
-    else
-      @transactions = paginate(TransactionEngine::Transaction::AllDeprecated.new(event_id: @event.id).run, per_page: 100)
+    if !signed_in? && !@event.holiday_features
+      @hide_holiday_features = true
     end
+
+    @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q]).run).page(params[:page]).per(100)
   end
 
   def fees
@@ -109,9 +113,9 @@ class EventsController < ApplicationController
 
   def emburse_card_overview
     @event = Event.includes([
-      { emburse_cards: :user },
-      { emburse_transfers: [:t_transaction, :creator] }
-    ]).find(params[:event_id])
+                              { emburse_cards: :user },
+                              { emburse_transfers: [:t_transaction, :creator] }
+                            ]).find(params[:event_id])
     authorize @event
     @emburse_cards = @event.emburse_cards.includes(user: [:profile_picture_attachment])
     @emburse_card_requests = @event.emburse_card_requests.includes(creator: :profile_picture_attachment)
@@ -200,6 +204,10 @@ class EventsController < ApplicationController
   def donation_overview
     authorize @event
 
+    # The search query name was historically `search`. It has since been renamed
+    # to `q`. This following line retains backwards compatibility.
+    params[:q] ||= params[:search]
+
     relation = @event.donations.not_pending
 
     @stats = {
@@ -213,7 +221,7 @@ class EventsController < ApplicationController
     relation = relation.in_transit if params[:filter] == "in_transit"
     relation = relation.deposited if params[:filter] == "deposited"
     relation = relation.refunded if params[:filter] == "refunded"
-    relation = relation.search_name(params[:search]) if params[:search].present?
+    relation = relation.search_name(params[:q]) if params[:q].present?
 
     @donations = relation.order(created_at: :desc)
   end
@@ -249,6 +257,10 @@ class EventsController < ApplicationController
   def transfers
     authorize @event
 
+    # The search query name was historically `search`. It has since been renamed
+    # to `q`. This following line retains backwards compatibility.
+    params[:q] ||= params[:search]
+
     ach_relation = @event.ach_transfers
     checks_relation = @event.checks
 
@@ -260,14 +272,14 @@ class EventsController < ApplicationController
 
     ach_relation = ach_relation.in_transit if params[:filter] == "in_transit"
     ach_relation = ach_relation.deposited if params[:filter] == "deposited"
-    ach_relation =ach_relation.rejected if params[:filter] == "canceled"
-    ach_relation = ach_relation.search_recipient(params[:search]) if params[:search].present?
+    ach_relation = ach_relation.rejected if params[:filter] == "canceled"
+    ach_relation = ach_relation.search_recipient(params[:q]) if params[:q].present?
     @ach_transfers = ach_relation
 
     checks_relation = checks_relation.in_transit_or_in_transit_and_processed if params[:filter] == "in_transit"
     checks_relation = checks_relation.deposited if params[:filter] == "deposited"
     checks_relation = checks_relation.canceled if params[:filter] == "canceled"
-    checks_relation = checks_relation.search_recipient(params[:search]) if params[:search].present?
+    checks_relation = checks_relation.search_recipient(params[:q]) if params[:q].present?
     @checks = checks_relation
 
     @transfers = (@checks + @ach_transfers).sort_by { |o| o.created_at }.reverse
@@ -332,6 +344,7 @@ class EventsController < ApplicationController
       :donation_page_enabled,
       :donation_page_message,
       :is_public,
+      :holiday_features,
       :public_message
     )
 
@@ -351,6 +364,7 @@ class EventsController < ApplicationController
       :donation_page_enabled,
       :donation_page_message,
       :is_public,
+      :holiday_features,
       :public_message
     )
 
@@ -364,6 +378,7 @@ class EventsController < ApplicationController
     return [] if params[:page] && params[:page] != "1"
     return [] unless using_transaction_engine_v2? && using_pending_transaction_engine?
 
-    PendingTransactionEngine::PendingTransaction::All.new(event_id: @event.id, search: params[:search]).run
+    PendingTransactionEngine::PendingTransaction::All.new(event_id: @event.id, search: params[:q]).run
   end
+
 end

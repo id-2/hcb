@@ -15,28 +15,50 @@ module UsersHelper
     # so this method shows Gravatars/intials for non-registered and allows showing of uploaded profile pictures for registered users.
     if Rails.env.production? && (user.is_a?(User) && user&.profile_picture.attached?)
       src = user.profile_picture.variant(combine_options: {
-        thumbnail: "#{size * 2}x#{size * 2}^",
-        gravity: "center",
-        extent: "#{size * 2}x#{size * 2}" })
+                                           thumbnail: "#{size * 2}x#{size * 2}^",
+                                           gravity: "center",
+                                           extent: "#{size * 2}x#{size * 2}"
+                                         })
     else
       src = gravatar_url(user.email, user.initials, user.id, size * 2)
     end
 
-    image_tag(src, options.merge({ loading: "lazy", alt: user.name, width: size, height: size, class: "circle shrink-none #{options[:class]}" }))
+    klasses = ["circle", "shrink-none"]
+    klasses << "avatar--current-user" if user == current_user
+    klasses << options[:class] if options[:class]
+    klass = klasses.join(" ")
+
+    image_tag(src, options.merge(loading: "lazy", alt: user.name, width: size, height: size, class: klass))
   end
 
   def user_mention(user, options = {})
     avi = avatar_for user
     name = content_tag :span, user.initial_name
-    if user.admin?
-      bolt = inline_icon "admin-badge", size: 20
-      content_tag :span,
-                  avi + bolt + name,
-                  class: "mention mention--admin tooltipped tooltipped--n #{options[:class]}",
-                  'aria-label': "#{user.name.split(' ').first} is an admin"
-    else
-      content_tag :span, avi + name, class: "mention #{options[:class]}"
-    end
+
+    klasses = ["mention"]
+    klasses << %w[mention--admin tooltipped tooltipped--n] if user.admin?
+    klasses << "mention--current-user" if user == current_user
+    klasses << options[:class] if options[:class]
+    klass = klasses.join(" ")
+
+    aria = if user == current_user
+             [
+               "You!",
+               "Yourself!",
+               "It's you!"
+             ].sample
+           elsif user.admin?
+             "#{user.name.split(' ').first} is an admin"
+           end
+
+    content = if user.admin?
+                bolt = inline_icon "admin-badge", size: 20
+                avi + bolt + name
+              else
+                avi + name
+              end
+
+    content_tag :span, content, class: klass, 'aria-label': aria
   end
 
   def admin_tools(class_name = "", element = "div", &block)
@@ -48,8 +70,13 @@ module UsersHelper
   end
 
   def creator_bar(object, options = {})
-    creator = defined?(object.creator) ? object.creator :
-      defined?(object.sender) ? object.sender : object.user
+    creator = if defined?(object.creator)
+                object.creator
+              elsif defined?(object.sender)
+                object.sender
+              else
+                object.user
+              end
     mention = creator ? user_mention(creator) : content_tag(:strong, "Anonymous")
     content_tag :div, class: "comment__name" do
       mention + relative_timestamp(object.created_at, prefix: options[:prefix], class: "h5 muted")

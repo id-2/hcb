@@ -1,4 +1,4 @@
-<%= form_with(model: partnered_signup, url: edit_partnered_signups_path(public_id: partnered_signup.public_id), local: true) do |form| %>
+<%= form_with(model: partnered_signup, url: edit_partnered_signups_path(public_id: partnered_signup.public_id), local: true, html:{ onsubmit: 'onSubmit()'}) do |form| %>
 
   <%= form_errors partnered_signup %>
 
@@ -12,30 +12,61 @@
   <h2>Your information</h2>
 
   <p>
-    <%= form.label :owner_name %>
+    <%= form.label :owner_name, "Your name" %>
     <%= form.text_field :owner_name, class: 'fit', value: @partnered_signup.owner_name, placeholder: 'Fiona Hackworth', disabled: @partnered_signup.owner_name.present?  %>
   </p>
 
   <p>
-    <%= form.label :owner_email %>
+    <%= form.label :owner_email, "Your email" %>
     <%= form.text_field :owner_email, class: 'fit', value: @partnered_signup.owner_email, placeholder: 'fionah@gmail.com', disabled: @partnered_signup.owner_email.present? %>
   </p>
 
   <p>
-    <%= form.label :owner_phone %>
-    <%= form.text_field :owner_phone, class: 'fit', value: @partnered_signup.owner_phone, placeholder: '8556254225' %>
+    <%= form.label :owner_phone, "Your phone number" %>
+    <%= form.hidden_field :owner_phone, required: true, placeholder: '555-555-5555', id: 'phone_number' %>
+    <input type="tel" id="phone_raw" value="<%= @partnered_signup.owner_phone || nil %>"><br/>
+    <span class="muted h5">We'll only use this if we need to get in touch with you urgently.</span>
+  </p>
+ <p>
+ <section class="grid grid--split">
+  <p class="field">
+    <%= form.label :owner_address_line1, "Address (line 1)" %>
+    <%= form.text_field :owner_address_line1, placeholder: "8605 Santa Monica Blvd" %>
+  </p>
+  <p class="field">
+    <%= form.label :owner_address_line2, "Address (line 2)" %>
+    <%= form.text_field :owner_address_line2, placeholder: "Suite #86294" %>
+  </p>
+  <div class="field grid__half">
+    <%= form.label :owner_address_city, "City" %>
+    <%= form.text_field :owner_address_city, placeholder: "West Hollywood" %>
+  </div>
+  <div class="field grid__half">
+    <%= form.label :owner_address_state, "State" %>
+    <%= form.text_field :owner_address_state, placeholder: "CA" %>
+  </div>
+  <div class="field grid__half">
+    <%= form.label :owner_address_postal_code, "ZIP code" %>
+    <%= form.text_field :owner_address_postal_code, placeholder: "90069" %>
+  </div>
+  <div class="field grid__half">
+    <%= form.label :owner_address_country, "Country" %>
+    <%= form.text_field :owner_address_country, placeholder: "US" %>  
+  </div>
+  </section>
+  <span class="muted h5">This is so we can send you some swag and goodies if you ever request them!</span>
   </p>
 
-  <p>
-    <%= form.label :owner_address %>
-    <%= form.text_field :owner_address, class: 'fit', value: @partnered_signup.owner_address, placeholder: '8605 Santa Monica Blvd #86294 West Hollywood, CA 90069' %>
-  </p>
 
   <p>
-    <%= form.label :owner_birthdate %>
+    <%= form.label :owner_birthdate, "Date of birth" %>
     <%= form.date_field :owner_birthdate, class: 'fit', value: @partnered_signup.owner_birthdate %>
   </p>
 
   <%= form.submit 'Connect' %>
 
 <% end %>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js" integrity="sha512-QMUqEPmhXq1f3DnAVdXvu40C8nbTgxvBGvNruP6RFacy3zWKbNTmx7rdQVVM2gkd2auCWhlPYtcW2tHwzso4SA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/css/intlTelInput.css" integrity="sha512-gxWow8Mo6q6pLa1XH/CcH8JyiSDEtiwJV78E+D+QP0EVasFs8wKXq16G8CLD4CJ2SnonHr4Lm/yY2fSI2+cbmw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<%= javascript_include_tag "phone_input.js" %>

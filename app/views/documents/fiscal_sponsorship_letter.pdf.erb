@@ -1,3 +1,5 @@
+<% fs_date = @event.created_at %>
+
 <head>
   <title><%= @event.name %> Fiscal Sponsorship Confirmation</title>
   <style>
@@ -45,7 +47,7 @@
           <span class="bold">Hack Club</span><br />
           <span style="white-space: nowrap;">8605 Santa Monica Boulevard #86294</span><br />
           West Hollywood, CA 90069<br />
-          team@hackclub.com
+          bank@hackclub.com
         </p>
       <%= image_tag(wicked_pdf_asset_base64('hack_club_logo.png'), width: 156.6, height: 26.88, class: 'centerImage')%>
     </div>
@@ -59,14 +61,15 @@
     <div style="line-height: 1.5;">
       <p>To whom it may concern,</p>
       <p>
-        This letter is to verify that The Hack Foundation (d.b.a. Hack Club) is acting as the nonprofit <a href="https://en.wikipedia.org/wiki/Fiscal_sponsorship">fiscal sponsor</a> for <%= @event.name %>.
+        This letter is to verify that The Hack Foundation (d.b.a. Hack Club) is acting as the nonprofit <a href="https://en.wikipedia.org/wiki/Fiscal_sponsorship">fiscal sponsor</a> for <%= @event.name %>
+        since <%= fs_date.strftime("%B #{fs_date.day.ordinalize}, %Y") %>.
       </p>
       <p>
         We have established a restricted fund within our foundation to support their organization and are
 receiving donations and other funds on their behalf. The Hack Foundation is a 501(c)(3) public charity with the EIN 81-2908499.
       </p>
       <p>
-        Please don't hesitate to contact me with any additional questions. I can be reached at <a href="mailto:melanie@hackclub.com">melanie@hackclub.com</a>
+        Please don't hesitate to contact me with any additional questions. I can be reached at <a href="mailto:melanie@hackclub.com">melanie@hackclub.com</a>.
       </p>
     </div>
 

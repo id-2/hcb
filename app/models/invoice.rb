@@ -118,6 +118,7 @@ class Invoice < ApplicationRecord
 
   def state_icon
     return "checkmark" if paid_v2? && deposited?
+
     "clock" if paid_v2?
   end
 
@@ -191,7 +192,10 @@ class Invoice < ApplicationRecord
   end
 
   def arrival_date
-    self&.payout&.arrival_date || 3.business_days.after(payout_creation_queued_for)
+    arrival = self&.payout&.arrival_date || 3.business_days.after(payout_creation_queued_for)
+
+    # Add 1 day to account for plaid and Bank processing time
+    arrival + 1.day
   end
 
   def arriving_late?
@@ -276,4 +280,5 @@ class Invoice < ApplicationRecord
   def slug_text
     "#{self.sponsor.name} #{self.item_description}"
   end
+
 end

@@ -21,6 +21,7 @@
     <% end %>
 
     <p>
+      <a class="skip-to-main" href="#main">Skip to main content</a>
       <%= link_to "admin", root_path %>
       |
       <%= link_to "bank accounts (#{BankAccount.failing.count})", bank_accounts_admin_index_path %>
@@ -49,6 +50,8 @@
       |
       <%= link_to "checks (#{Check.in_transit.count})", check_admin_index_path %>
       |
+      <%= link_to "Partner donations", partner_donations_admin_index_path %>
+      |
       <%= link_to "donations", donations_admin_index_path %>
       |
       <%= link_to "disbursements (#{Disbursement.pending.count})", disbursements_admin_index_path %>
@@ -70,6 +73,9 @@
 
     <hr/>
 
-    <%= yield %>
+    <div id="main">
+      <%= yield %>
+    </div>
+
   </body>
 </html>

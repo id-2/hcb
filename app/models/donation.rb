@@ -84,6 +84,7 @@ class Donation < ApplicationRecord
 
   def state_icon
     return "checkmark" if deposited?
+
     "clock" if in_transit?
   end
 
@@ -104,7 +105,10 @@ class Donation < ApplicationRecord
   end
 
   def arrival_date
-    self&.payout&.arrival_date || 3.business_days.after(payout_creation_queued_for)
+    arrival = self&.payout&.arrival_date || 3.business_days.after(payout_creation_queued_for)
+
+    # Add 1 day to account for plaid and Bank processing time
+    arrival + 1.day
   end
 
   def arriving_late?
@@ -247,4 +251,5 @@ class Donation < ApplicationRecord
   def assign_unique_hash
     self.url_hash = SecureRandom.hex(8)
   end
+
 end

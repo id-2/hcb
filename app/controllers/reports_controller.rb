@@ -32,10 +32,11 @@ class ReportsController < ApplicationController
   end
 
   def clean_event_name
-    @event.name.gsub!(/\s+/, "_").gsub!(/[^0-9A-Za-z_]/, "-")
+    @event.name.gsub(/\s+/, "_").gsub(/[^0-9A-Za-z_]/, "-")
   end
 
   def current_time
     Time.now.strftime("%m_%d_%Y")
   end
+
 end

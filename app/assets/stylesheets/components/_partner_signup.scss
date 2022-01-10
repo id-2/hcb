@@ -1,0 +1,57 @@
+.partner-logo-left {
+    animation-delay: 7s;
+    animation: fadeInLeft 6s;
+}
+
+.partner-logo-right {
+    animation-delay: 7s;
+    animation: fadeInRight 6s;
+}
+
+@keyframes fadeInUp {
+    50% {
+        opacity: 0;
+        transform: translateY(60%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    50% {
+        opacity: 0;
+        transform: translateY(-20%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    50% {
+        opacity: 0;
+        transform: translateX(-20%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    50% {
+        opacity: 0;
+        transform: translateX(20%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

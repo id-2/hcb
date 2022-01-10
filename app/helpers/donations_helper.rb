@@ -23,9 +23,9 @@ module DonationsHelper
   def donation_payout_datetime(donation = @donation)
     if donation.deposited?
       title = "Funds available since"
-      date = @hcb_code.canonical_transactions.pluck(:date).min
+      date = @hcb_code.canonical_transactions.pluck(:date).max
     elsif donation.payout_creation_queued_at && donation.payout.nil?
-      title = "Transfer arrives at"
+      title = "Transfer scheduled"
       date = donation.payout_creation_queued_for
     elsif donation.payout_creation_queued_at && donation.payout.present?
       title = "Funds should be available"
@@ -44,7 +44,6 @@ module DonationsHelper
     payout = donation&.payout
     payout_t = donation&.payout&.t_transaction
 
-
     return "–" unless donation&.payment_method_type
 
     if donation&.payment_method_card_brand
@@ -52,16 +51,16 @@ module DonationsHelper
       last4 = donation&.payment_method_card_last4
 
       icon_name = {
-        "amex" => "card-amex",
+        "amex"       => "card-amex",
         "mastercard" => "card-mastercard",
-        "visa" => "card-visa",
-        "discover" => "card-discover"
+        "visa"       => "card-visa",
+        "discover"   => "card-discover"
       }[brand] || "card-other"
       tooltip = {
-        "amex" => "American Express",
+        "amex"       => "American Express",
         "mastercard" => "Mastercard",
-        "visa" => "Visa",
-        "discover" => "Discover"
+        "visa"       => "Visa",
+        "discover"   => "Discover"
       }[brand] || "Card"
       tooltip += " ending in #{last4}" if last4 && organizer_signed_in?
       description_text = organizer_signed_in? ? "••••#{last4}" : "••••"
@@ -69,7 +68,12 @@ module DonationsHelper
     else
       icon_name = "bank-account"
       size = 20
-      description_text = donation.payment_method_type.humanize
+
+      if donation&.payment_method_type == "ach_credit_transfer"
+        description_text = "ACH Transfer"
+      else
+        description_text = donation.payment_method_type.humanize
+      end
     end
 
     description = content_tag :span, description_text, class: "ml1"

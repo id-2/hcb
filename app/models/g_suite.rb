@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class GSuite < ApplicationRecord
-  VALID_DOMAIN = /[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\z/ix
+  VALID_DOMAIN = /[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\z/ix.freeze
 
   has_paper_trail
 
@@ -41,7 +41,8 @@ class GSuite < ApplicationRecord
   scope :not_deleted, -> { where("deleted_at is null") }
   scope :needs_ops_review, -> { where("deleted_at is null and aasm_state in (?)", ["creating", "verifying"]) }
 
-  validates :domain, presence: true, uniqueness: { case_sensitive: false }, format: { with: VALID_DOMAIN }
+  validates :domain, presence: true, format: { with: VALID_DOMAIN }
+  validates_uniqueness_of :domain, conditions: -> { where(deleted_at: nil) }
 
   before_validation :clean_up_verification_key
 
@@ -69,13 +70,10 @@ class GSuite < ApplicationRecord
     deleted_at.present?
   end
 
-  def ou_name
-    "##{event.id} #{event.name.to_s.gsub("+", "")}".strip # TODO: fix this brittleness. our ou's have been tied to Event.name but that has multiple issues - a user could change their event name, an event name might have non-permitted characters in it for an ou name. we should just use event.id. probably requires migration of all old ous. TODO: .strip
-  end
-
   private
 
   def clean_up_verification_key
     self.verification_key = verification_key.gsub("google-site-verification=", "") if verification_key.present?
   end
+
 end

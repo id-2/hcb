@@ -13,6 +13,9 @@ class Comment < ApplicationRecord
 
   validate :commentable_includes_concern
 
+  scope :admin_only, -> { where(admin_only: true) }
+  scope :not_admin_only, -> { where(admin_only: false) }
+
   private
 
   def commentable_includes_concern
@@ -24,4 +27,5 @@ class Comment < ApplicationRecord
   def file_is_attached?
     file.attached?
   end
+
 end

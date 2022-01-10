@@ -8,13 +8,17 @@ class InvoicesController < ApplicationController
     relation = @event.invoices
     authorize relation
 
+    # The search query name was historically `search`. It has since been renamed
+    # to `q`. This following line retains backwards compatibility.
+    params[:q] ||= params[:search]
+
     # from events controller
     @invoices_in_transit = (relation.paid_v2.where(payout_id: nil)
       .where
       .not(payout_creation_queued_for: nil) +
       @event.invoices.joins(:payout)
-      .where(invoice_payouts: { status: ("in_transit") })
-      .or(@event.invoices.joins(:payout).where(invoice_payouts: { status: ("pending") })))
+      .where(invoice_payouts: { status: "in_transit" })
+      .or(@event.invoices.joins(:payout).where(invoice_payouts: { status: "pending" })))
     amount_in_transit = @invoices_in_transit.sum(&:amount_paid)
 
     @stats = {
@@ -28,7 +32,7 @@ class InvoicesController < ApplicationController
     relation = relation.paid_v2 if params[:filter] == "paid"
     relation = relation.unpaid if params[:filter] == "unpaid"
     relation = relation.archived if params[:filter] == "archived"
-    relation = relation.search_description(params[:search]) if params[:search].present?
+    relation = relation.search_description(params[:q]) if params[:q].present?
 
     @invoices = relation.order(created_at: :desc)
 
@@ -51,9 +55,9 @@ class InvoicesController < ApplicationController
 
     sponsor_attrs = filtered_params[:sponsor_attributes]
 
-    due_date = Date::civil(filtered_params["due_date(1i)"].to_i,
-                           filtered_params["due_date(2i)"].to_i,
-                           filtered_params["due_date(3i)"].to_i)
+    due_date = Date.civil(filtered_params["due_date(1i)"].to_i,
+                          filtered_params["due_date(2i)"].to_i,
+                          filtered_params["due_date(3i)"].to_i)
 
     attrs = {
       event_id: params[:event_id],
@@ -141,4 +145,5 @@ class InvoicesController < ApplicationController
   def set_event
     @event = Event.friendly.find(params[:id] || params[:event_id])
   end
+
 end

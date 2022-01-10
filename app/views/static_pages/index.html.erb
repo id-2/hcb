@@ -8,7 +8,7 @@
     <span class="h3 caps secondary block">Welcome to</span>
     <span class="primary nowrap">Hack&nbsp;Club Bank</span>
   </div>
-  <span class="badge ml0 h5 caps"><%= random_nickname.html_safe %></span>
+  <span class="badge ml0 h5 caps"><%= flavor_text.html_safe %></span>
 </h1>
 
 <main class="flex flex-column items-center center pb3">
@@ -17,7 +17,7 @@
       <ul class="grid grid--narrow left-align w-100 mt0">
         <% @events.not_hidden.each do |event| %>
           <%= link_to event do %>
-            <li class="card card--hover flex flex-column justify-between">
+            <li class="card card--hover flex flex-column justify-between card--height-100">
               <strong class="brand-sans h3 line-height-2 mb1"><%= event.name %></strong>
               <div class="avatar-row">
                 <% event.organizer_positions.each do |position| %>
@@ -28,11 +28,13 @@
           <% end %>
         <% end %>
         <a href="https://hack.af/bank-apply?prefill_Have%20you%20used%20Hack%20Club%20Bank%20for%20any%20previous%20projects?=Yes,%20I%20have%20used%20Hack%20Club%20Bank%20before&prefill_First+Name=<%= current_user.first_name %>&prefill_Last+Name=<%= current_user.last_name %>&prefill_Email+Address=<%= current_user.email %>&prefill_Phone+Number=<%= current_user.phone_number %>">
-          <li class="card card--hover bold brand-sans flex items-center align-center">
-            <span class="pop success mr1">
-              <%= inline_icon 'plus', size: 28 %>
-            </span>
-            New project
+          <li class="card card--hover bold brand-sans flex items-center justify-center align-center card--height-100">
+            <div class="center">
+              <div class="pop success mx-auto" style="display: flex; margin-bottom: 4px;">
+                <%= inline_icon 'plus', size: 28 %>
+              </div>
+              New Project
+            </div>
           </li>
         </a>
       </ul>
@@ -97,6 +99,7 @@
       <%= card_to "ACH (#{AchTransfer.pending.count})", ach_admin_index_path %>
       <%= card_to "Check (#{Check.in_transit.count})", check_admin_index_path %>
       <%= card_to "Donations", donations_admin_index_path %>
+      <%= card_to "Partner Donations (#{PartnerDonation.in_transit.count})", partner_donations_admin_index_path %>
       <%= card_to "Disbursements (#{Disbursement.pending.count})", disbursements_admin_index_path %>
       <%= card_to "Invoices", invoices_admin_index_path %>
       <%= card_to "Sponsors", sponsors_admin_index_path %>
@@ -116,7 +119,7 @@
       <%#= react_component 'admin_task/Card', human_name: 'Transactions', task_name: :transactions, task_path: transactions_path %>
       <%= react_component 'admin_task/Card', human_name: 'Hackathons', task_name: :pending_hackathons_airtable, task_path: link_to_airtable_task(:hackathons) %>
       <%= react_component 'admin_task/Card', human_name: 'Grants', task_name: :pending_grant_airtable, task_path: link_to_airtable_task(:grant) %>
-      <%= react_component 'admin_task/Card', human_name: 'StickerMule', task_name: :pending_stickermule_airtable, task_path: link_to_airtable_task(:stickermule) %>
+      <%= react_component 'admin_task/Card', human_name: 'Sticker Mule', task_name: :pending_stickermule_airtable, task_path: link_to_airtable_task(:stickermule) %>
       <%= react_component 'admin_task/Card', human_name: 'Stickers', task_name: :pending_stickers_airtable, task_path: link_to_airtable_task(:stickers) %>
       <%= react_component 'admin_task/Card', human_name: 'Replit', task_name: :pending_replit_airtable, task_path: link_to_airtable_task(:replit) %>
       <%= react_component 'admin_task/Card', human_name: 'Sendy', task_name: :pending_sendy_airtable, task_path: link_to_airtable_task(:sendy) %>
