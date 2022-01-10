@@ -28,6 +28,7 @@ module EventMappingEngine
       def check_number
         @check_number ||= memo.upcase.gsub("CHECK TO ACCOUNT 3302340703", "").strip
       end
+
     end
   end
 end

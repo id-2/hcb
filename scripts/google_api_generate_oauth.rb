@@ -8,7 +8,7 @@ TOKEN_FILE = Tempfile.new("token")
 TOKEN_PATH = TOKEN_FILE.path
 
 OOB_URI = "urn:ietf:wg:oauth:2.0:oob"
-SCOPE = [Google::Apis::AdminDirectoryV1::AUTH_ADMIN_DIRECTORY_USER, Google::Apis::AdminDirectoryV1::AUTH_ADMIN_DIRECTORY_ORGUNIT]
+SCOPE = [Google::Apis::AdminDirectoryV1::AUTH_ADMIN_DIRECTORY_USER, Google::Apis::AdminDirectoryV1::AUTH_ADMIN_DIRECTORY_ORGUNIT].freeze
 
 APP_DATA = '{"installed":{"client_id":"520922093619-92bhvjec43fj6pveijtt7k581bg24r8c.apps.googleusercontent.com","project_id":"quickstart-1578858562744","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"q7L6ZRFv9rchXXGeCKvngtqQ","redirect_uris":["urn:ietf:wg:oauth:2.0:oob","http://localhost"]}}'
 
