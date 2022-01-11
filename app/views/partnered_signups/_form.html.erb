@@ -9,6 +9,17 @@
     <%= form.text_field :organization_name, class: 'fit', placeholder: 'ACME Organization', value: @partnered_signup.organization_name %>
   </p>
 
+  <p>
+    <%= form.label :organization_url, "Organization website" %>
+    <span class="muted h5">If you don't have a website you can leave this blank.</span>
+    <%= form.text_field :organization_url, class: 'fit', placeholder: 'example.com', value: @partnered_signup.organization_url %>
+  </p>
+
+  <p>
+    <%= form.label :organization_description, "What does your organization do?" %>
+    <%= form.text_area :organization_description, class: 'fit', value: @partnered_signup.organization_description %>
+  </p>
+
   <h2>Your information</h2>
 
   <p>
@@ -23,9 +34,9 @@
 
   <p>
     <%= form.label :owner_phone, "Your phone number" %>
+    <span class="muted h5">We'll only use this if we need to get in touch with you urgently.</span>
     <%= form.hidden_field :owner_phone, required: true, placeholder: '555-555-5555', id: 'phone_number' %>
     <input type="tel" id="phone_raw" value="<%= @partnered_signup.owner_phone || nil %>"><br/>
-    <span class="muted h5">We'll only use this if we need to get in touch with you urgently.</span>
   </p>
  <p>
  <section class="grid grid--split">
@@ -63,7 +74,7 @@
     <%= form.date_field :owner_birthdate, class: 'fit', value: @partnered_signup.owner_birthdate %>
   </p>
 
-  <%= form.submit 'Connect' %>
+  <%= form.submit 'Continue' %>
 
 <% end %>
 

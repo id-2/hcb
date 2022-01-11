@@ -12,6 +12,8 @@ class PartneredSignup < ApplicationRecord
 
   validates :redirect_url, presence: true
   validates_presence_of [:organization_name,
+                         :organization_url,
+                         :organization_description,
                          :owner_name,
                          :owner_email,
                          :owner_phone,
@@ -64,6 +66,26 @@ class PartneredSignup < ApplicationRecord
   end
 
   scope :not_unsubmitted, -> { where.not(aasm_state: :unsubmitted) }
+
+  def admin_reject_redirect_url
+    recipient = "#{owner_name} <#{owner_email}>"
+    bcc = "bank@hackclub.com"
+    subject = "Application to Hack Club Bank"
+    reason = ""
+    "mailto:#{recipient}?bcc=#{bcc}&subject=#{subject}&body=#{reason}"
+  end
+
+  def admin_accept_redirect_url
+    recipient = "#{owner_name} <#{owner_email}>"
+    bcc = "bank@hackclub.com"
+    subject = "Application to Hack Club Bank"
+    reason = ""
+    "mailto:#{recipient}?bcc=#{bcc}&subject=#{subject}&body=#{reason}"
+  end
+
+  def unsubmitted?
+    !submitted?
+  end
 
   def continue_url
     Rails.application.routes.url_helpers.edit_partnered_signups_url(public_id: public_id)

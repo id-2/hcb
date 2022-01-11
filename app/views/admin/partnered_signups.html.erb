@@ -21,7 +21,7 @@
   <tbody>
     <% @partnered_signups.each do |partnered_signup| %>
       <tr class="<%= "admin-bg-pending" if partnered_signup.applicant_signed? %>">
-        <td><%= partnered_signup.public_id %></td>
+        <td><%= link_to partnered_signup.public_id, edit_partnered_signups_path(partnered_signup.public_id) %></td>
         <td><%= partnered_signup.organization_name %></td>
         <td><%= partnered_signup.owner_name %></td>
         <td><%= partnered_signup.owner_email %></td>

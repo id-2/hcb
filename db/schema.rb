@@ -883,6 +883,8 @@ ActiveRecord::Schema.define(version: 2022_02_04_035141) do
     t.string "aasm_state"
     t.datetime "applicant_signed_at"
     t.datetime "completed_at"
+    t.text "organization_url"
+    t.text "organization_description"
     t.index ["event_id"], name: "index_partnered_signups_on_event_id"
     t.index ["partner_id"], name: "index_partnered_signups_on_partner_id"
     t.index ["user_id"], name: "index_partnered_signups_on_user_id"
