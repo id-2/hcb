@@ -5,6 +5,8 @@ class GSuite < ApplicationRecord
 
   has_paper_trail
 
+  include Hashid::Rails
+
   include PgSearch::Model
   pg_search_scope :search_domain, against: [:domain]
 

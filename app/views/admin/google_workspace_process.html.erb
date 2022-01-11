@@ -29,6 +29,12 @@
       <td><%= @g_suite.dkim_key %></td>
     </tr>
     <tr>
+      <td style="text-align: right;">Bank DNS Verification:</td>
+      <td>
+        <%== ap @g_suite_bank_dns_verification %>
+      </td>
+    </tr>
+    <tr>
       <td style="text-align: right;">DNS Check:</td>
       <td> <%= link_to @g_suite.domain, @g_suite.dns_check_url %></td>
     </tr>

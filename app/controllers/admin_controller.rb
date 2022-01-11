@@ -861,6 +861,9 @@ class AdminController < ApplicationController
   def google_workspace_process
     @g_suite = GSuite.find(params[:id])
 
+    @g_suite_bank_dns_verification =
+      ::GSuiteService::BankDnsVerification.new(g_suite_id: @g_suite.id).verify
+
     render layout: "admin"
   end
 
