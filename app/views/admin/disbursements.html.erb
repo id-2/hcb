@@ -5,7 +5,7 @@
 <%= paginate @disbursements %>
 
 <%= form_with local: true, url: disbursements_admin_index_path, method: :get do |form| %>
-  <%= form.text_field :q, value: params[:q] %>
+  <%= form.text_field :q, value: params[:q], placeholder: 'Search' %>
   <%= form.label :pending do %>
     <%= form.check_box :pending, checked: @pending %>
     Pending
@@ -40,7 +40,7 @@
   </thead>
   <tbody>
     <% @disbursements.each do |disbursement| %>
-      <tr style="<%= "background: #ffffcc;" if disbursement.pending? %>">
+      <tr class="<%= "admin-bg-pending" if disbursement.pending? %>">
         <td><%= disbursement.id %></td>
         <td><%= disbursement.created_at.strftime("%Y-%m-%d") %></td>
         <td>
