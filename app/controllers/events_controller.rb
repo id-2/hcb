@@ -177,7 +177,9 @@ class EventsController < ApplicationController
 
     @g_suite = @event.g_suites.not_deleted.first
 
-    @g_suite_bank_dns_verification = ::GSuiteService::BankDnsVerification.new(g_suite_id: @g_suite.id).generate
+    show_dns_verification = @g_suite&.creating?
+
+    @g_suite_bank_dns_verification = show_dns_verification ? ::GSuiteService::BankDnsVerification.new(g_suite_id: @g_suite.id).generate : nil
   end
 
   def g_suite_create
