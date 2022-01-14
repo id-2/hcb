@@ -18,7 +18,7 @@
     </article>
   <% end %>
 
-  <% if @g_suite.creating? %>
+  <% if !@g_suite_bank_dns_verification.nil? %>
     <section class="card center mt3 mb3 bg-pending pt3">
       <%= inline_icon 'email', size: 32 %>
       <h3 class="mt0 mb0">We’re compiling next steps for <%= @g_suite.domain %>.</h3>
