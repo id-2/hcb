@@ -73,8 +73,11 @@
   </div>
 
   <h1 class="center mt2">
-    <span class="h3 caps secondary block">Open an account through</span>
-    <span class=""><%= @partner.name || @partner.slug.humanize %></span>
+    <span class="h3 caps secondary block">Become a nonprofit through</span>
+    <%# Removed because it doesn't make sense to say "become a
+    nonprofit through [partner]" (@eilla1) %>
+    <!-- <span class=""><%= @partner.name || @partner.slug.humanize %></span> -->
+    <span class="">Hack Club Bank</span>
   </h1>
 
   <div class="mb3">
@@ -82,7 +85,9 @@
       <%= @partner.name || @partner.slug.humanize %> has partnered with
       <strong>Hack Club Bank</strong> to bring you seamless <%= link_to 'fiscal
       sponsorship', 'https://en.wikipedia.org/wiki/Fiscal_sponsorship', target:
-      '_blank' %> for your organization.
+      '_blank' %> for your organization. Gain all the benefits of 501(c)(3)
+      status such as tax-deductible donations, grant eligibility, and
+      alksdjf;laksjdf. Focus on running your nonprofit, not the paperwork.
     </p>
   </div>
 

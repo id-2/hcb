@@ -9,7 +9,12 @@
     <%= form.text_field :organization_name, class: 'fit', placeholder: 'ACME Organization', value: @partnered_signup.organization_name %>
   </p>
 
-  <h2>Your information</h2>
+  <p>
+    <%= form.label :organization_description, "Tell us about your organization" %>
+    <%= form.text_area :organization_description, class:  'fit', placeholder: "Tell us about your organization" %>
+  </p>
+
+  <h2>Your personal profile</h2>
 
   <p>
     <%= form.label :owner_name, "Your name" %>
@@ -66,7 +71,7 @@
 
 
 
-  <%= form.submit 'Connect' %>
+  <%= form.submit 'Sign up' %>
 
 <% end %>
 
