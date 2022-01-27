@@ -27,6 +27,12 @@
     <input type="tel" id="phone_raw" value="<%= @partnered_signup.owner_phone || nil %>"><br/>
     <span class="muted h5">We'll only use this if we need to get in touch with you urgently.</span>
   </p>
+
+  <p>
+    <%= form.label :owner_birthdate, "Date of birth" %>
+    <%= form.date_field :owner_birthdate, value: @partnered_signup.owner_birthdate %>
+  </p>
+
  <p>
  <section class="grid grid--split">
   <p class="field">
@@ -58,10 +64,7 @@
   </p>
 
 
-  <p>
-    <%= form.label :owner_birthdate, "Date of birth" %>
-    <%= form.date_field :owner_birthdate, class: 'fit', value: @partnered_signup.owner_birthdate %>
-  </p>
+
 
   <%= form.submit 'Connect' %>
 
