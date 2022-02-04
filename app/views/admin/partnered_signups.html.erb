@@ -32,18 +32,7 @@
           <%= partnered_signup.state_text %>
         </td>
         <td>
-          <% if partnered_signup.docusign_envelope_id %>
-            <%=  button_to "Go to Docusign", partnered_signup_sign_document_admin_index_url(partnered_signup) %>
-          <% end %>
-        <% if partnered_signup.applicant_signed? %>
-          <%= form_with(model: nil, local: true, url: partnered_signups_accept_admin_path(id: partnered_signup.id), method: :post) do |form| %>
-            <%= form.submit "Approve" %>
-          <% end %>
-
-          <%= form_with(model: nil, local: true, url: partnered_signups_reject_admin_path(id: partnered_signup.id), method: :post) do |form| %>
-            <%= form.submit "Reject" %>
-          <% end %>
-        <% end %>
+          <%= link_to "#{partnered_signup.pending? ? 'Process' : 'View'}", partnered_signup_process_admin_path(partnered_signup) %>
         </td>
       </tr>
     <% end %>

@@ -136,6 +136,7 @@ Rails.application.routes.draw do
       get "invoice_process", to: "admin#invoice_process"
       post "invoice_mark_paid", to: "admin#invoice_mark_paid"
 
+      get "partnered_signup_process", to: "admin#partnered_signup_process"
       post "partnered_signups_accept", to: "admin#partnered_signups_accept"
       post "partnered_signups_reject", to: "admin#partnered_signups_reject"
     end

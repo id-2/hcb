@@ -90,6 +90,8 @@ class PartneredSignupsController < ApplicationController
   def partnered_signup_params
     params.require(:partnered_signup).permit(
       :organization_name,
+      :organization_url,
+      :organization_description,
       :owner_name,
       :owner_phone,
       :owner_email,

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "cgi"
+
 class PartneredSignup < ApplicationRecord
   has_paper_trail
 
@@ -12,7 +14,6 @@ class PartneredSignup < ApplicationRecord
 
   validates :redirect_url, presence: true
   validates_presence_of [:organization_name,
-                         :organization_url,
                          :organization_description,
                          :owner_name,
                          :owner_email,
@@ -69,18 +70,22 @@ class PartneredSignup < ApplicationRecord
 
   def admin_reject_redirect_url
     recipient = "#{owner_name} <#{owner_email}>"
-    bcc = "bank@hackclub.com"
+    bcc = "bank-outgoing@hackclub.com"
     subject = "Application to Hack Club Bank"
     reason = ""
-    "mailto:#{recipient}?bcc=#{bcc}&subject=#{subject}&body=#{reason}"
+    "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
+    
+    "mailto:gary@hackclub.com"
   end
 
   def admin_accept_redirect_url
     recipient = "#{owner_name} <#{owner_email}>"
-    bcc = "bank@hackclub.com"
+    bcc = "bank-outgoing@hackclub.com"
     subject = "Application to Hack Club Bank"
     reason = ""
-    "mailto:#{recipient}?bcc=#{bcc}&subject=#{subject}&body=#{reason}"
+    "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
+    
+    "mailto:gary@hackclub.com"
   end
 
   def unsubmitted?

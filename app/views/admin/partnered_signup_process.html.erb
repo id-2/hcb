@@ -1,0 +1,61 @@
+<h1>Process Partnered Signup #<%= @partnered_signup.id %></h1>
+<!-- <p><small>Current Status: <%= @partnered_signup.aasm_state %></small></p> -->
+<p><small>Current Status: <%= @partnered_signup.status %></small></p>
+
+<h3>Partnered Signup Details</h3>
+<table class="table--autosize">
+  <tbody>
+    <tr>
+      <td style="text-align: right;">Partner:</td>
+      <td><%= @partnered_signup.partner.name %></td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">ID:</td>
+      <td><%= @partnered_signup.public_id %></td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">Organization name:</td>
+      <td><%= @partnered_signup.organization_name %></td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">Organization website:</td>
+      <td><%= link_to @partnered_signup.organization_url %></td>
+    </tr>
+    <tr>
+      <td style="text-align: right; max-width: 500px;">Organization description:</td>
+      <td><%= @partnered_signup.organization_description %></td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">Owner email:</td>
+      <td><%= mail_to @partnered_signup.owner_email %></td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">Owner phone:</td>
+      <td><%= @partnered_signup.owner_phone %></td>
+    </tr>
+  </tbody>
+</table>
+<br/>
+<hr/>
+<h3>Process</h3>
+
+<% if @partnered_signup.docusign_envelope_id %>
+  <%=  button_to "Go to Docusign", partnered_signup_sign_document_admin_index_url(@partnered_signup) %>
+<% end %>
+
+<% if @partnered_signup.pending? %>
+  <%= form_with(model: nil, local: true, url: partnered_signups_accept_admin_path(@partnered_signup), method: :post) do |form| %>
+    <%= form.submit "Approve" %>
+  <% end %>
+
+  <%= form_with(model: nil, local: true, url: partnered_signups_reject_admin_path(@partnered_signup), method: :post) do |form| %>
+    <%= form.submit "Reject" %>
+  <% end %>
+<% end %>
+
+<% if @partnered_signup.accepted? %>
+  <%= link_to "Approval Email Template", @partnered_signup.admin_accept_redirect_url %>
+<% end %>
+<% if @partnered_signup.rejected? %>
+  <%= link_to "Rejection Email Template", @partnered_signup.admin_reject_redirect_url %>
+<% end %>
