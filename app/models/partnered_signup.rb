@@ -74,7 +74,7 @@ class PartneredSignup < ApplicationRecord
     subject = "Application to Hack Club Bank"
     reason = ""
     "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
-    
+
     "mailto:gary@hackclub.com"
   end
 
@@ -84,7 +84,7 @@ class PartneredSignup < ApplicationRecord
     subject = "Application to Hack Club Bank"
     reason = ""
     "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
-    
+
     "mailto:gary@hackclub.com"
   end
 
