@@ -1,6 +1,5 @@
 <h1>Process Partnered Signup #<%= @partnered_signup.id %></h1>
-<!-- <p><small>Current Status: <%= @partnered_signup.aasm_state %></small></p> -->
-<p><small>Current Status: <%= @partnered_signup.status %></small></p>
+<p><small>Current Status: <%= @partnered_signup.aasm_state %></small></p>
 
 <h3>Partnered Signup Details</h3>
 <table class="table--autosize">
@@ -43,7 +42,8 @@
   <%=  button_to "Go to Docusign", partnered_signup_sign_document_admin_index_url(@partnered_signup) %>
 <% end %>
 
-<% if @partnered_signup.pending? %>
+<%# to fix %>
+<% if @partnered_signup.submitted? %>
   <%= form_with(model: nil, local: true, url: partnered_signups_accept_admin_path(@partnered_signup), method: :post) do |form| %>
     <%= form.submit "Approve" %>
   <% end %>
