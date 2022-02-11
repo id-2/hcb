@@ -33,7 +33,7 @@
         </td>
         <td>
           <%# to fix %>
-          <%= link_to "#{partnered_signup.submitted? ? 'Process' : 'View'}", partnered_signup_process_admin_path(partnered_signup) %>
+          <%= link_to "#{partnered_signup.applicant_signed? ? 'Process' : 'View'}", partnered_signup_process_admin_path(partnered_signup) %>
         </td>
       </tr>
     <% end %>

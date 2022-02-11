@@ -42,8 +42,7 @@
   <%=  button_to "Go to Docusign", partnered_signup_sign_document_admin_index_url(@partnered_signup) %>
 <% end %>
 
-<%# to fix %>
-<% if @partnered_signup.submitted? %>
+<% if @partnered_signup.applicant_signed? %>
   <%= form_with(model: nil, local: true, url: partnered_signups_accept_admin_path(@partnered_signup), method: :post) do |form| %>
     <%= form.submit "Approve" %>
   <% end %>
