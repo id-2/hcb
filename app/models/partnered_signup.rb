@@ -67,6 +67,7 @@ class PartneredSignup < ApplicationRecord
   end
 
   scope :not_unsubmitted, -> { where.not(aasm_state: :unsubmitted) }
+  scope :with_envelope, -> { where.not(docusign_envelope_id: nil) }
 
   def admin_reject_redirect_url
     recipient = "#{owner_name} <#{owner_email}>"
