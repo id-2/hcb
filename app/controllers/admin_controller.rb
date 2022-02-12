@@ -208,7 +208,7 @@ class AdminController < ApplicationController
     states << "applicant_signed" if @applicant_signed
     states << "completed" if @completed
     states << "rejected" if @rejected
-    relation = relation.where("aasm_state in (?)", states)
+    # relation = relation.where("aasm_state in (?)", states)
 
     relation = Event.partner
 

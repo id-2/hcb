@@ -5,31 +5,37 @@
 <table class="table--autosize">
   <tbody>
     <tr>
-      <td style="text-align: right;">Partner:</td>
+      <td class="bold right-align">Partner:</td>
       <td><%= @partnered_signup.partner.name %></td>
     </tr>
     <tr>
-      <td style="text-align: right;">ID:</td>
+      <td class="bold right-align">ID:</td>
       <td><%= @partnered_signup.public_id %></td>
     </tr>
     <tr>
-      <td style="text-align: right;">Organization name:</td>
+      <td class="bold right-align">Organization name:</td>
       <td><%= @partnered_signup.organization_name %></td>
     </tr>
     <tr>
-      <td style="text-align: right;">Organization website:</td>
-      <td><%= link_to @partnered_signup.organization_url %></td>
+      <td class="bold right-align">Organization website:</td>
+      <td>
+      <% if @partnered_signup.organization_url %>
+        <%= link_to @partnered_signup.organization_url %>
+      <% else %>
+        <span>N/A</span>
+      <% end %>
+      </td>
     </tr>
     <tr>
-      <td style="text-align: right; max-width: 500px;">Organization description:</td>
+      <td style="max-width: 500px;" class="bold right-align">Organization description:</td>
       <td><%= @partnered_signup.organization_description %></td>
     </tr>
     <tr>
-      <td style="text-align: right;">Owner email:</td>
+      <td class="bold right-align">Owner email:</td>
       <td><%= mail_to @partnered_signup.owner_email %></td>
     </tr>
     <tr>
-      <td style="text-align: right;">Owner phone:</td>
+      <td class="bold right-align">Owner phone:</td>
       <td><%= @partnered_signup.owner_phone %></td>
     </tr>
   </tbody>
@@ -37,6 +43,12 @@
 <br/>
 <hr/>
 <h3>Process</h3>
+
+<% if !@partnered_signup.applicant_signed? %>
+  <p>
+    Form was submitted, but the applicant has not signed the contract.
+  </p>
+<% end %>
 
 <% if @partnered_signup.docusign_envelope_id %>
   <%=  button_to "Go to Docusign", partnered_signup_sign_document_admin_index_url(@partnered_signup) %>
