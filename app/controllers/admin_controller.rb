@@ -197,6 +197,18 @@ class AdminController < ApplicationController
   def partner_organizations
     @page = params[:page] || 1
     @per = params[:per] || 100
+    @q = params[:q].present? ? params[:q] : nil
+    @applicant_signed = params[:applicant_signed] == "0" ? nil : true # checked by default
+    @completed = params[:completed] == "0" ? nil : true # checked by default
+    @rejected = params[:rejected] == "0" ? nil : true # checked by default
+
+    relation = relation.search_name(@q) if @q
+
+    states = []
+    states << "applicant_signed" if @applicant_signed
+    states << "completed" if @completed
+    states << "rejected" if @rejected
+    relation = relation.where("aasm_state in (?)", states)
 
     relation = Event.partner
 
