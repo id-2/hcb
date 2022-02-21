@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Partner < ApplicationRecord
+  include Sandboxable
   has_paper_trail
 
   EXCLUDED_SLUGS = %w(connect api donations donation connects organization organizations).freeze
