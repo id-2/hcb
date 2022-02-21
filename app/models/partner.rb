@@ -5,7 +5,7 @@ class Partner < ApplicationRecord
 
   EXCLUDED_SLUGS = %w(connect api donations donation connects organization organizations).freeze
 
-  attribute :api_key, :string, default: -> { new_api_key }
+  attribute :api_key, :string, default: -> { Partner.new_api_key }
 
   has_many :events
   has_many :partnered_signups
@@ -96,12 +96,8 @@ class Partner < ApplicationRecord
 
   private
 
-  def new_api_key
-    "hcbk_#{SecureRandom.hex(32)}"
-  end
-
   def self.new_api_key
-    self.new.send(:new_api_key)
+    "hcbk_#{SecureRandom.hex(32)}"
   end
 
 end
