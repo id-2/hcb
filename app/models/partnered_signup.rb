@@ -77,9 +77,9 @@ class PartneredSignup < ApplicationRecord
     bcc = "bank-outgoing@hackclub.com"
     subject = "Application to Hack Club Bank"
     reason = ""
-    "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
+    # "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
 
-    "mailto:gary@hackclub.com"
+    "https://mail.google.com/mail/?fs=1&su=#{URI.escape(subject)}&body=#{URI.escape(reason)}&to=#{URI.escape(recipient)}&bcc=#{bcc}&tf=cm"
   end
 
   def admin_accept_redirect_url
@@ -87,9 +87,9 @@ class PartneredSignup < ApplicationRecord
     bcc = "bank-outgoing@hackclub.com"
     subject = "Application to Hack Club Bank"
     reason = ""
-    "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
+    # "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
 
-    "mailto:gary@hackclub.com"
+    "https://mail.google.com/mail/?fs=1&su=#{URI.escape(subject)}&body=#{URI.escape(reason)}&to=#{URI.escape(recipient)}&bcc=#{bcc}&tf=cm"
   end
 
   def unsubmitted?

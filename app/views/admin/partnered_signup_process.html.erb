@@ -64,9 +64,10 @@
   <% end %>
 <% end %>
 
-<% if @partnered_signup.accepted? %>
-  <%= link_to "Approval Email Template", @partnered_signup.admin_accept_redirect_url %>
-<% end %>
-<% if @partnered_signup.rejected? %>
-  <%= link_to "Rejection Email Template", @partnered_signup.admin_reject_redirect_url %>
-<% end %>
+<%# Commented out for testing. NOTE TO SELF TO UNCOMMENT THE IF STATEMENTS BEFORE COMMITTING -@exu3 %>
+<%# if @partnered_signup.accepted? %>
+  <%= link_to "Approval Email Template", @partnered_signup.admin_accept_redirect_url, target: :_blank %>
+<%# end %>
+<%# if @partnered_signup.rejected? %>
+  <%= link_to "Rejection Email Template", @partnered_signup.admin_reject_redirect_url, target: :_blank %>
+<%# end %>
