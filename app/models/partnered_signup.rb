@@ -79,7 +79,7 @@ class PartneredSignup < ApplicationRecord
     reason = ""
     # "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
 
-    "https://mail.google.com/mail/?fs=1&su=#{URI.escape(subject)}&body=#{URI.escape(reason)}&to=#{URI.escape(recipient)}&bcc=#{bcc}&tf=cm"
+    "https://mail.google.com/mail/?fs=1&su=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}&to=#{CGI.escape(recipient)}&bcc=#{bcc}&tf=cm"
   end
 
   def admin_accept_redirect_url
@@ -89,7 +89,7 @@ class PartneredSignup < ApplicationRecord
     reason = ""
     # "mailto:#{CGI.escape(recipient)}?bcc=#{bcc}&subject=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}"
 
-    "https://mail.google.com/mail/?fs=1&su=#{URI.escape(subject)}&body=#{URI.escape(reason)}&to=#{URI.escape(recipient)}&bcc=#{bcc}&tf=cm"
+    "https://mail.google.com/mail/?fs=1&su=#{CGI.escape(subject)}&body=#{CGI.escape(reason)}&to=#{CGI.escape(recipient)}&bcc=#{bcc}&tf=cm"
   end
 
   def unsubmitted?
