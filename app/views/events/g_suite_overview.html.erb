@@ -13,8 +13,6 @@
             <%= link_to("Process", google_workspace_process_admin_path(g_suite)) %>
           <% elsif g_suite.dkim_key.nil? %>
             <%= link_to("DKIM", google_workspace_process_admin_path(g_suite)) %>
-          <% elsif g_suite.deleted? %>
-            <%= link_to("Deleted", google_workspace_process_admin_path(g_suite)) %>
           <% else %>
             <%= link_to("Manage", google_workspace_configure_admin_path(g_suite)) %>
       <% end %>
