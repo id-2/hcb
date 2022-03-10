@@ -12,12 +12,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_25_053540) do
+ActiveRecord::Schema.define(version: 2022_03_10_082850) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
+
+  create_table "ach_recipients", force: :cascade do |t|
+    t.bigint "event_id"
+    t.string "recipient_name"
+    t.string "routing_number"
+    t.string "account_number"
+    t.string "bank_name"
+    t.string "recipient_tel"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["event_id"], name: "index_ach_recipients_on_event_id"
+  end
 
   create_table "ach_transfers", force: :cascade do |t|
     t.bigint "event_id"
@@ -1225,6 +1237,7 @@ ActiveRecord::Schema.define(version: 2022_02_25_053540) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  add_foreign_key "ach_recipients", "events"
   add_foreign_key "ach_transfers", "events"
   add_foreign_key "ach_transfers", "users", column: "creator_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

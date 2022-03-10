@@ -15,6 +15,7 @@ class AchTransfer < ApplicationRecord
   validates_length_of :routing_number, is: 9
 
   has_one :t_transaction, class_name: "Transaction", inverse_of: :ach_transfer
+  has_one :ach_recipient
 
   scope :approved, -> { where.not(approved_at: nil) }
 
