@@ -1,5 +1,30 @@
 <%= form_with(model: ach_transfer, local: true, url: event_ach_transfers_path(@event)) do |form| %>
   <%= form_errors(ach_transfer, 'ACH transfer') %>
+  <%#= form_errors @ach_recipient %>
+
+  <!-- 
+  <%# if @event.ach_recipients.count > 0 %>
+    <div class="field">
+      <%#= form.label :ach_recipient, 'ACH Recipient' %>
+      <%#= form.select :ach_recipient,
+        options_for_select(!organizer_signed_in? ? [] : @event.ach_recipients.map { |recipient|
+          [recipient.name, recipient.id, { 'data-json': recipient.to_json } ]
+        }),
+        include_blank: 'New recipient...' %>
+    </div>
+  <%# end %> 
+  -->
+
+  <!-- TODO: add ach_recipient_attributes in model -->
+  <%#= form.field_for :ach_recipient_attributes do |form| %>
+  <h2>Recipient details</h2>
+
+  <!-- TODO: Add this:
+  <p data-behavior="sponsor_update_warning" style="display: none;" class="flex items-center info line-height-3">
+    <%= inline_icon 'important', size: 32, class: 'mr1' %>
+    You're currently updating a previous recipient.
+  </p> 
+  -->
 
   <div class="field">
     <%= form.label :recipient_name %>
