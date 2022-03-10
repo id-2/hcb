@@ -11,11 +11,11 @@ class AchTransfer < ApplicationRecord
 
   belongs_to :creator, class_name: "User"
   belongs_to :event
+  belongs_to :ach_recipient
 
   validates_length_of :routing_number, is: 9
 
   has_one :t_transaction, class_name: "Transaction", inverse_of: :ach_transfer
-  has_one :ach_recipient
 
   scope :approved, -> { where.not(approved_at: nil) }
 
