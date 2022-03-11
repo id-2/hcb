@@ -25,7 +25,7 @@
   },
   "[ruby]": {
     "editor.defaultFormatter": "castwide.solargraph"
- },
+  },
   "[gemfile]": {
     "editor.defaultFormatter": "castwide.solargraph"
   }
