@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -10,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_11_010604) do
+ActiveRecord::Schema.define(version: 2022_03_11_013142) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -26,14 +28,14 @@ ActiveRecord::Schema.define(version: 2022_03_11_010604) do
   end
 
   create_table "ach_recipients", force: :cascade do |t|
-    t.bigint "event_id"
-    t.string "recipient_name"
-    t.string "routing_number"
-    t.string "account_number"
-    t.string "bank_name"
-    t.string "recipient_tel"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "phone_number"
+    t.bigint "ach_account_id", null: false
+    t.bigint "event_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["ach_account_id"], name: "index_ach_recipients_on_ach_account_id"
     t.index ["event_id"], name: "index_ach_recipients_on_event_id"
   end
 
@@ -54,6 +56,9 @@ ActiveRecord::Schema.define(version: 2022_03_11_010604) do
     t.text "payment_for"
     t.string "aasm_state"
     t.text "confirmation_number"
+    t.string "beneficiary_type"
+    t.bigint "beneficiary_id"
+    t.index ["beneficiary_type", "beneficiary_id"], name: "index_ach_transfers_on_beneficiary_type_and_beneficiary_id"
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
   end
@@ -1247,6 +1252,7 @@ ActiveRecord::Schema.define(version: 2022_03_11_010604) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  add_foreign_key "ach_recipients", "ach_accounts"
   add_foreign_key "ach_recipients", "events"
   add_foreign_key "ach_transfers", "events"
   add_foreign_key "ach_transfers", "users", column: "creator_id"

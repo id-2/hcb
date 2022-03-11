@@ -39,6 +39,7 @@ class User < ApplicationRecord
   has_many :receipts
 
   has_many :checks, inverse_of: :creator
+  has_many :ach_transfers, as: :beneficiary
 
   has_one_attached :profile_picture
 

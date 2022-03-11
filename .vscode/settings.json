@@ -24,7 +24,7 @@
     "port": 7658
   },
   "[ruby]": {
-    "editor.defaultFormatter": "castwide.solargraph"
+    "editor.defaultFormatter": "ms-vsliveshare.vsliveshare"
   },
   "[gemfile]": {
     "editor.defaultFormatter": "castwide.solargraph"

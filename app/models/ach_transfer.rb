@@ -11,6 +11,7 @@ class AchTransfer < ApplicationRecord
 
   belongs_to :creator, class_name: "User"
   belongs_to :event
+  belongs_to :beneficiary, polymorphic: true
 
   validates_length_of :routing_number, is: 9
 
