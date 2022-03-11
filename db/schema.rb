@@ -333,11 +333,7 @@ ActiveRecord::Schema.define(version: 2022_03_11_013142) do
     t.datetime "updated_at", null: false
     t.bigint "source_event_id"
     t.datetime "errored_at"
-    t.bigint "requested_by_id"
-    t.bigint "fulfilled_by_id"
     t.index ["event_id"], name: "index_disbursements_on_event_id"
-    t.index ["fulfilled_by_id"], name: "index_disbursements_on_fulfilled_by_id"
-    t.index ["requested_by_id"], name: "index_disbursements_on_requested_by_id"
     t.index ["source_event_id"], name: "index_disbursements_on_source_event_id"
   end
 
