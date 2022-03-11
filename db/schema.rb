@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,12 +10,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_25_053540) do
+ActiveRecord::Schema.define(version: 2022_03_11_010604) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
+
+  create_table "ach_accounts", force: :cascade do |t|
+    t.text "bank_name_ciphertext", null: false
+    t.text "routing_number_ciphertext", null: false
+    t.text "account_number_ciphertext", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "ach_recipients", force: :cascade do |t|
+    t.bigint "event_id"
+    t.string "recipient_name"
+    t.string "routing_number"
+    t.string "account_number"
+    t.string "bank_name"
+    t.string "recipient_tel"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["event_id"], name: "index_ach_recipients_on_event_id"
+  end
 
   create_table "ach_transfers", force: :cascade do |t|
     t.bigint "event_id"
@@ -310,7 +328,11 @@ ActiveRecord::Schema.define(version: 2022_02_25_053540) do
     t.datetime "updated_at", null: false
     t.bigint "source_event_id"
     t.datetime "errored_at"
+    t.bigint "requested_by_id"
+    t.bigint "fulfilled_by_id"
     t.index ["event_id"], name: "index_disbursements_on_event_id"
+    t.index ["fulfilled_by_id"], name: "index_disbursements_on_fulfilled_by_id"
+    t.index ["requested_by_id"], name: "index_disbursements_on_requested_by_id"
     t.index ["source_event_id"], name: "index_disbursements_on_source_event_id"
   end
 
@@ -1225,6 +1247,7 @@ ActiveRecord::Schema.define(version: 2022_02_25_053540) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  add_foreign_key "ach_recipients", "events"
   add_foreign_key "ach_transfers", "events"
   add_foreign_key "ach_transfers", "users", column: "creator_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -1243,6 +1266,8 @@ ActiveRecord::Schema.define(version: 2022_02_25_053540) do
   add_foreign_key "checks", "users", column: "creator_id"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
+  add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
+  add_foreign_key "disbursements", "users", column: "requested_by_id"
   add_foreign_key "document_downloads", "documents"
   add_foreign_key "document_downloads", "users"
   add_foreign_key "documents", "events"
