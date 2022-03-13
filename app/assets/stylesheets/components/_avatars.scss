@@ -7,15 +7,22 @@
   img {
     margin-right: -5px;
     box-shadow: 0 0 0 2px $white;
+    background-color: $smoke;
 
     html[data-dark="true"] & {
       box-shadow: 0 0 0 2px $darkless;
+      background-color: $dark;
     }
   }
 }
 
 .avatar--current-user {
   border: 1px solid rgba(map-get($palette, info), 0.5);
+  background-color: $smoke;
+
+  html[data-dark="true"] & {
+    background-color: $dark;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
