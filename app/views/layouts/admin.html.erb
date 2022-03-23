@@ -49,13 +49,13 @@
       |
       <%= link_to "achs (#{AchTransfer.pending.count})", ach_admin_index_path %>
       |
-      <%= link_to "checks (#{Check.in_transit.count})", check_admin_index_path %>
+      <%= link_to "checks (#{Check.in_transit.count + Check.admin_count_offset})", check_admin_index_path %>
       |
       <%= link_to "Partner donations", partner_donations_admin_index_path %>
       |
       <%= link_to "donations", donations_admin_index_path %>
       |
-      <%= link_to "disbursements (#{Disbursement.pending.count})", disbursements_admin_index_path %>
+      <%= link_to "disbursements (#{Disbursement.reviewing.count})", disbursements_admin_index_path %>
       |
       <%= link_to "invoices", invoices_admin_index_path %>
       |
