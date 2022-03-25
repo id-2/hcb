@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_11_013142) do
+ActiveRecord::Schema.define(version: 2022_03_25_003754) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -25,17 +25,18 @@ ActiveRecord::Schema.define(version: 2022_03_11_013142) do
     t.text "account_number_ciphertext", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "beneficiary_type"
+    t.bigint "beneficiary_id"
+    t.index ["beneficiary_type", "beneficiary_id"], name: "index_ach_accounts_on_beneficiary_type_and_beneficiary_id"
   end
 
   create_table "ach_recipients", force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
     t.string "phone_number"
-    t.bigint "ach_account_id", null: false
     t.bigint "event_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["ach_account_id"], name: "index_ach_recipients_on_ach_account_id"
     t.index ["event_id"], name: "index_ach_recipients_on_event_id"
   end
 
@@ -58,6 +59,8 @@ ActiveRecord::Schema.define(version: 2022_03_11_013142) do
     t.text "confirmation_number"
     t.string "beneficiary_type"
     t.bigint "beneficiary_id"
+    t.bigint "ach_account_id"
+    t.index ["ach_account_id"], name: "index_ach_transfers_on_ach_account_id"
     t.index ["beneficiary_type", "beneficiary_id"], name: "index_ach_transfers_on_beneficiary_type_and_beneficiary_id"
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"

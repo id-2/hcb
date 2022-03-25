@@ -12,6 +12,8 @@ class AchTransfer < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :event
   belongs_to :beneficiary, polymorphic: true
+  belongs_to :ach_account
+  accepts_nested_attributes_for :ach_account
 
   validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
   validates_length_of :routing_number, is: 9

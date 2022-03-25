@@ -164,7 +164,8 @@ class Event < ApplicationRecord
   has_many :emburse_transactions
 
   has_many :ach_transfers
-  has_many :ach_recipients
+  has_many :ach_recipients # TODO: beneficiary (both Users and Ach Recipients)
+
   has_many :disbursements
   has_many :incoming_disbursements, class_name: "Disbursement", foreign_key: :event_id
   has_many :outgoing_disbursements, class_name: "Disbursement", foreign_key: :source_event_id
