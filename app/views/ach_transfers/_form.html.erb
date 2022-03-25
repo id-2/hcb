@@ -1,28 +1,42 @@
 <%= form_with(model: @ach_transfer, local: true, url: event_ach_transfers_path(@event)) do |form| %>
   <%= form_errors(@ach_transfer, 'ACH transfer') %>
+  <%= form_errors(@ach_recipient, 'Recipient') %>
 
-  <% if @event.ach_recipients.count > 0 %>
+  <% if @event.ach_recipients.any? %>
     <div class="field">
-      <%= form.label :beneficiary, 'Beneficiary' %>
-      <%= form.select :beneficiary,
+      <%= form.label :ach_recipient, 'Recipient' %>
+      <%= form.select :ach_recipient,
         options_for_select(!organizer_signed_in? ? [] : @event.ach_recipients.map { |b|
-          [b.first_name, b.last_name, { 'data-json': b.to_json } ]
+          ["#{b.first_name} #{b.last_name}", b.id, { 'data-json': b.to_json } ]
         }),
-        include_blank: 'New beneficiary...' %>
+        include_blank: 'New Recipient...' %>
     </div>
   <% end %>
 
-  <h2>Beneficiary details</h2>
+  <%= form.fields_for :ach_recipient_attributes do |form| %>
+    <h2>Recipient details</h2>
 
-  <div class="field">
-    <%= form.label :recipient_name %>
-    <%= form.text_field :recipient_name, placeholder: 'Max Kern', required: true %>
-  </div>
+    <p data-behavior="ach_recipient_update_warning" style="display: none;" class="flex items-center info line-height-3">
+      <%= inline_icon 'important', size: 32, class: 'mr1' %>
+      You're currently updating a previous recipient
+    </p>
 
-  <div class="field">
-    <%= form.label :recipient_tel %>
-    <%= form.text_field :recipient_tel, placeholder: '1234567890', required: true %>
-  </div>
+    <div class="field">
+      <%= form.label :first_name %>
+      <%= form.text_field :first_name, placeholder: 'Max', required: true %>
+    </div>
+
+    <div class="field">
+      <%= form.label :last_name %>
+      <%= form.text_field :last_name, placeholder: 'Kern', required: true %>
+    </div>
+
+    <div class="field">
+      <%= form.label :phone %>
+      <%= form.text_field :phone, placeholder: '1234567890', required: true %>
+    </div>
+
+  <% end %>
 
   <div class="field">
     <%= form.label :payment_for, "What are you paying for with this deposit?" %>
@@ -31,6 +45,17 @@
   </div>
 
   <h2>Bank Information</h2>
+
+  <% if @event.ach_recipients.any? and false %>
+    <div class="field">
+      <%= form.label :ach_account, 'Bank account' %>
+      <%= form.select :ach_account,
+        options_for_select(!organizer_signed_in? ? [] : @event.ach_accounts.map { |b|
+          [b.bank_name ]
+        }),
+        include_blank: 'New bank account...' %>
+    </div>
+  <% end %>
 
   <div class="field">
     <%= form.label :bank_name %>

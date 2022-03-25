@@ -179,6 +179,29 @@ $(document).on('turbo:load', function () {
     )
   })
 
+  $(document).on('change', '[name="ach_transfer[ach_recipient]"]', function (e) {
+    let ach_recipient = $(e.target).children('option:selected').data('json')
+    if (!ach_recipient) {
+      ach_recipient = {}
+    }
+
+    if (ach_recipient.id) {
+      $('[data-behavior~=ach_recipient_update_warning]').slideDown('fast')
+    } else {
+      $('[data-behavior~=ach_recipient_update_warning]').slideUp('fast')
+    }
+
+    const fields = [
+      'first_name',
+      'last_name',
+      'phone',
+    ]
+
+    return fields.forEach(field =>
+      $(`input#ach_recipient_attributes_${field}`).val(ach_recipient[field])
+    )
+  })
+
   $(document).on('change', '[name="check[lob_address]"]', function (e) {
     let lob_address = $(e.target).children('option:selected').data('json')
     if (!lob_address) {
