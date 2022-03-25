@@ -13,6 +13,7 @@ class AchTransfer < ApplicationRecord
   belongs_to :event
   belongs_to :beneficiary, polymorphic: true
 
+  validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
   validates_length_of :routing_number, is: 9
 
   has_one :t_transaction, class_name: "Transaction", inverse_of: :ach_transfer
