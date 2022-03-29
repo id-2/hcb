@@ -25,6 +25,8 @@
   .header {
     grid-template-columns: 1fr auto auto;
     grid-template-areas: 'center left right';
+    max-width: 100vw;
+    overflow: hidden;
   }
 }
 
