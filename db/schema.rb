@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_02_083755) do
+ActiveRecord::Schema.define(version: 2022_03_10_142025) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -32,8 +32,8 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.datetime "updated_at", null: false
     t.string "recipient_tel"
     t.datetime "rejected_at"
-    t.datetime "scheduled_arrival_date"
     t.text "payment_for"
+    t.datetime "scheduled_arrival_date"
     t.string "aasm_state"
     t.text "confirmation_number"
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
@@ -241,10 +241,10 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.bigint "raw_pending_invoice_transaction_id"
     t.text "hcb_code"
     t.bigint "raw_pending_bank_fee_transaction_id"
-    t.bigint "raw_pending_partner_donation_transaction_id"
     t.text "custom_memo"
     t.index ["raw_pending_bank_fee_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_bank_fee_tx_id"
     t.index ["raw_pending_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_donation_tx_id"
+    t.index ["raw_pending_invoice_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_invoice_tx_id"
     t.index ["raw_pending_outgoing_ach_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_ach_tx_id"
     t.index ["raw_pending_outgoing_check_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_check_tx_id"
     t.index ["raw_pending_stripe_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_stripe_tx_id"
@@ -294,6 +294,7 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "admin_only", default: false, null: false
+    t.boolean "has_untracked_edit", default: false, null: false
     t.index ["commentable_id", "commentable_type"], name: "index_comments_on_commentable_id_and_commentable_type"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
@@ -309,7 +310,11 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.datetime "updated_at", null: false
     t.bigint "source_event_id"
     t.datetime "errored_at"
+    t.bigint "requested_by_id"
+    t.bigint "fulfilled_by_id"
     t.index ["event_id"], name: "index_disbursements_on_event_id"
+    t.index ["fulfilled_by_id"], name: "index_disbursements_on_fulfilled_by_id"
+    t.index ["requested_by_id"], name: "index_disbursements_on_requested_by_id"
     t.index ["source_event_id"], name: "index_disbursements_on_source_event_id"
   end
 
@@ -527,6 +532,7 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.string "webhook_url"
     t.integer "country"
     t.boolean "holiday_features", default: true, null: false
+    t.boolean "organized_by_hack_clubbers"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -767,8 +773,16 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.datetime "expiration_at", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "ip"
+    t.string "aasm_state"
+    t.bigint "user_session_id"
+    t.bigint "partner_id"
+    t.decimal "latitude"
+    t.decimal "longitude"
+    t.index ["partner_id"], name: "index_login_tokens_on_partner_id"
     t.index ["token"], name: "index_login_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
+    t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
   end
 
   create_table "mfa_codes", force: :cascade do |t|
@@ -879,6 +893,10 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.string "owner_address_state"
     t.text "owner_address_postal_code"
     t.integer "owner_address_country"
+    t.string "aasm_state"
+    t.datetime "applicant_signed_at"
+    t.datetime "completed_at"
+    t.boolean "legal_acknowledgement"
     t.index ["event_id"], name: "index_partnered_signups_on_event_id"
     t.index ["partner_id"], name: "index_partnered_signups_on_partner_id"
     t.index ["user_id"], name: "index_partnered_signups_on_user_id"
@@ -896,6 +914,8 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.text "stripe_api_key_ciphertext"
     t.string "webhook_url"
     t.string "docusign_template_id"
+    t.bigint "representative_id"
+    t.index ["representative_id"], name: "index_partners_on_representative_id"
   end
 
   create_table "raw_csv_transactions", force: :cascade do |t|
@@ -1171,7 +1191,14 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.string "timezone"
     t.string "ip"
     t.datetime "deleted_at"
+    t.bigint "impersonated_by_id"
+    t.boolean "peacefully_expired"
+    t.decimal "latitude"
+    t.decimal "longitude"
+    t.bigint "webauthn_credential_id"
+    t.index ["impersonated_by_id"], name: "index_user_sessions_on_impersonated_by_id"
     t.index ["user_id"], name: "index_user_sessions_on_user_id"
+    t.index ["webauthn_credential_id"], name: "index_user_sessions_on_webauthn_credential_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -1188,6 +1215,7 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.boolean "sessions_reported", default: false, null: false
     t.boolean "phone_number_verified", default: false
     t.boolean "use_sms_auth", default: false
+    t.string "webauthn_id"
     t.index ["api_access_token"], name: "index_users_on_api_access_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
@@ -1202,6 +1230,18 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
     t.datetime "created_at"
     t.text "object_changes"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
+  end
+
+  create_table "webauthn_credentials", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name"
+    t.string "webauthn_id"
+    t.string "public_key"
+    t.integer "sign_count"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "authenticator_type"
+    t.index ["user_id"], name: "index_webauthn_credentials_on_user_id"
   end
 
   add_foreign_key "ach_transfers", "events"
@@ -1222,6 +1262,8 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
   add_foreign_key "checks", "users", column: "creator_id"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
+  add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
+  add_foreign_key "disbursements", "users", column: "requested_by_id"
   add_foreign_key "document_downloads", "documents"
   add_foreign_key "document_downloads", "users"
   add_foreign_key "documents", "events"
@@ -1258,6 +1300,7 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
   add_foreign_key "invoices", "users", column: "creator_id"
   add_foreign_key "invoices", "users", column: "manually_marked_as_paid_user_id"
   add_foreign_key "lob_addresses", "events"
+  add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "ops_checkins", "users", column: "point_of_contact_id"
@@ -1274,6 +1317,7 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
   add_foreign_key "partnered_signups", "events"
   add_foreign_key "partnered_signups", "partners"
   add_foreign_key "partnered_signups", "users"
+  add_foreign_key "partners", "users", column: "representative_id"
   add_foreign_key "receipts", "users"
   add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
@@ -1290,4 +1334,6 @@ ActiveRecord::Schema.define(version: 2022_01_02_083755) do
   add_foreign_key "transactions", "fee_relationships"
   add_foreign_key "transactions", "invoice_payouts"
   add_foreign_key "user_sessions", "users"
+  add_foreign_key "user_sessions", "users", column: "impersonated_by_id"
+  add_foreign_key "webauthn_credentials", "users"
 end

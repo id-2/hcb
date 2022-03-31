@@ -41,6 +41,11 @@ textarea {
   }
 }
 
+select {
+  min-height: 0;
+  padding: 0.8rem 0.5rem;
+}
+
 input[type='file'] {
   color: inherit;
   display: block;
@@ -166,6 +171,11 @@ legend {
     line-height: 1.25;
     color: map-get($palette, info);
     background-color: rgba(map-get($palette, accent), 0.25);
+  }
+
+  input:disabled + label {
+    opacity: 0.5;
+    cursor: default;
   }
 
   input:checked + label {

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class HcbCode < ApplicationRecord
+  has_paper_trail
+
   include Hashid::Rails
 
   include Commentable
@@ -26,6 +28,26 @@ class HcbCode < ApplicationRecord
     return check_memo if check?
 
     custom_memo || ct.try(:smart_memo) || pt.try(:smart_memo) || ""
+  end
+
+  def type
+    return :unknown if unknown?
+    return :invoice if invoice?
+    return :donation if donation?
+    return :partner_donation if partner_donation?
+    return :ach if ach_transfer?
+    return :check if check?
+    return :disbursement if disbursement?
+    return :card_charge if stripe_card?
+
+    nil
+  end
+
+  def humanized_type
+    t = type || :transaction
+    t = :transaction if unknown?
+
+    t.to_s.humanize
   end
 
   def custom_memo
@@ -59,6 +81,7 @@ class HcbCode < ApplicationRecord
         canonical_transactions.map { |ct| ct.event&.id },
         invoice.try(:event).try(:id),
         donation.try(:event).try(:id),
+        partner_donation.try(:event).try(:id),
         ach_transfer.try(:event).try(:id),
         check.try(:event).try(:id),
         disbursement.try(:event).try(:id)

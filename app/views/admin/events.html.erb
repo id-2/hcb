@@ -52,9 +52,19 @@
       <%= form.select :funded, [['Both', 'both'], ["Not Funded", 'not_funded'], ['Funded', 'funded']], :selected => @funded %>
     <% end %>
     |
+    <%= form.label :organized_by_hack_clubbers do %>
+      Organized by
+      <%= form.select :organized_by_hack_clubbers, [['Both', 'both'], ["Hack Clubbers", 'organized_by_hack_clubbers'], ['Not Hack Clubbers', 'not_organized_by_hack_clubbers']], :selected => @organized_by_hack_clubbers %>
+    <% end %>
+    |
     <%= form.label :country do %>
       Country
       <%= form.select :country, Event.countries, { include_blank: 'all', :selected => @country} %>
+    <% end %>
+    |
+    <%= form.label :international do %>
+      International
+      <%= form.check_box :international, :checked => @international %>
     <% end %>
   </div>
 <% end %>
@@ -65,7 +75,7 @@
 <table>
   <thead>
     <tr>
-      <th>ID</th>
+      <th class="w-16">ID</th>
       <th>Date</th>
       <th>Name</th>
       <th>Balance</th>
@@ -103,6 +113,9 @@
           <% end %>
           <% if event.hidden_at? %>
             <span title="🕵️‍♂️ Hidden">🕵️‍♂️</span>
+          <% end %>
+          <% if event.organized_by_hack_clubbers? %>
+            <span title="🦕 Organized by Hack Clubbers">🦕</span>
           <% end %>
         </td>
         <td>

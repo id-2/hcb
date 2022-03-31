@@ -3,21 +3,20 @@
 module Partners
   module Docusign
     # Api is a singleton service that abstracts away some of the complexities in creating
-    # a Docusign request
+    # a DocuSign request
     class Api
       # Service is a singleton because token refresh should be done sparingly.
       # We're going to use one instance per Server
       include Singleton
 
       if Rails.env.production?
-        BASE_PATH = "https://docusign.net/restapi"
         ENVIRONMENT_KEY = :production
       else
-        BASE_PATH = "https://demo.docusign.net/restapi"
         ENVIRONMENT_KEY = :development
         attr_reader :api_client, :token
       end
 
+      BASE_URI = Rails.application.credentials[:docusign][ENVIRONMENT_KEY][:account_base_uri]
       INTEGRATION_KEY = Rails.application.credentials[:docusign][ENVIRONMENT_KEY][:integration_key]
       USER_ID = Rails.application.credentials[:docusign][ENVIRONMENT_KEY][:user_id]
       PRIVATE_KEY = Rails.application.credentials[:docusign][ENVIRONMENT_KEY][:private_key]
@@ -25,13 +24,13 @@ module Partners
 
       def initialize
         configuration = DocuSign_eSign::Configuration.new
+        configuration.host = BASE_URI
         unless Rails.env.production?
           configuration.debugging = true
-          configuration.host = "https://demo.docusign.net"
         end
 
         @api_client = DocuSign_eSign::ApiClient.new configuration
-        @api_client.base_path = BASE_PATH
+        @api_client.base_path = BASE_URI + "/restapi"
         refresh_token
       end
 
@@ -65,14 +64,24 @@ module Partners
         envelopes_api.create_recipient_view(ACCOUNT_ID, envelope_id, view_request)
       end
 
-      def create_sender_view(envelope_id, callback_url)
+      def create_sender_view(envelope_id)
         refresh_token
-        envelopes_api.create_sender_view(ACCOUNT_ID, envelope_id, url: callback_url)
+        envelopes_api.create_sender_view(ACCOUNT_ID, envelope_id, {})
       end
 
       def get_envelope(envelope_id)
         refresh_token
         envelopes_api.get_envelope(ACCOUNT_ID, envelope_id)
+      end
+
+      def list_documents(envelope_id)
+        refresh_token
+        envelopes_api.list_documents(ACCOUNT_ID, envelope_id)
+      end
+
+      def get_document(envelope_id, document_id)
+        refresh_token
+        envelopes_api.get_document ACCOUNT_ID, document_id, envelope_id
       end
 
       private

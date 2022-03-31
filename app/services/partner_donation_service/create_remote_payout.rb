@@ -14,7 +14,6 @@ module PartnerDonationService
 
       ActiveRecord::Base.transaction do
         partner_donation.mark_in_transit!
-        partner_donation.update_column(:payout_amount_cents, amount_cents)
         ::Partners::Stripe::Payouts::Create.new(attrs).run
       end
     end
@@ -55,7 +54,7 @@ module PartnerDonationService
     end
 
     def metadata
-      @metadata ||= stripe_charge.metadata
+      @metadata ||= stripe_charge.payment_intent.metadata
     end
 
     def hcb_metadata_identifier

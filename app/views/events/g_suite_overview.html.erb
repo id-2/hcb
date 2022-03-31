@@ -1,4 +1,4 @@
-<% title "Google Workspace for #{@event.name.html_safe}" %>
+<% title "Google Workspace for #{@event.name}" %>
 <% page_md %>
 <%= render 'nav' %>
 
@@ -6,6 +6,13 @@
   <span class="flex-auto pr2">
     Google Workspace
   </span>
+  
+  <% if @g_suite %>
+    <% admin_tools('mr1 p1 badge', 'span') do %>
+      <%= link_to "Process", google_workspace_process_admin_path(@g_suite) %>
+    <% end %>
+  <% end %>
+
   <%= content_tag :span, @g_suite.domain, class: 'badge info h3 ml0' if @g_suite %>
 </h1>
 
@@ -203,13 +210,11 @@
     <strong>team@yourdomain.com</strong>.
   </p>
 
-  <% if @event.eligible_for_free_domain? %>
-    <p>
-      Don't own a domain yet? If you're a high-school organization, Hack Club Bank will purchase a custom domain for <strong><%= @event.name %></strong> and set up Google Workspace for you. 
-      Check out the <%= link_to 'Domains promotion in the Perks tab', event_promotions_path %>
-      to get started!
-    </p>
-  <% end %>
+  <p>
+    Don't own a domain yet? If you're a high-school organization, Hack Club Bank will purchase a custom domain for <strong><%= @event.name %></strong> and set up Google Workspace for you. 
+    Check out the <%= link_to 'Domains promotion in the Perks tab', event_promotions_path %>
+    to get started!
+  </p>
 
   <p>
     If you <strong>already own</strong> a domain you would like to use, you can connect it to Google Workspace below.

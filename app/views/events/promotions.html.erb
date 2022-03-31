@@ -2,8 +2,6 @@
 <% page_md %>
 <%= render 'events/nav' %>
 
-<% replit_disable = true %>
-
 <h1>
   Promotions &amp; perks
 </h1>
@@ -60,29 +58,33 @@
   </section>
 </div>
 
-<% if @event.eligible_for_free_domain? %>
   <div class="card mb3" id="domains">
     <div
       class="card__banner card__banner--top flex justify-between items-center promo-domains">
       <h3 class="h1 p2 my0 color-black">Domains</h3>
-      <%= link_to 'Apply',
-        organizer_signed_in? ? "https://hack.af/bank-domains?prefill_Project%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Name=#{current_user.full_name}&prefill_Login%20email=#{current_user.email}" : root_path,
-        class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
-        target: :_blank
-      %>
+        <% if !@event.g_suites.not_deleted.none? && organizer_signed_in? %>
+          <div class="actions tooltipped tooltipped--w inline-block mt1" aria-label="You already own a domain!">
+            <span class="btn bg-success disabled">Apply</span>
+          </div>
+        <% else %>
+          <%= link_to 'Apply',
+            organizer_signed_in? ? "https://hack.af/bank-domains?prefill_Project%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Name=#{current_user.first_name}&prefill_Login%20email=#{current_user.email}" : root_path,
+            class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
+            target: :_blank
+          %>
+        <% end %>
     </div>
 
     <p class="mb0">
-    Running a high school student-led hackathon, nonprofit, or club? Hack Club Bank will purchase your domain for under $20 and cover the cost for the first year. After the first year, you'll be responsible for paying to renew. You'll also have the option of setting up <%= link_to 'Google Workspace', event_g_suite_overview_path %> once we've purchased your domain.
+      Running a high school student-led hackathon, nonprofit, or club? Hack Club Bank will purchase your domain for under $20 and cover the cost for the first year. After the first year, you'll be responsible for paying to renew. You'll also have the option of setting up <%= link_to 'Google Workspace', event_g_suite_overview_path %> once we've purchased your domain.
     </p>
   </div>
-<% end %>
 
 <div class="card mb3" id="stickermule">
   <div class="card__banner card__banner--top flex justify-between items-center" style="background-color:#4E2817">
     <%= image_tag 'stickermule.svg', width: 240 %>
     <%= link_to 'Apply',
-      organizer_signed_in? ? "https://hack.af/stickermule?prefill_Event%20Name=#{@event.name}" : root_path,
+      organizer_signed_in? ? "https://hack.af/stickermule?prefill_Event%20Name=#{@event.name}&prefill_First%20Name=#{current_user.first_name}&prefill_Email=#{current_user.email}" : root_path,
       class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
       target: :_blank
     %>
@@ -145,6 +147,38 @@
   </p>
 </div>
 
+<div class="card mb3 pb0" id="stickers">
+  <div class="card__banner card__banner--top flex justify-between items-center promo-stickers">
+      <span class="flex flex-row items-center">
+        <h3 class="h1 white p2 my0 card-title z1">
+          <%= content_tag(:span, 'Hack Club Bank', class: 'xs-hide sm-hide md-hide') %>
+          <%= content_tag(:span, 'HCB', class: 'xs-hide lg-hide') %>
+          Stickers
+        </h3>
+        <%= image_tag 'stickers/card-sticker.svg', width: 100, class: 'sticker z0', style: 'margin-left: -25px' %>
+        <%= image_tag 'stickers/wide-sticker-light.svg', width: 150, class: 'sticker wide sm-hide xs-hide ml2' %>
+        <%= image_tag 'stickers/icon-sticker-light.svg', width: 50, class: 'sticker ml2 xs-hide' %>
+      </span>
+    <%= link_to 'Apply',
+      organizer_signed_in? ? "https://hack.af/hcb-stickers?prefill_Recipient%20Name=#{current_user.full_name}&prefill_Login%20Email=#{current_user.email}" : root_path,
+      class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
+      target: :_blank
+     %>
+  </div>
+
+  <div class="mb0">
+    <p><strong>Want some Hack Club Bank stickers?</strong> You can request an envelope full of them for yourself or your teammates! Every shipment request is manually sent out by the Bank team, and every envelope is personally prepared, packed, and mailed, with the address handwritten.</p>
+    <p><em><strong>With great power comes great responsibility...</strong></em></p>
+    <p>Please enjoy responsibly. Hack Club Bank operates at a loss that donors pay for, and stickers are not cheap—every package costs real donor money.</p>
+  </div>
+
+  <section class="card__banner card__darker secondary border-top">
+  <p class="my0">
+    📦 If you need a full box of stickers for an event, please email the Bank team at <%= help_email %> with your attendance count and address. We’d be happy to check out your request.
+  </p>
+  </section>
+</div>
+
 <div class="card mb3" id="sendy">
   <div class="card__banner card__banner--top flex justify-between items-center" style="background-color: #343a44;">
     <h3 class="h1 white p2 my0">Sendy</h3>
@@ -199,15 +233,12 @@
     </table>
   </div>
 
-  <div class="card mb3 <%= replit_disable ? 'muted' : '' %>" id="replit">
+  <div class="card mb3 muted" id="replit">
     <div
       class="card__banner card__banner--top flex justify-between items-center"
       style="background-color: #0d101e; border: 1px solid #0068ad;">
       <%= image_tag 'replit.png', width: 170 %>
-      <%= link_to !replit_disable ? 'Apply' : 'Unavailable',
-        !replit_disable && organizer_signed_in? ? "https://hack.af/replpromo?prefill_Project%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Your%20name=#{current_user.full_name}&prefill_Organizer%20team%20size=#{@event.organizer_positions.size}" : root_path,
-        class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in? && !replit_disable}"
-      %>
+      <%= link_to 'Expired', '#', class: "btn bg-success mr1 disabled" %>
     </div>
 
     <p class="mb0">

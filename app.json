@@ -58,13 +58,13 @@
       "url": "https://github.com/dscout/wkhtmltopdf-buildpack.git"
     },
     {
-      "url": "https://github.com/evantahler/heroku-buildpack-notify-slack-deploy.git"
-    },
-    {
       "url": "heroku/nodejs"
     },
     {
       "url": "heroku/ruby"
+    },
+    {
+      "url": "heroku/metrics"
     }
   ],
   "stack": "heroku-18"

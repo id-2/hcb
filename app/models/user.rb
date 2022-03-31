@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  has_paper_trail
+
   include Commentable
   extend FriendlyId
 
@@ -17,6 +19,7 @@ class User < ApplicationRecord
   has_many :organizer_positions
   has_many :organizer_position_deletion_requests, inverse_of: :submitted_by
   has_many :organizer_position_deletion_requests, inverse_of: :closed_by
+  has_many :webauthn_credentials
 
   has_many :events, through: :organizer_positions
 
@@ -40,10 +43,13 @@ class User < ApplicationRecord
 
   has_one_attached :profile_picture
 
+  has_one :partner, inverse_of: :representative
+
   before_create :create_session_token
   before_create :format_number
   before_save :on_phone_number_update
 
+  validates :full_name, presence: true, on: :update
   validates :email, uniqueness: true, presence: true
   validates :phone_number, phone: { allow_blank: true }
 
@@ -63,22 +69,26 @@ class User < ApplicationRecord
 
   def first_name
     @first_name ||= begin
-      return nil unless namae.given || namae.particle
+                      return nil unless namae.given || namae.particle
 
-      (namae.given || namae.particle).split(" ").first
-    end
+                      (namae.given || namae.particle).split(" ").first
+                    end
   end
 
   def last_name
     @last_name ||= begin
-      return nil unless namae.family
+                     return nil unless namae.family
 
-      namae.family.split(" ").last
-    end
+                     namae.family.split(" ").last
+                   end
   end
 
   def initial_name
-    @initial_name ||= "#{(first_name || last_name)[0..20]} #{(last_name || first_name)[0, 1]}"
+    @initial_name ||= if name.strip.split(" ").count == 1
+                        name
+                      else
+                        "#{(first_name || last_name)[0..20]} #{(last_name || first_name)[0, 1]}"
+                      end
   end
 
   def safe_name
@@ -99,6 +109,18 @@ class User < ApplicationRecord
 
   def pretty_phone_number
     Phonelib.parse(self.phone_number).national
+  end
+
+  def representative?
+    self.partner.present?
+  end
+
+  def represented_partner
+    self.partner
+  end
+
+  def beta_features_enabled?
+    events.where(beta_features_enabled: true).any?
   end
 
   private

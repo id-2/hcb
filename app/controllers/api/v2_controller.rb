@@ -15,18 +15,49 @@ module Api
       render json: Api::V2::IndexSerializer.new.run
     end
 
+    include SessionsHelper
+    # This endpoint is used by users (not an API endpoint)
     def login
       contract = Api::V2::LoginContract.new.call(params.permit!.to_h)
       render json: json_error(contract), status: 400 and return unless contract.success?
 
-      attrs = {
-        token: contract[:login_token]
-      }
-      user = AuthService::Token.new(attrs).run
+      begin
+        attrs = {
+          token: contract[:login_token],
+          ip: request.remote_ip
+        }
+        service = AuthService::Token.new(attrs)
+        user = service.run
 
-      sign_in_and_set_cookie!(user)
+        if service.force_manual_login?
+          redirect_to auth_users_url(email: user&.email || contract[:user_email]) and return
+        end
 
-      redirect_to root_path
+        # User is eligible for ✨magic login✨
+
+        fingerprint = {
+          ip: request.remote_ip,
+          # TODO: add more fingerprinting to be on par with normal login
+        }
+        # Signed in the user for half the normal duration
+        user = sign_in(user: user,
+                       fingerprint_info: fingerprint,
+                       duration: SessionsHelper::EXPIRATION_DURATION / 2)
+
+        # Semi-jank way to get the session that was just created for this user
+        session = user.user_sessions.last
+
+        # Associate the new session to this login token
+        service.login_token.update(user_session: session)
+
+        # Now that they're signed in, redirect them to the dashboard (home page)
+        redirect_to root_path
+
+      rescue => e
+        Airbrake.notify(e) unless e.is_a?(UnauthorizedError)
+        puts e
+        redirect_to auth_users_url(email: contract[:user_email])
+      end
     end
 
     def generate_login_url
@@ -34,14 +65,22 @@ module Api
       render json: json_error(contract), status: 400 and return unless contract.success?
 
       event = current_partner.events.find_by_public_id(contract[:public_id])
-      current_partner.add_user_to_partnered_event!(user_email: contract[:email], event: event)
+
+      # Invite the user to the event
+      ::EventService::PartnerInviteUser.new(
+        partner: current_partner,
+        event: event,
+        user_email: contract[:email]
+      ).run
 
       attrs = {
-        email: contract[:email],
+        partner: current_partner,
+        user_email: contract[:email],
         organization_public_id: contract[:public_id]
       }
+      login_token = ApiService::V2::GenerateLoginToken.new(attrs).run
 
-      render json: Api::V2::GenerateLoginUrlSerializer.new(attrs).run
+      render json: Api::V2::GenerateLoginUrlSerializer.new(organization_public_id: contract[:public_id], login_token: login_token).run
     end
 
     def partnered_signups_new
@@ -59,7 +98,12 @@ module Api
       }
       attrs[:owner_name] = params[:owner_name] if params[:owner_name]
       attrs[:owner_phone] = params[:owner_phone] if params[:owner_phone]
-      attrs[:owner_address] = params[:owner_address] if params[:owner_address]
+      attrs[:owner_address_line1] = params[:owner_address_line1] if params[:owner_address_line1]
+      attrs[:owner_address_line2] = params[:owner_address_line2] if params[:owner_address_line2]
+      attrs[:owner_address_city] = params[:owner_address_city] if params[:owner_address_city]
+      attrs[:owner_address_state] = params[:owner_address_state] if params[:owner_address_state]
+      attrs[:owner_address_postal_code] = params[:owner_address_postal_code] if params[:owner_address_postal_code]
+      attrs[:owner_address_country] = params[:owner_address_country] if params[:owner_address_country]
       attrs[:owner_birthdate] = params[:owner_birthdate] if params[:owner_birthdate]
 
       @partnered_signup = PartneredSignup.create!(attrs)

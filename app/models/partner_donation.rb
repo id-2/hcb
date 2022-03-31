@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PartnerDonation < ApplicationRecord
+  has_paper_trail
+
   include AASM
   include Commentable
 
@@ -54,7 +56,11 @@ class PartnerDonation < ApplicationRecord
   end
 
   def smart_memo
-    @smart_memo ||= remote_partner_donation.try(:[], :billing_details).try(:[], :name).to_s.upcase
+    @smart_memo ||= donor_name
+  end
+
+  def donor_name
+    remote_partner_donation.try(:[], :billing_details).try(:[], :name).to_s.upcase
   end
 
   def local_hcb_code
@@ -103,7 +109,7 @@ class PartnerDonation < ApplicationRecord
     when :deposited
       "checkmark"
     else
-      "error"
+      "forbidden"
     end
   end
 

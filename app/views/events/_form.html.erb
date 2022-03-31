@@ -18,7 +18,7 @@
         <%= form.text_area :donation_page_message, class: "w-100 fit" %>
         <%= inline_icon "markdown", size: 32, class: "muted right" %>
       </div>
-      <%= form.submit nil, value: "Update" %>
+      <%= form.submit "Update" %>
     </div>
   <% end %>
 
@@ -43,16 +43,18 @@
       <%= form.check_box :is_public %>
       <%= form.label :is_public, "Enable Transparency Mode" %>
     </div>
-    <div class="field field--checkbox" data-behavior="holiday_features_transparency <% if !event.is_public? %>autohide<% end %>">
-      <%= form.check_box :holiday_features %>
-      <%= form.label :holiday_features, "Enable Holiday Features ⛄ for Transparency Mode" %>
-    </div>
+    <% if false %> <%# Holiday features disabled site-wide %>
+      <div class="field field--checkbox" data-behavior="holiday_features_transparency <% if !event.is_public? %>autohide<% end %>">
+        <%= form.check_box :holiday_features %>
+        <%= form.label :holiday_features, "Enable Holiday Features ⛄ for Transparency Mode" %>
+      </div>
+    <% end %>
     <div class="field">
       <%= form.label :public_message, "Message to show visitors" %>
       <%= form.text_area :public_message, class: "w-100 fit" %>
       <%= inline_icon "markdown", size: 32, class: "muted right" %>
     </div>
-    <%= form.submit nil, value: "Update" %>
+    <%= form.submit "Update" %>
   </div>
 
   <h3 class="mb1">Danger Zone</h3>
@@ -65,6 +67,7 @@
       <li>Another project may claim your current URL and you could be
         <span class="bold">unable to get it back</span>
       </li>
+      <li>Your donation page link will change, and <span class="bold">any existing use of it will break</span></li>
       <li>All bookmarks to this project will <span class="bold">break</span></li>
       <li>Your team members currently using Bank will be bumped to the home page</li>
     </ul>
@@ -74,7 +77,7 @@
       <%= form.text_field :slug, placeholder: event.persisted? ? event.name.parameterize : nil %>
     </div>
     <div class="actions">
-      <%= form.submit nil, value: "Update" %>
+      <%= form.submit "Update" %>
     </div>
   </div>
   <% admin_tools do %>
@@ -132,12 +135,17 @@
       <%= form.label :beta_features_enabled, "Turn on beta (features in development) for this event?" %>
     </div>
 
+    <div class="field field--checkbox">
+      <%= form.check_box :organized_by_hack_clubbers %>
+      <%= form.label :organized_by_hack_clubbers, "Organized by Hack Clubbers?" %>
+    </div>
+
     <p class="mt3">To change an organization's status (Pending, Approved, Rejected, etc.),
       use the <%= link_to "admin Organizations process page", event_process_admin_path(@event) %>
     </p>
 
     <div class="action">
-      <%= form.submit nil, value: "Update" %>
+      <%= form.submit "Update" %>
     </div>
   <% end %>
 <% end %>

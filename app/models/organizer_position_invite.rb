@@ -22,6 +22,8 @@
 #     creation.
 #
 class OrganizerPositionInvite < ApplicationRecord
+  has_paper_trail
+
   include FriendlyId
 
   friendly_id :slug_candidates, use: :slugged
@@ -136,6 +138,18 @@ class OrganizerPositionInvite < ApplicationRecord
     # https://github.com/norman/friendly_id/issues/480
     sequence = OrganizerPositionInvite.where("slug LIKE ?", "#{slug}-%").size + 2
     [slug, "#{slug} #{sequence}"]
+  end
+
+  # This overrides the default `user` getter method to allow for associating
+  # a user on the fly
+  def user
+    return super unless super.nil?
+
+    # `user` is nil, attempt to find and associate the user to this invite
+    found_user = User.find_by(email: email)
+    self.update(user: found_user) unless found_user.nil?
+
+    super
   end
 
   private

@@ -105,15 +105,22 @@ class AdminController < ApplicationController
   end
 
   def partnered_signup_sign_document
-    partnered_signup = PartneredSignup.find(params.require(:id))
-    admin_contract_signing = Partners::Docusign::AdminContractSigning.new(partnered_signup)
+    @partnered_signup = PartneredSignup.find(params.require(:id))
+
+    # Do not allow admins to sign if the applicant has not already signec
+    unless @partnered_signup.applicant_signed?
+      flash[:error] = "Applicant has not signed yet!"
+      redirect_to partnered_signups_admin_index_path and return
+    end
+
+    admin_contract_signing = Partners::Docusign::AdminContractSigning.new(@partnered_signup)
     redirect_to admin_contract_signing.admin_signing_link
   end
 
   def partnered_signups
     relation = PartneredSignup
 
-    @partnered_signups = relation.pending + relation.not_pending
+    @partnered_signups = relation.not_unsubmitted
 
     @count = @partnered_signups.count
 
@@ -124,37 +131,45 @@ class AdminController < ApplicationController
     @partnered_signup = PartneredSignup.find(params[:id])
     @partner = @partnered_signup.partner
 
-    # Accept the form
-    @partnered_signup.accepted_at = Time.now
-
-    # Create an event
-    @organization = Event.create!(
-      partner: @partner,
-      name: @partnered_signup.organization_name,
-      sponsorship_fee: @partner.default_org_sponsorship_fee,
-      organization_identifier: SecureRandom.hex(30) + @partnered_signup.organization_name,
-    )
-
-    # Invite users to event
-    @partner.add_user_to_partnered_event!(user_email: @partnered_signup.owner_email,
-                                          event: @organization)
-
-
-    # Record the org & user in the signup
-    @partnered_signup.update(
-      event: @organization,
-      user: User.find_by(email: @partnered_signup.owner_email),
-    )
-
     authorize @partnered_signup
 
-    if @partnered_signup.save!
+    PartneredSignup.transaction do
+      # Create an event
+      @organization = Event.create!(
+        partner: @partner,
+        name: @partnered_signup.organization_name,
+        sponsorship_fee: @partner.default_org_sponsorship_fee,
+        organization_identifier: SecureRandom.hex(30) + @partnered_signup.organization_name,
+      )
+
+      # Invite users to event
+      ::EventService::PartnerInviteUser.new(
+        partner: @partner,
+        event: @organization,
+        user_email: @partnered_signup.owner_email
+      ).run
+
+      # Record the org & user in the signup
+      @partnered_signup.update(
+        event: @organization,
+        user: User.find_by(email: @partnered_signup.owner_email),
+      )
+
+      # Mark the signup as completed
+      # TODO: remove bypass for unapproved (unsigned contracts by admin)
+      @partnered_signup.mark_accepted! if @partnered_signup.applicant_signed?
+      @partnered_signup.mark_completed!
+
       ::PartneredSignupJob::DeliverWebhook.perform_later(@partnered_signup.id)
       flash[:success] = "Partner signup accepted"
-      redirect_to partnered_signups_admin_index_path
-    else
-      render "edit"
+      redirect_to partnered_signups_admin_index_path and return
     end
+  rescue => e
+    Airbrake.notify(e)
+
+    # Something went wrong
+    flash[:error] = "Something went wrong. #{e}"
+    redirect_to partnered_signups_admin_index_path
   end
 
   def partnered_signups_reject
@@ -171,7 +186,6 @@ class AdminController < ApplicationController
       render "edit"
     end
   end
-
 
   def partner_organizations
     @page = params[:page] || 1
@@ -198,6 +212,8 @@ class AdminController < ApplicationController
     @omitted = params[:omitted].present? ? params[:omitted] : "both" # both by default
     @funded = params[:funded].present? ? params[:funded] : "both" # both by default
     @hidden = params[:hidden].present? ? params[:hidden] : "both" # both by default
+    @organized_by_hack_clubbers = params[:organized_by_hack_clubbers].present? ? params[:organized_by_hack_clubbers] : "both" # both by default
+    @international = params[:international] == "1" ? true : nil # unchecked by default
     @country = params[:country].present? ? params[:country] : "all" # all by default
 
     relation = Event.not_partner
@@ -211,6 +227,9 @@ class AdminController < ApplicationController
     relation = relation.not_hidden if @hidden == "not_hidden"
     relation = relation.funded if @funded == "funded"
     relation = relation.not_funded if @funded == "not_funded"
+    relation = relation.organized_by_hack_clubbers if @organized_by_hack_clubbers == "organized_by_hack_clubbers"
+    relation = relation.not_organized_by_hack_clubbers if @organized_by_hack_clubbers == "not_organized_by_hack_clubbers"
+    relation = relation.where.not(country: "US") if @international
     relation = relation.where(country: @country) if @country != "all"
 
     states = []
@@ -537,6 +556,36 @@ class AdminController < ApplicationController
     redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
   end
 
+  def disbursement_process
+    @disbursement = Disbursement.find(params[:id])
+
+    render layout: "admin"
+  end
+
+  def disbursement_approve
+    attrs = {
+      disbursement_id: params[:id],
+      fulfilled_by_id: current_user.id
+    }
+    disbursement = DisbursementService::Approve.new(attrs).run
+
+    redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
+  rescue => e
+    redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
+  end
+
+  def disbursement_reject
+    attrs = {
+      disbursement_id: params[:id],
+      fulfilled_by_id: current_user.id
+    }
+    disbursement = DisbursementService::Reject.new(attrs).run
+
+    redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
+  rescue => e
+    redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
+  end
+
   def check
     @page = params[:page] || 1
     @per = params[:per] || 20
@@ -702,6 +751,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
+    @reviewing = params[:reviewing] == "1" ? true : nil
     @pending = params[:pending] == "1" ? true : nil
     @processing = params[:processing] == "1" ? true : nil
 
@@ -726,6 +776,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.pending if @pending
+    relation = relation.reviewing if @reviewing
     # relation = relation.processing if @processing # TODO: remove ruby logic from scope
 
     @count = relation.count
@@ -743,7 +794,8 @@ class AdminController < ApplicationController
       source_event_id: params[:source_event_id],
       destination_event_id: params[:event_id],
       name: params[:name],
-      amount: params[:amount]
+      amount: params[:amount],
+      requested_by_id: current_user.id
     }
     ::DisbursementService::Create.new(attrs).run
 

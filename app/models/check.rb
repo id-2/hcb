@@ -17,6 +17,7 @@ class Check < ApplicationRecord
 
   has_many :t_transactions, class_name: "Transaction", inverse_of: :check
 
+  validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
   validates :send_date, presence: true
   validate :send_date_must_be_in_future, on: :create
 
@@ -183,6 +184,14 @@ class Check < ApplicationRecord
 
   def recipient_name
     lob_address.name
+  end
+
+  def self.admin_count_offset
+    # Whoops, this is very hacky. There is currently a Check that should be
+    # cancelled, but we don't support that yet. In the meantime, Ops shouldn't
+    # process that check. However, it is increasing the "actionable" count, so
+    # this is a hacky fix to bring the count back down.
+    -1
   end
 
   private

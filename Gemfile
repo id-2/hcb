@@ -149,6 +149,10 @@ end
 group :production do
   # Enable compression in production
   gem "heroku-deflater"
+
+  # Heroku language runtime metrics
+  # https://devcenter.heroku.com/articles/language-runtime-metrics-ruby#add-the-barnes-gem-to-your-application
+  gem "barnes"
 end
 
 gem "aasm" # state machine
@@ -169,6 +173,7 @@ gem "namae" # multi-cultural human name parser
 gem "newrelic_rpm"
 gem "paper_trail" # track changes on models
 gem "pg_search"
+gem 'premailer-rails' # css to inline styles for emails
 gem "rack-attack"
 gem "safely_block"
 gem "selenium-webdriver", "4.0.0.beta3"
@@ -178,3 +183,7 @@ gem "swagger-blocks"
 gem "xxhash" # fast hashing
 
 gem "docusign_esign", "~> 3.13"
+
+gem "webauthn", "~> 2.5"
+
+gem "browser", "~> 5.3"

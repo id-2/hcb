@@ -61,7 +61,7 @@
         <span class="bold">Hack Club</span><br />
         <span style="white-space: nowrap;">8605 Santa Monica Boulevard #86294</span><br />
         West Hollywood, CA 90069<br />
-        team@hackclub.com
+        bank@hackclub.com
       </p>
       <%= image_tag(wicked_pdf_asset_base64('hack_club_logo.png'), width: 156.6, height: 26.88, class: 'centerImage')%>
     </div>
@@ -73,7 +73,7 @@
     <div style="line-height: 1.25;">
       <p>To whom it may concern,</p>
       <p>
-        This letter serves as a confirmation that Hack Club<% if !@event.omit_stats? %>, on behalf of <%= @event.name %>,<% end %> has transfered <%= render_money @ach_transfer.amount %> to <%= @ach_transfer.recipient_name %> for the reason of <em>"<%= @ach_transfer.payment_for %>"</em>.
+        This letter serves as a confirmation that Hack Club<% if !@event.omit_stats? %>, on behalf of <%= @event.name %>,<% end %> has transferred <%= render_money @ach_transfer.amount %> to <%= @ach_transfer.recipient_name %> for the reason of <em>"<%= @ach_transfer.payment_for %>"</em>.
       </p>
       
       <table style="line-height: 1.15">

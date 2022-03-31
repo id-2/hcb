@@ -20,17 +20,23 @@
       <%= form.number_field :amount,
         placeholder: '500.00',
         value: (@check.amount.nil? ? nil : (@check.amount.to_f / 100)),
+        disabled: @event.balance <= 0,
         step: 0.01,
-        min: 0,
+        max: (current_user&.admin? ? nil : @event.balance),
+        min: 1,
         required: true,
-        'data-behavior': 'check_amount_field' %>
+        'data-behavior': 'check_amount_field'
+        %>
     </div>
+      <% if @event.balance <= 0 %>
+        <span class="error">There are no funds to transfer.</br>
+      <% end %>
   </div>
 
   <div class="field">
     <%= form.label :payment_for, "What are you paying for with this check?" %>
     <%= form.text_field :payment_for, placeholder: 'Event venue', required: true %>
-    <span class="muted">This is to help Hack Club Bank keep record of our transactions. Hack Club Bank staff will see this.</span>
+    <span class="muted">This is to help Hack Club Bank keep record of our transactions. Bank team will see this.</span>
   </div>
 
   <% if @event.lob_addresses.any? %>

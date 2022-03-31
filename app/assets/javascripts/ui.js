@@ -24,7 +24,7 @@ $(document).on('turbo:load', function () {
   })
 
   $(document).on('click', '[data-behavior~=modal_trigger]', function (e) {
-    if ($(this).attr('href')) e.preventDefault()
+    if ($(this).attr('href') || $(e.target).attr('href')) e.preventDefault()
     BK.s('modal', '#' + $(this).data('modal')).modal()
     return this.blur()
   })
@@ -68,38 +68,52 @@ $(document).on('turbo:load', function () {
     })
   }
 
-  // login code sanitization and auto-submit
-  $("input[name='login_code']").on('keyup change', function (event) {
-    let currentVal = $(this)
-      .val()
-      .replace(/[^0-9]+/g, '')
+  // login code sanitization
+  const loginCodeInput = $("input[name='login_code']")
+  loginCodeInput.on('keyup change', function (event) {
+    const currentVal = $(this).val()
+    let newVal = currentVal.replace(/[^0-9]+/g, '')
 
     // truncate if more than 6 digits
-    if (currentVal.length >= 6 + 6) {
-      currentVal = currentVal.slice(-6)
-    } else if (currentVal.length > 6) {
-      currentVal = currentVal.substring(0, 6)
+    if (newVal.length >= 6 + 6) {
+      newVal = newVal.slice(-6)
+    } else if (newVal.length > 6) {
+      newVal = newVal.substring(0, 6)
     }
 
     // split code into two groups of three digits; separated with a dash
-    if (currentVal.length > 3) {
-      currentVal = currentVal.slice(0, 3) + '-' + currentVal.slice(3)
+    if (newVal.length > 3) {
+      newVal = newVal.slice(0, 3) + '-' + newVal.slice(3)
     }
 
-    $(this).val(currentVal)
-
-    // If code was pasted and is in valid format, then auto-submit
-    // This is a weird workaround because:
-    //   1. The `paste` event doesn't include the value
-    //   2. The `paste` event happens before the `keyup` event
-    const pastedAt = $(this).data('pastedAt')
-    const recentlyPasted = pastedAt && new Date() - pastedAt < 1000
-    if (recentlyPasted && /^\d{3}-\d{3}$/.test(currentVal)) {
-      $(this).closest('form').submit()
+    // Allow a dash to be typed as the 4th character
+    if (currentVal.at(3) === '-' && currentVal.length === 4) {
+      newVal += '-'
     }
+
+    $(this).val(newVal)
   })
-  $("input[name='login_code']").on('paste', function (event) {
-    $(this).data('pastedAt', new Date().getTime())
+
+  loginCodeInput.closest('form').on('submit', function (event) {
+    // Ignore double submissions.
+    // Since we are auto-submitting the form, the user may attempt to submit at
+    // the same time. Let's prevent this.
+    const submittedAt = $(this).data('submittedAt')
+
+    // Theoretically, we only need to check for `submittedAt` since the form
+    // will reset on submitting; meaning the `submittedAt` data will be cleared.
+    // However, in the case of strange network issues, i'm not sure if that's
+    // always the case.
+    const recentlySubmitted = submittedAt && new Date() - submittedAt < 5000
+    if (recentlySubmitted) {
+      // The form was recently submitted. Don't submit form again
+      event.preventDefault()
+      console.log('Login form was recently submitted')
+    } else {
+      // Go ahead and submit, but also set `autoSubmittedAt`
+      $(this).data('submittedAt', new Date().getTime())
+      return true
+    }
   })
 
   // if you add the money behavior to an input, it'll add commas, only allow two numbers for cents,
@@ -234,13 +248,16 @@ $(document).on('turbo:load', function () {
     }
   )
 
-  $(document).on('keydown', '[data-behavior~=autosize]', function () {
-    const t = this
-    return setTimeout(function () {
-      $(t).attr({ rows: Math.floor(t.scrollHeight / 28) })
-      return $(t).css({ height: 'auto' })
-    }, 0)
-  })
+  $('textarea')
+    .each(function () {
+      $(this).css({
+        height: `${this.scrollHeight + 1}px`
+      })
+    })
+    .on('input', function () {
+      this.style.height = 'auto'
+      this.style.height = this.scrollHeight + 1 + 'px'
+    })
 
   // Popover menus
   BK.openMenuSelector = '[data-behavior~=menu_toggle][aria-expanded=true]'
@@ -311,4 +328,17 @@ $(document).on('turbo:load', function () {
   return window
     .matchMedia('(prefers-reduced-motion: reduce)')
     .addListener(() => setTilt())
+})
+
+$('[data-behavior~=ctrl_enter_submit]').keydown(function (event) {
+  if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
+    $(this).closest('form').submit()
+  }
+})
+
+$('[data-behavior~=submit_form]').click(function (e) {
+  e.preventDefault()
+
+  const formId = $(this).data('form')
+  $(`#${formId}`).submit()
 })

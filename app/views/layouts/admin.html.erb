@@ -29,11 +29,11 @@
       |
       <%= link_to "partners (#{Partner.count})", partners_admin_index_path %>
       |
-      <%= link_to "partnered signups (#{PartneredSignup.pending.count})", partnered_signups_admin_index_path %>
+      <%= link_to "partnered signups (#{PartneredSignup.applicant_signed.count})", partnered_signups_admin_index_path %>
       |
       <%= link_to "partner organizations (#{Event.partner.count})", partner_organizations_admin_index_path %>
       |
-      <%= link_to "organizations (#{Event.not_partner.pending_or_unapproved.count})", events_admin_index_path %>
+      <%= link_to "organizations (#{Event.approved.count})", events_admin_index_path %>
       |
       <%= link_to "bank fees (#{BankFee.in_transit_or_pending.count})", bank_fees_admin_index_path %>
       |
@@ -49,13 +49,13 @@
       |
       <%= link_to "achs (#{AchTransfer.pending.count})", ach_admin_index_path %>
       |
-      <%= link_to "checks (#{Check.in_transit.count})", check_admin_index_path %>
+      <%= link_to "checks (#{Check.in_transit.count + Check.admin_count_offset})", check_admin_index_path %>
       |
       <%= link_to "Partner donations", partner_donations_admin_index_path %>
       |
       <%= link_to "donations", donations_admin_index_path %>
       |
-      <%= link_to "disbursements (#{Disbursement.pending.count})", disbursements_admin_index_path %>
+      <%= link_to "disbursements (#{Disbursement.reviewing.count})", disbursements_admin_index_path %>
       |
       <%= link_to "invoices", invoices_admin_index_path %>
       |
@@ -74,7 +74,7 @@
 
     <hr/>
 
-    <div id="main" class="overflow-x-auto">
+    <div id="main" class="overflow-x-auto overflow-y-auto">
       <%= yield %>
     </div>
 

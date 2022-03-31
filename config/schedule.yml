@@ -96,7 +96,17 @@ fee_engine_hourly_job:
   queue: "default"
 
 partner_donation_nightly_job:
-  cron: "0 0 * * *" # run every 1 day
+  cron: "0 */6 * * *" # run 4 times a day
   class: "PartnerDonationJob::Nightly"
+  queue: "default"
+
+partnered_signup_nightly_job:
+  cron: "0 * * * *" # run every hour
+  class: "PartneredSignupJob::Nightly"
+  queue: "default"
+
+stripe_card_nightly_job:
+  cron: "0 7 * * *" # run every 1 day, after import
+  class: "StripeCardJob::Nightly"
   queue: "default"
 
