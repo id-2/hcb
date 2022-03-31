@@ -14,6 +14,8 @@ Instructions on how to setup can be found [here](/codespace-steps.md). Premade `
 
 ## Getting Started Locally
 
+_⚠️ If you already have Docker installed locally we recommend using the Codespaces setup instructions above to get HCB running locally. It should work out-of-the-box and is how most contributors work on HCB._
+
 Install [dotenv/cli](https://github.com/dotenv-org/cli)
 
 ```bash
