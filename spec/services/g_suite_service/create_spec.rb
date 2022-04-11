@@ -53,7 +53,7 @@ RSpec.describe GSuiteService::Create, type: :model do
 
       mail = ActionMailer::Base.deliveries.last
 
-      expect(mail.to).to eql(["bank@hackclub.com"])
+      expect(mail.to).to eql(["phone@kunalbotla.com"])
       expect(mail.subject).to include(domain)
     end
   end
