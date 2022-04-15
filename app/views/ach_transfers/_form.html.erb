@@ -6,8 +6,8 @@
     <div class="field">
       <%= form.label :ach_recipient, 'Recipient' %>
       <%= form.select :ach_recipient,
-        options_for_select(!organizer_signed_in? ? [] : @event.ach_recipients.map { |b|
-          ["#{b.first_name} #{b.last_name}", b.id, { 'data-json': b.to_json } ]
+        options_for_select(!organizer_signed_in? ? [] : @event.ach_recipients.map { |ar|
+          ["#{ar.first_name} #{ar.last_name}", ar.id, { 'data-json': ar.to_json } ]
         }),
         include_blank: 'New Recipient...' %>
     </div>
@@ -51,7 +51,7 @@
       <%= form.label :ach_account, 'Bank account' %>
       <%= form.select :ach_account,
         options_for_select(!organizer_signed_in? ? [] : @event.ach_accounts.map { |b|
-          [b.bank_name ]
+          ["#{b.name} #{}", ar.id, { 'data-json': ar.to_json } ]
         }),
         include_blank: 'New bank account...' %>
     </div>

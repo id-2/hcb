@@ -7,4 +7,8 @@ class AchAccount < ApplicationRecord
   encrypts :routing_number
   encrypts :account_number
 
+  def last_four
+    account_number.last(4)
+  end
+
 end

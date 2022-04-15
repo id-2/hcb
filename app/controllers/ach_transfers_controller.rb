@@ -48,6 +48,9 @@ class AchTransfersController < ApplicationController
   # GET /ach_transfers/new
   def new
     @ach_transfer = AchTransfer.new(event: @event)
+    @ach_recipient = AchRecipient.new(event: @event)
+    @ach_account = AchAccount.new(beneficiary: @ach_recipient)
+
     authorize @ach_transfer
   end
 
