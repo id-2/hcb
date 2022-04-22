@@ -7,6 +7,8 @@ class AchAccount < ApplicationRecord
   encrypts :routing_number
   encrypts :account_number
 
+  belongs_to :beneficiary, polymorphic: true
+
   def last_four
     account_number.last(4)
   end

@@ -165,6 +165,8 @@ class Event < ApplicationRecord
 
   has_many :ach_transfers
   has_many :ach_recipients # TODO: beneficiary (both Users and Ach Recipients)
+  has_many :ach_accounts, through: :ach_recipients
+  has_many :g_suites
 
   has_many :disbursements
   has_many :incoming_disbursements, class_name: "Disbursement", foreign_key: :event_id

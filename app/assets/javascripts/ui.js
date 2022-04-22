@@ -179,6 +179,12 @@ $(document).on('turbo:load', function () {
     )
   })
 
+  const ach_recipient_fields = [
+    'first_name',
+    'last_name',
+    'phone',
+  ]
+
   $(document).on('change', '[name="ach_transfer[ach_recipient]"]', function (e) {
     let ach_recipient = $(e.target).children('option:selected').data('json')
     if (!ach_recipient) {
@@ -191,15 +197,71 @@ $(document).on('turbo:load', function () {
       $('[data-behavior~=ach_recipient_update_warning]').slideUp('fast')
     }
 
+    let ach_account_select = $('select#ach_transfer_ach_account')[0]
+    for (let option of ach_account_select.options) {
+      let data = $(option).data('json')
+      if (!data) continue;
+
+      let beneficiary_type = data.beneficiary_type
+      let beneficiary_id = data.beneficiary_id
+
+      if(beneficiary_type != 'AchRecipient' || beneficiary_id != ach_recipient.id) {
+        $(option).hide();
+      } else {
+        $(option).show();
+      }
+    }
+
+
+    return ach_recipient_fields.forEach(field =>
+      $(`input#ach_transfer_ach_recipient_attributes_${field}`).val(ach_recipient[field])
+    )
+  })
+
+
+  $(document).on('change', '[name="ach_transfer[ach_account]"]', function (e) {
+    let ach_account = $(e.target).children('option:selected').data('json')
+    if (!ach_account) {
+      ach_account = {}
+    }
+    console.log(ach_account);
+
     const fields = [
-      'first_name',
-      'last_name',
-      'phone',
+      'account_number',
+      'routing_number',
+      'bank_name'
     ]
 
     return fields.forEach(field =>
-      $(`input#ach_recipient_attributes_${field}`).val(ach_recipient[field])
+      {
+        // TODO: send last 4 of fields and disable is existing
+        console.log($(`input#ach_transfer_${field}`));
+        console.log(ach_account[field]);
+        $(`input#ach_transfer_${field}`).val(ach_account[field])
+      }
     )
+  })
+
+  $(document).on('change keydown', '[name*="ach_transfer[ach_recipient_attributes]"],[name="ach_transfer[ach_recipient]"]', function (e) {
+    let missing = false;
+    ach_recipient_fields.forEach(field => {
+        let val = $(`input#ach_transfer_ach_recipient_attributes_${field}`).val();
+        if(!val.trim()) {
+          missing = true;
+        }
+      }
+    );
+
+    let continueWarning = $('[data-behavior~=ach_recipient_continue_warning]')
+    let achAccountForm = $('[data-behavior~=ach_account_form]')
+    if(!missing) {
+      continueWarning.slideUp('fast');
+      achAccountForm.slideDown('fast');
+    }
+    else {
+      continueWarning.slideDown('fast');
+      achAccountForm.slideUp('fast');
+    }
   })
 
   $(document).on('change', '[name="check[lob_address]"]', function (e) {

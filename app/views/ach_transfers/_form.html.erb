@@ -2,6 +2,22 @@
   <%= form_errors(@ach_transfer, 'ACH transfer') %>
   <%= form_errors(@ach_recipient, 'Recipient') %>
 
+  <div class="field">
+    <%= form.label :payment_for, "What are you paying for with this deposit?" %>
+    <%= form.text_field :payment_for, placeholder: 'Shipment of potions', required: true %>
+    <span class="muted">This is to help Hack Club Bank keep record of our transactions. Bank team will see this.</span>
+  </div>
+
+  <%= form.label :amount, 'Amount' %>
+  <div class="field">
+    <div class="flex items-center">
+      <span class="bold muted" style="width: 1rem;">$</span>
+      <%= form.number_field :amount, 
+      value: (@ach_transfer.amount.nil? ? nil : (@ach_transfer.amount.to_f / 100)),
+      placeholder: '500.00', step: 0.01, min: 0.01, required: true %>
+    </div>
+  </div>
+
   <% if @event.ach_recipients.any? %>
     <div class="field">
       <%= form.label :ach_recipient, 'Recipient' %>
@@ -21,6 +37,11 @@
       You're currently updating a previous recipient
     </p>
 
+    <p data-behavior="ach_recipient_continue_warning" style="display: none;" class="flex items-center warning line-height-3">
+      <%= inline_icon 'important', size: 32, class: 'mr1' %>
+      Fill out the recipient details to continue
+    </p>
+
     <div class="field">
       <%= form.label :first_name %>
       <%= form.text_field :first_name, placeholder: 'Max', required: true %>
@@ -38,49 +59,36 @@
 
   <% end %>
 
-  <div class="field">
-    <%= form.label :payment_for, "What are you paying for with this deposit?" %>
-    <%= form.text_field :payment_for, placeholder: 'Shipment of potions', required: true %>
-    <span class="muted">This is to help Hack Club Bank keep record of our transactions. Bank team will see this.</span>
-  </div>
+  <div data-behavior="ach_account_form" style="display: none;">
+    <h2>Bank Information</h2>
 
-  <h2>Bank Information</h2>
-
-  <% if @event.ach_recipients.any? and false %>
     <div class="field">
       <%= form.label :ach_account, 'Bank account' %>
       <%= form.select :ach_account,
-        options_for_select(!organizer_signed_in? ? [] : @event.ach_accounts.map { |b|
-          ["#{b.name} #{}", ar.id, { 'data-json': ar.to_json } ]
-        }),
+        options_for_select(!organizer_signed_in? ? [] : @event.ach_recipients.map { |ar|
+          ar.ach_accounts.map { |aa|
+            ["#{aa.bank_name} - #{aa.account_number}", aa.id, { 'data-json': aa.to_json } ]
+          }
+        }.flatten(1)),
         include_blank: 'New bank account...' %>
     </div>
-  <% end %>
 
-  <div class="field">
-    <%= form.label :bank_name %>
-    <%= form.text_field :bank_name, placeholder: 'Name of the bank', required: true %>
-  </div>
+    <div class="field">
+      <%= form.label :bank_name %>
+      <%= form.text_field :bank_name, placeholder: 'Name of the bank', required: true %>
+    </div>
 
-  <div class="field">
-    <%= form.label :routing_number %>
-    <%= form.text_field :routing_number, placeholder: '123456789', required: true %>
-  </div>
+    <div class="field">
+      <%= form.label :routing_number %>
+      <%= form.text_field :routing_number, placeholder: '123456789', required: true %>
+    </div>
 
-  <div class="field">
-    <%= form.label :account_number %>
-    <%= form.text_field :account_number, placeholder: '0913338883', required: true %>
-  </div>
-
-  <%= form.label :amount, 'Amount' %>
-  <div class="field">
-    <div class="flex items-center">
-      <span class="bold muted" style="width: 1rem;">$</span>
-      <%= form.number_field :amount, 
-      value: (@ach_transfer.amount.nil? ? nil : (@ach_transfer.amount.to_f / 100)),
-      placeholder: '500.00', step: 0.01, min: 0.01, required: true %>
+    <div class="field">
+      <%= form.label :account_number %>
+      <%= form.text_field :account_number, placeholder: '0913338883', required: true %>
     </div>
   </div>
+
   <div class="actions tooltipped tooltipped--n inline-block" aria-label="ACH transfers can't be cancelled">
     <%= form.submit 'Transfer money now', class: 'btn bg-warning', disabled: !organizer_signed_in? %>
   </div>
