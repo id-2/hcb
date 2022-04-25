@@ -9,7 +9,7 @@ class PartneredSignup < ApplicationRecord
   set_public_id_prefix :sup
 
   include CountryEnumable
-  has_country_enum :owner_address_country
+  has_country_enum :countries
 
   belongs_to :partner, required: true
   belongs_to :event,   required: false
@@ -45,6 +45,12 @@ class PartneredSignup < ApplicationRecord
     # The ending state of a SUP should be either `rejected` or `completed`
 
     event :mark_submitted do
+      # Sync this Partnered Signup to Airtable when it is submitted
+      after do
+        puts self.id
+        ::PartneredSignupJob::SyncToAirtable.perform_later(partnered_signup_id: self.id)
+      end
+
       transitions from: :unsubmitted, to: :submitted
     end
 

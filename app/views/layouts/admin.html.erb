@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Bank Admin</title>
+    <title>
+      <%= yield(:title).concat(" –") if content_for?(:title) %>
+      Bank Admin
+    </title>
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= javascript_include_tag 'dark', 'data-turbo-track': 'reload' %>
@@ -15,10 +19,12 @@
     <% flash.each do |key, value| %>
       <% if key == "error" %>
         <p style="text-align:center;background:red;color:white;"><%= value %></p>
-      <% else %>
+      <% elsif key == "success" %>
         <p style="text-align:center;background:green;color:white;"><%= value %></p>
+      <% else %>
+        <p style="text-align:center;background:darkblue;color:white;"><%= value %></p>
       <% end %>
-      <hr/>
+      <hr />
     <% end %>
 
     <p>
@@ -35,6 +41,8 @@
       |
       <%= link_to "organizations (#{Event.approved.count})", events_admin_index_path %>
       |
+      <%= link_to "organization balances", balances_admin_index_path %>
+      |
       <%= link_to "bank fees (#{BankFee.in_transit_or_pending.count})", bank_fees_admin_index_path %>
       |
       <%= link_to "users", users_admin_index_path %>
@@ -49,13 +57,13 @@
       |
       <%= link_to "achs (#{AchTransfer.pending.count})", ach_admin_index_path %>
       |
-      <%= link_to "checks (#{Check.in_transit.count})", check_admin_index_path %>
+      <%= link_to "checks (#{Check.in_transit.count + Check.admin_count_offset})", check_admin_index_path %>
       |
       <%= link_to "Partner donations", partner_donations_admin_index_path %>
       |
       <%= link_to "donations", donations_admin_index_path %>
       |
-      <%= link_to "disbursements (#{Disbursement.pending.count})", disbursements_admin_index_path %>
+      <%= link_to "disbursements (#{Disbursement.reviewing.count})", disbursements_admin_index_path %>
       |
       <%= link_to "invoices", invoices_admin_index_path %>
       |
@@ -74,7 +82,7 @@
 
     <hr/>
 
-    <div id="main" class="overflow-x-auto">
+    <div id="main" class="overflow-x-auto overflow-y-auto">
       <%= yield %>
     </div>
 

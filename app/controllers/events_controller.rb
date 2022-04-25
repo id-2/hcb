@@ -29,6 +29,7 @@ class EventsController < ApplicationController
     end
 
     @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q]).run).page(params[:page]).per(100)
+    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions).run!
   end
 
   def fees
@@ -66,6 +67,9 @@ class EventsController < ApplicationController
   # GET /events/1/edit
   def edit
     authorize @event
+
+    @color = ["info", "success", "warning", "accent", "error"].sample
+    @flavor = ["jank", "janky", "wack", "wacky", "hack", "hacky"].sample
   end
 
   # PATCH/PUT /events/1
@@ -261,28 +265,45 @@ class EventsController < ApplicationController
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
 
-    ach_relation = @event.ach_transfers
-    checks_relation = @event.checks
+    @ach_transfers = @event.ach_transfers
+    @checks = @event.checks
+    @disbursements = @event.beta_features_enabled? ? @event.outgoing_disbursements : []
 
-    @stats = {
-      deposited: ach_relation.deposited.sum(:amount) + checks_relation.deposited.sum(:amount),
-      in_transit: ach_relation.in_transit.sum(:amount) + checks_relation.in_transit_or_in_transit_and_processed.sum(:amount),
-      canceled: ach_relation.rejected.sum(:amount) + checks_relation.canceled.sum(:amount)
-    }
+    if @event.beta_features_enabled?
+      @stats = {
+        deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum,
+        in_transit: @ach_transfers.in_transit.sum(:amount) + @checks.in_transit_or_in_transit_and_processed.sum(:amount) + @disbursements.reviewing_or_processing.sum(:amount),
+        canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount) + @disbursements.rejected.sum(:amount)
+      }
+    else
+      @stats = {
+        deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount),
+        in_transit: @ach_transfers.in_transit.sum(:amount) + @checks.in_transit_or_in_transit_and_processed.sum(:amount),
+        canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount)
+      }
+    end
 
-    ach_relation = ach_relation.in_transit if params[:filter] == "in_transit"
-    ach_relation = ach_relation.deposited if params[:filter] == "deposited"
-    ach_relation = ach_relation.rejected if params[:filter] == "canceled"
-    ach_relation = ach_relation.search_recipient(params[:q]) if params[:q].present?
-    @ach_transfers = ach_relation
+    # only search/filter transfers if organizer is signed in
+    if organizer_signed_in?
+      @ach_transfers = @ach_transfers.in_transit if params[:filter] == "in_transit"
+      @ach_transfers = @ach_transfers.deposited if params[:filter] == "deposited"
+      @ach_transfers = @ach_transfers.rejected if params[:filter] == "canceled"
+      @ach_transfers = @ach_transfers.search_recipient(params[:q]) if params[:q].present?
 
-    checks_relation = checks_relation.in_transit_or_in_transit_and_processed if params[:filter] == "in_transit"
-    checks_relation = checks_relation.deposited if params[:filter] == "deposited"
-    checks_relation = checks_relation.canceled if params[:filter] == "canceled"
-    checks_relation = checks_relation.search_recipient(params[:q]) if params[:q].present?
-    @checks = checks_relation
+      @checks = @checks.in_transit_or_in_transit_and_processed if params[:filter] == "in_transit"
+      @checks = @checks.deposited if params[:filter] == "deposited"
+      @checks = @checks.canceled if params[:filter] == "canceled"
+      @checks = @checks.search_recipient(params[:q]) if params[:q].present?
 
-    @transfers = (@checks + @ach_transfers).sort_by { |o| o.created_at }.reverse
+      if @event.beta_features_enabled?
+        @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
+        @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
+        @disbursements = @disbursements.rejected if params[:filter] == "canceled"
+        @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
+      end
+    end
+
+    @transfers = (@checks + @ach_transfers + @disbursements).sort_by { |o| o.created_at }.reverse
   end
 
   def promotions
@@ -346,7 +367,8 @@ class EventsController < ApplicationController
       :donation_page_message,
       :is_public,
       :holiday_features,
-      :public_message
+      :public_message,
+      :custom_css_url
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend
@@ -366,7 +388,8 @@ class EventsController < ApplicationController
       :donation_page_message,
       :is_public,
       :holiday_features,
-      :public_message
+      :public_message,
+      :custom_css_url
     )
 
     # convert whatever the user inputted into something that is a legal slug

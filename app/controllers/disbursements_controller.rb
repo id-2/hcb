@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class DisbursementsController < ApplicationController
-  before_action :set_disbursement, only: [:show, :edit, :update]
+  before_action :set_disbursement, only: [:show, :edit, :update, :transfer_confirmation_letter]
 
   def index
     @disbursements = Disbursement.all.order(created_at: :desc).includes(:t_transactions, :event, :source_event)
@@ -15,27 +15,76 @@ class DisbursementsController < ApplicationController
     @hcb_code = HcbCode.find_or_create_by(hcb_code: @disbursement.hcb_code)
   end
 
-  def new
-    @event = Event.friendly.find(params[:event_id]) if params[:event_id]
-    @disbursement = Disbursement.new(event: @event)
-
+  def transfer_confirmation_letter
     authorize @disbursement
+
+    respond_to do |format|
+      unless @disbursement.fulfilled?
+        redirect_to @disbursement and return
+      end
+
+      format.html do
+        redirect_to @disbursement
+      end
+
+      format.pdf do
+        render pdf: "Hack Club Bank Transfer ##{@disbursement.id} Confirmation Letter (#{@disbursement.source_event.name} to #{@disbursement.destination_event.name} on #{@disbursement.created_at})", page_height: "11in", page_width: "8.5in"
+      end
+
+      # not being used at the moment
+      format.png do
+        send_data ::DisbursementService::PreviewTransferConfirmationLetter.new(disbursement: @disbursement, event: @event).run, filename: "transfer_confirmation_letter.png"
+      end
+
+    end
+  end
+
+  def new
+    @destination_event = Event.friendly.find(params[:event_id]) if params[:event_id]
+    @source_event = Event.friendly.find(params[:source_event_id]) if params[:source_event_id]
+    @disbursement = Disbursement.new(destination_event: @destination_event)
+
+    @allowed_source_events = if current_user.admin?
+                               Event.all
+                             else
+                               [@source_event]
+                             end
+    @allowed_destination_events = if current_user.admin?
+                                    Event.all
+                                  else
+                                    current_user.events.not_hidden.transparent.where.not(id: @source_event.id)
+                                  end
+
+    authorize @destination_event, policy_class: DisbursementPolicy
+    authorize @source_event, policy_class: DisbursementPolicy
   end
 
   def create
-    result_params = disbursement_params
-    result_params[:amount] = result_params[:amount].gsub(",", "").to_f * 100
+    @source_event = Event.friendly.find(disbursement_params[:source_event_id])
+    @destination_event = Event.friendly.find(disbursement_params[:event_id])
+    authorize @source_event, policy_class: DisbursementPolicy
+    authorize @destination_event, policy_class: DisbursementPolicy
 
-    @disbursement = Disbursement.new(result_params)
-    @event = Event.friendly.find(params[:disbursement][:event_id])
+    attrs = {
+      name: disbursement_params[:name],
+      destination_event_id: disbursement_params[:event_id],
+      source_event_id: disbursement_params[:source_event_id],
+      amount: disbursement_params[:amount],
+      requested_by_id: current_user.id
+    }
+    disbursement = DisbursementService::Create.new(attrs).run
 
-    authorize @disbursement
+    flash[:success] = "Transfer successfully requested."
 
-    if @disbursement.save
-      redirect_to disbursements_path
+    if current_user.admin?
+      redirect_to disbursements_admin_index_path
     else
-      render "new"
+      redirect_to event_transfers_path(event_id: @source_event.id)
     end
+
+  rescue ArgumentError, ActiveRecord::RecordInvalid => e
+    flash[:error] = e.message
+    redirect_to new_disbursement_path(source_event_id: @source_event)
   end
 
   def edit

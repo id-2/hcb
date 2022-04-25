@@ -17,7 +17,11 @@ module PendingEventMappingEngine
             prefix = grab_prefix(invoice: invoice)
 
             # 2. look up canonical - scoped to event for added accuracy
-            cts = event.canonical_transactions.where("memo ilike '%PAYOUT% #{prefix}%' and date >= ?", cpt.date).order("date asc")
+            cts = event.canonical_transactions.where(
+              "memo ilike ? and date >= ?",
+              "%PAYOUT% #{ActiveRecord::Base.sanitize_sql_like prefix}%",
+              cpt.date
+            ).order("date asc")
 
             # 2.b special case if invoice is quite old & now results
             # cts = event.canonical_transactions.where("memo ilike '%DONAT% #{prefix[0]}%'") if cts.count < 1 && invoice.created_at < Time.utc(2020, 1, 1) # shorter prefix. see  id 1 for example.
@@ -42,12 +46,19 @@ module PendingEventMappingEngine
             cts = event.canonical_transactions.where("memo ilike 'DEPOSIT' and amount_cents = #{invoice.amount_due} and date > '#{invoice.created_at.strftime("%Y-%m-%d")}'") unless cts.present? # see sachacks examples
             unless cts.present?
               prefix = grab_prefix_old(invoice: invoice)
-              cts = event.canonical_transactions.where("memo ilike 'HACK CLUB EVENT TRANSFER PAYOUT - #{prefix}%'and date > '#{invoice.created_at.strftime("%Y-%m-%d")}'")
+              cts = event.canonical_transactions.where(
+                "memo ilike ? and date > ?",
+                "HACK CLUB EVENT TRANSFER PAYOUT - #{ActiveRecord::Base.sanitize_sql_like prefix}%",
+                invoice.created_at.strftime("%Y-%m-%d").to_s
+              )
             end
 
             cts = event.canonical_transactions.missing_pending.where("amount_cents = ? and date > ?", cpt.amount_cents, cpt.date) unless cts.present? # see example canonical transaction 198588
 
-            next if cts.count < 1 # no match found yet. not processed.
+            if cts.empty? # no match found yet. not processed.
+              Airbrake.notify("Old manually marked as paid invoice #{invoice.id} still doesn't have a matching CT.") if invoice.manually_marked_as_paid_at&.> 2.weeks.ago
+              next
+            end
 
             Airbrake.notify("matched more than 1 canonical transaction for canonical pending transaction #{cpt.id}") if cts.count > 1
             ct = cts.first
@@ -96,7 +107,6 @@ module PendingEventMappingEngine
         cleanse = statement_descriptor
         cleanse.split(" ")[0][0..5].upcase
       end
-
 
     end
   end

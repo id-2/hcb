@@ -24,12 +24,12 @@
   <%= form.submit "Search" %>
 <% end %>
 
-<p><small><%= pluralize(@count, "result") %></small></p>
+<%= page_entries_info @g_suites, entry_name: 'Google Workspaces' %>
 
 <table>
   <thead>
     <tr>
-      <th class="w-12">ID</th>
+      <th class="w-16">ID</th>
       <th class="w-32">Date</th>
       <th>Name</th>
       <th class="w-32">OU ID</th>

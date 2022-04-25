@@ -222,40 +222,9 @@ class AdminController < ApplicationController
   def events
     @page = params[:page] || 1
     @per = params[:per] || 100
-    @q = params[:q].present? ? params[:q] : nil
-    @pending = params[:pending] == "0" ? nil : true # checked by default
-    @unapproved = params[:unapproved] == "0" ? nil : true # checked by default
-    @approved = params[:approved] == "0" ? nil : true # checked by default
-    @rejected = params[:rejected] == "0" ? nil : true # checked by default
-    @transparent = params[:transparent].present? ? params[:transparent] : "both" # both by default
-    @omitted = params[:omitted].present? ? params[:omitted] : "both" # both by default
-    @funded = params[:funded].present? ? params[:funded] : "both" # both by default
-    @hidden = params[:hidden].present? ? params[:hidden] : "both" # both by default
-    @country = params[:country].present? ? params[:country] : "all" # all by default
 
-    relation = Event.not_partner
-
-    relation = relation.search_name(@q) if @q
-    relation = relation.transparent if @transparent == "transparent"
-    relation = relation.not_transparent if @transparent == "not_transparent"
-    relation = relation.omitted if @omitted == "omitted"
-    relation = relation.not_omitted if @omitted == "not_omitted"
-    relation = relation.hidden if @hidden == "hidden"
-    relation = relation.not_hidden if @hidden == "not_hidden"
-    relation = relation.funded if @funded == "funded"
-    relation = relation.not_funded if @funded == "not_funded"
-    relation = relation.where(country: @country) if @country != "all"
-
-    states = []
-    states << "pending" if @pending
-    states << "unapproved" if @unapproved
-    states << "approved" if @approved
-    states << "rejected" if @rejected
-    relation = relation.where("aasm_state in (?)", states)
-
-    @count = relation.count
-
-    @events = relation.page(@page).per(@per).reorder("events.created_at desc")
+    @events = filtered_events.page(@page).per(@per).reorder("events.created_at desc")
+    @count = @events.count
 
     render layout: "admin"
   end
@@ -421,6 +390,7 @@ class AdminController < ApplicationController
     @exclude_top_ups = params[:exclude_top_ups] == "1" ? true : nil
     @mapped_by_human = params[:mapped_by_human] == "1" ? true : nil
     @event_id = params[:event_id].present? ? params[:event_id] : nil
+    @user_id = params[:user_id].present? ? params[:user_id] : nil
 
     if @event_id
       @event = Event.find(@event_id)
@@ -450,6 +420,13 @@ class AdminController < ApplicationController
     relation = relation.unmapped if @unmapped
     relation = relation.not_stripe_top_up if @exclude_top_ups
     relation = relation.mapped_by_human if @mapped_by_human
+
+    if @user_id
+      user = User.find(@user_id)
+      sch_sid = user&.stripe_cardholder&.stripe_id
+      relation = relation.joins(hashed_transactions: :raw_stripe_transaction)
+                         .where("raw_stripe_transactions.stripe_transaction->>'cardholder' = ?", sch_sid)
+    end
 
     @count = relation.count
 
@@ -568,6 +545,36 @@ class AdminController < ApplicationController
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
   rescue => e
     redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
+  end
+
+  def disbursement_process
+    @disbursement = Disbursement.find(params[:id])
+
+    render layout: "admin"
+  end
+
+  def disbursement_approve
+    attrs = {
+      disbursement_id: params[:id],
+      fulfilled_by_id: current_user.id
+    }
+    disbursement = DisbursementService::Approve.new(attrs).run
+
+    redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
+  rescue => e
+    redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
+  end
+
+  def disbursement_reject
+    attrs = {
+      disbursement_id: params[:id],
+      fulfilled_by_id: current_user.id
+    }
+    disbursement = DisbursementService::Reject.new(attrs).run
+
+    redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
+  rescue => e
+    redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
   def check
@@ -735,6 +742,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
+    @reviewing = params[:reviewing] == "1" ? true : nil
     @pending = params[:pending] == "1" ? true : nil
     @processing = params[:processing] == "1" ? true : nil
 
@@ -759,6 +767,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.pending if @pending
+    relation = relation.reviewing if @reviewing
     # relation = relation.processing if @processing # TODO: remove ruby logic from scope
 
     @count = relation.count
@@ -776,7 +785,8 @@ class AdminController < ApplicationController
       source_event_id: params[:source_event_id],
       destination_event_id: params[:event_id],
       name: params[:name],
-      amount: params[:amount]
+      amount: params[:amount],
+      requested_by_id: current_user.id
     }
     ::DisbursementService::Create.new(attrs).run
 
@@ -1001,7 +1011,128 @@ class AdminController < ApplicationController
   def bookkeeping
   end
 
+  def balances
+    @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : nil
+    @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : nil
+
+    if @start_date && @end_date && @start_date > @end_date
+      flash[:info] = "Do you really want the Start Date to be after the End Date?"
+    end
+
+    relation = filtered_events.reorder("events.id asc")
+    # Omit orgs if they were created after the end date
+    relation = relation.where("created_at <= ?", @end_date) if @end_date
+
+    @events = relation
+
+    render_balance = ->(event, type) {
+      ApplicationController.helpers.render_money(event.send(type, start_date: @start_date, end_date: @end_date))
+    }
+    template = [
+      # Must be wrapped in lambdas
+      [:organization_id, ->(e) { e.id }],
+      [:organization_name, ->(e) { e.name }],
+      [:net_balance, ->(e) { render_balance.call(e, :settled_balance_cents) }],
+      [:expenses, ->(e) { render_balance.call(e, :settled_outgoing_balance_cents) }],
+      [:revenue, ->(e) { render_balance.call(e, :settled_incoming_balance_cents) }],
+      [:start_date, ->(_) { @start_date }],
+      [:end_date, ->(_) { @end_date }]
+    ]
+    serializer = ->(event) do
+      template.each_with_object({}) do |(header, field), hash|
+        hash[header] = field.call(event)
+      end
+    end
+
+    @data = @events.map { |event| serializer.call(event) }
+    header_syms = template.transpose.first
+    @headers = header_syms.map { |h| h.to_s.titleize(keep_id_suffix: true) }
+    @rows = @data.map { |d| d.values }
+    @count = @rows.count
+
+    respond_to do |format|
+      format.html do
+        render layout: "admin"
+      end
+
+      filename = "balances_#{Time.now.strftime("%Y_%m_%d %H_%M_%S")}"
+
+      format.csv do
+        require "csv"
+
+        csv = Enumerator.new do |y|
+          y << ::CSV::Row.new(header_syms, @headers, true).to_s
+
+          @rows.each do |row|
+            y << ::CSV::Row.new(header_syms, row).to_s
+          end
+        end
+
+        stream_data("text/csv", "#{filename}.csv", csv)
+      end
+
+      format.json do
+        stream_data("application/json", "#{filename}.json", @data.to_json, false)
+      end
+
+    end
+  end
+
   private
+
+  def stream_data(content_type, filename, data, download = true)
+    headers["Content-Type"] = content_type
+    headers["Content-disposition"] = "#{download ? 'attachment; ' : ''}filename=#{filename}"
+    headers["X-Accel-Buffering"] = "no"
+    headers.delete("Content-Length")
+
+    response.status = 200
+    self.response_body = data
+  end
+
+  def filtered_events(events: Event.all)
+    @q = params[:q].present? ? params[:q] : nil
+    @pending = params[:pending] == "0" ? nil : true # checked by default
+    @unapproved = params[:unapproved] == "0" ? nil : true # checked by default
+    @approved = params[:approved] == "0" ? nil : true # checked by default
+    @rejected = params[:rejected] == "0" ? nil : true # checked by default
+    @transparent = params[:transparent].present? ? params[:transparent] : "both" # both by default
+    @omitted = params[:omitted].present? ? params[:omitted] : "both" # both by default
+    @funded = params[:funded].present? ? params[:funded] : "both" # both by default
+    @hidden = params[:hidden].present? ? params[:hidden] : "both" # both by default
+    @organized_by_hack_clubbers = params[:organized_by_hack_clubbers].present? ? params[:organized_by_hack_clubbers] : "both" # both by default
+    if params[:country] == 9999.to_s
+      @country = 9999
+    else
+      @country = params[:country].present? ? params[:country] : "all"
+    end
+
+    relation = events.not_partner
+
+    relation = relation.search_name(@q) if @q
+    relation = relation.transparent if @transparent == "transparent"
+    relation = relation.not_transparent if @transparent == "not_transparent"
+    relation = relation.omitted if @omitted == "omitted"
+    relation = relation.not_omitted if @omitted == "not_omitted"
+    relation = relation.hidden if @hidden == "hidden"
+    relation = relation.not_hidden if @hidden == "not_hidden"
+    relation = relation.funded if @funded == "funded"
+    relation = relation.not_funded if @funded == "not_funded"
+    relation = relation.organized_by_hack_clubbers if @organized_by_hack_clubbers == "organized_by_hack_clubbers"
+    relation = relation.not_organized_by_hack_clubbers if @organized_by_hack_clubbers == "not_organized_by_hack_clubbers"
+    if @country == 9999
+      relation = relation.where.not(country: "US")
+    elsif @country != "all"
+      relation = relation.where(country: @country)
+    end
+
+    states = []
+    states << "pending" if @pending
+    states << "unapproved" if @unapproved
+    states << "approved" if @approved
+    states << "rejected" if @rejected
+    relation = relation.where("aasm_state in (?)", states)
+  end
 
   include StaticPagesHelper # for airtable_info
 

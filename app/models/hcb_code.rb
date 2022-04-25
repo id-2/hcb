@@ -12,6 +12,8 @@ class HcbCode < ApplicationRecord
 
   before_create :generate_and_set_short_code
 
+  attr_writer :canonical_transactions, :canonical_pending_transactions, :not_admin_only_comments_count
+
   def url
     "/hcb/#{hashid}"
   end
@@ -28,6 +30,26 @@ class HcbCode < ApplicationRecord
     return check_memo if check?
 
     custom_memo || ct.try(:smart_memo) || pt.try(:smart_memo) || ""
+  end
+
+  def type
+    return :unknown if unknown?
+    return :invoice if invoice?
+    return :donation if donation?
+    return :partner_donation if partner_donation?
+    return :ach if ach_transfer?
+    return :check if check?
+    return :disbursement if disbursement?
+    return :card_charge if stripe_card?
+
+    nil
+  end
+
+  def humanized_type
+    t = type || :transaction
+    t = :transaction if unknown?
+
+    t.to_s.humanize
   end
 
   def custom_memo
@@ -213,6 +235,13 @@ class HcbCode < ApplicationRecord
 
   def generate_and_set_short_code
     self.short_code = ::HcbCodeService::Generate::ShortCode.new.run
+  end
+
+  # delete this method once preload is on by default
+  def not_admin_only_comments_count
+    return @not_admin_only_comments_count if defined?(@not_admin_only_comments_count)
+
+    @not_admin_only_comments_count = comments.not_admin_only.count
   end
 
 end

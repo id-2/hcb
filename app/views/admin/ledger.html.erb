@@ -24,14 +24,21 @@
   <% end %>
   |
 
-
-  <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: true, selected: @event_id }, { width: 150, style: "max-width: 150px" }) %>
+  <%= form.label :event do %>
+    Event
+    <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: true, selected: @event_id }, { width: 150, style: "max-width: 150px" }) %>
+  <% end %>
   |
+
+  <%= form.label :user do %>
+    User (Card transactions only)
+    <%= form.collection_select(:user_id, User.all, :id, :admin_dropdown_description, { include_blank: true, selected: @user_id }, { width: 150, style: "max-width: 150px" }) %>
+  <% end %>
 
   <%= form.submit "Search" %>
 <% end %>
 
-<p><small><%= pluralize(@count, "result") %></small></p>
+<%= page_entries_info @canonical_transactions, entry_name: 'transactions' %>
 
 <table>
   <thead>
@@ -40,7 +47,7 @@
       <th class="w-32">Date</th>
       <th>Memo</th>
       <th class="w-24">Amount</th>
-      <th>HCB Code</th>
+      <th clas="w-64">HCB Code</th>
       <th class="w-24">Event</th>
       <th class="w-24">Actions</th>
     </tr>
@@ -67,5 +74,9 @@
     <% end %>
   </tbody>
 </table>
+
+<% if @canonical_transactions.empty? %>
+  <%= blankslate 'No transaction match your search parameters' %>
+<% end %>
 
 <%= paginate @canonical_transactions %>

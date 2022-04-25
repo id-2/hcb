@@ -1,4 +1,4 @@
-FROM ruby:2.7.3
+FROM ruby:2.7.5
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -27,5 +27,10 @@ ENV BUNDLE_GEMFILE=Gemfile \
 
 RUN bundle install
 RUN yarn install --check-files
+
+# Rubocop can't find config when ran with solargraph inside docker
+# https://github.com/castwide/solargraph/issues/309#issuecomment-998137438
+RUN ln -s /usr/src/app/.rubocop.yml ~/.rubocop.yml
+RUN ln -s /usr/src/app/.rubocop_todo.yml ~/.rubocop_todo.yml
 
 ADD . /usr/src/app

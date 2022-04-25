@@ -56,6 +56,8 @@ Rails.application.routes.draw do
     collection do
       get "impersonate", to: "users#impersonate"
       get "auth", to: "users#auth"
+      post "webauthn", to: "users#webauthn_auth"
+      get "webauthn/auth_options", to: "users#webauthn_options"
       post "login_code", to: "users#login_code"
       post "exchange_login_code", to: "users#exchange_login_code"
 
@@ -71,9 +73,18 @@ Rails.application.routes.draw do
       # sometimes users refresh the login code page and get 404'd
       get "exchange_login_code", to: redirect("/users/auth", status: 301)
       get "login_code", to: redirect("/users/auth", status: 301)
+
+      # For compatibility with the previous WebAuthn login flow
+      get "webauthn", to: redirect("/users/auth")
     end
     post "delete_profile_picture", to: "users#delete_profile_picture"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
+
+    resources :webauthn_credentials, only: [:create, :destroy] do
+      collection do
+        get "register_options"
+      end
+    end
   end
 
   # webhooks
@@ -116,6 +127,7 @@ Rails.application.routes.draw do
       get "invoices", to: "admin#invoices"
       get "sponsors", to: "admin#sponsors"
       get "google_workspaces", to: "admin#google_workspaces"
+      get "balances", to: "admin#balances"
     end
 
     member do
@@ -126,6 +138,9 @@ Rails.application.routes.draw do
       get "ach_start_approval", to: "admin#ach_start_approval"
       post "ach_approve", to: "admin#ach_approve"
       post "ach_reject", to: "admin#ach_reject"
+      get "disbursement_process", to: "admin#disbursement_process"
+      post "disbursement_approve", to: "admin#disbursement_approve"
+      post "disbursement_reject", to: "admin#disbursement_reject"
       get "check_process", to: "admin#check_process"
       get "check_positive_pay_csv", to: "admin#check_positive_pay_csv"
       post "check_send", to: "admin#check_send"
@@ -219,6 +234,10 @@ Rails.application.routes.draw do
   resources :disbursements, only: [:index, :new, :create, :show, :edit, :update] do
     post "mark_fulfilled"
     post "reject"
+  end
+
+  resources :disbursements do
+    get "confirmation", to: "disbursements#transfer_confirmation_letter"
   end
 
   resources :comments, only: [:edit, :update]
@@ -378,7 +397,8 @@ Rails.application.routes.draw do
 
   get "/events" => "events#index"
   get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
-  resources :events, except: [:new, :create], path: "/" do
+  resources :events, except: [:new, :create], path_names: { edit: "settings" }, path: "/" do
+    get "edit", to: redirect("/%{event_id}/settings")
     get "fees", to: "events#fees", as: :fees
     get "dashboard_stats", to: "events#dashboard_stats", as: :dashboard_stats
     put "toggle_hidden", to: "events#toggle_hidden"
@@ -404,6 +424,7 @@ Rails.application.routes.draw do
     get "donations", to: "events#donation_overview", as: :donation_overview
     get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overview
     get "bank_fees", to: "events#bank_fees", as: :bank_fees
+    resources :disbursements, only: [:new, :create]
     resources :checks, only: [:new, :create]
     resources :ach_transfers, only: [:new, :create]
     resources :organizer_position_invites,

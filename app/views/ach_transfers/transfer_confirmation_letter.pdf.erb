@@ -46,10 +46,6 @@
     td {
       padding: 4pt;
     }
-
-    .letter-body {
-      font-size: 
-    }
   </style>
 </head>
 <body>
@@ -73,13 +69,13 @@
     <div style="line-height: 1.25;">
       <p>To whom it may concern,</p>
       <p>
-        This letter serves as a confirmation that Hack Club<% if !@event.omit_stats? %>, on behalf of <%= @event.name %>,<% end %> has transfered <%= render_money @ach_transfer.amount %> to <%= @ach_transfer.recipient_name %> for the reason of <em>"<%= @ach_transfer.payment_for %>"</em>.
+        This letter serves as a confirmation that Hack Club<% if !@event.omit_stats? %>, on behalf of <%= @event.name %>,<% end %> has transferred <%= render_money @ach_transfer.amount %> to <%= @ach_transfer.recipient_name %> for the reason of <em>"<%= @ach_transfer.payment_for %>"</em>.
       </p>
       
       <table style="line-height: 1.15">
         <thead>
           <tr>
-            <td colspan="2" style="text-align: right"><strong>ACH Transfer ID:</td>
+            <td colspan="2" style="text-align: right"><strong>ACH Transfer ID:</strong></td>
             <td style="width: 10%"><%= @ach_transfer.id %></td>
           </tr>
         </thead>
@@ -115,7 +111,7 @@
         </tbody>
       </table>
       <p>
-        Please don't hesitate to contact me with any additional questions. I can be reached at <a href="mailto:melanie@hackclub.com">melanie@hackclub.com</a>
+        Please don't hesitate to contact me with any additional questions. I can be reached at <a href="mailto:melanie@hackclub.com">melanie@hackclub.com</a>.
       </p>
     </div>
     <br />
@@ -127,7 +123,7 @@
     </div>
     <p style="line-height: 1.15">
       Melanie Smith<br />
-      Director of Hack Club Bank<br />
+      Bank Operations Lead<br />
       Hack Club
     </p>
     <br />

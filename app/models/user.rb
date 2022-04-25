@@ -19,6 +19,7 @@ class User < ApplicationRecord
   has_many :organizer_positions
   has_many :organizer_position_deletion_requests, inverse_of: :submitted_by
   has_many :organizer_position_deletion_requests, inverse_of: :closed_by
+  has_many :webauthn_credentials
 
   has_many :events, through: :organizer_positions
 
@@ -47,6 +48,12 @@ class User < ApplicationRecord
   before_create :create_session_token
   before_create :format_number
   before_save :on_phone_number_update
+
+  validate on: :update do
+    if full_name.blank? && full_name_in_database.present?
+      errors.add(:full_name, "can't be blank")
+    end
+  end
 
   validates :email, uniqueness: true, presence: true
   validates :phone_number, phone: { allow_blank: true }
@@ -115,6 +122,14 @@ class User < ApplicationRecord
 
   def represented_partner
     self.partner
+  end
+
+  def beta_features_enabled?
+    events.where(beta_features_enabled: true).any?
+  end
+
+  def admin_dropdown_description
+    "#{name} (#{email})"
   end
 
   private

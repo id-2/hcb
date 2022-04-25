@@ -6,6 +6,11 @@
 
 <%= form_with local: true, url: disbursements_admin_index_path, method: :get do |form| %>
   <%= form.text_field :q, value: params[:q], placeholder: 'Search' %>
+  <%= form.label :reviewing do %>
+    <%= form.check_box :reviewing, checked: @reviewing %>
+    Reviewing
+  <% end %>
+  |
   <%= form.label :pending do %>
     <%= form.check_box :pending, checked: @pending %>
     Pending
@@ -24,7 +29,7 @@
 <% end %>
 
 
-<p><small><%= pluralize(@count, "result") %></small></p>
+<%= page_entries_info @disbursements, entry_name: 'disbursements' %>
 
 <table>
   <thead>
@@ -40,19 +45,23 @@
   </thead>
   <tbody>
     <% @disbursements.each do |disbursement| %>
-      <tr class="<%= "admin-bg-pending" if disbursement.pending? %>">
+      <tr class="<%= "admin-bg-transit" if disbursement.pending? %><%= "admin-bg-pending" if disbursement.reviewing? %>">
         <td><%= disbursement.id %></td>
         <td><%= disbursement.created_at.strftime("%Y-%m-%d") %></td>
         <td>
           <%= link_to disbursement_path(disbursement) do %>
-            <%= disbursement.event.name.upcase %>: <%= disbursement.name %>
+            <%= disbursement.source_event.name.upcase %>: <%= disbursement.name %>
           <% end %>
         </td>
         <td><%= disbursement.transaction_memo %></td>
         <td><%= render_money_amount(disbursement.amount) %></td>
         <td><%= disbursement.state_text.upcase %></td>
         <td>
-          <%= "AUTOMATED" if disbursement.pending? %>
+          <% if disbursement.reviewing? %>
+            <%= link_to "Process", disbursement_process_admin_path(disbursement) %>
+          <% elsif disbursement.pending? %>
+            AUTOMATED
+          <% end %>
         </td>
       </tr>
     <% end %>
