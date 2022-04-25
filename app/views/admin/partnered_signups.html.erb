@@ -1,9 +1,10 @@
 <% title "Partnered Signups" %>
 
+<%= paginate @partnered_signups %>
+
 <h1>Partnered Signups</h1>
 
-<p><small><%= pluralize(@count, "result") %></small></p>
-
+<%= page_entries_info @partnered_signups, entry_name: 'signups' %>
 <table>
   <thead>
     <tr>
@@ -48,3 +49,5 @@
     <% end %>
   </tbody>
 </table>
+
+<%= paginate @partnered_signups %>

@@ -118,9 +118,14 @@ class AdminController < ApplicationController
   end
 
   def partnered_signups
-    relation = PartneredSignup
+    @page = params[:page] || 1
+    @per = params[:per] || 50
+    @q = params[:q].present? ? params[:q] : nil
 
-    @partnered_signups = relation.not_unsubmitted
+    relation = PartneredSignup
+    relation = relation.search_name(@q) if @q
+
+    @partnered_signups = relation.not_unsubmitted.page(@page).per(@per).order("created_at desc")
 
     @count = @partnered_signups.count
 
