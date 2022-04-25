@@ -4,6 +4,35 @@
 
 <h1>Partnered Signups</h1>
 
+<%= form_with local: true, url:  partnered_signups_admin_index_path , method: :get do |form| %>
+  <%= form.text_field :q, value: params[:q], style: 'vertical-align: top;', placeholder: 'Search' %>
+  <div class="inline-block">
+    <div style='display: inline; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.2rem; margin-right: 0.5rem;'>
+      State: |
+      <%= form.label :applicant_signed do %>
+        <%= form.check_box :applicant_signed, checked: @applicant_signed %>
+        Contract Signed
+      <% end %>
+      |
+      <%= form.label :submitted do %>
+        <%= form.check_box :submitted, checked: @submitted %>
+        Approved
+      <% end %>
+      |
+      <%= form.label :accepted do %>
+        <%= form.check_box :accepted, checked: @accepted %>
+        Approved
+      <% end %>
+      | 
+      <%= form.label :rejected do %>
+        <%= form.check_box :rejected, checked: @rejected %>
+        Rejected
+      <% end %>
+    </div>
+    <%= form.submit "Search" %>
+  </div>
+<% end %>
+
 <%= page_entries_info @partnered_signups, entry_name: 'signups' %>
 <table>
   <thead>

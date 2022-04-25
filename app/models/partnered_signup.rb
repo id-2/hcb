@@ -29,6 +29,15 @@ class PartneredSignup < ApplicationRecord
                          :owner_address_postal_code,
                          :owner_address_country,
                          :owner_birthdate], unless: :unsubmitted?
+  
+  include PgSearch::Model
+  pg_search_scope :search_name, against: [:owner_name, :organization_name, :id], using: { tsearch: { prefix: true, dictionary: "english" } }
+
+  default_scope { order(id: :asc) }
+  scope :submitted, -> { where(aasm_state: :submitted) }
+  scope :applicant_signed, -> { where(aasm_state: :applicant_signed) }
+  scope :rejected, -> { where(aasm_state: :rejected) }
+  scope :accepted, -> { where(aasm_state: :accepted) }
 
   include AASM
 

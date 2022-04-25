@@ -122,6 +122,11 @@ class AdminController < ApplicationController
     @per = params[:per] || 50
     @q = params[:q].present? ? params[:q] : nil
 
+    @applicant_signed = params[:applicant_signed] == "1" ? true : nil
+    @submitted = params[:submitted] == "1" ? true : nil
+    @rejected = params[:rejected] == "1" ? true : nil
+    @accepted = params[:accepted] == "1" ? true : nil
+
     relation = PartneredSignup
     relation = relation.search_name(@q) if @q
 
@@ -203,11 +208,9 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
     @q = params[:q].present? ? params[:q] : nil
-    @applicant_signed = params[:applicant_signed] == "0" ? nil : true # checked by default
-    @completed = params[:completed] == "0" ? nil : true # checked by default
-    @rejected = params[:rejected] == "0" ? nil : true # checked by default
-
-    relation = relation.search_name(@q) if @q
+    @applicant_signed = params[:applicant_signed] == "1" ? nil : true # checked by default
+    @completed = params[:completed] == "1" ? nil : true # checked by default
+    @rejected = params[:rejected] == "1" ? nil : true # checked by default
 
     states = []
     states << "applicant_signed" if @applicant_signed
@@ -216,6 +219,7 @@ class AdminController < ApplicationController
     # relation = relation.where("aasm_state in (?)", states)
 
     relation = Event.partner
+    relation = relation.search_name(@q) if @q
 
     @count = relation.count
 
