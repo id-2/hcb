@@ -342,3 +342,8 @@ $('[data-behavior~=submit_form]').click(function (e) {
   const formId = $(this).data('form')
   $(`#${formId}`).submit()
 })
+
+// custom button for file input upload on receipts
+$('#browseBtn').click(function () {
+  $('#receiptUpload').trigger('click')
+})

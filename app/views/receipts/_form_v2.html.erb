@@ -12,11 +12,14 @@
 
   <%= form.hidden_field :redirect_url, value: url_for(only_path: false) %>
 
-  <%= form.file_field :file, multiple: true, required: true, class: "mb2", data: { "file-drop-target" => "fileInput" } %>
+  <div class="pb2">
+  Drop files to upload or 
+  <a id="browseBtn" class="cursor-pointer underline">Browse Files</a>
+  <%= form.file_field :file, multiple: true, required: true, class: "mb2", data: { "file-drop-target" => "fileInput" }, class: 'display-none', id: 'receiptUpload' %>
+  </div>
 
   <footer class="flex flex-wrap justify-between align-center">
     <%= form.submit "Upload" %>
-
     <% if @hcb_code.missing_receipt? %>
       <%= link_to receiptable_mark_no_or_lost_path(receiptable_type: @hcb_code.class, receiptable_id: @hcb_code.id),
                   method: :post,
