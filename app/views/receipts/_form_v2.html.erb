@@ -12,10 +12,9 @@
 
   <%= form.hidden_field :redirect_url, value: url_for(only_path: false) %>
 
-  <div class="pb2">
-  Drop files to upload or 
-  <a id="browseBtn" class="cursor-pointer underline">Browse Files</a>
-  <%= form.file_field :file, multiple: true, required: true, class: "mb2", data: { "file-drop-target" => "fileInput" }, class: 'display-none', id: 'receiptUpload' %>
+  <div class="flex">
+    <span class="pr1">Drop files to upload or</span>
+    <%= form.file_field :file, multiple: true, required: true, class: "mb2", data: { "file-drop-target" => "fileInput" } %>
   </div>
 
   <footer class="flex flex-wrap justify-between align-center">
