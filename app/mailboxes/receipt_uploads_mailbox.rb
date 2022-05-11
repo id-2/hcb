@@ -3,14 +3,12 @@
 class ReceiptUploadsMailbox < ApplicationMailbox
   # mail --> Mail object, this actual email
   # inbound_email => ActionMailbox::InboundEmail record  --> the active storage record
+  before_processing :ensure_user
+  before_processing :ensure_hcb
+  before_processing :ensure_attachment
+  before_processing :ensure_permissions
 
   def process
-    return unless ensure_user?
-    return unless ensure_hcb?
-    return unless ensure_attachment?
-    return unless ensure_permissions?
-
-    # All good, now let's create the receipts
     result = ::ReceiptService::Create.new(
       receiptable: hcb,
       uploader: user,
@@ -57,9 +55,6 @@ class ReceiptUploadsMailbox < ApplicationMailbox
     # Send email back if user is not found in the db make sure to send us an email from an account that does exist
     if user.nil?
       bounce_with ReceiptUploadMailer.with(mail: inbound_email).bounce_missing_user
-      false
-    else
-      true
     end
   end
 
@@ -67,30 +62,21 @@ class ReceiptUploadsMailbox < ApplicationMailbox
     # Send email back if hcb code can't be matched
     if hcb.nil?
       bounce_with ReceiptUploadMailer.with(mail: inbound_email).bounce_missing_hcb
-      false
-    else
-      true
     end
   end
 
   def ensure_attachment?
     # Send email back if we don't detect any attachments
-    if attachments.any?
-      true
-    else
+    unless attachments.any?
       bounce_with ReceiptUploadMailer.with(mail: inbound_email, reply_to: hcb.receipt_upload_email).bounce_missing_attachment
-      false
     end
 
   end
 
   def ensure_permissions?
+    # We return with the email equivalent of 404 if you don't have permission
     if hcb.event.users.include?(user)
-      true
-    else
-      # We return with the email equivalent of 404 if you don't have permission
       bounce_with ReceiptUploadMailer.with(mail: inbound_email).bounce_missing_hcb
-      false
     end
   end
 
