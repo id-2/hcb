@@ -45,16 +45,15 @@ class StaticPagesController < ApplicationController
   end
 
   # async frame
-  def my_missing_receipts_list
-    @missing_receipt_ids = []
-    current_user.stripe_cards.map do |card|
-      break unless @missing_receipt_ids.size < 5
+  def my_missing_receipts_count
+    missing_receipts = ::ReceiptableService::Missing.new(user: current_user).run
+    @count = @missing_receipts.values.map(&:size).sum
+  end
 
-      card.hcb_codes.without_receipt.pluck(:id).each do |id|
-        @missing_receipt_ids << id
-        break unless @missing_receipt_ids.size < 5
-      end
-    end
+  # async frame
+  def my_missing_receipts_list
+    missing_receipts = ::ReceiptableService::Missing.new(user: current_user, limit: 5).run
+    @missing_receipt_ids = missing_receipts.values.flatten.map(&:id)
     @missing = HcbCode.where(id: @missing_receipt_ids)
     if @missing.any?
       render :my_missing_receipts_list, layout: !request.xhr?
@@ -64,25 +63,9 @@ class StaticPagesController < ApplicationController
   end
 
   def my_inbox
-    stripe_cards = current_user.stripe_cards.includes(:event)
-    emburse_cards = current_user.emburse_cards.includes(:event)
-
-    @hcb_codes = {}
-    @count = 0
-
-    @cards = (stripe_cards + emburse_cards).filter do |card|
-      has_missing_receipt_tx = false
-      card.hcb_codes.missing_receipt.each do |hcb_code|
-        next unless hcb_code.receipt_required?
-
-        @hcb_codes[card.hashid] ||= []
-        @hcb_codes[card.hashid] << hcb_code
-        @count += 1
-        has_missing_receipt_tx = true
-      end
-
-      has_missing_receipt_tx
-    end
+    @missing_receipts = ::ReceiptableService::Missing.new(user: current_user).run
+    @cards = @missing_receipts.keys
+    @count = @missing_receipts.values.map(&:size).sum
   end
 
   def project_stats
