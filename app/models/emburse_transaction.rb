@@ -23,7 +23,11 @@ class EmburseTransaction < ApplicationRecord
   validates_uniqueness_of_without_deleted :emburse_id
 
   def awaiting_receipt?
-    !amount.zero? && approved && missing_receipt?
+    !amount.zero? && undeclined? && missing_receipt?
+  end
+
+  def receipt_required?
+    !amount.zero? && undeclined?
   end
 
   def self.during(start_time, end_time)

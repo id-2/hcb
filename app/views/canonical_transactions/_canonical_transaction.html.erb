@@ -23,6 +23,13 @@
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing ACH">
         <%= inline_icon "payment-transfer" %>
       </td>
+    <% elsif ct.raw_emburse_transaction %>
+      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction">
+        <% unless defined?(authorless) || !ct.emburse_card %>
+          <%= avatar_for ct.emburse_card.user, 24 %>
+        <% else %>
+          <%= inline_icon "card" %>
+        <% end %>
     <% elsif ct.raw_stripe_transaction %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction">
         <% unless defined?(authorless) || !ct.stripe_cardholder %>

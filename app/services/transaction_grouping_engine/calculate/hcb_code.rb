@@ -8,6 +8,7 @@ module TransactionGroupingEngine
       HCB_CODE = "HCB"
       SEPARATOR = "-"
       UNKNOWN_CODE = "000"
+      EMBURSE_CARD_CODE = "001" # Emburse is deprecated, so we put it in the 0XX space
       INVOICE_CODE = "100"
       DONATION_CODE = "200"
       PARTNER_DONATION_CODE = "201"
@@ -31,6 +32,7 @@ module TransactionGroupingEngine
         return disbursement_hcb_code if disbursement
         return stripe_card_hcb_code if raw_stripe_transaction
         return stripe_card_hcb_code_pending if raw_pending_stripe_transaction
+        return emburse_card_hcb_code if raw_emburse_transaction
 
         unknown_hcb_code
       end
@@ -121,6 +123,16 @@ module TransactionGroupingEngine
         @disbursement ||= @ct_or_cp.disbursement
       end
 
+      def emburse_card_hcb_code
+        return unknown_hcb_code unless @ct_or_cp.likely_emburse_card_transaction?
+
+        [
+          HCB_CODE,
+          EMBURSE_CARD_CODE,
+          @ct_or_cp.raw_emburse_remote_id
+        ].join(SEPARATOR)
+      end
+
       def stripe_card_hcb_code
         return unknown_hcb_code unless @ct_or_cp.remote_stripe_iauth_id.present?
 
@@ -143,6 +155,10 @@ module TransactionGroupingEngine
           STRIPE_CARD_CODE,
           @ct_or_cp.remote_stripe_iauth_id
         ].join(SEPARATOR)
+      end
+
+      def raw_emburse_transaction
+        @raw_emburse_transaction ||= @ct_or_cp.raw_emburse_transaction
       end
 
       def raw_pending_stripe_transaction

@@ -87,6 +87,10 @@ class CanonicalTransaction < ApplicationRecord
     hashed_transactions.first.raw_stripe_transaction_id.present?
   end
 
+  def likely_emburse_card_transaction?
+    raw_emburse_transaction && raw_emburse_transaction.emburse_transaction.dig("card", "id")
+  end
+
   def linked_object
     @linked_object ||= TransactionEngine::SyntaxSugarService::LinkedObject.new(canonical_transaction: self).run
   end
@@ -111,6 +115,14 @@ class CanonicalTransaction < ApplicationRecord
     end
   end
 
+  def emburse_card
+    @emburse_card ||= begin
+      return nil unless raw_emburse_transaction
+
+      ::EmburseCard.find_by_emburse_id raw_emburse_transaction.emburse_transaction.dig("card", "id")
+    end
+  end
+
   def stripe_card
     @stripe_card ||= begin
       return nil unless raw_stripe_transaction
@@ -123,10 +135,22 @@ class CanonicalTransaction < ApplicationRecord
     nil
   end
 
+  def raw_emburse_remote_id
+    return nil unless raw_emburse_transaction
+
+    raw_emburse_transaction.emburse_transaction_id
+  end
+
   def remote_stripe_iauth_id
     return nil unless raw_stripe_transaction
 
     raw_stripe_transaction.stripe_transaction["authorization"]
+  end
+
+  def emburse_dashboard_url
+    return nil unless raw_emburse_remote_id
+
+    "https://app.emburse.com/transactions/#{raw_emburse_remote_id}"
   end
 
   def stripe_auth_dashboard_url

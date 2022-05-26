@@ -48,7 +48,8 @@ class HcbCode < ApplicationRecord
     return :ach if ach_transfer?
     return :check if check?
     return :disbursement if disbursement?
-    return :card_charge if stripe_card?
+    return :stripe_card_charge if stripe_card?
+    return :emburse_card_charge if emburse_card?
 
     nil
   end
@@ -105,6 +106,10 @@ class HcbCode < ApplicationRecord
     ct.fee_payment?
   end
 
+  def emburse_card
+    ct.try(:emburse_card)
+  end
+
   def raw_stripe_transaction
     ct.raw_stripe_transaction
   end
@@ -115,6 +120,10 @@ class HcbCode < ApplicationRecord
 
   def stripe_cardholder
     pt.try(:stripe_cardholder) || ct.try(:stripe_cardholder)
+  end
+
+  def emburse_dashboard_url
+    ct.try(:emburse_dashboard_url)
   end
 
   def stripe_auth_dashboard_url
@@ -147,6 +156,10 @@ class HcbCode < ApplicationRecord
 
   def stripe_card?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::STRIPE_CARD_CODE
+  end
+
+  def emburse_card?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::EMBURSE_CARD_CODE
   end
 
   def invoice
@@ -238,7 +251,9 @@ class HcbCode < ApplicationRecord
   end
 
   def receipt_required?
-    if type == :card_charge && !pt.declined?
+    if type == :stripe_card_charge && !pt.declined?
+      true
+    elsif type == :emburse_card_charge && !ct.raw_emburse_transaction.emburse_transaction["state"] == "declined"
       true
     else
       false

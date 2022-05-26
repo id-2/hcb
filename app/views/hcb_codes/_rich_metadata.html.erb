@@ -28,6 +28,12 @@
   <%= render partial: "hcb_codes/stripe_card", locals: {} %>
 <% end %>
 
+<%# emburse card %>
+<% if @hcb_code.emburse_card? && @hcb_code.emburse_card.present? %>
+  <%= render partial: "hcb_codes/emburse_card", locals: {} %>
+  it's an emburse TX!
+<% end %>
+
 <%# disbursement %>
 <% if @hcb_code.disbursement? && @hcb_code.disbursement.present? %>
   <%= render partial: "hcb_codes/disbursement", locals: {} %>

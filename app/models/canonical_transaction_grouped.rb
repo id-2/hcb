@@ -49,6 +49,14 @@ class CanonicalTransactionGrouped
     ct.raw_stripe_transaction
   end
 
+  def raw_emburse_transaction
+    ct.raw_emburse_transaction
+  end
+
+  def emburse_card
+    ct.emburse_card
+  end
+
   def stripe_cardholder
     ct.stripe_cardholder
   end
