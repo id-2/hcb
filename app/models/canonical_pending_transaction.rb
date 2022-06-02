@@ -13,6 +13,7 @@ class CanonicalPendingTransaction < ApplicationRecord
   belongs_to :raw_pending_invoice_transaction, optional: true
   belongs_to :raw_pending_bank_fee_transaction, optional: true
   belongs_to :raw_pending_partner_donation_transaction, optional: true
+  belongs_to :raw_pending_disbursement_transaction, optional: true
   has_one :canonical_pending_event_mapping
   has_one :event, through: :canonical_pending_event_mapping
   has_many :canonical_pending_settled_mappings
@@ -23,6 +24,7 @@ class CanonicalPendingTransaction < ApplicationRecord
 
   scope :safe, -> { where("date >= '2021-01-01'") } # older pending transactions don't yet all map up because of older processes (especially around invoices)
 
+  scope :disbursement, -> { where("raw_pending_disbursement_transaction_id is not null") }
   scope :stripe, -> { where("raw_pending_stripe_transaction_id is not null") }
   scope :incoming, -> { where("amount_cents > 0") }
   scope :outgoing, -> { where("amount_cents < 0") }
@@ -90,6 +92,7 @@ class CanonicalPendingTransaction < ApplicationRecord
     return raw_pending_invoice_transaction.invoice if raw_pending_invoice_transaction
     return raw_pending_bank_fee_transaction.bank_fee if raw_pending_bank_fee_transaction
     return raw_pending_partner_donation_transaction.partner_donation if raw_pending_partner_donation_transaction
+    return raw_pending_disbursement_transaction.disbursement if raw_pending_disbursement_transaction
 
     nil
   end
@@ -188,7 +191,7 @@ class CanonicalPendingTransaction < ApplicationRecord
   end
 
   def disbursement
-    nil # TODO
+    return linked_object if linked_object.is_a?(Disbursement)
   end
 
   def url

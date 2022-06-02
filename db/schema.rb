@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_31_000103) do
+ActiveRecord::Schema.define(version: 2022_06_02_123552) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -259,8 +259,10 @@ ActiveRecord::Schema.define(version: 2022_05_31_000103) do
     t.bigint "raw_pending_bank_fee_transaction_id"
     t.bigint "raw_pending_partner_donation_transaction_id"
     t.text "custom_memo"
+    t.bigint "raw_pending_disbursement_transaction_id"
     t.index ["hcb_code"], name: "index_canonical_pending_transactions_on_hcb_code"
     t.index ["raw_pending_bank_fee_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_bank_fee_tx_id"
+    t.index ["raw_pending_disbursement_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_disbursement_tx_id"
     t.index ["raw_pending_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_donation_tx_id"
     t.index ["raw_pending_outgoing_ach_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_ach_tx_id"
     t.index ["raw_pending_outgoing_check_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_check_tx_id"
@@ -583,7 +585,6 @@ ActiveRecord::Schema.define(version: 2022_05_31_000103) do
     t.boolean "is_fee_payment"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["event_id"], name: "index_fee_relationships_on_event_id"
   end
 
   create_table "fees", force: :cascade do |t|
@@ -982,6 +983,15 @@ ActiveRecord::Schema.define(version: 2022_05_31_000103) do
     t.integer "amount_cents"
     t.date "date_posted"
     t.string "state"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "raw_pending_disbursement_transactions", force: :cascade do |t|
+    t.integer "amount_cents"
+    t.date "date_posted"
+    t.string "state"
+    t.string "disbursement_transaction_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

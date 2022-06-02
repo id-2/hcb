@@ -11,6 +11,7 @@ module PendingTransactionEngine
       import_raw_pending_invoice_transactions!
       import_raw_pending_bank_fee_transactions!
       import_raw_pending_partner_donation_transactions!
+      import_raw_pending_disbursement_transactions!
 
       # 2 canonical
       canonize_raw_pending_outgoing_check_transactions!
@@ -20,6 +21,7 @@ module PendingTransactionEngine
       canonize_raw_pending_invoice_transactions!
       canonize_raw_pending_bank_fee_transactions!
       canonize_raw_pending_partner_donation_transactions!
+      canonize_raw_pending_disbursement_transactions!
     end
 
     private
@@ -78,6 +80,14 @@ module PendingTransactionEngine
 
     def canonize_raw_pending_partner_donation_transactions!
       ::PendingTransactionEngine::CanonicalPendingTransactionService::Import::PartnerDonation.new.run
+    end
+
+    def import_raw_pending_disbursement_transactions!
+      ::PendingTransactionEngine::RawPendingDisbursementTransactionService::Disbursement::Import.new.run
+    end
+
+    def canonize_raw_pending_disbursement_transactions!
+      ::PendingTransactionEngine::CanonicalPendingTransactionService::Import::Disbursement.new.run
     end
 
   end

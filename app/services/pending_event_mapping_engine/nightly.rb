@@ -3,6 +3,9 @@
 module PendingEventMappingEngine
   class Nightly
     def run
+      map_canonical_pending_disbursement!
+      settle_canonical_pending_disbursement!
+
       map_canonical_pending_outgoing_check!
       settle_canonical_pending_outgoing_check!
       decline_canonical_pending_outgoing_check!
