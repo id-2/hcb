@@ -61,10 +61,23 @@
 <% end %>
 
 <div class="statset">
-  <div class="stat statset__wide">
-    <span class="stat__label">Account balance</span>
-    <span class="stat__value"><%= render_money_amount @event.balance_v2_cents %></span>
-  </div>
+      <action class="stat statset__wide" data-behavior="modal_trigger" data-modal="account_balance">
+        <span class="stat__label flex items-center">
+          Account balance
+          <%= inline_icon 'external', size: 24, class: 'muted ml1', 'aria-label': 'Icon indicating click for more' %>
+        </span>
+        <span class="stat__value"><%= render_money_amount @event.balance_v2_cents %></span>
+      </action>
+    <div class="modal" data-behavior="modal" role="dialog" id="account_balance">
+      <%= modal_header "Account Balance" %>
+      <p>Hack Club Bank transfers are immediately reflected in your balance. Pending incoming donations will take 3-5 days to be available to spend.</p>
+      <% if organizer_signed_in? %>
+        <span class="h5 muted block mt2 center">
+          Questions? <%= help_message %>
+        </span>
+      <% end %>
+    </div>
+
   <%= async_frame_to event_dashboard_stats_path(@event), as: :div, class: 'grid grid--split', style: 'grid-column: span 2' do %>
     <action class="stat stat--small tooltipped tooltipped--s" aria-label="The amount that will be automatically deducted from your account balance">
       <span class="stat__label flex items-center">
@@ -73,6 +86,7 @@
       </span>
       <span class="stat__value">—</span>
     </action>
+
     <action class="stat stat--small" area="deposits">
       <span class="stat__label flex items-center">
         Incoming deposits
@@ -80,6 +94,7 @@
       </span>
       <span class="stat__value">—</span>
     </action>
+
   <% end %>
 </div>
 
