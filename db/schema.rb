@@ -1268,7 +1268,6 @@ ActiveRecord::Schema.define(version: 2022_06_07_180352) do
     t.text "api_access_token"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.text "session_token"
     t.text "email"
     t.string "full_name"
     t.text "phone_number"
