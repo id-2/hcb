@@ -22,16 +22,18 @@
       <%= inline_icon @hcb_code.disbursement.state_icon, size: 20 if @hcb_code.disbursement.state_icon %>
     </span>
 
-    <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="request_front">
-      <%= modal_header 'Expedite Transfer' %>
-      <p>
-        We understand there are situations where you may need funds from Hack Club Bank immediately. If this sounds like you, please email <%= help_email %> with your request to expedite the incoming money with the reason, and the Bank team will review your request.
-      </p>
-      <a class="btn"
-         href="mailto:bank@hackclub.com?subject=Request%20to%20Expedite%20Incoming%20Payment&body=I%20am%20requesting%20to%20expedite%20the%20transfer%20of%20<%= Rails.application.routes.url_helpers.root_url + @hcb_code.url %>%20for%20the%20reason">
-        Request
-      </a>
-    </section>
+    <% if !@hcb_code.disbursement.fulfilled? && @destination == @event %>
+      <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="request_front">
+        <%= modal_header 'Expedite Transfer' %>
+        <p>
+          We understand there are situations where you may need funds from Hack Club Bank immediately. If this sounds like you, please email <%= help_email %> with your request to expedite the incoming money with the reason, and the Bank team will review your request.
+        </p>
+        <a class="btn"
+           href="mailto:bank@hackclub.com?subject=Request%20to%20Expedite%20Incoming%20Payment&body=I%20am%20requesting%20to%20expedite%20the%20transfer%20of%20<%= Rails.application.routes.url_helpers.root_url + @hcb_code.url %>%20for%20the%20reason">
+          Request
+        </a>
+      </section>
+    <% end %>
 
   </h2>
 
