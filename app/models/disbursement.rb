@@ -134,7 +134,11 @@ class Disbursement < ApplicationRecord
   end
 
   def state_icon
-    "checkmark" if fulfilled?
+    if fulfilled?
+      "checkmark"
+    elsif processed?
+      "info"
+    end
   end
 
   def mark_fulfilled!
