@@ -5,6 +5,14 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin? || present_in_events?
   end
 
+  def edit?
+    user&.admin? || present_in_events?
+  end
+
+  def update?
+    user&.admin? || present_in_events?
+  end
+
   def comment?
     user&.admin? || present_in_events?
   end

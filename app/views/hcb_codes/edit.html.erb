@@ -1,0 +1,22 @@
+<% title "Rename transaction for #{@hcb_code.amount}" %>
+<% page_sm %>
+
+<%= render 'events/nav' if @event %>
+
+<h1 class="h1">
+  Rename <%= @hcb_code.amount %> transaction
+</h1>
+
+<%= form_with(model: @hcb_code) do |form| %>
+  <div class="field">
+    <%= form.label :custom_memo %>
+    <%= form.text_field :custom_memo, value: @hcb_code.smartish_custom_memo, autofocus: true, class: 'fit' %>
+    <span class="muted block h5">
+      Give this transaction a more descriptive memo to improve your records.
+    </span>
+  </div>
+
+  <div class="actions">
+    <%= form.submit 'Rename', disabled: !current_user %>
+  </div>
+<% end %>

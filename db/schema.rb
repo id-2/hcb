@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_07_180352) do
+ActiveRecord::Schema.define(version: 2022_06_16_020554) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -687,6 +687,7 @@ ActiveRecord::Schema.define(version: 2022_06_07_180352) do
     t.datetime "updated_at", precision: 6, null: false
     t.datetime "marked_no_or_lost_receipt_at"
     t.text "short_code"
+    t.text "custom_memo"
     t.index ["hcb_code"], name: "index_hcb_codes_on_hcb_code", unique: true
     t.check_constraint "short_code = upper(short_code)", name: "constraint_hcb_codes_on_short_code_to_uppercase"
   end

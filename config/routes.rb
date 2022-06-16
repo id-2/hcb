@@ -260,7 +260,7 @@ Rails.application.routes.draw do
     get "reauthenticate"
   end
 
-  resources :hcb_codes, path: "/hcb", only: [:show] do
+  resources :hcb_codes, path: "/hcb", only: [:show, :edit, :update] do
     member do
       post "comment"
       post "receipt"

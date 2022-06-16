@@ -38,7 +38,7 @@ class HcbCode < ApplicationRecord
     return ach_transfer_memo if ach_transfer?
     return check_memo if check?
 
-    custom_memo || ct.try(:smart_memo) || pt.try(:smart_memo) || ""
+    smartish_custom_memo || ct.try(:less_smart_memo) || pt.try(:friendly_memo) || ""
   end
 
   def type
@@ -59,10 +59,6 @@ class HcbCode < ApplicationRecord
     t = :transaction if unknown?
 
     t.to_s.humanize
-  end
-
-  def custom_memo
-    ct.try(:custom_memo) || pt.try(:custom_memo)
   end
 
   def amount_cents
@@ -235,6 +231,10 @@ class HcbCode < ApplicationRecord
   end
 
   def smartish_custom_memo
+    return custom_memo if custom_memo.present?
+    return nil if custom_memo == ""
+
+    # Old custom memo logic
     return nil unless ct&.custom_memo || pt&.custom_memo
     return ct.custom_memo unless ct&.custom_memo.blank? || ct&.custom_memo.include?("FEE REFUND")
     return pt.custom_memo unless pt&.custom_memo.blank?

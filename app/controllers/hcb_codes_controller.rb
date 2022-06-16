@@ -25,6 +25,23 @@ class HcbCodesController < ApplicationController
     end
   end
 
+  def edit
+    @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
+    @event = @hcb_code.event
+
+    authorize @hcb_code
+  end
+
+  def update
+    @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
+
+    authorize @hcb_code
+
+    @hcb_code.update!(params.require(:hcb_code).permit(:custom_memo))
+
+    redirect_to @hcb_code, flash: { success: "Renamed transaction" }
+  end
+
   def comment
     @hcb_code = HcbCode.find(params[:id])
 
