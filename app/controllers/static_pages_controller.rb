@@ -47,14 +47,13 @@ class StaticPagesController < ApplicationController
   # async frame
   def my_missing_receipts_count
     missing_receipts = ::ReceiptableService::Missing.new(user: current_user).run
-    @count = @missing_receipts.values.map(&:size).sum
+    @count = missing_receipts[:count]
   end
 
   # async frame
   def my_missing_receipts_list
     missing_receipts = ::ReceiptableService::Missing.new(user: current_user, limit: 5).run
-    @missing_receipt_ids = missing_receipts.values.flatten.map(&:id)
-    @missing = HcbCode.where(id: @missing_receipt_ids)
+    @missing = missing_receipts[:hcb_codes]
     if @missing.any?
       render :my_missing_receipts_list, layout: !request.xhr?
     else
@@ -64,8 +63,9 @@ class StaticPagesController < ApplicationController
 
   def my_inbox
     @missing_receipts = ::ReceiptableService::Missing.new(user: current_user).run
-    @cards = @missing_receipts.keys
-    @count = @missing_receipts.values.map(&:size).sum
+    @cards = @missing_receipts[:cards]
+    @hcb_codes_by_card = @missing_receipts[:hcb_codes_by_card]
+    @count = @missing_receipts[:count]
   end
 
   def project_stats
