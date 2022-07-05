@@ -44,7 +44,10 @@ module Api
       end
 
       def donations
-        @donations ||= paginate(org.donations.not_pending.order(created_at: :desc))
+        @donations ||= paginate(org.donations.not_pending.order(collection_order do
+          # TODO: convert date to created_at
+
+        end))
       end
 
       def donation
@@ -116,26 +119,29 @@ module Api
       # ========================================================================
       # ------------------------------- SORTING --------------------------------
       # ========================================================================
-      def collection_order(permitted_keys:, default_orders: {})
-        permitted_orders = %w[asc desc]
+      def collection_order(permitted_keys:, default_orders: {}, &block)
+        permitted_keys = [permitted_keys].flatten
+        permitted_orders = [:asc, :desc]
 
-        order_by = (params[:order_by] || []).map do |o|
+        orders = default_orders
+        (params[:order_by] || []).each do |o|
           key, order = o.split ':'
+
+          # Convert to symbol
+          key = key.to_sym
+          order = order.to_sym
+
           # Filter out non-permitted keys and orders
-          return nil if (key.nil? || !permitted_keys.include?(key))
+          next nil if (key.nil? || !permitted_keys.include?(key))
+
           order = nil unless permitted_orders.include? order
-          {
-            key: key,
-            order: order || 'desc' # default to descending order
-          }
+
+          orders[key] = order || :desc # Default to descending order
         end.compact
 
-        order_by.reduce(default_orders) do |obj, o|
-          key = o[:key].to_sym
-          order = o[:order].to_sym
-          obj[key] = order
-          obj
-        end
+        orders
+      rescue => e
+        error!({ message: 'Invalid order parameters' }, 400)
       end
 
       params :order do
