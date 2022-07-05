@@ -44,7 +44,7 @@ module Api
       end
 
       def donations
-        @donations ||= paginate(org.donations.not_pending)
+        @donations ||= paginate(org.donations.not_pending.order(created_at: :desc))
       end
 
       def donation
@@ -113,8 +113,48 @@ module Api
         error!({ message: 'Check not found.' }, 404)
       end
 
-      # FOR TYPE EXPANSION
-      # TODO: needs a better name
+      # ========================================================================
+      # ------------------------------- SORTING --------------------------------
+      # ========================================================================
+      def collection_order(permitted_keys:, default_orders: {})
+        permitted_orders = %w[asc desc]
+
+        order_by = (params[:order_by] || []).map do |o|
+          key, order = o.split ':'
+          # Filter out non-permitted keys and orders
+          return nil if (key.nil? || !permitted_keys.include?(key))
+          order = nil unless permitted_orders.include? order
+          {
+            key: key,
+            order: order || 'desc' # default to descending order
+          }
+        end.compact
+
+        order_by.reduce(default_orders) do |obj, o|
+          key = o[:key].to_sym
+          order = o[:order].to_sym
+          obj[key] = order
+          obj
+        end
+      end
+
+      params :order do
+        optional :order_by,
+                 types: [String, Array[String]],
+                 # TODO: this `coerce_with` is temporarily really messy because it needs to handle both processing strings and arrays of strings
+                 coerce_with: ->(x) {
+                   [x].flatten.compact.map { |order_by| order_by.split(',') }
+                      .flatten.map { |order_by| order_by.strip.downcase }
+                 },
+                 desc: "Order results by <em>created_at</em> or <em>date</em> in either ascending or descending order.",
+                 documentation: {
+                   values: %w[date:asc date:desc]
+                 }
+      end
+
+      # ========================================================================
+      # ---------------------------- TYPE EXPANSION ----------------------------
+      # ========================================================================
       def type_expansion(expand: [], hide: [])
         {
           expand: (params[:expand] || []) + expand,
