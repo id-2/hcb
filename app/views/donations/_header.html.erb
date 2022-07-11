@@ -13,7 +13,7 @@
 <% if organizer_signed_in? && Flipper.enabled?(:donation_page_customization_2022_06_29, @event) %>
   <div class="flex items-center m2 absolute top-0 left-0">
     <%= form_with model: @event, data: { "controller" => "submit-form" } do |form| %>
-      <%= form.file_field :donation_header_image, required: true, class: "display-none", data: { action: "change->submit-form#submit" } %>
+      <%= form.file_field :donation_header_image, required: true, class: "display-none", accept: "image/*", data: { action: "change->submit-form#submit" } %>
       <%= form.label :donation_header_image do %>
         <div
           role="button"
@@ -45,9 +45,10 @@
 <% end %>
 
 <h1 class="mt3 mb2 border-none center <%= "smoke text-shadow-lg" if @has_header_image %>">
+  <span class="md-hide lg-hide flex justify-center mb1"><%= render "logo" %></span>
   <span class="h3 caps block <%= @has_header_image ? "muted" : "secondary" %>">Donate to</span>
   <div class="flex justify-center items-center mt1">
-    <%= render "logo" %>
+    <span class="xs-hide sm-hide"><%= render "logo" %></span>
     <span><%= @event.name %></span>
   </div>
 </h1>

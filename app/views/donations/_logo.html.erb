@@ -27,7 +27,7 @@
     </div>
 <% elsif organizer_signed_in? %>
     <%= form_with model: @event, data: { "controller" => "submit-form" } do |form| %>
-        <%= form.file_field :logo, required: true, class: "display-none", data: { action: "change->submit-form#submit" } %>
+        <%= form.file_field :logo, required: true, class: "display-none", accept: "image/*", data: { action: "change->submit-form#submit" } %>
         <%= form.label :logo do %>
             <div class="mr2 donations-logo-placeholder">
                 Add a logo
