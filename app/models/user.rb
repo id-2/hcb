@@ -149,7 +149,7 @@ class User < ApplicationRecord
   end
 
   def pretty_phone_number
-    Phonelib.parse(self.phone_number).national
+    Phonelib.parse(self.phone_number).international
   end
 
   def representative?
