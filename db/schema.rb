@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_07_03_102629) do
+ActiveRecord::Schema.define(version: 2022_07_06_042154) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -1105,6 +1105,18 @@ ActiveRecord::Schema.define(version: 2022_07_03_102629) do
     t.index ["user_id"], name: "index_receipts_on_user_id"
   end
 
+  create_table "reimbursements", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "amount_cents"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "aasm_state"
+    t.text "reimbursement_for"
+    t.bigint "event_id", null: false
+    t.index ["event_id"], name: "index_reimbursements_on_event_id"
+    t.index ["user_id"], name: "index_reimbursements_on_user_id"
+  end
+
   create_table "selenium_sessions", force: :cascade do |t|
     t.string "aasm_state"
     t.jsonb "cookies"
@@ -1391,6 +1403,7 @@ ActiveRecord::Schema.define(version: 2022_07_03_102629) do
   add_foreign_key "raw_pending_incoming_disbursement_transactions", "disbursements"
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
   add_foreign_key "receipts", "users"
+  add_foreign_key "reimbursements", "users"
   add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
   add_foreign_key "stripe_cardholders", "users"
