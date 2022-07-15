@@ -437,7 +437,6 @@ Rails.application.routes.draw do
     get "documentation", to: "events#documentation", as: :documentation
     get "transfers", to: "events#transfers", as: :transfers
     get "promotions", to: "events#promotions", as: :promotions
-    get "reimbursements", to: "events#reimbursements", as: :reimbursements
     get "donations", to: "events#donation_overview", as: :donation_overview
     get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overview
     get "bank_fees", to: "events#bank_fees", as: :bank_fees
@@ -454,6 +453,7 @@ Rails.application.routes.draw do
     resources :stripe_authorizations, only: [:show] do
       resources :comments
     end
+    resources :reimbursements, only: [:index, :new, :create]
   end
 
   # rewrite old event urls to the new ones not prefixed by /events/

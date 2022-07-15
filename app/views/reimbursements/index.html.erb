@@ -1,0 +1,58 @@
+<% title "Reimbursements for #{@event.name}" %>
+<% page_md %>
+<%= render 'events/nav' %>
+
+<h1>
+  <span class="flex items-center">
+    Reimbursements
+    <%= badge_for @reimbursements.count, class: "bg-muted" %>
+  </span>
+</h1>
+
+<div style="text-align: center;">
+  <%= link_to "Pending (#{@event.reimbursements.pending_approval.count})", "?filter=pending_approval", class: "filterbar__item", "aria-selected": !["approved", "rejected"].include?(params[:filter]), role: "tab" %>
+  <%= link_to "Approved (#{@event.reimbursements.approved.count})", "?filter=approved", class: "filterbar__item", "aria-selected": params[:filter] == "approved", role: "tab" %>
+  <%= link_to "Rejected (#{@event.reimbursements.rejected.count})", "?filter=rejected", class: "filterbar__item", "aria-selected": params[:filter] == "rejected", role: "tab" %>
+</div>
+
+<% if @reimbursements.size > 0 %>
+  <article class="table-container">
+
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Person</th>
+          <th>For</th>
+          <th style="text-align: right;">Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @reimbursements.each do |reimbursement| %>
+          <tr>
+            <td>
+              <span class="ml0 badge bg-<%= reimbursement.state %>"><%= reimbursement.state_text %></span>
+            </td>
+            <td>
+              <%= user_mention reimbursement.user %>
+            </td>
+            <td>
+              <%= reimbursement.reimbursement_for %>
+            </td>
+            <td style="text-align: right;">
+              <%= render_money(reimbursement.amount_cents) %>
+            </td>
+            <td>
+              <%= link_to "Details", "https://google.com" if organizer_signed_in? %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+  </article>
+<% else %>
+  <%= blankslate 'No reimbursements yet' %>
+<% end %>

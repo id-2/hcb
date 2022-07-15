@@ -25,6 +25,10 @@
       'Send & transfer money',
       'transactions',
       event_transfers_path(event_id: @event.slug) %>
+    <%= dock_item 'Reimbursements',
+      'Reimburse!',
+      'friend',
+      event_reimbursements_path(event_id: @event.slug), nil, @event.reimbursements.pending_approval.count %>
     <%= dock_item 'Donations',
       'Receive donations online',
       'support',
