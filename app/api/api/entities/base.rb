@@ -5,6 +5,7 @@ module Api
     class Base < Grape::Entity
       include GrapeRouteHelpers::NamedRouteMatcher
       include Helpers::ExpandHelper
+      include Helpers::VersionHelper
 
       expose :public_id, as: :id
       expose :object do |obj, options|

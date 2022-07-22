@@ -4,13 +4,13 @@ module Api
   class V3 < Grape::API
     include Grape::Kaminari
 
-    version 'v3', using: :path
+    version Base::VERSIONS.last, using: :path
     prefix :api
     format :json
     default_format :json
 
     helpers do
-      def org
+      def org(error = true)
         @org ||=
           begin
             id = params[:organization_id]
@@ -18,7 +18,8 @@ module Api
             event ||= Event.transparent.find id # by slug or numeric id. Will error if not found
           end
       rescue ActiveRecord::RecordNotFound
-        error!({ message: 'Organization not found.' }, 404)
+        error!({ message: 'Organization not found.' }, 404) if error
+        nil
       end
 
       def transactions
@@ -141,6 +142,15 @@ module Api
                  },
                  documentation: { hidden: true }
       end
+
+      # ========================================================================
+      # ----------------------- ORGANIZATION CONTEXT ---------------------------
+      # ========================================================================
+      def org_context
+        {
+          org: org(error: false)
+        }
+      end
     end
 
     desc 'Flavor text!' do
@@ -185,7 +195,7 @@ module Api
         get do
           begin
             Pundit.authorize(nil, [:api, org], :show?)
-            present org, with: Api::Entities::Organization, **type_expansion(expand: %w[organization user])
+            present org, with: Api::Entities::Organization, **type_expansion(expand: %w[organization user]), **org_context
           rescue ActiveRecord::RecordNotFound, ArgumentError
             error!({ message: 'Organization not found.' }, 404)
           end
@@ -209,7 +219,7 @@ module Api
           end
           get do
             Pundit.authorize(nil, [:api, org], :transactions?)
-            present transactions, with: Api::Entities::Transaction, **type_expansion(expand: %w[transaction])
+            present transactions, with: Api::Entities::Transaction, **type_expansion(expand: %w[transaction]), **org_context
           end
         end
 
@@ -231,7 +241,7 @@ module Api
           end
           get do
             Pundit.authorize(nil, [:api, org], :donations?)
-            present donations, with: Api::Entities::Donation, **type_expansion(expand: %w[donation])
+            present donations, with: Api::Entities::Donation, **type_expansion(expand: %w[donation]), **org_context
           end
         end
 
@@ -253,7 +263,7 @@ module Api
           end
           get do
             Pundit.authorize(nil, [:api, org], :transfers?)
-            present transfers, with: Api::Entities::Transfer, **type_expansion(expand: %w[transfer])
+            present transfers, with: Api::Entities::Transfer, **type_expansion(expand: %w[transfer]), **org_context
           end
         end
 
@@ -275,7 +285,7 @@ module Api
           end
           get do
             Pundit.authorize(nil, [:api, org], :invoices?)
-            present invoices, with: Api::Entities::Invoice, **type_expansion(expand: %w[invoice])
+            present invoices, with: Api::Entities::Invoice, **type_expansion(expand: %w[invoice]), **org_context
           end
         end
 
@@ -297,7 +307,7 @@ module Api
           end
           get do
             Pundit.authorize(nil, [:api, org], :ach_transfers?)
-            present ach_transfers, with: Api::Entities::AchTransfer, **type_expansion(expand: %w[ach_transfer])
+            present ach_transfers, with: Api::Entities::AchTransfer, **type_expansion(expand: %w[ach_transfer]), **org_context
           end
         end
 
@@ -319,7 +329,7 @@ module Api
           end
           get do
             Pundit.authorize(nil, [:api, org], :checks?)
-            present checks, with: Api::Entities::Check, **type_expansion(expand: %w[check])
+            present checks, with: Api::Entities::Check, **type_expansion(expand: %w[check]), **org_context
           end
         end
 
@@ -345,7 +355,7 @@ module Api
       route_param :donation_id do
         get do
           Pundit.authorize(nil, [:api, donation], :show?)
-          present donation, with: Api::Entities::Donation, **type_expansion(expand: %w[donation])
+          present donation, with: Api::Entities::Donation, **type_expansion(expand: %w[donation]), **org_context
         end
       end
     end
@@ -368,7 +378,7 @@ module Api
       route_param :transfer_id do
         get do
           Pundit.authorize(nil, [:api, transfer], :show?)
-          present transfer, with: Api::Entities::Transfer, **type_expansion(expand: %w[transfer])
+          present transfer, with: Api::Entities::Transfer, **type_expansion(expand: %w[transfer]), **org_context
         end
       end
     end
@@ -391,7 +401,7 @@ module Api
       route_param :invoice_id do
         get do
           Pundit.authorize(nil, [:api, invoice], :show?)
-          present invoice, with: Api::Entities::Invoice, **type_expansion(expand: %w[invoice])
+          present invoice, with: Api::Entities::Invoice, **type_expansion(expand: %w[invoice]), **org_context
         end
       end
     end
@@ -414,7 +424,7 @@ module Api
       route_param :ach_transfer_id do
         get do
           Pundit.authorize(nil, [:api, ach_transfer], :show?)
-          present ach_transfer, with: Api::Entities::AchTransfer, **type_expansion(expand: %w[ach_transfer])
+          present ach_transfer, with: Api::Entities::AchTransfer, **type_expansion(expand: %w[ach_transfer]), **org_context
         end
       end
     end
@@ -437,7 +447,7 @@ module Api
       route_param :check_id do
         get do
           Pundit.authorize(nil, [:api, check], :show?)
-          present check, with: Api::Entities::Check, **type_expansion(expand: %w[check])
+          present check, with: Api::Entities::Check, **type_expansion(expand: %w[check]), **org_context
         end
       end
     end
@@ -460,7 +470,7 @@ module Api
       route_param :transaction_id do
         get do
           Pundit.authorize(nil, [:api, transaction], :show?)
-          present transaction, with: Api::Entities::Transaction, **type_expansion(expand: %w[transaction])
+          present transaction, with: Api::Entities::Transaction, **type_expansion(expand: %w[transaction]), **org_context
         end
       end
     end

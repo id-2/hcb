@@ -17,6 +17,18 @@ module Api
           ]
         }
 
+        for_version(:>=, 'v3.1.0.0') do
+          unexpose :organization # inherited from LinkedObjectBase
+
+          expose_associated Organization, as: "source_organization", hide: [API_LINKED_OBJECT_TYPE, Transaction, User] do |disbursement, options|
+            disbursement.source_event
+          end
+
+          expose_associated Organization, as: "destination_organization", hide: [API_LINKED_OBJECT_TYPE, Transaction, User] do |disbursement, options|
+            disbursement.destination_event
+          end
+        end
+
       end
 
     end

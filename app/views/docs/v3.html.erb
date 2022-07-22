@@ -9,7 +9,7 @@
   </head>
   <body>
     <elements-api
-      apiDescriptionUrl="/api/v3/swagger_doc"
+      apiDescriptionUrl="/api/<%= Api::Base::VERSIONS.last %>/swagger_doc"
       basePath="/docs/api/v3"
       layout="sidebar"
       logo="<%= image_path "logo-production.svg" %>"

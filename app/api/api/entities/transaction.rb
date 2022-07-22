@@ -33,7 +33,8 @@ module Api
           values: LINKED_OBJECT_TYPES
         }
         expose :pending, documentation: { type: "boolean" } do |hcb_code, options|
-          if hcb_code.event.can_front_balance?
+          event = options.org || hcb_code.event
+          if event.can_front_balance?
             next hcb_code.canonical_transactions.empty? && hcb_code.canonical_pending_transactions.none? { |pt| pt.fronted? }
           end
 
@@ -42,7 +43,7 @@ module Api
       end
 
       expose_associated Organization do |hcb_code, options|
-        hcb_code.event
+        options.org || hcb_code.event
       end
 
       when_showing LinkedObjectBase::API_LINKED_OBJECT_TYPE do
