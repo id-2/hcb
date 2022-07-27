@@ -24,6 +24,7 @@
 #
 class Receipt < ApplicationRecord
   belongs_to :receiptable, polymorphic: true
+  has_one :ocr, as: :document
 
   belongs_to :user, class_name: "User", required: false
   alias_attribute :uploader, :user
@@ -32,6 +33,8 @@ class Receipt < ApplicationRecord
   has_one_attached :file
 
   validates :file, attached: true
+
+  after_create :generate_ocr
 
   enum upload_method: {
     transaction_page: 0,
@@ -43,8 +46,12 @@ class Receipt < ApplicationRecord
     email: 6
   }
 
+  def filename
+    file.blob.filename
+  end
+
   def url
-    Rails.application.routes.url_helpers.rails_blob_url(object)
+    Rails.application.routes.url_helpers.rails_blob_url file
   end
 
   def preview(resize: "512x512")
@@ -55,6 +62,39 @@ class Receipt < ApplicationRecord
     end
   rescue ActiveStorage::FileNotFoundError
     nil
+  end
+
+  # TODO: move this
+  def generate_ocr
+    return ocr if ocr.present?
+
+    # TODO: process pdf/image.
+    # If PDF, convert to hi-res image.
+    # Make image black and white (improve contrast)
+
+    if (file = self.attachment_changes['file']&.attachable)
+      # Newly uploaded file. It hasn't been saved
+      run_and_create_ocr(filepath: file.path, filename: file.original_filename)
+    else
+      # Existing file (already uploaded/saved)
+      self.file.blob.open do |f|
+        run_and_create_ocr(filepath: f.path, filename: self.file.filename)
+      end
+    end
+    # rescue => e
+    #   ap e
+    #   Airbrake.notify e
+  end
+
+  private
+
+  def run_and_create_ocr(filepath:, filename:)
+    t = RTesseract.new(filepath)
+    Ocr.new.tap do |ocr|
+      ocr.document = self
+      ocr.text = t.to_s
+      ocr.pdf.attach(io: t.to_pdf, filename: filename)
+    end.save!
   end
 
 end

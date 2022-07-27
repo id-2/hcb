@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_07_12_202126) do
+ActiveRecord::Schema.define(version: 2022_07_26_220718) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -846,6 +844,15 @@ ActiveRecord::Schema.define(version: 2022_07_12_202126) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
+  end
+
+  create_table "ocrs", force: :cascade do |t|
+    t.text "text"
+    t.string "document_type"
+    t.bigint "document_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["document_type", "document_id"], name: "index_ocrs_on_document"
   end
 
   create_table "ops_checkins", force: :cascade do |t|

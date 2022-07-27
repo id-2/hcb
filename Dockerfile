@@ -7,7 +7,7 @@ RUN apt-get -y update -qq
 
 # install postgresql-client for easy importing of production database & vim
 # for easy editing of credentials
-RUN apt-get -y install postgresql-client vim poppler-utils
+RUN apt-get -y install postgresql-client vim poppler-utils tesseract-ocr
 ENV EDITOR=vim
 
 # Install yarn through npm to avoid this bug: https://github.com/docker/for-mac/issues/5864#issuecomment-884336317

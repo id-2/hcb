@@ -551,6 +551,7 @@ GEM
       rspec-mocks (~> 3.10)
       rspec-support (~> 3.10)
     rspec-support (3.11.0)
+    rtesseract (3.1.2)
     rubocop (1.29.1)
       parallel (~> 1.10)
       parser (>= 3.1.0.0)
@@ -776,6 +777,7 @@ DEPENDENCIES
   rounding
   rqrcode
   rspec-rails (~> 5.0.0)
+  rtesseract (~> 3.1)
   rubocop
   rubyzip (>= 1.2.1)
   safely_block

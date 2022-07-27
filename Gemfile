@@ -223,3 +223,6 @@ gem "browser", "~> 5.3"
 gem "geo_pattern", "~> 1.4" # for procedurally generated patterns on Cards
 
 gem "comma", "~> 4.6"
+
+# OCR
+gem "rtesseract", "~> 3.1"
