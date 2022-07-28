@@ -45,7 +45,7 @@ class Ocr < ApplicationRecord
 
   private
 
-  def cleaned_text
+  def clean_text
     self.text = self.text.strip
   end
 
