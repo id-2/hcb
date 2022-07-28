@@ -18,8 +18,12 @@ class Ocr < ApplicationRecord
 
   has_one_attached :pdf
   validates :pdf, attached: true
-  validate :file_attached?
 
+  before_validation :clean_text
+
+  def empty_text?
+    text.blank?
+  end
 
   def filename
     pdf.blob.filename
@@ -39,8 +43,10 @@ class Ocr < ApplicationRecord
     nil
   end
 
-  def file_attached?
-    pdf.attached?
+  private
+
+  def cleaned_text
+    self.text = self.text.strip
   end
 
 end

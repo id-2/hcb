@@ -23,6 +23,9 @@
 class Comment < ApplicationRecord
   include Hashid::Rails
 
+  include OpticalCharacterRecognizable
+  ocr_on :file
+
   belongs_to :commentable, polymorphic: true
   belongs_to :user
 
