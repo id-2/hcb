@@ -4,7 +4,7 @@ module OpticalCharacterRecognizable
   extend ActiveSupport::Concern
 
   included do
-    has_one :ocr, as: :document
+    has_one :ocr, as: :document, dependent: :destroy
 
     class_attribute :attachment_for_ocr
     before_create :generate_ocr
@@ -14,27 +14,34 @@ module OpticalCharacterRecognizable
     raise NotImplementedError, "#{self.class.name} model does not have `ocr_on` set, but includes and uses OpticalCharacterRecognizable" if self.class.ocr_on.nil?
     return ocr if ocr.present?
 
-    # TODO: process pdf/image.
-    # If PDF, convert to hi-res image.
-    # Make image black and white (improve contrast)
-    newly_uploaded = self.attachment_changes[self.class.ocr_on.to_s]&.attachable.present?
-    file = if newly_uploaded
-             self.attachment_changes[self.class.ocr_on.to_s]&.attachable
-           else
-             self.send(self.class.ocr_on)
-           end
+    generated_ocr = nil
 
-    if newly_uploaded
-      run_and_create_ocr(filepath: file.path, filename: file.original_filename)
-    else
-      # Existing file (already uploaded/saved)
-      file.blob.open do |f|
-        run_and_create_ocr(filepath: f.path, filename: file.filename)
+    process = proc do |filename:, content_type: nil|
+      # This block can be later passed into ActiveStorage::Blob#open to access
+      # the tempfile before it's unlinked and closed.
+      proc do |tempfile|
+        OcrService::Preprocess.new(file: tempfile, filename: filename, content_type: content_type).run do |processed|
+          generated_ocr = run_and_create_ocr(filepath: processed[:path], filename: processed[:filename])
+        end
       end
     end
-  rescue => e
-    # Mainly just image files can be OCR'ed. Others will fail
-    ap e if Rails.env.development?
+
+    newly_uploaded = self.attachment_changes[self.class.ocr_on.to_s]
+    if newly_uploaded
+      file = self.attachment_changes[self.class.ocr_on.to_s].attachable
+      filename = file.original_filename
+      process.call(filename: filename, content_type: file.content_type).call(file)
+    else
+      file = self.send(self.class.ocr_on)
+      filename = file.filename.to_s
+      file.open(&process.call(filename: filename, content_type: file.content_type))
+    end
+
+    generated_ocr
+
+    # rescue => e
+    #   # Mainly just image files can be OCR'ed. Others will fail
+    #   ap e if Rails.env.development?
   end
 
   class_methods do
@@ -52,8 +59,11 @@ module OpticalCharacterRecognizable
 
   def run_and_create_ocr(filepath:, filename:)
     t = RTesseract.new(filepath)
-    self.build_ocr(text: t.to_s)
-        .pdf.attach(io: t.to_pdf, filename: filename)
+    new_ocr = self.build_ocr(text: t.to_s)
+    new_ocr.pdf.attach(io: t.to_pdf, filename: filename)
+
+    new_ocr.save unless new_record?
+    new_ocr
   end
 
 end
