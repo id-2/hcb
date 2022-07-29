@@ -3,7 +3,7 @@
 module OcrService
   class Preprocess
     # https://github.com/tesseract-ocr/tessdoc/blob/main/InputFormats.md
-    TESSERACT_SUPPORTED_FORMATS = %w(image/pdf image/jpeg image/jpg image/gif image/webp image/bmp image/pnm)
+    TESSERACT_SUPPORTED_FORMATS = %w(image/pdf image/jpeg image/jpg image/gif image/webp image/bmp image/pnm).freeze
     IMAGE_FORMAT = 'tiff' # people report that TIFF is the best format, however, i've been seeing better results with PNG
 
     # @param [ActiveStorage::Attached::One, ActionDispatch::Http::UploadedFile] file

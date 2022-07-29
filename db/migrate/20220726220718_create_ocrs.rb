@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateOcrs < ActiveRecord::Migration[6.1]
   def change
     create_table :ocrs do |t|
@@ -7,4 +9,5 @@ class CreateOcrs < ActiveRecord::Migration[6.1]
       t.timestamps
     end
   end
+
 end

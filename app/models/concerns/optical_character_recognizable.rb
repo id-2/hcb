@@ -48,6 +48,7 @@ module OpticalCharacterRecognizable
     def ocr_on(file = nil)
       if file.nil?
         raise NotImplementedError, "#{self.class.name} model does not have `ocr_on` set, but includes and uses OpticalCharacterRecognizable" if self.attachment_for_ocr.nil?
+
         return attachment_for_ocr
       end
 
