@@ -208,7 +208,7 @@ class Donation < ApplicationRecord
   end
 
   def smart_memo
-    name.to_s.upcase
+    name.to_s
   end
 
   def hcb_code

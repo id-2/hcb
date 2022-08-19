@@ -193,7 +193,7 @@ class HcbCode < ApplicationRecord
   end
 
   def invoice_memo
-    smartish_custom_memo || "INVOICE TO #{invoice.smart_memo}"
+    smartish_custom_memo || "Invoice to #{invoice.smart_memo}"
   end
 
   def donation
@@ -201,7 +201,7 @@ class HcbCode < ApplicationRecord
   end
 
   def donation_memo
-    smartish_custom_memo || "DONATION FROM #{donation.smart_memo}#{donation.refunded? ? " (REFUNDED)" : ""}"
+    smartish_custom_memo || "Donation from #{donation.smart_memo}#{donation.refunded? ? " (refunded)" : ""}"
   end
 
   def partner_donation
