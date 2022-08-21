@@ -9,7 +9,6 @@
 #  address                     :text
 #  backup_email                :text
 #  first_name                  :string
-#  initial_password            :string
 #  initial_password_ciphertext :text
 #  last_name                   :string
 #  rejected_at                 :datetime
@@ -43,9 +42,6 @@ class GSuiteAccount < ApplicationRecord
   belongs_to :creator, class_name: "User"
 
   has_encrypted :initial_password
-
-  # TODO(2541): temporary until unencrypted column is dropped
-  self.ignored_columns = ["initial_password"]
 
   validates_presence_of :address, :backup_email, :first_name, :last_name
 

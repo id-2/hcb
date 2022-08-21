@@ -248,6 +248,8 @@ class Event < ApplicationRecord
   has_many :fees, through: :canonical_event_mappings
   has_many :bank_fees
 
+  has_many :tags
+
   belongs_to :partner
   has_one :partnered_signup, required: false
   has_many :partner_donations
@@ -275,7 +277,7 @@ class Event < ApplicationRecord
     'hack club': 1,
     nonprofit: 2,
     event: 3,
-    'high-school hackathon': 4
+    'high school hackathon': 4
   }
 
   def country_us?

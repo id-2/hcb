@@ -6,7 +6,6 @@
 #
 #  id                        :bigint           not null, primary key
 #  aasm_state                :string
-#  account_number            :string
 #  account_number_ciphertext :text
 #  amount                    :integer
 #  approved_at               :datetime
@@ -49,9 +48,6 @@ class AchTransfer < ApplicationRecord
   belongs_to :event
 
   has_encrypted :account_number
-
-  # TODO(2541): temporary until unencrypted column is dropped
-  self.ignored_columns = ["account_number"]
 
   validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
   validates_length_of :routing_number, is: 9

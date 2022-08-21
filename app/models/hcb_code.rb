@@ -28,6 +28,8 @@ class HcbCode < ApplicationRecord
 
   monetize :amount_cents
 
+  has_and_belongs_to_many :tags
+
   before_create :generate_and_set_short_code
 
   attr_writer :not_admin_only_comments_count
@@ -59,7 +61,7 @@ class HcbCode < ApplicationRecord
   end
 
   def memo
-    return "💰 Grant from Hack Club and FIRST" if hackathon_grant?
+    return "💰 Grant from Hack Club and FIRST®" if hackathon_grant?
     return disbursement_memo if disbursement?
     return invoice_memo if invoice?
     return donation_memo if donation?
