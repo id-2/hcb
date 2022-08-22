@@ -41,6 +41,8 @@ module InvoiceService
           remote_invoice.paid = true
           remote_invoice.save
         end
+
+        decline_pending_transactions!
       end
 
       invoice.set_fields_from_stripe_invoice(remote_invoice)
@@ -55,6 +57,11 @@ module InvoiceService
 
     def remote_invoice
       @remote_invoice ||= ::Partners::Stripe::Invoices::Show.new(id: invoice.stripe_invoice_id).run
+    end
+
+    def decline_pending_transactions!
+      canonical_pending_transaction = invoice&.raw_pending_invoice_transaction&.canonical_pending_transaction
+      PendingEventMappingEngine::Decline::Single::Invoice.new(canonical_pending_transaction: canonical_pending_transaction).run
     end
 
   end
