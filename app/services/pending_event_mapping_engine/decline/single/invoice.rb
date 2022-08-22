@@ -16,7 +16,7 @@ module PendingEventMappingEngine
           return unless invoice.manually_marked_as_paid?
 
           if @canonical_pending_transaction.settled?
-            return Airbreak.notify("Invoice #{invoice.id} is manually marked as paid but is settled")
+            return Airbrake.notify("Invoice #{invoice.id} is manually marked as paid but is settled")
           end
 
           CanonicalPendingDeclinedMapping.create!(
