@@ -60,7 +60,7 @@ module InvoiceService
     end
 
     def decline_pending_transactions!
-      canonical_pending_transaction = invoice&.raw_pending_invoice_transaction&.canonical_pending_transaction
+      canonical_pending_transaction = invoice&.canonical_pending_transaction
       PendingEventMappingEngine::Decline::Single::Invoice.new(canonical_pending_transaction: canonical_pending_transaction).run
     end
 
