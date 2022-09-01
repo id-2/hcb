@@ -130,3 +130,8 @@
   <p>Estimated Arrival Date: <%= @ach_transfer.scheduled_arrival_date %></p>
   <p>Confirmation Number: <%= @ach_transfer.confirmation_number || "NONE" %></p>
 <% end %>
+
+  <%= form_with(model: nil, local: true, url: ach_return_admin_path(@ach_transfer), method: :post) do |form| %>
+    <%= form.submit "Mark Returned", data: {confirm: "Mark as returned? Only do this if SVB has returned the funds. This requires you to communicate to the organizer about the reason why."} %>
+    <small>(Only do this if SVB has returned the funds. This requires you to communicate to the organizer about the reason why.)</small>
+    

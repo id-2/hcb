@@ -281,6 +281,7 @@ class EventsController < ApplicationController
     @ach_transfers = @ach_transfers.in_transit if params[:filter] == "in_transit"
     @ach_transfers = @ach_transfers.deposited if params[:filter] == "deposited"
     @ach_transfers = @ach_transfers.rejected if params[:filter] == "canceled"
+    @ach_transfers = @ach_transfers.refunded if params[:filter] == "refunded"
     @ach_transfers = @ach_transfers.search_recipient(params[:q]) if params[:q].present?
 
     @checks = @checks.in_transit_or_in_transit_and_processed if params[:filter] == "in_transit"
