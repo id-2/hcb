@@ -29,7 +29,7 @@
   <%= blankslate "No cards found!" %>
 <% end %>
 
-<%= async_frame_to my_missing_receipts_list_path %>
+<%= async_frame_to my_missing_receipts_list_path if @missing %>
 
 <% if @emburse_cards.any? %>
   <details class="mt3">
