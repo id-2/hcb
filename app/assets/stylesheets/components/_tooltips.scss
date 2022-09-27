@@ -40,6 +40,10 @@
     }
   }
 
+  .tooltipped--wide:after {
+    max-width: 20rem!important;
+  }
+
   .tooltipped--e:after {
     left: 100%;
     bottom: 50%;
