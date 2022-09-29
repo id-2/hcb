@@ -16,6 +16,7 @@ export default class extends Controller {
 
   disconnect() {
     this.cleanup && this.cleanup()
+    this.content && this.content.remove()
   }
 
   toggle() {
@@ -27,17 +28,23 @@ export default class extends Controller {
   }
 
   open() {
-    this.content = this.contentTarget.cloneNode(true)
-    ;(
-      (this.appendToValue && document.querySelector(this.appendToValue)) ||
-      document.body
-    ).appendChild(this.content)
-    Object.assign(this.content.style, {
-      position: 'absolute',
-      display: 'block',
-      left: 0,
-      top: 0
-    })
+    if (!this.content) {
+      this.content = this.contentTarget.cloneNode(true)
+      ;(
+        (this.appendToValue && document.querySelector(this.appendToValue)) ||
+        document.body
+      ).appendChild(this.content)
+      Object.assign(this.content.style, {
+        position: 'absolute',
+        display: 'block',
+        left: 0,
+        top: 0
+      })
+    } else {
+      Object.assign(this.content.style, {
+        display: 'block'
+      })
+    }
 
     this.cleanup = autoUpdate(this.toggleTarget, this.content, () => {
       computePosition(this.toggleTarget, this.content, {
@@ -72,22 +79,20 @@ export default class extends Controller {
       )
         return
 
-      if (!$(e.target).closest('form').length) {
-        this.content && this.content.remove()
-      } else {
-        this.content &&
-          Object.assign(this.content.style, {
-            display: 'none'
-          })
-      }
+      this.content &&
+        Object.assign(this.content.style, {
+          display: 'none'
+        })
     } else {
-      this.content && this.content.remove()
+      this.content &&
+        Object.assign(this.content.style, {
+          display: 'none'
+        })
     }
 
     this.toggleTarget.setAttribute('aria-expanded', false)
     this.cleanup && this.cleanup()
 
-    this.content = undefined
     this.cleanup = undefined
 
     this.isOpen = false

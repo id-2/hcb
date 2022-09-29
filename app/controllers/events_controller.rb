@@ -19,21 +19,21 @@ class EventsController < ApplicationController
   def show
     authorize @event
 
-    # The search query name was historically `search`. It has since been renamed
-    # to `q`. This following line retains backwards compatibility.
-    params[:q] ||= params[:search]
+    @organizers = @event.organizer_positions.includes(:user)
+
+    if !signed_in? && !@event.holiday_features
+      @hide_holiday_features = true
+    end
+  end
+
+  def transactions
+    authorize @event, :show?
 
     if params[:tag] && Flipper.enabled?(:transaction_tags_2022_07_29, @event)
       @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
     end
 
-    @organizers = @event.organizer_positions.includes(:user)
     @pending_transactions = _show_pending_transactions
-
-    if !signed_in? && !@event.holiday_features
-      @hide_holiday_features = true
-    end
-
     @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run).page(params[:page]).per(100)
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
   end
