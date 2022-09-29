@@ -1,0 +1,72 @@
+<% submit_disable_with_false ||= false %>
+
+<%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: "Select an event", selected: @event_id }, { width: 150, style: "max-width: 150px" }) %>
+
+<div style='display: inline; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.2rem; margin-right: 0.5rem;'>
+  Filter: |
+  <%= form.label :is_admin do %>
+    <%= form.check_box :is_admin, checked: @is_admin %>
+    Admin
+  <% end %>
+  |
+  <%= form.label :is_hack_clubber do %>
+    <%= form.check_box :is_hack_clubber, checked: @is_hack_clubber %>
+    Hack Clubber
+  <% end %>
+  |
+  <%= form.label :is_teen do %>
+    <%= form.check_box :is_teen, checked: @is_teen %>
+    Teenager
+  <% end %>
+</div>
+
+<% if submit_disable_with_false %>
+  <%= button_tag('Search', disable_with: false) %>
+<% else %>
+  <%= form.submit "Search" %>
+<% end %>
+
+
+<br>
+
+<!--
+<%= form.label :transparent do %>
+  Transparent
+  <%= form.select :transparent, [['Both', 'both'], ["Not Transparent", 'not_transparent'], ['Transparent', 'transparent']], :selected => @transparent %>
+<% end %>
+|
+<%= form.label :omitted do %>
+  Omitted
+  <%= form.select :omitted, [['Both', 'both'], ["Not Omitted", 'not_omitted'], ['Omitted', 'omitted']], :selected => @omitted %>
+<% end %>
+|
+<%= form.label :hidden do %>
+  Hidden
+  <%= form.select :hidden, [['Both', 'both'], ["Not Hidden", 'not_hidden'], ['Hidden', 'hidden']], :selected => @hidden %>
+<% end %>
+|
+<%= form.label :funded do %>
+  Funded
+  <%= form.select :funded, [['Both', 'both'], ["Not Funded", 'not_funded'], ['Funded', 'funded']], :selected => @funded %>
+<% end %>
+|
+<%= form.label :organized_by_hack_clubbers do %>
+  Organized by
+  <%= form.select :organized_by_hack_clubbers, [['Both', 'both'], ["Hack Clubbers", 'organized_by_hack_clubbers'], ['Not Hack Clubbers', 'not_organized_by_hack_clubbers']], :selected => @organized_by_hack_clubbers %>
+<% end %>
+|
+<%= form.label :country do %>
+  Country
+  <%= form.select :country, {'Outside US': 9999}.merge(Event.countries), { include_blank: 'all', :selected => @country } %>
+<% end %>
+|
+<%= form.label :category do %>
+  Category
+  <%= form.select :category, {'uncategorized': 'none'}.merge(Event.categories), { include_blank: 'all', :selected => @category } %>
+<% end %>
+|
+<%= form.label :point_of_contact_id do %>
+  POC
+  <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email, :selected => @point_of_contact_id, include_blank: 'all' %>
+<% end %>
+-->

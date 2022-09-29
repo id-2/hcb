@@ -296,6 +296,8 @@ class AdminController < ApplicationController
       relation = User.includes(:events)
     end
 
+    # TODO: add filtered users here
+
     relation = relation.search_name(@q) if @q
 
     @count = relation.count
@@ -1151,6 +1153,36 @@ class AdminController < ApplicationController
     states << "approved" if @approved
     states << "rejected" if @rejected
     relation = relation.where("aasm_state in (?)", states)
+  end
+
+  def filtered_users(users: User.all)
+    @q = params[:q].present? ? params[:q] : nil
+    @is_admin = params[:is_admin] == "0" ? nil : true # checked by default
+    @is_hack_clubber = params[:is_hack_clubber] == "0" ? nil : true # checked by default
+    @is_teen = params[:is_teen] == "0" ? nil : true # checked by default
+
+    # is transparent if associated with a transparent event
+    # is hack clubber based if event hack clubber
+    # is teen based on birthday or if associated with a club
+
+    # @funded = params[:funded].present? ? params[:funded] : "both" # both by default
+    # @hidden = params[:hidden].present? ? params[:hidden] : "both" # both by default
+    # @organized_by_hack_clubbers = params[:organized_by_hack_clubbers].present? ? params[:organized_by_hack_clubbers] : "both" # both by default
+
+    relation = users
+
+    # TODO: AAAA
+    relation = relation.search_name(@q) if @q
+    relation = relation.transparent if @transparent == "transparent"
+    relation = relation.not_transparent if @transparent == "not_transparent"
+    relation = relation.omitted if @omitted == "omitted"
+    relation = relation.not_omitted if @omitted == "not_omitted"
+    relation = relation.hidden if @hidden == "hidden"
+    relation = relation.not_hidden if @hidden == "not_hidden"
+    relation = relation.funded if @funded == "funded"
+    relation = relation.not_funded if @funded == "not_funded"
+    relation = relation.organized_by_hack_clubbers if @organized_by_hack_clubbers == "organized_by_hack_clubbers"
+    relation = relation.not_organized_by_hack_clubbers if @organized_by_hack_clubbers == "not_organized_by_hack_clubbers"
   end
 
   include StaticPagesHelper # for airtable_info
