@@ -1,0 +1,155 @@
+<% title @event.name %>
+<% include_modals %>
+
+<% if @event&.is_public %>
+  <% content_for :head do %>
+    <% img = "https://workshop-cards.hackclub.com/#{url_encode(@event.name)}.png?theme=light&fontSize=225px&caption=Transparent%2520Finances&brand=Bank" %>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="<%= img %>"/>
+    <meta name="twitter:image" content="<%= img %>">
+    <meta property="og:site_name" content="Hack Club Bank" />
+    <meta property="og:url" content="<%= event_path(@event) %>">
+    <meta property="og:title" content="<%= @event.name %>">
+    <meta name="twitter:title" content="<%= @event.name %>">
+    <% description = "#{@event.name}'s finances have been made public on Hack Club Bank so you can see how their money is spent." %>
+    <meta property="og:description" content="<%= description %>">
+    <meta name="twitter:description" content="<%= description %>">
+    <meta name="description" content="<%= description %>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script defer>
+      function render () {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: ['Donation', 'Invoice', 'Transfer', 'Other'],
+            datasets: [{
+              label: '$',
+              data: [48.73, 293.56, 2946.68, 503.33],
+              backgroundColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+              ],
+              borderColor: [
+                'rgba(255, 255, 255, 1)'
+          //   'rgba(255, 99, 132, 1)',
+          //   'rgba(54, 162, 235, 1)',
+          //   'rgba(255, 206, 86, 1)',
+          //   'rgba(75, 192, 192, 1)',
+              ],
+              borderWidth: 3
+            }]
+          },
+          options: {
+            plugins: {
+            }
+          }
+        });
+      }
+      window.onload = () => render();
+    </script>
+  <% end %>
+<% end %>
+
+<%= render 'nav' %>
+
+<h1 class="flex items-center">
+  Overview
+  <% if admin_signed_in? %>
+    <% admin_tools('p0 badge', 'span') do %>
+      <span class="m0 badge bg-muted">
+      #<%= @event.id %>
+      </span>
+    <% end %>
+
+    <% admin_tools('p0 badge', 'span') do %>
+      <span class="m0 badge bg-muted">
+        <%= @event.partner.slug.capitalize %>
+      </span>
+    <% end %>
+  <% end %>
+</h1>
+
+<div class="flex flex-wrap items-center mb1 md-mb2">
+  <% if @organizers.any? %>
+    <%= pop_icon_to 'email',
+      "mailto:#{@organizers.map(&:user).map(&:email).join(',')}",
+      class: 'info mb1 mr2' if admin_signed_in? %>
+    <% @organizers.each do |position| %>
+      <div class="avatar-grow line-height-0 tooltipped tooltipped--s mb1 mr1" aria-label="<%= position.user.full_name %>">
+        <%= avatar_for position.user, 36 %>
+      </div>
+    <% end %>
+    <%= pop_icon_to 'member-add', event_team_path(@event), class: 'mb1' %>
+  <% else %>
+    <p class="slate bold h3 mr2">No organizers invited yet</p>
+    <%= pop_icon_to 'member-add', event_team_path(@event) %>
+  <% end %>
+</div>
+
+<div class="statset">
+  <div class="stat statset__wide">
+    <span class="stat__label">Account balance</span>
+    <span class="stat__value"><%= render_money_amount @event.balance_v2_cents %></span>
+  </div>
+  <%= async_frame_to event_dashboard_stats_path(@event), as: :div, class: 'grid grid--split', style: 'grid-column: span 2' do %>
+    <action class="stat stat--small tooltipped tooltipped--s" aria-label="The amount that will be automatically deducted from your account balance">
+      <span class="stat__label flex items-center">
+        Pending fees
+        <%= inline_icon 'external', size: 24, class: 'muted ml1', 'aria-label': 'Icon indicating click for more' %>
+      </span>
+      <span class="stat__value">—</span>
+    </action>
+  <% end %>
+</div>
+
+<h2 class="heading">
+  Recent Transactions
+  <%= link_to "All Transactions", event_path(@event), class: "btn" %>
+</h2>
+
+<%= turbo_frame_tag :ledger do %>
+  <% if @pending_transactions.any? || @transactions.any? %>
+    <div class="table-container mt1">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="right-align">Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody data-behavior="transactions">
+            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions.limit(3), as: :pt, locals: { event: @event } %>
+
+            <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions.limit(3), as: :ct, locals: { event: @event } %>
+          </tbody>
+        </table>
+    </div>
+    <%= paginate @transactions %>
+  <% else %>
+    <%= blankslate 'No transactions yet' %>
+  <% end %>
+<% end %>
+
+
+<h2 class="heading mb-3">
+  Financial Analytics
+</h2>
+
+<article class="grid grid--wide mt2">
+  <div class="card">
+    <h4 class="mt0 mb2">Funding Sources</h4>
+    <canvas id="myChart" width="400" height="400"></canvas>
+  </div>
+  <div class="card">
+    
+  </div>
+  <div class="card">
+    
+  </div>
+</article>
