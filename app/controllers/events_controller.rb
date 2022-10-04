@@ -51,6 +51,21 @@ class EventsController < ApplicationController
     render :dashboard_stats, layout: false
   end
 
+  def overview
+    authorize @event
+
+
+    @organizers = @event.organizer_positions.includes(:user)
+    @pending_transactions = _show_pending_transactions
+
+    @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run).page(params[:page]).per(100)
+    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
+
+
+    
+    render :overview
+  end
+
   # GET /event_by_airtable_id/recABC
   def by_airtable_id
     authorize Event

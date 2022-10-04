@@ -30,6 +30,10 @@
       'support',
       @event.partner.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
       event_donation_overview_path(event_id: @event.slug) unless !@event.approved? %>
+    <%= dock_item 'Overview',
+      'Financial overview & analytics',
+      'analytics',
+      event_overview_path(event_id: @event.slug) %>
     <%= dock_item 'Perks',
       'Receive promos & discounts',
       'shirt',
@@ -52,6 +56,7 @@
         <div class="menu__content" data-behavior="menu_content">
           <%= link_to 'Google Workspace', event_g_suite_overview_path(event_id: @event.slug) %>
           <%= link_to 'Promotions & perks', event_promotions_path(event_id: @event.slug) unless !@event.approved? %>
+          <%= link_to 'Financial overview', event_overview_path(event_id: @event.slug) unless !@event.approved? %>
           <%= link_to 'Documentation', event_documentation_path(event_id: @event.slug) %>
           <%= link_to 'Settings', edit_event_path(@event) %>
         </div>

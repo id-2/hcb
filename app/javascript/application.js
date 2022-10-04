@@ -22,6 +22,8 @@ ReactRailsUJS.useContext(componentRequireContext)
 ReactRailsUJS.handleEvent('turbo:load', ReactRailsUJS.handleMount)
 ReactRailsUJS.handleEvent('turbo:before-render', ReactRailsUJS.handleUnmount)
 
+console.log('application.js loaded');
+
 import './controllers'
 
 import { Turbo } from '@hotwired/turbo-rails'

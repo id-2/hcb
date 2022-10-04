@@ -426,6 +426,7 @@ Rails.application.routes.draw do
     post "remove_header_image"
     post "remove_logo"
 
+    get "overview", to: "events#overview", as: :overview
     get "team", to: "events#team", as: :team
     get "google_workspace", to: "events#g_suite_overview", as: :g_suite_overview
     post "g_suite_create", to: "events#g_suite_create", as: :g_suite_create
