@@ -49,7 +49,6 @@ class DonationsController < ApplicationController
     if !@event.donation_page_enabled
       return not_found
     end
-    
     @exchange_rate = 1.00
     @symbol = Money::Currency.new(@event.donation_page_currency).symbol
     if @event.donation_page_currency != "USD"
