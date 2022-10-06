@@ -92,6 +92,10 @@
         <%= form.text_area :donation_page_message, class: "w-100 fit" %>
         <%= inline_icon "markdown", size: 32, class: "muted right" %>
       </div>
+      <div class="field">
+        <%= form.label :donation_page_currency, "Currency to use on donation page:" %>
+        <%= form.select :donation_page_currency, ['USD','JPY','BGN','CZK','DKK','GBP','HUF','ILS','ISK','PLN','RON','SEK','CHF','NOK','HRK','RUB','TRY','AUD','BRL','CAD','CNY','HKD','IDR','INR','KRW','MXN','MYR','NZD','PHP','SGD','THB','ZAR'] %>
+      </div>
       <%= form.submit "Update" %>
     </div>
   <% end %>

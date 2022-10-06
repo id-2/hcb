@@ -1,3 +1,12 @@
+GIT
+  remote: https://github.com/RubyMoney/eu_central_bank.git
+  revision: 440d9b4b5a1dcb90881a8b706f48973070093653
+  branch: main
+  specs:
+    eu_central_bank (1.7.0)
+      money (~> 6.13, >= 6.13.6)
+      nokogiri (~> 1.9)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -730,6 +739,7 @@ DEPENDENCIES
   docusign_esign (~> 3.13)
   dotenv-rails
   dry-validation
+  eu_central_bank!
   factory_bot_rails
   faker
   faraday
@@ -765,6 +775,7 @@ DEPENDENCIES
   mini_magick
   mini_racer (~> 0.4.0)
   monetize
+  money
   money-rails
   namae
   newrelic_rpm

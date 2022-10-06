@@ -15,26 +15,26 @@
   </div>
 
   <div class="field">
-    <% if !@event.country_us? %> 
-      <%= form.label :amount, 'Donation amount (USD)' %> 
-    <% else %>
-      <%= form.label :amount, 'Donation amount' %> 
-    <% end %>
+    <%= form.label :amount, "Donation amount 
+      #{@event.donation_page_currency != "USD" ? "(#{@event.donation_page_currency})" : ""}" 
+    %> 
     <div class="flex items-center">
-      <span class="bold muted" style="width: 1rem;">$</span>
+      <span class="bold muted" style="width: 1rem;"><%= @symbol %></span>
       <%= form.number_field :amount,
                             value: (donation.amount.nil? ? nil : (donation.amount.to_f / 100)),
-                            placeholder: '20.00',
+                            placeholder: (sprintf "%.2f", ("%.1g" % (20.00 * exchangeRate.to_f))), # Converts placeholder $20 to selected currency, sets 1 significant figure (so $2888.00 becomes $3000.00) and then adds two floating decimal places.
                             step: 0.01,
-                            min: 1, # Limitations placed by Stripe
-                            max: 999_999.99, # Limitations placed by Stripe
+                            min: (exchangeRate.to_f).round(2), # Limitations placed by Stripe
+                            max: (exchangeRate.to_f * 999_999.99).round(2), # Limitations placed by Stripe
                             required: true, class: 'fit w-100'
       %>
     </div>
   </div>
 
   <p class="muted h5 mt2 mb1">
-    Your contribution is tax-deductible<% if !@event.country_us? %> in the US<% end %>.
+    Your contribution is tax-deductible<% if !@event.country_us? %> in the US<% end %>. 
+    <% if @event.donation_page_currency != "USD" %> You will be charged in USD at the exchange rate of 
+    <b class="bold">USD 1.00 to <%= @event.donation_page_currency %> <%= @exchangeRate %></b>.<% end %>
   </p>
 
   <%= form.submit 'Continue →', class: 'w-100 bg-success', 'data-turbo': 'false' %>

@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_10_01_225207) do
+ActiveRecord::Schema.define(version: 2022_10_02_060220) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -561,6 +559,7 @@ ActiveRecord::Schema.define(version: 2022_10_01_225207) do
     t.string "custom_css_url"
     t.integer "category"
     t.boolean "can_front_balance", default: false, null: false
+    t.text "donation_page_currency", default: "USD"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"

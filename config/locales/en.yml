@@ -39,7 +39,7 @@ en:
         donation:
           attributes:
             amount:
-              greater_than_or_equal_to: "must be $1.00 or more."
+              greater_than_or_equal_to: "must be USD 1.00 or more."
         event:
           attributes:
             slug:

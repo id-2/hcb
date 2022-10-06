@@ -12,6 +12,7 @@
 #  category                        :integer
 #  country                         :integer
 #  custom_css_url                  :string
+#  donation_page_currency          :text             default("USD")
 #  donation_page_enabled           :boolean          default(TRUE)
 #  donation_page_message           :text
 #  end                             :datetime

@@ -236,3 +236,7 @@ gem "jsbundling-rails", "~> 1.0"
 gem "rack-mini-profiler", "~> 3.0"
 
 gem "country_select", "~> 8.0"
+
+gem "money"
+
+gem 'eu_central_bank', git: 'https://github.com/RubyMoney/eu_central_bank.git', branch: "main"

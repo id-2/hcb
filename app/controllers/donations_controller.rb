@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 require "csv"
+require "money"
+require "eu_central_bank"
+
+def fetchExchangeRate (currency)
+  bank = EuCentralBank.new
+  bank.update_rates # if bank.last_updated.blank? || bank.last_updated < 1.day.ago
+  Money.default_bank = bank 
+  return (Money.from_amount(1, "USD").exchange_to(currency)).to_f
+end
 
 class DonationsController < ApplicationController
   include SetEvent
@@ -39,13 +48,24 @@ class DonationsController < ApplicationController
     if !@event.donation_page_enabled
       return not_found
     end
-
+    @exchangeRate = 1.00
+    @symbol = Money::Currency.new(@event.donation_page_currency).symbol
+    if @event.donation_page_currency != "USD"
+      @exchangeRate = fetchExchangeRate(@event.donation_page_currency)
+    end
     @donation = Donation.new(amount: params[:amount])
   end
 
   def make_donation
+    @exchangeRate = 1.00
+    @symbol = Money::Currency.new(@event.donation_page_currency).symbol
+    if @event.donation_page_currency != "USD"
+      @exchangeRate = fetchExchangeRate(@event.donation_page_currency)
+    end
+
     d_params = public_donation_params
-    d_params[:amount] = Monetize.parse(public_donation_params[:amount]).cents
+
+    d_params[:amount] = Monetize.parse(public_donation_params[:amount].to_f / @exchangeRate).cents
 
     @donation = Donation.new(d_params)
     @donation.event = @event
@@ -60,7 +80,11 @@ class DonationsController < ApplicationController
   def finish_donation
 
     @donation = Donation.find_by!(url_hash: params["donation"])
-
+    @exchangeRate = 1.00
+    @symbol = Money::Currency.new(@event.donation_page_currency).symbol
+    if @event.donation_page_currency != "USD"
+      @exchangeRate = fetchExchangeRate(@event.donation_page_currency)
+    end
     if @donation.status == "succeeded"
       flash[:info] = "You tried to access the payment page for a donation that’s already been sent."
       redirect_to start_donation_donations_path(@event)
