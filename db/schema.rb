@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_10_01_225207) do
+ActiveRecord::Schema.define(version: 2022_10_06_145256) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -140,7 +140,9 @@ ActiveRecord::Schema.define(version: 2022_10_01_225207) do
     t.integer "amount_cents"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.bigint "fee_revenue_id"
     t.index ["event_id"], name: "index_bank_fees_on_event_id"
+    t.index ["fee_revenue_id"], name: "index_bank_fees_on_fee_revenue_id"
   end
 
   create_table "blazer_audits", force: :cascade do |t|
@@ -270,6 +272,7 @@ ActiveRecord::Schema.define(version: 2022_10_01_225207) do
     t.index ["raw_pending_outgoing_ach_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_ach_tx_id"
     t.index ["raw_pending_outgoing_check_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_check_tx_id"
     t.index ["raw_pending_outgoing_disbursement_transaction_id"], name: "index_cpts_on_raw_pending_outgoing_disbursement_transaction_id"
+    t.index ["raw_pending_partner_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_partner_dntn_tx_id"
     t.index ["raw_pending_stripe_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_stripe_tx_id"
     t.check_constraint "fronted IS NOT NULL", name: "canonical_pending_transactions_fronted_null"
   end
@@ -593,6 +596,15 @@ ActiveRecord::Schema.define(version: 2022_10_01_225207) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_fee_relationships_on_event_id"
+  end
+
+  create_table "fee_revenues", force: :cascade do |t|
+    t.integer "amount_cents"
+    t.date "start"
+    t.date "end"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "aasm_state"
   end
 
   create_table "fees", force: :cascade do |t|
