@@ -59,6 +59,25 @@ class EventsController < ApplicationController
     @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run).page(params[:page]).per(100)
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
+    @funding_sources = [
+      {
+        "name" => "Donation",
+        "amount_cents" => 2000
+      },
+      {
+        "name" => "Invoice",
+        "amount_cents" => 1000
+      },
+      {
+        "name" => "Transfer",
+        "amount_cents" => 5000
+      },
+      {
+        "name" => "Other",
+        "amount_cents" => 1000
+      }
+    ]
+
     render :overview
   end
 

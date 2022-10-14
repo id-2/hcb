@@ -18,14 +18,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script defer>
       function render () {
-        const ctx = document.getElementById('myChart').getContext('2d');
-        const myChart = new Chart(ctx, {
+        const sourcesChartCtx = document.getElementById('sourcesChart').getContext('2d');
+        const sourcesChart = new Chart(sourcesChartCtx, {
           type: 'pie',
           data: {
-            labels: ['Donation', 'Invoice', 'Transfer', 'Other'],
+            labels: [
+              <% @funding_sources.each do |funding_source| %>
+                '<%= funding_source["name"] %>',
+              <% end %>
+            ],
             datasets: [{
               label: '$',
-              data: [48.73, 293.56, 2946.68, 503.33],
+              data: [
+                <% @funding_sources.each do |funding_source| %>
+                  <%= funding_source["amount_cents"] %> / 100,
+                <% end %>
+              ],
               backgroundColor: [
                 'rgba(255, 99, 132, 1)',
                 'rgba(54, 162, 235, 1)',
@@ -34,10 +42,6 @@
               ],
               borderColor: [
                 'rgba(255, 255, 255, 1)'
-          //   'rgba(255, 99, 132, 1)',
-          //   'rgba(54, 162, 235, 1)',
-          //   'rgba(255, 206, 86, 1)',
-          //   'rgba(75, 192, 192, 1)',
               ],
               borderWidth: 3
             }]
@@ -57,6 +61,9 @@
 
 <h1 class="flex items-center">
   Overview
+<% @funding_sources.each do |funding_source| %>
+funding_source.name
+<% end %>
   <% if admin_signed_in? %>
     <% admin_tools('p0 badge', 'span') do %>
       <span class="m0 badge bg-muted">
@@ -144,12 +151,12 @@
 <article class="grid grid--wide mt2">
   <div class="card">
     <h4 class="mt0 mb2">Funding Sources</h4>
-    <canvas id="myChart" width="400" height="400"></canvas>
+    <canvas id="sourcesChart" width="400" height="400"></canvas>
   </div>
   <div class="card">
-    
+    <h4 class="mt0 mb2">Balance</h4>
   </div>
   <div class="card">
-    
+    <h4 class="mt0 mb2">Spending</h4>
   </div>
 </article>
