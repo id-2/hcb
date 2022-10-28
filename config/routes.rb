@@ -428,6 +428,8 @@ Rails.application.routes.draw do
     get "dashboard_stats", to: "events#dashboard_stats", as: :dashboard_stats
     put "toggle_hidden", to: "events#toggle_hidden"
 
+    get "benchmark", to: "events#benchmark"
+
     post "remove_header_image"
     post "remove_logo"
 

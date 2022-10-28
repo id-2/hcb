@@ -38,6 +38,77 @@ class EventsController < ApplicationController
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
   end
 
+  def benchmark
+    skip_authorization
+
+    balance = 0
+    balance += @event.canonical_transactions.sum(:amount_cents)
+    
+    if @event.can_front_balance?
+      # Can front balance? Let's factor in all the pending transactions!
+      balance += @event.canonical_pending_transactions.not_declined
+                                                      .unsettled
+                                                      .fronted
+                                                      .sum(:amount_cents)
+    else
+      # Can't front balance? We should still factor in the negative pending transactions
+      balance += @event.canonical_pending_transactions.not_declined
+                                                      .unsettled
+                                                      .outgoing
+                                                      .sum(:amount_cents)
+    end
+
+    # Go ahead and skip fees– this is just useful for back-end stuff while the UI doesn't factor it in
+    upcoming_fees = 0
+    # figure out unpaid fees by taking all fee payments made
+    paid_fees = @event.canonical_transactions.bank_fee_hcb_code.sum(:amount_cents)
+    # and substracting the total fees owed from all time
+    total_fees_ever_owed = @event.fees.sum(:amount_cents_as_decimal)
+    fees_due = total_fees_ever_owed + paid_fees
+    # FYI, this includes a rounding difference from what's in the UI ^
+    upcoming_fees -= fees_due
+
+    if @event.can_front_balance? && !@event.sponsorship_fee.zero?
+      # Also subtract fees of fronted funds if they can front their balance!
+      to_fee = @event.canonical_pending_transactions.not_incoming_disbursement
+                                          .not_declined
+                                          .unsettled
+                                          .fronted
+                                          .where("canonical_pending_transactions.amount_cents > 0")
+                                          .sum('canonical_pending_transactions.amount_cents')
+      fronted_fee = to_fee * @event.sponsorship_fee
+      upcoming_fees -= fronted_fee
+    end
+
+    # last missing step– we need to get rid of any transaction that was fronted, but partially paid
+
+    hcb_codes = @event.canonical_pending_transactions.fronted.not_declined.incoming.unsettled.pluck(:hcb_code).uniq
+
+    money_to_subtract = 0
+
+    HcbCode.where(hcb_code: hcb_codes).each do |hcb_code|
+      settled_sum = hcb_code.canonical_transactions.sum(:amount_cents)
+      pending_sum = hcb_code.canonical_pending_transactions.fronted.sum(:amount_cents)
+
+      if settled_sum < pending_sum
+        # hey
+        money_to_subtract += settled_sum
+      end
+    end
+
+    balance -= money_to_subtract
+
+    render json: {
+      event: @event.name,
+      balance: balance,
+      balance_available: balance + upcoming_fees,
+      fees: {
+        fronted: fronted_fee,
+        due: fees_due,
+      }
+    }
+  end
+
   def fees
     authorize @event
 

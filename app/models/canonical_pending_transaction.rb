@@ -77,7 +77,8 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :invoice, -> { where("raw_pending_invoice_transaction_id is not null") }
   scope :partner_donation, -> { where("raw_pending_partner_donation_transaction_id is not null") }
   scope :bank_fee, -> { where("raw_pending_bank_fee_transaction_id is not null") }
-  scope :incoming_disbursement, -> { where("raw_pending_incoming_disbursement_transaction_id is not null") }
+  scope :incoming_disbursement, -> { includes(:raw_pending_incoming_disbursement_transaction).where.not(raw_pending_incoming_disbursement_transaction_id: nil) }
+  scope :not_incoming_disbursement, -> { includes(:raw_pending_incoming_disbursement_transaction).where(raw_pending_incoming_disbursement_transaction_id: nil) }
   scope :outgoing_disbursement, -> { where("raw_pending_outgoing_disbursement_transaction_id is not null") }
   scope :unmapped, -> { includes(:canonical_pending_event_mapping).where(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }
   scope :mapped, -> { includes(:canonical_pending_event_mapping).where.not(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }

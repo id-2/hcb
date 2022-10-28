@@ -149,6 +149,8 @@ group :development do
   # For https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb
   gem 'htmlbeautifier', require: false
 
+  gem 'gc_stats', '~> 1.0'
+
   # adds comments to models with database fields
   gem 'annotate'
 
