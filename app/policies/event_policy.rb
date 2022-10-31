@@ -9,6 +9,10 @@ class EventPolicy < ApplicationPolicy
     user&.admin?
   end
 
+  def balance?
+    user_or_admin?
+  end
+
   def toggle_hidden?
     user&.admin?
   end

@@ -38,6 +38,14 @@ class EventsController < ApplicationController
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
   end
 
+  def balance
+    authorize @event
+    @balance = Rails.cache.fetch("event_balance_#{@event.id}", expires_in: 30.seconds) do
+      @event.balance.to_i
+    end
+    render :balance, layout: false
+  end
+
   def fees
     authorize @event
 

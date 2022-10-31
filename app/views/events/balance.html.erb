@@ -1,0 +1,4 @@
+<span class="no-wrap <%= 'muted' if @balance.zero? %>">
+    <%= inline_icon 'payment', size: 16, class: 'muted align-middle', 'aria-label': 'Dollar sign', style: 'transform: scale(2)' %>
+  <%= render_money_amount @balance %>
+</span>

@@ -426,6 +426,7 @@ Rails.application.routes.draw do
     get "edit", to: redirect("/%{event_id}/settings")
     get "fees", to: "events#fees", as: :fees
     get "dashboard_stats", to: "events#dashboard_stats", as: :dashboard_stats
+    get "balance", to: "events#balance", as: :balance
     put "toggle_hidden", to: "events#toggle_hidden"
 
     post "remove_header_image"
