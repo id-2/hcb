@@ -141,6 +141,8 @@ class CanonicalPendingTransaction < ApplicationRecord
                             .where(canonical_event_mapping: { event_id: event.id })
                             .sum(:amount_cents)
 
+    return 0 if cts_sum >= pts_sum
+
     # PTs that were chronologically created first in an HcbCode are first
     # responsible for "contributing" to the fronted amount. After a PT's
     # amount_cents is fully allocated to the fronted amount, the next
