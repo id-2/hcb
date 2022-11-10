@@ -2,10 +2,11 @@
 
 module AchTransferService
   class Approve
-    def initialize(ach_transfer_id:, scheduled_arrival_date:, confirmation_number:)
+    def initialize(ach_transfer_id:, scheduled_arrival_date:, confirmation_number:, fulfilled_by_id:)
       @ach_transfer_id = ach_transfer_id
       @scheduled_arrival_date = scheduled_arrival_date
       @confirmation_number = confirmation_number
+      @fulfilled_by = User.find fulfilled_by_id
     end
 
     def run
@@ -13,6 +14,7 @@ module AchTransferService
       raise ArgumentError, "confirmation_number is required" unless @confirmation_number.present?
 
       ActiveRecord::Base.transaction do
+        ach_transfer.update(attrs)
         ach_transfer.mark_in_transit!
         ach_transfer.scheduled_arrival_date = chronic_scheduled_arrival_date
         ach_transfer.confirmation_number = @confirmation_number
@@ -23,6 +25,12 @@ module AchTransferService
     end
 
     private
+
+    def attrs
+      {
+        fulfilled_by: @fulfilled_by
+      }
+    end
 
     def chronic_scheduled_arrival_date
       @chronic_scheduled_arrival_date ||= Chronic.parse(@scheduled_arrival_date)

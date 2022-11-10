@@ -6,7 +6,7 @@ module AchTransferService
 
     def initialize(event_id:,
                    routing_number:, account_number:, bank_name:, recipient_name:, recipient_tel:, amount_cents:, payment_for:,
-                   current_user:)
+                   current_user:, fulfilled_by_id: nil)
       @event_id = event_id
 
       @routing_number = routing_number
@@ -18,6 +18,7 @@ module AchTransferService
       @payment_for = payment_for
 
       @current_user = current_user
+      @fulfilled_by_id = fulfilled_by_id
     end
 
     def run

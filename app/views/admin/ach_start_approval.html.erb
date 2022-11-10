@@ -19,15 +19,22 @@
   <li>Make sure that we have proper documentation and papertrail for this ACH transfer! You can <%= link_to "attach receipts or other notes to the ACH transfer", @ach_transfer %> to keep track.</li>
 </ol>
 
-<p>
+<table class="table--autosize">
+  <tbody>
+  <tr>
+    <td>Created by:</td>
+    <td><%= @ach_transfer.creator.name %></td>
+  </tr>
+  <tr>
+    <td>Processed by:</td>
+    <td><%= @ach_transfer.fulfilled_by_id %></td>
+  </tr>
+  </tbody>
+</table>
   Submitted by:
-  <%= "ADMIN" if @ach_transfer.creator.admin? %> <%= @ach_transfer.creator.name %>
-  (<%= link_to @ach_transfer.creator.phone_number, "tel:#{@ach_transfer.creator.phone_number}" %>, <%= mail_to @ach_transfer.creator.email %>) of <%= link_to @ach_transfer.event.name, @ach_transfer.event %>
-</p>
-
-<p>
-  <%= avatar_for @ach_transfer.creator %>
-</p>
+  <%= avatar_for @ach_transfer.creator %><%= "ADMIN" if @ach_transfer.creator.admin? %> <%= @ach_transfer.creator.name %>
+  (<%= link_to @ach_transfer.creator.phone_number, "tel:#{@ach_transfer.creator.phone_number}" %>,<%= mail_to @ach_transfer.creator.email %>)
+  of <%= link_to @ach_transfer.event.name, @ach_transfer.event %>
 
 <hr/>
 
