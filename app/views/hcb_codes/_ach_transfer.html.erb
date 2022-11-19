@@ -10,17 +10,13 @@
       <%= inline_icon @hcb_code.ach_transfer.state_icon, size: 20 if @hcb_code.ach_transfer.state_icon %>
     </span>
   </h2>
+
+
   <section class="card__banner card__darker details-horiz border-top border-bottom">
     <p>
       <strong>Sent by</strong>
       <%= user_mention @hcb_code.ach_transfer.creator %>
     </p>
-    <% if @hcb_code.ach_transfer.processor %>
-      <p>
-        <strong>Processed by by</strong>
-        <%= user_mention @hcb_code.ach_transfer.processor %>
-      </p>
-    <% end %>
     <p>
       <strong>Sent at</strong>
       <%= format_datetime @hcb_code.ach_transfer.created_at %>
@@ -79,3 +75,21 @@
   </section>
 </article>
 
+
+<% admin_tools('mb3', 'div') do %>
+  <% if @hcb_code.ach_transfer.processor %>
+    <section class="details-horiz">
+      <p>
+        <strong>Processed by by</strong>
+        <%= user_mention @hcb_code.ach_transfer.processor %>
+      </p>
+    </section>
+  <% else %>
+    <section class="details-horiz">
+      <p>
+        <strong>Processed by by</strong>
+        No associated processor
+      </p>
+    </section>
+  <% end %>
+<% end %>
