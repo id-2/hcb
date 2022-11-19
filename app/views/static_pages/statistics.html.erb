@@ -1,0 +1,93 @@
+<% title 'Bank Statistics' %>
+
+<% content_for :head do %>
+	<% img = "https://workshop-cards.hackclub.com/Brand%20Guidelines.png?theme=light&fontSize=250px&brand=Bank" %>
+	<meta name="twitter:card" content="summary_large_image">
+	<meta property="og:image" content="<%= img %>"/>
+	<meta name="twitter:image" content="<%= img %>">
+	<meta property="og:site_name" content="Hack Club Bank" />
+	<meta property="og:url" content="https://bank.hackclub.com">
+	<meta property="og:title" content="Brand Guidelines">
+	<meta name="twitter:title" content="Hack Club Bank">
+	<% description = "How and when to refer to Hack Club Bank." %>
+	<meta property="og:description" content="<%= description %>">
+	<meta name="twitter:description" content="<%= description %>">
+	<meta name="description" content="<%= description %>">
+<% end %>
+
+<div class="container container--md card py3 md-p3 lg-p4 mt2 mt3 md-mt4 overflow-visible">
+  <h1 class="mt2 md-mt0">
+    Bank Statistics
+    <span class="muted h3 regular sans block">
+      Captivating subtitle here
+    </span>
+  </h1>
+
+  <p>
+  Informative description
+  </p>
+
+  <h2>
+    Transactions
+  </h2>
+
+  <div class="center">
+    <span class="h0 bold">
+      $
+      <% number_with_precision(@transactions_volume / 100.to_f, :precision => 2, :delimiter => ',').split("").each do |number| %>
+        <% if "1234567890".include? number %>
+          <span class="card card__darker mx2 inline-block align-middle py1 line-height-1">
+            <%= number %>
+          </span>
+        <% else %>
+          <%= number %>
+        <% end %>
+      <% end %>
+    </span>
+  </div>
+
+  <div class="grid grid--wide grid--spacious mt2 md-mb4">
+    <div class="card card__darker w-100 pb0">
+      <h3 class="my0 c-green">+$<%= number_with_precision(@all[:raised] / 100.to_f, :precision => 2, :delimiter => ',') %></h3>
+      <p class="mt0 mb2 muted">raised</p>
+      <h3 class="my0 c-red">-$<%= number_with_precision(0 - @all[:expenses] / 100.to_f, :precision => 2, :delimiter => ',') %></h3>
+      <p class="mt0 mb2 muted">spent</p>
+    </div>
+    <div class="card card__darker w-100 pb0">
+      <h3 class="my0">$<%= number_with_precision(@last_week[:transactions_volume] / 100.to_f, :precision => 2, :delimiter => ',') %></h3>
+      <p class="mt0 mb2 muted">transacted in the last week</p>
+      <h3 class="my0">$<%= number_with_precision(@last_month[:transactions_volume] / 100.to_f, :precision => 2, :delimiter => ',') %></h3>
+      <p class="mt0 mb2 muted">transacted in the last month</p>
+      <h3 class="my0">$<%= number_with_precision(@last_year[:transactions_volume] / 100.to_f, :precision => 2, :delimiter => ',') %></h3>
+      <p class="mt0 mb2 muted">transacted in the last year</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="/brand/js-confetti.browser.js"></script>
+<script>
+  window.onload = () => {
+    const jsConfetti = new JSConfetti()
+
+    const combinations = [
+      {
+        emojis: ['🦄'],
+        confettiNumber: 1,
+      },
+      {
+        emojis: ['💸', '💵', '💰'],
+      },
+      {
+        emojis: ['🏦', '🏧'],
+      },
+      {
+        emojis: ['🌈', '⚡️', '💥', '✨', '💫', '💸', '💵', '💰', '💲', '🪙', '🏦', '💴'],
+      }
+    ]
+
+    $('.logo-confetti').click(() => {
+      jsConfetti.addConfetti(combinations[Math.floor(Math.random() * combinations.length)])
+    })
+  }
+</script>   

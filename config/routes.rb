@@ -324,6 +324,7 @@ Rails.application.routes.draw do
   end
 
   get "branding", to: "static_pages#branding"
+  get "statistics", to: "static_pages#statistics"
   get "faq", to: "static_pages#faq"
 
   get "audit", to: "admin#audit"
