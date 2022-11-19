@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 2022_11_01_054409) do
   create_table "ach_transfers", force: :cascade do |t|
     t.bigint "event_id"
     t.bigint "creator_id"
+    t.bigint "processor_id"
     t.string "routing_number"
     t.string "bank_name"
     t.string "recipient_name"
@@ -1397,6 +1398,7 @@ ActiveRecord::Schema.define(version: 2022_11_01_054409) do
 
   add_foreign_key "ach_transfers", "events"
   add_foreign_key "ach_transfers", "users", column: "creator_id"
+  add_foreign_key "ach_transfers_approved", "users", column: "processor_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "bank_fees", "events"

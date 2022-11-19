@@ -15,6 +15,12 @@
       <strong>Sent by</strong>
       <%= user_mention @hcb_code.ach_transfer.creator %>
     </p>
+    <% if @hcb_code.ach_transfer.processor %>
+      <p>
+        <strong>Processed by by</strong>
+        <%= user_mention @hcb_code.ach_transfer.processor %>
+      </p>
+    <% end %>
     <p>
       <strong>Sent at</strong>
       <%= format_datetime @hcb_code.ach_transfer.created_at %>
