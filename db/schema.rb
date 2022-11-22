@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_11_20_225338) do
+ActiveRecord::Schema.define(version: 2022_11_18_091659) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -561,6 +561,8 @@ ActiveRecord::Schema.define(version: 2022_11_20_225338) do
     t.string "custom_css_url"
     t.integer "category"
     t.boolean "can_front_balance", default: false, null: false
+    t.boolean "demo_mode", default: false, null: false
+    t.datetime "demo_mode_request_meeting_at"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -811,6 +813,44 @@ ActiveRecord::Schema.define(version: 2022_11_20_225338) do
     t.index ["sponsor_id"], name: "index_invoices_on_sponsor_id"
     t.index ["status"], name: "index_invoices_on_status"
     t.index ["stripe_invoice_id"], name: "index_invoices_on_stripe_invoice_id", unique: true
+  end
+
+  create_table "lab_tech_experiments", force: :cascade do |t|
+    t.string "name"
+    t.integer "percent_enabled", default: 0, null: false
+    t.integer "equivalent_count", default: 0, null: false
+    t.integer "timed_out_count", default: 0, null: false
+    t.integer "other_error_count", default: 0, null: false
+    t.index ["name"], name: "index_lab_tech_experiments_by_name", unique: true
+  end
+
+  create_table "lab_tech_observations", force: :cascade do |t|
+    t.integer "result_id", null: false
+    t.string "name", limit: 100
+    t.float "duration"
+    t.text "value"
+    t.text "sql"
+    t.string "exception_class"
+    t.text "exception_message"
+    t.text "exception_backtrace"
+    t.datetime "created_at"
+    t.text "diff"
+    t.index ["result_id"], name: "index_lab_tech_observations_by_result_id"
+  end
+
+  create_table "lab_tech_results", force: :cascade do |t|
+    t.integer "experiment_id", null: false
+    t.text "context"
+    t.boolean "equivalent", default: false, null: false
+    t.boolean "raised_error", default: false, null: false
+    t.float "time_delta"
+    t.float "speedup_factor"
+    t.datetime "created_at"
+    t.boolean "timed_out", default: false, null: false
+    t.float "control_duration"
+    t.float "candidate_duration"
+    t.index ["experiment_id", "equivalent"], name: "index_lab_tech_results_by_exp_id_and_equivalent"
+    t.index ["experiment_id", "raised_error"], name: "index_lab_tech_results_by_exp_id_and_raised"
   end
 
   create_table "lob_addresses", force: :cascade do |t|
@@ -1335,9 +1375,11 @@ ActiveRecord::Schema.define(version: 2022_11_20_225338) do
     t.bigint "item_id", null: false
     t.string "event", null: false
     t.string "whodunnit"
-    t.text "object"
+    t.text "old_object"
     t.datetime "created_at"
-    t.text "object_changes"
+    t.text "old_object_changes"
+    t.jsonb "object"
+    t.jsonb "object_changes"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 

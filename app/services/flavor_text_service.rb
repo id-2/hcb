@@ -27,7 +27,8 @@ class FlavorTextService
   def development_flavor_texts
     [
       "Hack the Bank Mode",
-      "Development Mode"
+      "Development Mode",
+      "super secret admin mode"
     ]
   end
 
@@ -90,7 +91,8 @@ class FlavorTextService
       "Trick or treat!",
       "👻",
       "🧛",
-      "🎃"
+      "🎃",
+      "Pumpkin spice is the pumpkin spice of life."
     ]
   end
 
@@ -242,6 +244,7 @@ class FlavorTextService
       "git add ./cash/money",
       "Wireframed with real wire!",
       "Made from 100% recycled pixels",
+      "💖🙌💅🙌💖💁‍♀️💁‍♀️😂😂😂",
       "Open on weekdays!",
       "Open on #{Date.today.strftime("%A")}s",
       "??? profit!",
@@ -469,7 +472,8 @@ class FlavorTextService
       "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>good enough for us to use!</a>",
       "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>dogfooded by us!</a>",
       "<strike>Runs on Airtable™</strike>",
-      "Got a hankering for some Bankering?"
+      "Got a hankering for some Bankering?",
+      "<marquee scrollamount='5'>💸💸💸</marquee>"
     ]
   end
 

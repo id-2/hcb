@@ -29,14 +29,15 @@
         We recommend sending yourself an invoice for $1 to understand what your
         sponsors will see.
       </p>
+    <%= render 'form', invoice: @invoice, sponsor: @sponsor %>
     <% else %>
       <p class="h5 line-height-3 muted mt0 mb2">
         If the sponsor wants to pay via a mailed check or direct deposit instead of
         the online invoice, let the Bank team know.
         <%= help_message %>
       </p>
-    <% end %>
     <%= render 'form', invoice: @invoice, sponsor: @sponsor %>
+    <% end %>
   </section>
 <% end %>
 
