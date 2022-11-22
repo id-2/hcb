@@ -21,7 +21,7 @@ module StripeCardholderService
       end
     end
 
-    # private
+    private
 
     def attrs
       {
