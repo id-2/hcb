@@ -21,7 +21,7 @@ module StripeCardholderService
       end
     end
 
-    private
+    # private
 
     def attrs
       {
@@ -55,8 +55,8 @@ module StripeCardholderService
           }
         },
         individual: {
-          first_name: @current_user.first_name,
-          last_name: @current_user.last_name,
+          first_name: first_name,
+          last_name: last_name,
           dob: dob
         }
       }
@@ -108,11 +108,46 @@ module StripeCardholderService
     end
 
     def name
-      @current_user.safe_name
+      safe_name
     end
 
     def cardholder_type
       "individual"
+    end
+
+    def initial_name
+      @initial_name ||= if name.strip.split(" ").count == 1
+                          name
+                        else
+                          "#{(first_name || last_name)[0..20]} #{(last_name || first_name)[0, 1]}"
+                        end
+    end
+
+    def safe_name
+      # stripe requires names to be 24 chars or less, and must include a last name
+      return @current_user.legal_name unless @current_user.legal_name.length > 24
+
+      initial_name
+    end
+
+    def namae
+      @namae ||= Namae.parse(name).first
+    end
+
+    def first_name
+      @first_name ||= begin
+        return nil unless namae.given || namae.particle
+
+        (namae.given || namae.particle).split(" ").first
+      end
+    end
+
+    def last_name
+      @last_name ||= begin
+        return nil unless namae.family
+
+        namae.family.split(" ").last
+      end
     end
 
     def event
