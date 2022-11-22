@@ -80,14 +80,16 @@
       </div>
     <% end %>
 
-    <div>
-      <%= form.label :session_duration_seconds, "Stay signed in for" %>
-      <%= form.select :session_duration_seconds, SessionsHelper::SESSION_DURATION_OPTIONS.to_a %>
-    </div>
-    <fieldset>
-      <legend class="heading h2 pt2">Share usage data with us</legend>
-      <p class="h5 muted mt1 mb2">
-        Help us improve Hack Club Bank by sending usage data.
+        <div class="field">
+        <%= form.label :full_name %>
+        <%= form.text_field :full_name, required: true, placeholder: "Fiona Hackworth", pattern: '^\S+.+' %>
+        </div>
+        <div class="field">
+        <%= form.label :legal_name %>
+        <%= form.text_field :legal_name, required: false, placeholder: "Fiona Hackworth", pattern: '^\S+.+' %>
+        </div>
+        <div class="field">
+        <%= form.label :phone_number, "Mobile phone number" %>
         <% if @onboarding %>
           <br>
           You can turn this off in your settings anytime.
