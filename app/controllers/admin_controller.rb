@@ -528,8 +528,8 @@ class AdminController < ApplicationController
     ach_transfer = AchTransferService::Approve.new(attrs).run
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
-  # rescue => e
-  #   redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
+  rescue => e
+    redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
   end
 
   def ach_reject
