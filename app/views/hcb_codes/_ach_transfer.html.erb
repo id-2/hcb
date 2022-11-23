@@ -17,6 +17,12 @@
       <strong>Sent by</strong>
       <%= user_mention @hcb_code.ach_transfer.creator %>
     </p>
+    <% unless @hcb_code.ach_transfer.processor.nil? %>
+      <% admin_tools('', 'p') do %>
+        <strong>Processed by</strong>
+        <%= user_mention @hcb_code.ach_transfer.processor  %>
+      <% end %>
+    <% end %>
     <p>
       <strong>Sent at</strong>
       <%= format_datetime @hcb_code.ach_transfer.created_at %>
@@ -74,22 +80,3 @@
     <%= render 'hcb_codes/tags', hcb_code: @hcb_code, event: (@event || @hcb_code.event) %>
   </section>
 </article>
-
-
-<% admin_tools('mb3', 'div') do %>
-  <% if @hcb_code.ach_transfer.processor %>
-    <section class="details-horiz">
-      <p>
-        <strong>Processed by by</strong>
-        <%= user_mention @hcb_code.ach_transfer.processor %>
-      </p>
-    </section>
-  <% else %>
-    <section class="details-horiz">
-      <p>
-        <strong>Processed by by</strong>
-        No associated processor
-      </p>
-    </section>
-  <% end %>
-<% end %>

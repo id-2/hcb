@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_11_18_091659) do
+ActiveRecord::Schema.define(version: 2022_11_22_232753) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -22,7 +22,6 @@ ActiveRecord::Schema.define(version: 2022_11_18_091659) do
   create_table "ach_transfers", force: :cascade do |t|
     t.bigint "event_id"
     t.bigint "creator_id"
-    t.bigint "processor_id"
     t.string "routing_number"
     t.string "bank_name"
     t.string "recipient_name"
@@ -37,8 +36,10 @@ ActiveRecord::Schema.define(version: 2022_11_18_091659) do
     t.string "aasm_state"
     t.text "confirmation_number"
     t.text "account_number_ciphertext"
+    t.bigint "processor_id"
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
+    t.index ["processor_id"], name: "index_ach_transfers_on_processor_id"
   end
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
@@ -1400,7 +1401,6 @@ ActiveRecord::Schema.define(version: 2022_11_18_091659) do
 
   add_foreign_key "ach_transfers", "events"
   add_foreign_key "ach_transfers", "users", column: "creator_id"
-  add_foreign_key "ach_transfers_approved", "users", column: "processor_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "bank_fees", "events"

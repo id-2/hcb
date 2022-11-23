@@ -25,6 +25,14 @@
   (<%= link_to @ach_transfer.creator.phone_number, "tel:#{@ach_transfer.creator.phone_number}" %>, <%= mail_to @ach_transfer.creator.email %>) of <%= link_to @ach_transfer.event.name, @ach_transfer.event %>
 </p>
 
+<% if @ach_transfer.processor %>
+  <p>
+    Processed by:
+    <%= "ADMIN" if @ach_transfer.processor.admin? %> <%= @ach_transfer.processor.name %>
+    (<%= link_to @ach_transfer.processor.phone_number, "tel:#{@ach_transfer.processor.phone_number}" %>, <%= mail_to @ach_transfer.processor.email %>) of <%= link_to @ach_transfer.event.name, @ach_transfer.event %>
+  </p>
+<% end %>
+
 <p>
   <%= avatar_for @ach_transfer.creator %>
 </p>

@@ -523,13 +523,13 @@ class AdminController < ApplicationController
       ach_transfer_id: params[:id],
       scheduled_arrival_date: params[:scheduled_arrival_date],
       confirmation_number: params[:confirmation_number],
-      processor_id: current_user[:id]
+      processor: current_user
     }
     ach_transfer = AchTransferService::Approve.new(attrs).run
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
-  rescue => e
-    redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
+  # rescue => e
+  #   redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
   end
 
   def ach_reject
