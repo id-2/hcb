@@ -25,17 +25,20 @@
   (<%= link_to @ach_transfer.creator.phone_number, "tel:#{@ach_transfer.creator.phone_number}" %>, <%= mail_to @ach_transfer.creator.email %>) of <%= link_to @ach_transfer.event.name, @ach_transfer.event %>
 </p>
 
-<% if @ach_transfer.processor %>
-  <p>
-    Processed by:
-    <%= "ADMIN" if @ach_transfer.processor.admin? %> <%= @ach_transfer.processor.name %>
-    (<%= link_to @ach_transfer.processor.phone_number, "tel:#{@ach_transfer.processor.phone_number}" %>, <%= mail_to @ach_transfer.processor.email %>) of <%= link_to @ach_transfer.event.name, @ach_transfer.event %>
-  </p>
-<% end %>
-
 <p>
   <%= avatar_for @ach_transfer.creator %>
 </p>
+
+<% if @ach_transfer.processor %>
+  <p>
+    Processed by:
+    <span>
+      <%= avatar_for @ach_transfer.processor, 24, style: "margin: 0; vertical-align: bottom" %>
+      <%= inline_icon "admin-badge", size: 20, style: "vertical-align: middle; margin: -0.2rem -0.3rem 0 -0.3rem;" if @ach_transfer.processor.admin? %>
+      <span><%= @ach_transfer.processor.initial_name %></span>
+    </span>
+  </p>
+<% end %>
 
 <hr/>
 
