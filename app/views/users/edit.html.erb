@@ -25,15 +25,23 @@
             <%= form.label :seasonal_themes_enabled, "#{by_season "✨", override_preference: true, fall: "🎃", winter: "🎄"} Enable #{current_season(override_preference: true)} theme", class: "h3 bold" %>
         </div>
         <% end %>
-
-        <div class="field">
-        <%= form.label :full_name %>
-        <%= form.text_field :full_name, required: true, placeholder: "Fiona Hackworth", pattern: '^\S+.+' %>
+        <div data-controller="class" data-class-class-name-value="display-none">
+            <div class="field">
+            <%= form.label :full_name %>
+            <% if @user.legal_name.blank? %>
+                <p class="h5 muted mt0 mb1">
+                    If you have different legal and display names, <%= link_to 'click here', "#", "data-action": "class#toggle"%>.
+                </p>
+            <% end %>
+            <%= form.text_field :full_name, required: true, placeholder: "Fiona Hackworth", pattern: '^\S+.+' %>
+            </div>
+            <div class="field <%= "display-none" unless @user.legal_name.present?%>" data-class-target="element">
+                <%= form.label :legal_name %>
+                <%= form.text_field :legal_name, required: false, placeholder: "Fiona Hackworth", pattern: '^\S+.+' %>
+            </div>
+            
         </div>
-        <div class="field">
-          <%= form.label :legal_name %>
-          <%= form.text_field :legal_name, required: false, placeholder: "Fiona Hackworth", pattern: '^\S+.+' %>
-        </div>
+  
         <div class="field">
         <%= form.label :phone_number, "Mobile phone number" %>
         <% if @onboarding %>
