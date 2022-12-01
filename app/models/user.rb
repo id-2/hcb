@@ -11,6 +11,7 @@
 #  birthday                    :date
 #  email                       :text
 #  full_name                   :string
+#  legal_name                  :string
 #  phone_number                :text
 #  phone_number_verified       :boolean          default(FALSE)
 #  pretend_is_not_admin        :boolean          default(FALSE), not null
