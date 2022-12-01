@@ -12,8 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_11_20_225338) do
-
+ActiveRecord::Schema.define(version: 2022_11_22_125049) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "plpgsql"
@@ -942,6 +941,7 @@ ActiveRecord::Schema.define(version: 2022_11_20_225338) do
     t.bigint "organizer_position_id"
     t.datetime "cancelled_at"
     t.string "slug"
+    t.boolean "initial", default: false
     t.index ["event_id"], name: "index_organizer_position_invites_on_event_id"
     t.index ["organizer_position_id"], name: "index_organizer_position_invites_on_organizer_position_id"
     t.index ["sender_id"], name: "index_organizer_position_invites_on_sender_id"
@@ -1252,6 +1252,7 @@ ActiveRecord::Schema.define(version: 2022_11_20_225338) do
     t.integer "spending_limit_amount"
     t.boolean "activated", default: false
     t.bigint "replacement_for_id"
+    t.string "name"
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
     t.index ["stripe_cardholder_id"], name: "index_stripe_cards_on_stripe_cardholder_id"
@@ -1264,6 +1265,17 @@ ActiveRecord::Schema.define(version: 2022_11_20_225338) do
     t.datetime "updated_at", precision: 6, null: false
     t.bigint "event_id", null: false
     t.index ["event_id"], name: "index_tags_on_event_id"
+  end
+
+  create_table "tours", force: :cascade do |t|
+    t.string "name"
+    t.boolean "active", default: true
+    t.string "tourable_type", null: false
+    t.bigint "tourable_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "step", default: 0
+    t.index ["tourable_type", "tourable_id"], name: "index_tours_on_tourable"
   end
 
   create_table "transaction_csvs", force: :cascade do |t|
@@ -1377,9 +1389,7 @@ ActiveRecord::Schema.define(version: 2022_11_20_225338) do
     t.bigint "item_id", null: false
     t.string "event", null: false
     t.string "whodunnit"
-    t.text "old_object"
     t.datetime "created_at"
-    t.text "old_object_changes"
     t.jsonb "object"
     t.jsonb "object_changes"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"

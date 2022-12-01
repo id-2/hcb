@@ -234,6 +234,8 @@ Rails.application.routes.draw do
   end
   resources :stripe_cardholders, only: [:new, :create, :update]
   resources :stripe_cards, only: %i[create index show] do
+    get "edit"
+    post "update_name"
     post "freeze"
     post "defrost"
     post "activate"
@@ -424,6 +426,13 @@ Rails.application.routes.draw do
 
   post "twilio/messaging", to: "admin#twilio_messaging"
 
+  resources :tours, only: [] do
+    member do
+      post "mark_complete"
+      post "set_step"
+    end
+  end
+
   match "/404", to: "errors#not_found", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
@@ -446,6 +455,8 @@ Rails.application.routes.draw do
     get "cards", to: "events#card_overview", as: :cards_overview
     get "cards/new", to: "stripe_cards#new"
     get "stripe_cards/shipping", to: "stripe_cards#shipping", as: :stripe_cards_shipping
+
+    get "transfers/new", to: "events#new_transfer"
 
     get "async_balance", to: "events#async_balance", as: :async_balance
 

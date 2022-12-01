@@ -169,6 +169,10 @@ action {
   }
 }
 
+summary {
+  cursor: pointer;
+}
+
 @import 'components/avatars';
 @import 'components/badges';
 @import 'components/buttons';
@@ -204,6 +208,7 @@ action {
 @import 'components/footer';
 @import 'components/welcome';
 @import 'components/tabs';
+@import 'components/tour';
 
 .turbo-progress-bar {
   height: 0.125rem;

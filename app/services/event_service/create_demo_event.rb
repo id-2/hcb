@@ -4,7 +4,7 @@ module EventService
   class CreateDemoEvent
     # include ::UserService::CanOpenDemoMode
 
-    def initialize(email:, name:, country:, point_of_contact_id: nil, partner_id: nil)
+    def initialize(email:, name:, country:, category: nil, point_of_contact_id: nil, partner_id: nil)
       @email = email
       @point_of_contact = point_of_contact_id ? User.find(point_of_contact_id) : User.find_by_email("bank@hackclub.com")
       @default_partner = ::Partner.find_by!(slug: "bank")
@@ -12,7 +12,7 @@ module EventService
       @event = ::Event.new(
         name: name,
         country: country,
-        category: Event.categories["robotics team"],
+        category: category,
         point_of_contact_id: @point_of_contact.id,
         is_public: false,
         sponsorship_fee: 0.07,
@@ -31,7 +31,7 @@ module EventService
 
         @event.save!
 
-        OrganizerPositionInviteService::Create.new(event: @event, sender: @point_of_contact, user_email: @email).run!
+        OrganizerPositionInviteService::Create.new(event: @event, sender: @point_of_contact, user_email: @email, initial: true).run!
 
         @event
       end

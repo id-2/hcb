@@ -290,7 +290,8 @@ class Event < ApplicationRecord
     nonprofit: 2,
     event: 3,
     'high school hackathon': 4,
-    'robotics team': 5
+    'robotics team': 5,
+    'hardware grant': 6
   }
 
   def country_us?
@@ -558,9 +559,6 @@ class Event < ApplicationRecord
 
     errors.add(:point_of_contact, "must be an admin")
   end
-
-  # def demo_mode_limit
-  # end
 
   def total_fees
     @total_fees ||= transactions.joins(:fee_relationship).where(fee_relationships: { fee_applies: true }).sum("fee_relationships.fee_amount")
