@@ -97,6 +97,10 @@
         <%= form.text_area :donation_page_message, class: "w-100 fit" %>
         <%= inline_icon "markdown", size: 32, class: "muted right" %>
       </div>
+      <div class="field">
+        <%= form.label :donation_page_css, "Custom CSS for donation page" %>
+        <%= form.text_area :donation_page_css, class: "w-100 fit " %>
+      </div>
       <%= form.submit "Update" %>
     </div>
   <% end %>

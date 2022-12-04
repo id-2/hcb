@@ -14,6 +14,7 @@
 #  custom_css_url                  :string
 #  demo_mode                       :boolean          default(FALSE), not null
 #  demo_mode_request_meeting_at    :datetime
+#  donation_page_css               :text
 #  donation_page_enabled           :boolean          default(TRUE)
 #  donation_page_message           :text
 #  end                             :datetime
@@ -32,7 +33,7 @@
 #  owner_email                     :string
 #  owner_name                      :string
 #  owner_phone                     :string
-#  pending_transaction_engine_at   :datetime         default(Sat, 13 Feb 2021 22:49:40.981965000 UTC +00:00)
+#  pending_transaction_engine_at   :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
 #  public_message                  :text
 #  redirect_url                    :string
 #  slug                            :text
