@@ -62,6 +62,26 @@ module StripeCardholderService
       }
     end
 
+    def first_name
+        if @current_user.legal_name.present?
+            @current_user.legal_name.split(" ").first
+        else
+            @current_user.first_name
+        end
+    end
+
+    def last_name
+        if @current_user.legal_name.present?
+            @current_user.legal_name.split(" ")[1..-1].join(" ")
+        else
+            @current_user.last_name
+        end
+    end
+
+    def name
+        first_name + " " + last_name
+    end
+
     def dob
       return nil unless @current_user.birthday
       # We don't want to share the dob for users under 13
@@ -105,55 +125,6 @@ module StripeCardholderService
 
     def phone_number
       @current_user.phone_number
-    end
-
-    def name
-        return @current_user.safe_name unless @current_user.legal_name.present?
-
-        safe_name
-    end
-
-    def legal_name
-        @current_user.legal_name
-    end
-
-    def safe_name
-        return legal_name unless legal_name.length > 24
-
-        initial_name
-    end
-
-    # inital_name, first_name, last_name, namae, simplified were copied from models/user.rb
-    def initial_name
-        @initial_name ||= if legal_name.strip.split(" ").count == 1
-                            legal_name
-                        else
-                            "#{(first_name || last_name)[0..20]} #{(last_name || first_name)[0, 1]}"
-                        end
-    end
-
-    def first_name
-        @first_name ||= begin
-        return nil unless namae.given || namae.particle
-
-        (namae.given || namae.particle).split(" ").first
-        end
-    end
-
-    def last_name
-        @last_name ||= begin
-        return nil unless namae.family
-
-        namae.family.split(" ").last
-        end
-    end
-
-    def namae
-        @namae ||= Namae.parse(legal_name).first || Namae.parse(name_simplified).first || Namae::Name.new(given: name_simplified)
-    end
-
-    def name_simplified
-        legal_name.split(/[^[[:word:]]]+/).join(" ")
     end
 
     def cardholder_type

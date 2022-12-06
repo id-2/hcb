@@ -82,10 +82,33 @@ class User < ApplicationRecord
   before_create :format_number
   before_save :on_phone_number_update
 
+  after_update do 
+    if stripe_cardholder.present?
+        name = (legal_name.presence || full_name).split(" ")
+        
+        if full_name_previously_changed? || legal_name_previously_changed?
+            StripeService::Issuing::Cardholder.update(stripe_cardholder.stripe_id, {
+                individual: {
+                    first_name: name.first,
+                    last_name: name[1..name.length].join(" "),
+                }
+            })
+        end
+    end
+  end
+
   validate on: :update do
     if full_name.blank? && full_name_in_database.present?
       errors.add(:full_name, "can't be blank")
     end
+  end
+
+  validate do
+    if legal_name.present?
+        if legal_name.split(" ").size < 2
+            errors.add(:legal_name, "must have a first and last name")
+        end
+    end 
   end
 
   validate on: :update do
