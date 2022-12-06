@@ -63,23 +63,23 @@ module StripeCardholderService
     end
 
     def first_name
-        if @current_user.legal_name.present?
-            @current_user.legal_name.split(" ").first
-        else
-            @current_user.first_name
-        end
+      if @current_user.legal_name.present?
+        @current_user.legal_name.split(" ").first
+      else
+        @current_user.first_name
+      end
     end
 
     def last_name
-        if @current_user.legal_name.present?
-            @current_user.legal_name.split(" ")[1..-1].join(" ")
-        else
-            @current_user.last_name
-        end
+      if @current_user.legal_name.present?
+        @current_user.legal_name.split(" ")[1..].join(" ")
+      else
+        @current_user.last_name
+      end
     end
 
     def name
-        first_name + " " + last_name
+      "#{first_name} #{last_name}"
     end
 
     def dob
