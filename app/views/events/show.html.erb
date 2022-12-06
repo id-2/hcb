@@ -181,8 +181,7 @@
           <tbody data-behavior="transactions">
             <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event } %>
 
-            <%#= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event } %>
-            <%= render(CanonicalTransactionComponent.with_collection(@transactions, event: @event, organizer_signed_in: organizer_signed_in?, admin_signed_in: admin_signed_in?, current_user: current_user)) %>
+            <%= render(CanonicalTransactionComponent.with_collection(@transactions, event: @event, current_user: current_user)) %>
           </tbody>
         </table>
     </div>
