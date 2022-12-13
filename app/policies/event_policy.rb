@@ -164,4 +164,5 @@ class EventPolicy < ApplicationPolicy
   def custom_css?
     record.donation_page_enabled?
   end
+
 end
