@@ -1,9 +1,0 @@
-<% if @event.donation_page_css.present? %>
-<style>
-    <% if @event.donation_page_css.include? "</style>"%>
-        <%= raw @event.donation_page_css.gsub! "</style>", "" %>
-    <% else %>
-        <%= raw @event.donation_page_css %>
-    <% end %>
-</style>
-<% end %>

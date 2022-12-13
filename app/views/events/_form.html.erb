@@ -99,7 +99,14 @@
       </div>
       <div class="field">
         <%= form.label :donation_page_css, "Custom CSS for donation page" %>
-        <%= form.text_area :donation_page_css, class: "w-100 fit " %>
+        <p class="h5 muted mt0 mb1">
+            "!important" tags may be needed.
+        </p>
+        <div data-controller="codemirror" data-codemirror-doc-value="<%= form.object.donation_page_css %>">
+        <div data-codemirror-target="editor"></div>
+        <%= form.hidden_field :donation_page_css, data: {codemirror_target: "input"} %>
+        </div>
+        </div>
       </div>
       <%= form.submit "Update" %>
     </div>

@@ -15,10 +15,13 @@
   <meta property="og:description" content="<%= description %>">
   <meta name="twitter:description" content="<%= description %>">
   <meta name="description" content="<%= description %>">
+  <% if @event.donation_page_css.present? %>
+    <link href="../css/test" rel="stylesheet">
+  <% end %>
 <% end %>
 
 <%= render 'header' %>
-<%= render 'custom_css' %>
+
 
 <% if @event.donation_page_message.present? %>
   <div class="container container--sm">

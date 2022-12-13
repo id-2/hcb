@@ -161,4 +161,7 @@ class EventPolicy < ApplicationPolicy
     record.is_public?
   end
 
+  def custom_css?
+    record.donation_page_enabled?
+  end
 end

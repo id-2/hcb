@@ -340,6 +340,11 @@ class EventsController < ApplicationController
     authorize @event
   end
 
+  def custom_css
+    authorize @event
+    render plain: @event.donation_page_css, content_type: "text/css"
+  end
+
   def toggle_hidden
     authorize @event
 

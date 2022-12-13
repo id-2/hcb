@@ -97,6 +97,9 @@
       })
     })
   </script>
+  <% if @event.donation_page_css.present? %>
+    <link href="../css/test" rel="stylesheet">
+  <% end %>
 <% end %>
 
 <% title 'Give to ' + @event.name %>
@@ -104,7 +107,7 @@
 <% no_app_shell %>
 
 <%= render 'header' %>
-<%= render 'custom_css' %>
+
 
 <div class="card mb3">
   <p class="mt1">
