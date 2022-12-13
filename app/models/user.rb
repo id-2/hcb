@@ -89,7 +89,7 @@ class User < ApplicationRecord
         StripeService::Issuing::Cardholder.update(stripe_cardholder.stripe_id, {
                                                     individual: {
                                                       first_name: name.first,
-                                                      last_name: name[1..name.length].join(" "),
+                                                      last_name: name[1..].join(" "),
                                                     }
                                                   })
       end
