@@ -103,9 +103,8 @@
             "!important" tags may be needed.
         </p>
         <div data-controller="codemirror" data-codemirror-doc-value="<%= form.object.donation_page_css %>">
-        <div data-codemirror-target="editor"></div>
-        <%= form.hidden_field :donation_page_css, data: {codemirror_target: "input"} %>
-        </div>
+          <div data-codemirror-target="editor"></div>
+          <%= form.hidden_field :donation_page_css, data: {codemirror_target: "input"} %>
         </div>
       </div>
       <%= form.submit "Update" %>
