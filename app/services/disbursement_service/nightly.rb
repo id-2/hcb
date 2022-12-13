@@ -30,11 +30,15 @@ module DisbursementService
           # there was an error so mark this disbursement as in a bad/mixed state
           Airbrake.notify("Disbursement #{disbursement.id} in mixed/bad error state. Partially processed remotely. Investigate and fix by hand.")
           disbursement.update_column(:errored_at, Time.now)
+          disbursement.mark_errored!
           decline_pending_transactions!
           raise e
         end
 
         disbursement.update_column(:fulfilled_at, Time.now)
+        unless disbursement.mark_in_transit!
+          Airbrake.notify("Failed to mark disbursement #{disbursement.id} as in_transit. Current state is #{disbursement.aasm.current_state}.")
+        end
 
         sleep 5 # helps simulate real clicking
       end

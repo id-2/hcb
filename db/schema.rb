@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_11_22_125050) do
+ActiveRecord::Schema.define(version: 2022_11_22_232753) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -35,8 +35,10 @@ ActiveRecord::Schema.define(version: 2022_11_22_125050) do
     t.string "aasm_state"
     t.text "confirmation_number"
     t.text "account_number_ciphertext"
+    t.bigint "processor_id"
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
+    t.index ["processor_id"], name: "index_ach_transfers_on_processor_id"
   end
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
@@ -339,6 +341,7 @@ ActiveRecord::Schema.define(version: 2022_11_22_125050) do
     t.datetime "errored_at"
     t.bigint "requested_by_id"
     t.bigint "fulfilled_by_id"
+    t.string "aasm_state"
     t.index ["event_id"], name: "index_disbursements_on_event_id"
     t.index ["fulfilled_by_id"], name: "index_disbursements_on_fulfilled_by_id"
     t.index ["requested_by_id"], name: "index_disbursements_on_requested_by_id"
