@@ -89,7 +89,7 @@ html[data-dark='true'] {
   }
 
   .retrofees,
-  .card,
+  .zd,
   .menu__content,
   .modal {
     background-color: $darkless;
@@ -132,7 +132,8 @@ html[data-dark='true'] {
     input[type='url'],
     .input,
     select,
-    textarea {
+    textarea, 
+    .cm-editor {
       background: $dark;
       border-color: $dark;
     }

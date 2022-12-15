@@ -2,6 +2,8 @@ import { Controller } from '@hotwired/stimulus'
 import { minimalSetup, EditorView } from 'codemirror'
 import { css } from '@codemirror/lang-css'
 import { dracula } from 'thememirror'
+
+
 export default class extends Controller {
   static targets = ['editor', 'input']
   static values = {
@@ -19,7 +21,8 @@ export default class extends Controller {
             this.sync()
           }
         }),
-        dracula
+        dracula,
+        EditorView.lineWrapping
       ]
     })
   }
