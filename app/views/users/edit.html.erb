@@ -27,7 +27,7 @@
         <% end %>
         <div data-controller="class" data-class-class-name-value="display-none">
             <div class="field">
-            <%= form.label :full_name, "Display name" %>
+            <%= form.label :full_name, @user.legal_name.present? ? "Display Name" : "Full Name", "data-class-target": "label" %>
             <% if @user.legal_name.blank? %>
                 <p class="h5 muted mt0 mb1">
                     If you have different legal and display names, <%= link_to 'click here', "#", "data-action": "class#toggle"%>.
