@@ -473,7 +473,12 @@ class FlavorTextService
       "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>dogfooded by us!</a>".html_safe,
       "<strike>Runs on Airtable™</strike>".html_safe,
       "Got a hankering for some Bankering?",
-      "<marquee scrollamount='5'>💸💸💸</marquee>".html_safe
+      "<marquee scrollamount='5'>💸💸💸</marquee>".html_safe,
+      "Serving suggestion",
+      "Not actual size",
+      "Enlarged to show detail",
+      "As seen on TV!",
+      "Buy one get one"
     ]
   end
 
