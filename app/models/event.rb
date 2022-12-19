@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # == Schema Information
 #
 # Table name: events
@@ -79,7 +77,7 @@ class Event < ApplicationRecord
 
   default_scope { order(id: :asc) }
   scope :pending, -> { where(aasm_state: :pending) }
-  scope :pending_or_unapproved, -> { where(aasm_state: [:pending, :unapproved]) }
+  scope     :pending_or_unapproved, -> { where(aasm_state: [:pending, :unapproved])     }
   scope :transparent, -> { where(is_public: true) }
   scope :not_transparent, -> { where(is_public: false) }
   scope :omitted, -> { where(omit_stats: true) }
@@ -389,7 +387,7 @@ class Event < ApplicationRecord
   def settled_balance_cents(start_date: nil, end_date: nil)
     @balance_settled ||=
       settled_incoming_balance_cents(start_date: start_date, end_date: end_date) +
-      settled_outgoing_balance_cents(start_date: start_date, end_date: end_date)
+        settled_outgoing_balance_cents(start_date: start_date, end_date: end_date)
   end
 
   # v2 cents (v2 transaction engine)
@@ -442,7 +440,7 @@ class Event < ApplicationRecord
   def pending_balance_v2_cents(start_date: nil, end_date: nil)
     @pending_balance_v2_cents ||=
       pending_incoming_balance_v2_cents(start_date: start_date, end_date: end_date) +
-      pending_outgoing_balance_v2_cents(start_date: start_date, end_date: end_date)
+        pending_outgoing_balance_v2_cents(start_date: start_date, end_date: end_date)
   end
 
   def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil)
@@ -503,11 +501,11 @@ class Event < ApplicationRecord
   # `fee_balance_v2_cents`, but it includes fees on fronted (unsettled) transactions to prevent overspending before fees are charged
   def fronted_fee_balance_v2_cents
     feed_fronted_balance = canonical_pending_transactions
-                           .incoming
-                           .fronted
-                           .not_declined
-                           .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
-                           .sum(&:fronted_amount)
+                             .incoming
+                             .fronted
+                             .not_declined
+                             .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
+                             .sum(&:fronted_amount)
 
     # TODO: make sure this has the same rounding error has the rest of the codebase
     fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee)
@@ -617,7 +615,7 @@ class Event < ApplicationRecord
   end
 
   def update_slug_history
-    if slug_previously_changed?
+    unless !slug_previously_changed?
       slugs.create(slug: slug)
     end
   end
