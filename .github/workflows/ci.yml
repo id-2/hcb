@@ -27,9 +27,9 @@ jobs:
       - name: Commit changes
         if: steps.git-check.outputs.modified == 'true'
         run: |
-          git config --global user.name 'Rubocop'
+          git config --global user.name 'RuboCop'
           git config --global user.email 'bank+github-rubocop-bot@hackclub.com'
-          git commit -am "Rubocop autocorrect"
+          git commit -am "RuboCop autocorrect"
       - name: Push changes
         if: steps.git-check.outputs.modified == 'true'
         uses: ad-m/github-push-action@master
