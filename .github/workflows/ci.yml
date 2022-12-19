@@ -12,10 +12,22 @@ jobs:
         with:
           ruby-version: "2.7.5"
           bundler-cache: true
-      - name: Run Rubocop
+      - name: Run Rubocop (with autocorrection)
         env:
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-        run: bundle exec rubocop
+        run: bundle exec rubocop -A
+      - name: Check for modified files
+        id: git-check
+        if: ${{ always() }}
+        run: echo "modified=$(if git diff-index --quiet HEAD --; then echo 'false'; else echo 'true'; fi)" >> $GITHUB_OUTPUT
+      - name: Commit changes
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git config --global user.name 'Rubocop'
+          git config --global user.email 'bank+github-rubocop@hackclub.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GARYHTOU_GITHUB_PAT }}@github.com/${{ github.repository }}.git
+          git commit -am "Rubocop autocorrect"
+          git push
   erblint:
     name: 'ERB Lint'
     runs-on: ubuntu-latest
