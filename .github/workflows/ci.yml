@@ -22,13 +22,35 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false # [ad-m/github-push-action]: otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+          fetch-depth: 0 # [ad-m/github-push-action]: otherwise, there would be errors pushing refs to the destination repository.
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7.5'
           bundler-cache: true
-      - name: Run erblint
-        run: bundle exec erblint app/views/
+      - name: Run erblint (with autocorrection)
+        id: erblint
+        run: bundle exec erblint app/views/ -a
+      - name: Check for modified files
+        id: git-check
+        run: echo "modified=$(if git diff-index --quiet HEAD --; then echo 'false'; else echo 'true'; fi)" >> $GITHUB_OUTPUT
+      - name: Commit changes
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git config --global user.name 'ERB Lint'
+          git config --global user.email 'bank+github-erblint-bot@hackclub.com'
+          git commit -am "ERB Lint autocorrect"
+      - name: Push changes
+        if: steps.git-check.outputs.modified == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GARYHTOU_GITHUB_PAT }}
+          branch: ${{ github.ref }}
+      - name: Fail if there were offences # Although a fix has been pushed, this commit with offences should still fail
+        if: steps.git-check.outputs.modified == 'true' || steps.erblint.outcome == 'failure'
+        run: exit 1
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
