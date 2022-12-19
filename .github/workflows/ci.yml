@@ -24,7 +24,7 @@ jobs:
         if: steps.git-check.outputs.modified == 'true'
         run: |
           git config --global user.name 'Rubocop'
-          git config --global user.email 'bank+github-rubocop@hackclub.com'
+          git config --global user.email 'gary@garytou.com'
           git remote set-url origin https://x-access-token:${{ secrets.GARYHTOU_GITHUB_PAT }}@github.com/${{ github.repository }}.git
           git commit -am "Rubocop autocorrect"
           git push
