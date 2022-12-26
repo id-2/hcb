@@ -26,6 +26,8 @@ class HcbCode < ApplicationRecord
   include Commentable
   include Receiptable
 
+  has_many :twilio_messages
+
   monetize :amount_cents
 
   has_and_belongs_to_many :tags

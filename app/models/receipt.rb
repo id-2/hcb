@@ -40,7 +40,8 @@ class Receipt < ApplicationRecord
     receipts_page_drag_and_drop: 3,
     attach_receipt_page: 4,
     attach_receipt_page_drag_and_drop: 5,
-    email: 6
+    email: 6,
+    sms: 7,
   }
 
   def url

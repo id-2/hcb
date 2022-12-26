@@ -1,0 +1,9 @@
+<section class="twilio_messages">
+  <% @hcb_code.twilio_messages.order(created_at: :asc).each do |msg| %>
+    <%= render "twilio_messages/twilio_message", twilio_message: msg %>
+  <% end %>
+
+  <% if @hcb_code.twilio_messages.empty? %>
+    <%= blankslate "No Twilio Messages yet." %>
+  <% end %>
+</section>

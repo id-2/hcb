@@ -9,6 +9,8 @@ module TwilioMessageService
     end
 
     def run!
+      return if Rails.env.test?
+
       return if @user.phone_number.blank?
 
       client = Twilio::REST::Client.new(
@@ -26,21 +28,23 @@ module TwilioMessageService
       # https://github.com/twilio/twilio-ruby/issues/555#issuecomment-1071039538
       raw_data = client.http_client.last_response.body
 
-      sms_message = TwilioMessage.create!(
+      TwilioMessage.create!(
         to: @user.phone_number,
         from: Rails.application.credentials.twilio[:phone_number],
         body: @body,
         twilio_sid: twilio_response.sid,
         twilio_account_sid: twilio_response.account_sid,
-        raw_data: raw_data
+        raw_data: raw_data,
+        hcb_code: @hcb_code,
+        direction: :outgoing
       )
 
-      OutgoingTwilioMessage.create!(
-        twilio_message: sms_message,
-        hcb_code: @hcb_code
-      )
+      # OutgoingTwilioMessage.create!(
+      #   twilio_message: sms_message,
+      #   hcb_code: @hcb_code
+      # )
 
-      sms_message
+
     end
 
   end

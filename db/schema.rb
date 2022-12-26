@@ -969,15 +969,6 @@ ActiveRecord::Schema.define(version: 2022_12_24_055925) do
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end
 
-  create_table "outgoing_twilio_messages", force: :cascade do |t|
-    t.bigint "twilio_message_id"
-    t.bigint "hcb_code_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["hcb_code_id"], name: "index_outgoing_twilio_messages_on_hcb_code_id"
-    t.index ["twilio_message_id"], name: "index_outgoing_twilio_messages_on_twilio_message_id"
-  end
-
   create_table "partner_donations", force: :cascade do |t|
     t.bigint "event_id", null: false
     t.string "hcb_code"
@@ -1362,6 +1353,9 @@ ActiveRecord::Schema.define(version: 2022_12_24_055925) do
     t.jsonb "raw_data"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "direction", default: 0, null: false
+    t.bigint "hcb_code_id"
+    t.index ["hcb_code_id"], name: "index_twilio_messages_on_hcb_code_id"
   end
 
   create_table "user_sessions", force: :cascade do |t|

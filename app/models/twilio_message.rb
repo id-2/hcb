@@ -6,6 +6,7 @@
 #
 #  id                 :bigint           not null, primary key
 #  body               :text
+#  direction          :integer          default("outgoing"), not null
 #  from               :text
 #  raw_data           :jsonb
 #  to                 :text
@@ -13,13 +14,21 @@
 #  twilio_sid         :text
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
+#  hcb_code_id        :bigint
+#
+# Indexes
+#
+#  index_twilio_messages_on_hcb_code_id  (hcb_code_id)
 #
 class TwilioMessage < ApplicationRecord
-  validates_presence_of :to, :from, :body, :twilio_sid, :twilio_account_sid
+  validates_presence_of :to, :from, :twilio_sid, :twilio_account_sid, :raw_data
 
-  has_one :outgoing_twilio_message, required: false
+  enum direction: {
+    outgoing: 0,
+    incoming: 1,
+  }
 
-  has_one :hcb_code, through: :outgoing_twilio_message
+  belongs_to :hcb_code
 
   has_many_attached :files
 

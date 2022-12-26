@@ -20,4 +20,8 @@
 <%= render partial: "hcb_codes/pending_transaction_history" %>
 <% end %>
 
+<% admin_tools do %>
+  <%= render partial: "twilio_messages/twilio_messages" %>
+<% end %>
+
 <% title "Transaction for #{number_to_currency(@hcb_code.amount)}" unless content_for :title %>

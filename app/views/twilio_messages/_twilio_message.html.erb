@@ -1,0 +1,21 @@
+<div class="mt2 mb2">
+  <div class="card border b--muted pb0 pt0 mb2 max-width-4">
+    <div class="border-bottom card__banner secondary">
+      From <%= twilio_message.from %> to <%= twilio_message.to %>
+      <%= link_to twilio_message.twilio_log_url, class: "anchor-link", title: twilio_message.created_at do %>
+        <%= time_ago_in_words twilio_message.created_at %> ago<%= inline_icon "link", size: 24, class: 'align-middle' %><% end %>
+    </div>
+    <div class="card__banner card__darker comment--container">
+      <% if twilio_message.body.blank? %>
+        <span class="muted"><em>Message left blank.</em></span>
+      <% else %>
+        <%= twilio_message.body %>
+      <% end %>
+    </div>
+    <% if twilio_message.files.attached? %>
+      <div class="border-top card__banner">
+        <%= link_to "📎 #{pluralize twilio_message.files.size, "attachment"}", url_for(twilio_message.files.first), target: "_blank" %>
+      </div>
+    <% end %>
+  </div>
+</div>

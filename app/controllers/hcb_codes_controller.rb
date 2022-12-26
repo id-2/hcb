@@ -123,9 +123,13 @@ class HcbCodesController < ApplicationController
 
     cpt = @hcb_code.canonical_pending_transactions.first
 
-    CanonicalPendingTransactionJob::SendTwilioMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
+    result = CanonicalPendingTransactionJob::SendTwilioMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
 
-    flash[:success] = "SMS queued for delivery!"
+    if result[:ok]
+      flash[:success] = "SMS queued for delivery!"
+    else
+      flash[:warning] = "SMS not sent! Reason: #{result[:reason]}"
+    end
     redirect_back fallback_location: @hcb_code
   end
 
