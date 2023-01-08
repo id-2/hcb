@@ -16,7 +16,7 @@
   <h1 class="heading">
     <span class="flex items-center">
       Cards
-      <%= badge_for @stripe_cards.count, class: "bg-muted" %>
+      <%= badge_for @event.stripe_cards.count, class: "bg-muted" %>
     </span>
 
     <% if organizer_signed_in? %>
@@ -32,12 +32,10 @@
       class="btn menu__toggle overflow-visible z1">
       <%= inline_icon 'view', size: 16 %>
       View
-      <% if organizer_signed_in? %>
-        <div class="menu__content h5" data-behavior="menu_content">
-          <%= link_to "List view  #{'✔' if params[:view] == 'list'}", '?view=list' %>
-          <%= link_to "Grid view  #{'✔' if params[:view] != 'list'}", '?view=grid' %>
-        </div>
-      <% end %>
+      <div class="menu__content h5" data-behavior="menu_content">
+        <%= link_to "List view  #{'✔' if params[:view] == 'list'}", '?view=list' %>
+        <%= link_to "Grid view  #{'✔' if params[:view] != 'list'}", '?view=grid' %>
+      </div>
     </button>
   </h1>
 
@@ -89,49 +87,6 @@
     <article class="mixed-grid grid--spacious">
       <%= render @stripe_cards %>
     </article>
-  <% end %>
-
-  <% admin_tools do %>
-
-    <h4>Cardholders</h4>
-
-    <article class="table-container">
-
-      <table>
-        <thead>
-        <tr>
-          <th>NAME</th>
-          <th>DATE</th>
-          <th>STATUS</th>
-          <th></th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <% @stripe_cardholders.each do |d| %>
-          <tr>
-            <td>
-              <%= user_mention d.user if organizer_signed_in? %>
-              <%= "(redacted)" unless organizer_signed_in? %>
-            </td>
-            <td>
-              <%= format_date d.created_at %>
-            </td>
-            <td>
-              <span class="ml0 badge bg-<%= d.state %>"><%= d.state_text %></span>
-            </td>
-            <td>
-              <% if d.remote_status == "disabled" %>
-                Please <%= link_to "contact us", "mailto:bank@hackclub.com" %> to fix this.
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
-
-    </article>
-
   <% end %>
 
 <% end %>

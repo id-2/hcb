@@ -9,7 +9,7 @@
 #  amount                 :integer
 #  approved_at            :datetime
 #  check_number           :integer
-#  description            :text
+#  description_ciphertext :text
 #  expected_delivery_date :datetime
 #  exported_at            :datetime
 #  lob_url                :text
@@ -37,7 +37,8 @@
 #  fk_rails_...  (lob_address_id => lob_addresses.id)
 #
 class Check < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: [:description] # ciphertext columns will still be tracked
+  has_encrypted :description
 
   include PublicIdentifiable
   set_public_id_prefix :chk

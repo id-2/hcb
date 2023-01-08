@@ -2,7 +2,7 @@
 $(document).ready(function () {
   if (
     document.querySelector('html').getAttribute('data-ignore-theme') == null &&
-    localStorage.getItem('dark') === 'true'
+    BK.isDark()
   ) {
     BK.s('toggle_theme').find('svg').toggle()
     return BK.styleDark(true)
@@ -26,7 +26,11 @@ $(document).on('turbo:load', function () {
 
   $(document).on('click', '[data-behavior~=modal_trigger]', function (e) {
     if ($(this).attr('href') || $(e.target).attr('href')) e.preventDefault()
-    BK.s('modal', '#' + $(this).data('modal')).modal()
+    BK.s('modal', '#' + $(this).data('modal')).modal({
+      modalClass: $(this).parents('turbo-frame').length
+        ? 'turbo-frame-modal'
+        : undefined
+    })
     return this.blur()
   })
 
@@ -53,9 +57,11 @@ $(document).on('turbo:load', function () {
 
     // auto-fill email address from local storage
     if (val === '' || val === undefined) {
-      if ((email = localStorage.getItem('login_email'))) {
-        BK.s('login').find('input[type=email]').val(email)
-      }
+      try {
+        if ((email = localStorage.getItem('login_email'))) {
+          BK.s('login').find('input[type=email]').val(email)
+        }
+      } catch (e) {}
     }
 
     // auto fill @hackclub.com email addresses on submit
@@ -263,12 +269,32 @@ $(document).on('turbo:load', function () {
   // Popover menus
   BK.openMenuSelector = '[data-behavior~=menu_toggle][aria-expanded=true]'
   BK.toggleMenu = function (m) {
+    // The menu content might either be a child or a sibling of the button.
     $(m).find('[data-behavior~=menu_content]').slideToggle(100)
+    $(m).siblings('[data-behavior~=menu_content]').slideToggle(100)
+
     const o = $(m).attr('aria-expanded') === 'true'
+    if (o) {
+      // The menu is closing
+      // Clear all inputs in the menu
+      $(m)
+        .siblings('[data-behavior~=menu_content]')
+        .find('input[data-behavior~=menu_input')
+        .val('')
+    } else {
+      // The menu is opening
+      // Autofocus any inputs that should be autofocused
+      $(m)
+        .siblings('[data-behavior~=menu_content]')
+        .find('input[data-behavior~=menu_input--autofocus')
+        .focus()
+    }
     return $(m).attr('aria-expanded', !o)
   }
 
   $(document).on('click', function (e) {
+    if ($(e.target).data('behavior')?.includes('menu_input')) return
+
     const o = $(BK.openMenuSelector)
     const c = $(e.target).closest('[data-behavior~=menu_toggle]')
     if (o.length > 0 || c.length > 0) {
@@ -295,14 +321,14 @@ $(document).on('turbo:load', function () {
     })
   }
 
-  if (BK.thereIs('holiday_features_transparency')) {
-    const holidayFeaturesTransparency = BK.s('holiday_features_transparency')
+  if (BK.thereIs('additional_transparency_settings')) {
+    const additionalTransparencySettings = BK.s('additional_transparency_settings')
     const transparencyToggle = $('#event_is_public')
     $(transparencyToggle).on('change', e => {
       if (e.target.checked) {
-        holidayFeaturesTransparency.slideDown()
+        additionalTransparencySettings.slideDown()
       } else {
-        holidayFeaturesTransparency.slideUp()
+        additionalTransparencySettings.slideUp()
       }
     })
   }

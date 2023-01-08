@@ -19,7 +19,7 @@ module SessionsHelper
     session_token = SecureRandom.urlsafe_base64
     expiration_at = Time.now + user.session_duration_seconds
     cookies.encrypted[:session_token] = { value: session_token, expires: expiration_at }
-    user_session = user.user_sessions.create(
+    user_session = user.user_sessions.create!(
       session_token: session_token,
       fingerprint: fingerprint_info[:fingerprint],
       device_info: fingerprint_info[:device_info],
@@ -53,7 +53,10 @@ module SessionsHelper
   end
 
   def organizer_signed_in?(event = @event)
-    (signed_in? && event&.users&.include?(current_user)) || admin_signed_in?
+    @organizer_signed_in ||= Hash.new do |h, event_key|
+      h[event_key] = (signed_in? && event_key&.users&.include?(current_user)) || admin_signed_in?
+    end
+    @organizer_signed_in[event]
   end
 
   # Ensure api authorized when fetching current user is removed

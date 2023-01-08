@@ -5,8 +5,10 @@
 # Table name: stripe_cards
 #
 #  id                                  :bigint           not null, primary key
+#  activated                           :boolean          default(FALSE)
 #  card_type                           :integer          default("virtual"), not null
 #  last4                               :text
+#  name                                :string
 #  purchased_at                        :datetime
 #  spending_limit_amount               :integer
 #  spending_limit_interval             :integer
@@ -24,12 +26,14 @@
 #  created_at                          :datetime         not null
 #  updated_at                          :datetime         not null
 #  event_id                            :bigint           not null
+#  replacement_for_id                  :bigint
 #  stripe_cardholder_id                :bigint           not null
 #  stripe_id                           :text
 #
 # Indexes
 #
 #  index_stripe_cards_on_event_id              (event_id)
+#  index_stripe_cards_on_replacement_for_id    (replacement_for_id)
 #  index_stripe_cards_on_stripe_cardholder_id  (stripe_cardholder_id)
 #
 # Foreign Keys
@@ -39,10 +43,15 @@
 #
 class StripeCard < ApplicationRecord
   include Hashid::Rails
+  include PublicIdentifiable
+  set_public_id_prefix :crd
 
   has_paper_trail
 
-  after_create_commit :notify_user, :pay_for_issuing
+  after_create_commit :notify_user, unless: :skip_notify_user
+  after_create_commit :pay_for_issuing, unless: :skip_pay_for_issuing
+
+  attr_accessor :skip_pay_for_issuing, :skip_notify_user
 
   scope :deactivated, -> { where.not(stripe_status: "active") }
   scope :canceled, -> { where(stripe_status: "canceled") }
@@ -52,6 +61,8 @@ class StripeCard < ApplicationRecord
 
   belongs_to :event
   belongs_to :stripe_cardholder
+  belongs_to :replacement_for, class_name: "StripeCard", optional: true
+  has_one :replacement, class_name: "StripeCard", foreign_key: :replacement_for_id
   alias_attribute :cardholder, :stripe_cardholder
   has_one :user, through: :stripe_cardholder
   has_many :stripe_authorizations
@@ -61,7 +72,7 @@ class StripeCard < ApplicationRecord
   alias_attribute :last_four, :last4
 
   enum card_type: { virtual: 0, physical: 1 }
-  enum spending_limit_interval: { daily: 0, weekly: 1, monthly: 2 }
+  enum spending_limit_interval: { daily: 0, weekly: 1, monthly: 2, yearly: 3, per_authorization: 4, all_time: 5 }
 
   validates_uniqueness_of :stripe_id
 
@@ -108,16 +119,13 @@ class StripeCard < ApplicationRecord
     stripe_cardholder.stripe_name
   end
 
-  def name
-    stripe_name
-  end
-
   def total_spent
     stripe_authorizations.approved.sum(:amount)
   end
 
   def status_text
-    return "frozen" if stripe_status == "inactive"
+    return "Inactive" if !activated?
+    return "Frozen" if stripe_status == "inactive"
 
     stripe_status.humanize
   end
@@ -130,6 +138,7 @@ class StripeCard < ApplicationRecord
     s = stripe_status.to_sym
     return :success if s == :active
     return :error if s == :deleted
+    return :warning if s == :inactive && !activated?
 
     :muted
   end
@@ -150,6 +159,14 @@ class StripeCard < ApplicationRecord
 
   def defrost!
     StripeService::Issuing::Card.update(self.stripe_id, status: :active)
+    sync_from_stripe!
+    save!
+  end
+
+  alias_method :activate!, :defrost!
+
+  def cancel!
+    StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
     sync_from_stripe!
     save!
   end
@@ -212,6 +229,12 @@ class StripeCard < ApplicationRecord
     self.stripe_status = stripe_obj[:status]
     self.card_type = stripe_obj[:type]
 
+    if stripe_obj[:status] == "active"
+      self.activated = true
+    elsif stripe_obj[:status] == "inactive" && !self.activated
+      self.activated = false
+    end
+
     if stripe_obj[:shipping]
       self.stripe_shipping_address_city = stripe_obj[:shipping][:address][:city]
       self.stripe_shipping_address_country = stripe_obj[:shipping][:address][:country]
@@ -226,6 +249,10 @@ class StripeCard < ApplicationRecord
     if spending_limits.any?
       self.spending_limit_interval = spending_limits.first[:interval]
       self.spending_limit_amount = spending_limits.first[:amount]
+    end
+
+    if stripe_obj[:replacement_for]
+      self.replacement_for = StripeCard.find_by(stripe_id: stripe_obj[:replacement_for])
     end
 
     self
@@ -267,7 +294,14 @@ class StripeCard < ApplicationRecord
   end
 
   def hcb_codes
-    @hcb_codes ||= ::HcbCode.where(hcb_code: canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes)
+    all_hcb_codes = canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes
+    # rubocop:disable Naming/VariableNumber
+    if Flipper.enabled?(:transaction_tags_2022_07_29, self.event)
+      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes).includes(:tags)
+    else
+      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes)
+    end
+    # rubocop:enable Naming/VariableNumber
   end
 
   def remote_shipping_status

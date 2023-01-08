@@ -6,10 +6,10 @@ class DonationsController < ApplicationController
   include SetEvent
   include Rails::Pagination
 
-  skip_after_action :verify_authorized
+  skip_after_action :verify_authorized, except: [:start_donation, :make_donation]
   skip_before_action :signed_in_user
   before_action :set_donation, only: [:show]
-  before_action :set_event, only: [:start_donation, :make_donation, :finish_donation, :qr_code]
+  before_action :set_event, only: [:start_donation, :make_donation, :qr_code]
 
   # Rationale: the session doesn't work inside iframes (because of third-party cookies)
   skip_before_action :verify_authenticity_token, only: [:start_donation, :make_donation, :finish_donation]
@@ -40,7 +40,13 @@ class DonationsController < ApplicationController
       return not_found
     end
 
-    @donation = Donation.new(amount: params[:amount])
+    if @event.demo_mode?
+      @example_event = Event.find(183)
+    end
+
+    @donation = Donation.new(amount: params[:amount], event: @event)
+
+    authorize @donation
   end
 
   def make_donation
@@ -49,6 +55,8 @@ class DonationsController < ApplicationController
 
     @donation = Donation.new(d_params)
     @donation.event = @event
+
+    authorize @donation
 
     if @donation.save
       redirect_to finish_donation_donations_path(@event, @donation.url_hash)
@@ -61,42 +69,14 @@ class DonationsController < ApplicationController
 
     @donation = Donation.find_by!(url_hash: params["donation"])
 
+    # We don't use set_event here to prevent a UI vulnerability where a user could create a donation on one org and make it look like another org by changing the slug
+    # https://github.com/hackclub/bank/issues/3197
+    @event = @donation.event
+
     if @donation.status == "succeeded"
       flash[:info] = "You tried to access the payment page for a donation that’s already been sent."
       redirect_to start_donation_donations_path(@event)
     end
-  end
-
-  def accept_donation_hook
-    payload = request.body.read
-    sig_header = request.headers['Stripe-Signature']
-    event = nil
-
-    begin
-      event = StripeService.construct_webhook_event(payload, sig_header, :donations)
-    rescue Stripe::SignatureVerificationError
-      head 400
-      return
-    end
-
-    # only proceed if payment intent is a donation and not an invoice
-    return unless event.data.object.metadata[:donation].present?
-
-    # get donation to process
-    donation = Donation.find_by_stripe_payment_intent_id(event.data.object.id)
-
-    pi = StripeService::PaymentIntent.retrieve(
-      id: donation.stripe_payment_intent_id,
-      expand: ["charges.data.balance_transaction"]
-    )
-    donation.set_fields_from_stripe_payment_intent(pi)
-    donation.save!
-
-    DonationService::Queue.new(donation_id: donation.id).run # queues/crons payout. DEPRECATE. most is unnecessary if we just run in a cron
-
-    donation.send_receipt!
-
-    return true
   end
 
   def qr_code

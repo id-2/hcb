@@ -14,7 +14,10 @@ class StaticPagesController < ApplicationController
       @service = StaticPageService::Index.new(attrs)
 
       @events = @service.events
+      @organizer_positions = @service.organizer_positions.not_hidden
       @invites = @service.invites
+
+      @show_event_reorder_tip = current_user.organizer_positions.where.not(sort_index: nil).none?
     end
     if admin_signed_in?
       @transaction_volume = CanonicalTransaction.included_in_stats.sum("@amount_cents")
@@ -47,11 +50,12 @@ class StaticPagesController < ApplicationController
   # async frame
   def my_missing_receipts_list
     @missing_receipt_ids = []
-    current_user.stripe_cards.map do |card|
-      break unless @missing_receipt_ids.size < 5
 
-      card.hcb_codes.without_receipt.pluck(:id).each do |id|
-        @missing_receipt_ids << id
+    current_user.stripe_cards.map do |card|
+      card.hcb_codes.missing_receipt.each do |hcb_code|
+        next unless hcb_code.receipt_required?
+
+        @missing_receipt_ids << hcb_code.id
         break unless @missing_receipt_ids.size < 5
       end
     end
@@ -61,6 +65,28 @@ class StaticPagesController < ApplicationController
     else
       head :ok
     end
+  end
+
+  # async frame
+  def my_missing_receipts_icon
+    @missing_receipt_count ||= begin
+      count = 0
+
+      stripe_cards = current_user.stripe_cards.includes(:event)
+      emburse_cards = current_user.emburse_cards.includes(:event)
+
+      (stripe_cards + emburse_cards).each do |card|
+        card.hcb_codes.missing_receipt.each do |hcb_code|
+          next unless hcb_code.receipt_required?
+
+          count += 1
+        end
+      end
+
+      count
+    end
+
+    render :my_missing_receipts_icon, layout: false
   end
 
   def my_inbox

@@ -6,7 +6,7 @@
   <span class="flex-auto pr2">
     Google Workspace
   </span>
-  
+
   <% if @g_suite %>
     <% admin_tools('mr1 p1 badge', 'span') do %>
       <%= link_to "Process", google_workspace_process_admin_path(@g_suite) %>
@@ -34,11 +34,13 @@
   <% end %>
 
   <% unless @g_suite.creating? %>
-    <section class="card center mt3 mb3 bg-success white pt3">
-      <%= inline_icon 'rep', size: 32 %>
-      <h3 class="mt0 mb0">Your application was accepted!</h3>
-      <p class="mt0">It’s time to set up your servers.</p>
-    </section>
+    <% unless @g_suite.verified? %>
+      <section class="card center mt3 mb3 bg-success white pt3">
+        <%= inline_icon 'rep', size: 32 %>
+        <h3 class="mt0 mb0">Your application was accepted!</h3>
+        <p class="mt0">It’s time to set up your servers.</p>
+      </section>
+    <% end %>
 
     <details <%= @g_suite.verified? ? nil : 'open' %>>
       <summary><h2 class="inline-block pb0 border-none mt0">Setup Instructions</h2></summary>
@@ -180,13 +182,13 @@
 <% else %>
 
   <p>
-    Your event gets complementary Google Workspace (formerly G Suite) through Hack Club Bank! Google Workspace gives you
-    Gmail, Google Drive, Hangouts, Calendar, and more, all for free, including domain email addresses like
+    Your organization gets complimentary Google Workspace (formerly G Suite) through Hack Club Bank! Google Workspace gives you
+    Gmail, Google Drive, Calendar, and more, all for free, including custom email addresses like
     <strong>team@yourdomain.com</strong>.
   </p>
 
   <p>
-    Don't own a domain yet? If you're a high-school organization, Hack Club Bank will purchase a custom domain for <strong><%= @event.name %></strong> and set up Google Workspace for you. 
+    Don't own a domain yet? If you're a high school organization, Hack Club Bank will purchase a custom domain for <strong><%= @event.name %></strong> and set up Google Workspace for you.
     Check out the <%= link_to 'Domains promotion in the Perks tab', event_promotions_path %>
     to get started!
   </p>
@@ -197,18 +199,22 @@
 
   <hr>
 
-  <%= form_with(local: true, url: event_g_suite_create_path(event_id: @event.id), method: :post) do %>
-    <%= hidden_field_tag :event_id, @event.id %>
-    <%= hidden_field_tag :creator_id, current_user.id %>
+  <% if @event.demo_mode? %>
+    <%= blankslate "Disabled in Demo Mode" %>
+  <% else %>
+    <%= form_with(local: true, url: event_g_suite_create_path(event_id: @event.id), method: :post) do %>
+      <%= hidden_field_tag :event_id, @event.id %>
+      <%= hidden_field_tag :creator_id, current_user.id %>
 
-    <div class="field">
-      <%= label_tag :domain, 'Your domain' %>
-      <%= text_field_tag :domain, nil, placeholder: 'yourdomain.com', 'data-behavior': 'prevent_whitespace', required: true %>
-    </div>
+      <div class="field">
+        <%= label_tag :domain, 'Your domain' %>
+        <%= text_field_tag :domain, nil, placeholder: 'yourdomain.com', 'data-behavior': 'prevent_whitespace', required: true %>
+      </div>
 
-    <div class="actions">
-      <%= submit_tag 'Configure' %>
-    </div>
+      <div class="actions">
+        <%= submit_tag 'Configure' %>
+      </div>
+    <% end %>
   <% end %>
 
 <% end %>

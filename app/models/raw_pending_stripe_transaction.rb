@@ -31,7 +31,7 @@ class RawPendingStripeTransaction < ApplicationRecord
   end
 
   def likely_event_id
-    @likely_event_id ||= ::StripeCard.find_by!(stripe_id: stripe_card_id).event_id
+    @likely_event_id ||= ::StripeCard.find_by(stripe_id: stripe_card_id)&.event_id
   end
 
   def stripe_card
@@ -39,7 +39,7 @@ class RawPendingStripeTransaction < ApplicationRecord
   end
 
   def authorization_method
-    stripe_transaction.dig("authorization_method").humanize.downcase
+    stripe_transaction["authorization_method"].humanize.downcase
   end
 
   private

@@ -28,10 +28,9 @@ class HcbCode < ApplicationRecord
 
   monetize :amount_cents
 
-  before_create :generate_and_set_short_code
+  has_and_belongs_to_many :tags
 
-  attr_accessor :not_admin_only_comments_count
-  attr_writer :canonical_transactions, :canonical_pending_transactions
+  before_create :generate_and_set_short_code
 
   comma do
     hcb_code "HCB Code"
@@ -60,12 +59,14 @@ class HcbCode < ApplicationRecord
   end
 
   def memo
+    return "💰 Grant from Hack Club and FIRST®" if hackathon_grant?
     return disbursement_memo if disbursement?
     return invoice_memo if invoice?
     return donation_memo if donation?
     return partner_donation_memo if partner_donation?
     return ach_transfer_memo if ach_transfer?
     return check_memo if check?
+    return fee_revenue_memo if fee_revenue?
 
     custom_memo || ct.try(:smart_memo) || pt.try(:smart_memo) || ""
   end
@@ -79,6 +80,7 @@ class HcbCode < ApplicationRecord
     return :check if check?
     return :disbursement if disbursement?
     return :card_charge if stripe_card?
+    return :bank_fee if bank_fee?
 
     nil
   end
@@ -98,17 +100,16 @@ class HcbCode < ApplicationRecord
     @amount_cents ||= begin
       return canonical_transactions.sum(:amount_cents) if canonical_transactions.exists?
 
+      # ACH transfers that haven't been sent don't have any CPTs
+      return ach_transfer.amount if ach_transfer?
+
       canonical_pending_transactions.sum(:amount_cents)
     end
   end
 
-  def canonical_pending_transactions
-    @canonical_pending_transactions ||= CanonicalPendingTransaction.where(hcb_code: hcb_code)
-  end
+  has_many :canonical_pending_transactions, foreign_key: 'hcb_code', primary_key: 'hcb_code', inverse_of: :local_hcb_code
 
-  def canonical_transactions
-    @canonical_transactions ||= CanonicalTransaction.where(hcb_code: hcb_code).order("date desc, id desc")
-  end
+  has_many :canonical_transactions, -> { order("canonical_transactions.date desc, canonical_transactions.id desc") }, foreign_key: 'hcb_code', primary_key: 'hcb_code'
 
   def event
     events.first
@@ -124,11 +125,17 @@ class HcbCode < ApplicationRecord
         partner_donation.try(:event).try(:id),
         ach_transfer.try(:event).try(:id),
         check.try(:event).try(:id),
-        disbursement.try(:event).try(:id)
+        disbursement.try(:event).try(:id),
+        incoming_bank_fee? ? EventMappingEngine::EventIds::INCOMING_FEES : nil,
+        fee_revenue? ? EventMappingEngine::EventIds::HACK_CLUB_BANK : nil
       ].compact.flatten.uniq
 
-      Event.where(id: ids[0])
+      Event.where(id: ids)
     end
+  end
+
+  def hackathon_grant?
+    disbursement? && disbursement.source_event_id == EventMappingEngine::EventIds::HACKATHON_GRANT_FUND
   end
 
   def fee_payment?
@@ -149,6 +156,18 @@ class HcbCode < ApplicationRecord
 
   def stripe_auth_dashboard_url
     pt.try(:stripe_auth_dashboard_url) || ct.try(:stripe_auth_dashboard_url)
+  end
+
+  def bank_fee?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::BANK_FEE_CODE
+  end
+
+  def incoming_bank_fee?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::INCOMING_BANK_FEE_CODE
+  end
+
+  def fee_revenue?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::FEE_REVENUE_CODE
   end
 
   def invoice?
@@ -227,6 +246,18 @@ class HcbCode < ApplicationRecord
     @disbursement ||= Disbursement.find_by(id: hcb_i2) if disbursement?
   end
 
+  def bank_fee
+    @bank_fee ||= BankFee.find_by(id: hcb_i2) if bank_fee?
+  end
+
+  def fee_revenue
+    @fee_revenue ||= FeeRevenue.find_by(id: hcb_i2) if fee_revenue?
+  end
+
+  def fee_revenue_memo
+    "Fee revenue from #{fee_revenue.start.strftime("%b %e")} to #{fee_revenue.end.strftime("%b %e")}"
+  end
+
   def unknown?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::UNKNOWN_CODE
   end
@@ -285,6 +316,17 @@ class HcbCode < ApplicationRecord
 
   def generate_and_set_short_code
     self.short_code = ::HcbCodeService::Generate::ShortCode.new.run
+  end
+
+  def not_admin_only_comments_count
+    # `not_admin_only.count` always issues a new query to the DB because a scope is being applied.
+    # However, if comments have been preloaded, it's more likely to be faster to count
+    # the non admin comments in memory. The vast majority of HcbCodes have fewer than 4 comments
+    @not_admin_only_comments_count ||= if comments.loaded?
+                                         comments.count { |c| !c.admin_only }
+                                       else
+                                         comments.not_admin_only.count
+                                       end
   end
 
 end

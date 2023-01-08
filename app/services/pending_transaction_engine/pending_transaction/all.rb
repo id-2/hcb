@@ -3,9 +3,10 @@
 module PendingTransactionEngine
   module PendingTransaction
     class All
-      def initialize(event_id:, search: nil)
+      def initialize(event_id:, search: nil, tag_id: nil)
         @event_id = event_id
         @search = search
+        @tag_id = tag_id
       end
 
       def run
@@ -25,10 +26,26 @@ module PendingTransactionEngine
       def canonical_pending_transactions
         @canonical_pending_transactions ||=
           begin
-            cpts = CanonicalPendingTransaction.includes(:raw_pending_stripe_transaction)
+            included_local_hcb_code_associations = [:receipts, :comments, :canonical_transactions, :canonical_pending_transactions]
+            # rubocop:disable Naming/VariableNumber
+            included_local_hcb_code_associations << :tags if Flipper.enabled?(:transaction_tags_2022_07_29, @event)
+            # rubocop:enable Naming/VariableNumber
+            cpts = CanonicalPendingTransaction.includes(:raw_pending_stripe_transaction,
+                                                        local_hcb_code: included_local_hcb_code_associations)
                                               .unsettled
                                               .where(id: canonical_pending_event_mappings.pluck(:canonical_pending_transaction_id))
-                                              .order("date desc, canonical_pending_transactions.id desc")
+                                              .order("canonical_pending_transactions.date desc, canonical_pending_transactions.id desc")
+
+            if @tag_id
+              cpts =
+                cpts.joins("LEFT JOIN hcb_codes ON hcb_codes.hcb_code = canonical_pending_transactions.hcb_code")
+                    .joins("LEFT JOIN hcb_codes_tags ON hcb_codes_tags.hcb_code_id = hcb_codes.id")
+                    .where("hcb_codes_tags.tag_id = ?", @tag_id)
+            end
+
+            if event.can_front_balance?
+              cpts = cpts.not_fronted
+            end
 
             cpts = cpts.search_memo(@search) if @search.present?
             cpts

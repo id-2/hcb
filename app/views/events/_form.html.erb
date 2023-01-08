@@ -1,10 +1,15 @@
 <%= form_with(model: event, local: true, class: "mb3") do |form| %>
   <%= form_errors event, "organization" %>
 
-  <div class="field">
-    <p class="mt0"><%= event.name %> is on the <strong><%= event.plan_name %></strong> plan and charging <strong><%= number_to_percentage(event.sponsorship_fee * 100, significant: true, strip_insignificant_zeros: true) %></strong> of your revenue.</p>
-  </div>
-
+  <% unless @event.demo_mode? %>
+    <div class="field">
+      <p class="mt0">
+        <%= event.name %> is on the <strong><%= event.plan_name %></strong> plan and charging
+        <strong><%= number_to_percentage(event.sponsorship_fee * 100, significant: true, strip_insignificant_zeros: true) %></strong> of revenue
+        <% if event.high_school_hackathon? && event.sponsorship_fee == 0 %>(until June 30th, 2023 on the <a href="https://changelog.bank.hackclub.com/bank-now-provides-free-durian-241524">high school hackathon fee waiver</a>)<% end %>
+      </p>
+    </div>
+  <% end %>
   <h3 class="mb1">Organization profile</h3>
 
   <div class="card">
@@ -14,13 +19,15 @@
         Displayed on your
         <%= link_to "donation page",
           @event.donation_page_enabled? ? start_donation_donations_path(@event) : { anchor: "donations" },
-          target: @event.donation_page_enabled? ? "_blank" : nil
-        %>.
+          target: @event.donation_page_enabled? ? "_blank" : nil %>.
       </p>
       <% if @event.logo.attached? %>
         <%= image_tag @event.logo, height: 72 %>
       <% end %>
-      <%= form.file_field :logo %>
+      <div class="field--fileupload">
+        <%= form.label :logo, "Choose File", class: "field--fileupload__label" %>
+        <%= form.file_field :logo, class: "field--fileupload__field" %>
+      </div>
 
       <% if @event.logo.attached? %>
         <%= link_to "Remove logo", event_remove_logo_path(@event), class: "block mt1", method: :post %>
@@ -96,10 +103,9 @@
 
   <div class="card mb3">
     <ul class="mt0 pl2 mb2">
-      <li><strong>Only use this if you know what you’re doing.</strong></li>
       <li>Unauthenticated users will be able to access a <strong>read-only</strong> version of your account.</li>
       <li>None of Hack Club Bank’s pages will change for signed in team members.</li>
-      <li>We’ll do our best effort to redact contact info, but we can’t guarantee it doesn't show up in these
+      <li>We’ll do our best to redact contact info, but we can’t guarantee it doesn't show up in these
         fields:
         <ul>
           <li>Transaction display names</li>
@@ -113,8 +119,12 @@
       <%= form.check_box :is_public %>
       <%= form.label :is_public, "Enable Transparency Mode" %>
     </div>
-    <% if false %> <%# Holiday features disabled site-wide %>
-      <div class="field field--checkbox" data-behavior="holiday_features_transparency <% if !event.is_public? %>autohide<% end %>">
+    <div class="field field--checkbox" data-behavior="additional_transparency_settings <% if !event.is_public? %>autohide<% end %>">
+      <%= form.check_box :is_indexable %>
+      <%= form.label :is_indexable, "List #{@event.name} in Hack Club Bank public directory" %>
+    </div>
+    <% unless @hide_holiday_features || !winter? %>
+      <div class="field field--checkbox" data-behavior="additional_transparency_settings <% if !event.is_public? %>autohide<% end %>">
         <%= form.check_box :holiday_features %>
         <%= form.label :holiday_features, "Enable Holiday Features ⛄ for Transparency Mode" %>
       </div>
@@ -160,12 +170,11 @@
                 event_toggle_hidden_path(event),
                 method: :put,
                 "data-confirm": "Do you really want to #{event.hidden? ? "un-hide" : "hide"} #{event.name}?",
-                class: "btn bg-success" if event.persisted?
-    %>
+                class: "btn bg-success" if event.persisted? %>
   <% end %>
 
   <% admin_tools do %>
-    <div class="field">
+    <div class="field" id="admin_settings">
       <%= form.label :name, "Name (if changed, also change in G Suite)" %>
       <%= form.text_field :name %>
     </div>
@@ -196,6 +205,11 @@
     </div>
 
     <div class="field field--checkbox">
+      <%= form.check_box :demo_mode %>
+      <%= form.label :demo_mode, "Is in demo mode?" %>
+    </div>
+
+    <div class="field field--checkbox">
       <%= form.check_box :omit_stats %>
       <%= form.label :omit_stats, "Omit from public stats?" %>
     </div>
@@ -208,6 +222,11 @@
     <div class="field field--checkbox">
       <%= form.check_box :organized_by_hack_clubbers %>
       <%= form.label :organized_by_hack_clubbers, "Organized by Hack Clubbers?" %>
+    </div>
+
+    <div class="field field--checkbox">
+      <%= form.check_box :can_front_balance %>
+      <%= form.label :can_front_balance, "Front incoming transactions?" %>
     </div>
 
     <p class="mt3">To change an organization's status (Pending, Approved, Rejected, etc.),

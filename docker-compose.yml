@@ -1,9 +1,11 @@
 version: '3'
 services:
   db:
-    image: "postgres:11.4"
+    image: "postgres:11.16"
     volumes:
       - pg-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
   redis:
     image: redis
     volumes:
@@ -12,7 +14,7 @@ services:
     env_file:
       - .env.docker
     build: ./
-    command: bash -c 'rm -f /usr/src/app/tmp/pids/server.pid; bundle exec rails s -p 3000 -b "0.0.0.0"'
+    command: bash -c 'rm -f /usr/src/app/tmp/pids/server.pid; ./bin/dev'
     volumes:
       - ./:/usr/src/app:cached
       - tmp:/usr/src/app/tmp

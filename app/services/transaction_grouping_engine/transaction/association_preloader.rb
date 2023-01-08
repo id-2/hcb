@@ -3,8 +3,9 @@
 module TransactionGroupingEngine
   module Transaction
     class AssociationPreloader
-      def initialize(transactions:)
+      def initialize(transactions:, event:)
         @transactions = transactions
+        @event = event
       end
 
       def run!
@@ -13,7 +14,13 @@ module TransactionGroupingEngine
 
       def preload_associations!
         hcb_code_codes = @transactions.map(&:hcb_code)
-        hcb_code_objects = HcbCode.includes(:receipts, :comments).where(hcb_code: hcb_code_codes)
+        included_models = [:receipts, :comments, :canonical_transactions, :canonical_pending_transactions]
+        # rubocop:disable Naming/VariableNumber
+        included_models << :tags if Flipper.enabled?(:transaction_tags_2022_07_29, @event)
+        # rubocop:enable Naming/VariableNumber
+        hcb_code_objects = HcbCode
+                           .includes(included_models)
+                           .where(hcb_code: hcb_code_codes)
         hcb_code_by_code = hcb_code_objects.index_by(&:hcb_code)
 
         # Query for CanonicalTransactions associated with hcb_codes because this can be the superset of
@@ -27,19 +34,10 @@ module TransactionGroupingEngine
                                    CanonicalTransaction.where(id: @transactions.flat_map(&:canonical_transaction_ids))
                                  )
 
-        canonical_transactions_by_hcb_code = canonical_transactions.group_by(&:hcb_code)
         canonical_transactions_by_id = canonical_transactions.index_by(&:id)
         canonical_transaction_ids = canonical_transactions.pluck(:id)
 
-
-        canonical_pending_transactions_by_hcb_code = CanonicalPendingTransaction.where(hcb_code: hcb_code_codes).group_by(&:hcb_code)
-
-        hcb_code_objects.each do |hc|
-          hc.canonical_transactions = canonical_transactions_by_hcb_code[hc.hcb_code]
-                                      .sort { |ct1, ct2| self.class.compare_date_id_descending(ct1, ct2) }
-          hc.canonical_pending_transactions = canonical_pending_transactions_by_hcb_code[hc.hcb_code] || []
-          hc.not_admin_only_comments_count = hc.comments.count { |c| !c.admin_only }
-        end
+        canonical_pending_transactions_by_id = CanonicalPendingTransaction.where(hcb_code: hcb_code_codes).index_by(&:id)
 
         hack_club_fees_by_canonical_transaction_id = Fee
                                                      .includes(:canonical_event_mapping)
@@ -80,6 +78,10 @@ module TransactionGroupingEngine
                                      .slice(*t.canonical_transaction_ids)
                                      .values
                                      .sort { |ct1, ct2| self.class.compare_date_id_descending(ct1, ct2) }
+          t.canonical_pending_transactions = canonical_pending_transactions_by_id
+                                             .slice(*t.canonical_pending_transaction_ids)
+                                             .values
+                                             .sort { |pt1, pt2| self.class.compare_date_id_descending(pt1, pt2) }
 
           t.local_hcb_code = hcb_code_by_code[t.hcb_code]
         end

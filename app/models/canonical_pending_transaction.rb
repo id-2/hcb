@@ -8,6 +8,7 @@
 #  amount_cents                                     :integer          not null
 #  custom_memo                                      :text
 #  date                                             :date             not null
+#  fronted                                          :boolean          default(FALSE)
 #  hcb_code                                         :text
 #  memo                                             :text             not null
 #  created_at                                       :datetime         not null
@@ -27,8 +28,10 @@
 #  index_canonical_pending_transactions_on_hcb_code                 (hcb_code)
 #  index_canonical_pending_txs_on_raw_pending_bank_fee_tx_id        (raw_pending_bank_fee_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_donation_tx_id        (raw_pending_donation_transaction_id)
+#  index_canonical_pending_txs_on_raw_pending_invoice_tx_id         (raw_pending_invoice_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_outgoing_ach_tx_id    (raw_pending_outgoing_ach_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_outgoing_check_tx_id  (raw_pending_outgoing_check_transaction_id)
+#  index_canonical_pending_txs_on_raw_pending_partner_dntn_tx_id    (raw_pending_partner_donation_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_stripe_tx_id          (raw_pending_stripe_transaction_id)
 #  index_cpts_on_raw_pending_incoming_disbursement_transaction_id   (raw_pending_incoming_disbursement_transaction_id)
 #  index_cpts_on_raw_pending_outgoing_disbursement_transaction_id   (raw_pending_outgoing_disbursement_transaction_id)
@@ -41,7 +44,8 @@ class CanonicalPendingTransaction < ApplicationRecord
   has_paper_trail
 
   include PgSearch::Model
-  pg_search_scope :search_memo, against: [:memo, :custom_memo, :hcb_code], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "canonical_pending_transactions.date"
+  pg_search_scope :search_memo, against: [:memo, :custom_memo, :hcb_code], using: { tsearch: { any_word: true, prefix: true, dictionary: "english" } }, ranked_by: "canonical_pending_transactions.date"
+  pg_search_scope :pg_text_search, lambda { |query, **args| { query: query }.merge(**args) }
 
   belongs_to :raw_pending_stripe_transaction, optional: true
   belongs_to :raw_pending_outgoing_check_transaction, optional: true
@@ -56,7 +60,8 @@ class CanonicalPendingTransaction < ApplicationRecord
   has_one :event, through: :canonical_pending_event_mapping
   has_many :canonical_pending_settled_mappings
   has_many :canonical_transactions, through: :canonical_pending_settled_mappings
-  has_many :canonical_pending_declined_mappings
+  has_one :canonical_pending_declined_mapping
+  has_one :local_hcb_code, foreign_key: 'hcb_code', primary_key: 'hcb_code', class_name: "HcbCode"
 
   monetize :amount_cents
 
@@ -80,8 +85,8 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :unsettled, -> {
     includes(:canonical_pending_settled_mappings)
       .where(canonical_pending_settled_mappings: { canonical_pending_transaction_id: nil })
-      .includes(:canonical_pending_declined_mappings)
-      .where(canonical_pending_declined_mappings: { canonical_pending_transaction_id: nil })
+      .includes(:canonical_pending_declined_mapping)
+      .where(canonical_pending_declined_mapping: { canonical_pending_transaction_id: nil })
   }
   scope :missing_hcb_code, -> { where(hcb_code: nil) }
   scope :missing_or_unknown_hcb_code, -> { where("hcb_code is null or hcb_code ilike 'HCB-000%'") }
@@ -94,13 +99,16 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :stripe_card_hcb_code, -> { where("hcb_code ilike 'HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::STRIPE_CARD_CODE}%'") }
   scope :bank_fee_hcb_code, -> { where("hcb_code ilike 'HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::BANK_FEE_CODE}%'") }
   scope :partner_donation_hcb_code, -> { where("hcb_code ilike 'HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::PARTNER_DONATION_CODE}%'") }
+  scope :fronted, -> { where(fronted: true) }
+  scope :not_fronted, -> { where(fronted: false) }
+  scope :not_declined, -> { includes(:canonical_pending_declined_mapping).where(canonical_pending_declined_mapping: { canonical_pending_transaction_id: nil }) }
 
   validates :custom_memo, presence: true, allow_nil: true
 
-  after_create_commit :write_hcb_code
+  after_create :write_hcb_code
   after_create_commit :write_system_event
 
-  attr_writer :local_hcb_code, :stripe_cardholder
+  attr_writer :stripe_cardholder
 
   def mapped?
     @mapped ||= canonical_pending_event_mapping.present?
@@ -111,11 +119,49 @@ class CanonicalPendingTransaction < ApplicationRecord
   end
 
   def declined?
-    @declined ||= canonical_pending_declined_mappings.present?
+    @declined ||= canonical_pending_declined_mapping.present?
   end
 
   def unsettled?
     @unsettled ||= !settled? && !declined?
+  end
+
+  def fronted_amount
+    return 0 if !fronted || self.amount_cents.negative? || declined?
+
+    pts = local_hcb_code.canonical_pending_transactions
+                        .includes(:canonical_pending_event_mapping)
+                        .where(canonical_pending_event_mapping: { event_id: event.id })
+                        .where(fronted: true)
+                        .order(date: :asc, id: :asc)
+    pts_sum = pts.sum(:amount_cents)
+    return 0 if pts_sum.negative?
+
+    cts_sum = local_hcb_code.canonical_transactions
+                            .includes(:canonical_event_mapping)
+                            .where(canonical_event_mapping: { event_id: event.id })
+                            .sum(:amount_cents)
+
+    # PTs that were chronologically created first in an HcbCode are first
+    # responsible for "contributing" to the fronted amount. After a PT's
+    # amount_cents is fully allocated to the fronted amount, the next
+    # chronological PT in the hcb_code is responsible for allocating it's own
+    # amount_cents towards the fronted amount.
+    #
+    # The code below is a simplified implementation of that "algorithm".
+
+    prior_pt_sum = pts.reduce(0) do |sum, pt|
+      # Sum until this PT (inclusive)
+      sum += pt.amount_cents
+      break sum if pt.id == self.id
+    end
+    residual = prior_pt_sum - cts_sum
+
+    if residual.positive?
+      [residual, amount_cents].min
+    else
+      0
+    end
   end
 
   def smart_memo
@@ -242,10 +288,6 @@ class CanonicalPendingTransaction < ApplicationRecord
     return "/hcb/#{local_hcb_code.hashid}" if local_hcb_code
 
     "/canonical_pending_transactions/#{id}"
-  end
-
-  def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code: hcb_code)
   end
 
   def stripe_cardholder

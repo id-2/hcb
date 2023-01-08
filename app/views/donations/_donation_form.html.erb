@@ -15,21 +15,20 @@
   </div>
 
   <div class="field">
-    <% if !@event.country_us? %> 
-      <%= form.label :amount, 'Donation amount (USD)' %> 
+    <% if !@event.country_us? %>
+      <%= form.label :amount, 'Donation amount (USD)' %>
     <% else %>
-      <%= form.label :amount, 'Donation amount' %> 
+      <%= form.label :amount, 'Donation amount' %>
     <% end %>
     <div class="flex items-center">
       <span class="bold muted" style="width: 1rem;">$</span>
       <%= form.number_field :amount,
-                            value: (donation.amount.nil? ? nil : (donation.amount.to_f / 100)),
+                            value: (donation.amount.nil? ? nil : ('%.2f' % (donation.amount.to_f / 100))),
                             placeholder: '20.00',
                             step: 0.01,
                             min: 1, # Limitations placed by Stripe
                             max: 999_999.99, # Limitations placed by Stripe
-                            required: true, class: 'fit w-100'
-      %>
+                            required: true, class: 'fit w-100' %>
     </div>
   </div>
 
@@ -37,5 +36,9 @@
     Your contribution is tax-deductible<% if !@event.country_us? %> in the US<% end %>.
   </p>
 
-  <%= form.submit 'Continue →', class: 'w-100 bg-success', 'data-turbo': 'false' %>
+  <% if @event.demo_mode? %>
+    <%= form.submit 'Continue →', class: 'w-100 bg-success', disabled: "true" %>
+  <% else %>
+    <%= form.submit 'Continue →', class: 'w-100 bg-success', 'data-turbo': 'false' %>
+  <% end %>
 <% end %>

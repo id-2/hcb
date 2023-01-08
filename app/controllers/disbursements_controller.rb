@@ -52,7 +52,7 @@ class DisbursementsController < ApplicationController
     @allowed_destination_events = if current_user.admin?
                                     Event.all
                                   else
-                                    current_user.events.not_hidden.transparent.where.not(id: @source_event.id)
+                                    current_user.events.not_hidden.transparent.where.not(id: @source_event.id).filter_demo_mode(false)
                                   end
 
     authorize @destination_event, policy_class: DisbursementPolicy
@@ -99,7 +99,7 @@ class DisbursementsController < ApplicationController
     @disbursement = Disbursement.find(params[:disbursement_id])
     authorize @disbursement
 
-    if @disbursement.update(fulfilled_at: DateTime.now)
+    if @disbursement.mark_in_transit!
       flash[:success] = "Disbursement marked as fulfilled"
       if Disbursement.pending.any?
         redirect_to pending_disbursements_path
@@ -113,10 +113,14 @@ class DisbursementsController < ApplicationController
     @disbursement = Disbursement.find(params[:disbursement_id])
     authorize @disbursement
 
-    if @disbursement.update(rejected_at: DateTime.now)
-      flash[:error] = "Disbursement rejected"
-      redirect_to disbursements_path
+    begin
+      DisbursementService::Reject.new(disbursement_id: @disbursement.id, fulfilled_by_id: current_user.id).run
+      flash[:success] = "Disbursement rejected"
+    rescue => e
+      flash[:error] = e.message
     end
+
+    redirect_to disbursement_path(@disbursement)
   end
 
   private

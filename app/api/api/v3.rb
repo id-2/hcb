@@ -43,8 +43,34 @@ module Api
         error!({ message: 'Transaction not found.' }, 404)
       end
 
+      def card_charges
+        # TODO: this can be optimized
+        @card_charges ||=
+          begin
+            pending = PendingTransactionEngine::PendingTransaction::All.new(event_id: org.id).run
+            settled = TransactionGroupingEngine::Transaction::All.new(event_id: org.id).run
+
+            combined = pending + settled
+            combined.select! { |t| t.local_hcb_code.type == :card_charge }
+            combined = paginate(Kaminari.paginate_array(combined))
+            combined.map do |t|
+              Models::CardCharge.find_by_hcb_code(t.hcb_code)
+            end
+          end
+      end
+
+      def card_charge
+        @card_charge ||=
+          begin
+            id = params[:card_charge_id]
+            Models::CardCharge.find_by_public_id!(id)
+          end
+      rescue ActiveRecord::RecordNotFound
+        error!({ message: 'Card charge not found.' }, 404)
+      end
+
       def donations
-        @donations ||= paginate(org.donations.not_pending)
+        @donations ||= paginate(org.donations.not_pending.order(created_at: :desc))
       end
 
       def donation
@@ -72,7 +98,7 @@ module Api
       end
 
       def ach_transfers
-        @ach_transfers ||= paginate(org.ach_transfers)
+        @ach_transfers ||= paginate(org.ach_transfers.order(created_at: :desc))
       end
 
       def ach_transfer
@@ -86,7 +112,7 @@ module Api
       end
 
       def invoices
-        @invoices ||= paginate(org.invoices)
+        @invoices ||= paginate(org.invoices.order(created_at: :desc))
       end
 
       def invoice
@@ -100,7 +126,7 @@ module Api
       end
 
       def checks
-        @checks ||= paginate(org.checks)
+        @checks ||= paginate(org.checks.order(created_at: :desc))
       end
 
       def check
@@ -111,6 +137,20 @@ module Api
           end
       rescue ActiveRecord::RecordNotFound
         error!({ message: 'Check not found.' }, 404)
+      end
+
+      def cards
+        @cards ||= paginate(org.stripe_cards.order(created_at: :desc))
+      end
+
+      def card
+        @card ||=
+          begin
+            id = params[:card_id]
+            StripeCard.find_by_public_id!(id)
+          end
+      rescue ActiveRecord::RecordNotFound
+        error!({ message: 'Card not found.' }, 404)
       end
 
       # FOR TYPE EXPANSION
@@ -150,7 +190,7 @@ module Api
     end
     get :flavor do
       {
-        flavor: StaticPagesHelper.flavor_text
+        flavor: FlavorTextService.new.generate
       }
     end
 
@@ -164,6 +204,25 @@ module Api
         commit_time: ApplicationHelper.commit_time,
         commit_hash: ApplicationHelper.commit_hash
       }
+    end
+
+    desc 'Return a list of transparent organizations' do
+      summary "Get a list of transparent organizations"
+      detail "Returns a list of organizations in <a href='https://changelog.bank.hackclub.com/transparent-finances-(optional-feature)-151427'><strong>Transparency Mode</strong></a> that have opted in to public listing."
+      failure [[404]]
+      is_array true
+      produces ['application/json']
+      consumes ['application/json']
+      success Entities::Organization
+      tags ["Organizations"]
+      nickname "list-transparent-organizations"
+    end
+    params do
+      use :pagination, per_page: 50, max_per_page: 500
+      use :expand
+    end
+    get :organizations do
+      present Event.indexable, with: Api::Entities::Organization, **type_expansion(expand: %w[organization user])
     end
 
     resource :organizations do
@@ -210,6 +269,28 @@ module Api
           get do
             Pundit.authorize(nil, [:api, org], :transactions?)
             present transactions, with: Api::Entities::Transaction, **type_expansion(expand: %w[transaction])
+          end
+        end
+
+        resource :card_charges do
+          desc 'Return a list of card charges' do
+            summary "List an organization's card charges"
+            detail 'Transactions created using a Hack Club Bank card.'
+            produces ['application/json']
+            consumes ['application/json']
+            is_array true
+            success Entities::CardCharge
+            failure [[404, "Organization not found. Check the id/slug and make sure Transparency Mode is on.", Entities::ApiError]]
+            tags ["Card Charges"]
+            nickname "list-an-organizations-card-charges"
+          end
+          params do
+            use :pagination, per_page: 50, max_per_page: 500
+            use :expand
+          end
+          get do
+            Pundit.authorize(nil, [:api, org], :card_charges?)
+            present card_charges, with: Api::Entities::CardCharge, **type_expansion(expand: %w[card_charge])
           end
         end
 
@@ -323,8 +404,53 @@ module Api
           end
         end
 
+        resource :cards do
+          desc 'Return a list of cards' do
+            summary "List an organization's cards"
+            detail ''
+            produces ['application/json']
+            consumes ['application/json']
+            is_array true
+            success Entities::Card
+            failure [[404, "Organization not found. Check the id/slug and make sure Transparency Mode is on.", Entities::ApiError]]
+            tags ["Cards"]
+            nickname "list-an-organizations-cards"
+          end
+          params do
+            use :pagination, per_page: 50, max_per_page: 500
+            use :expand
+          end
+          get do
+            Pundit.authorize(nil, [:api, org], :cards?)
+            present cards, with: Api::Entities::Card, **type_expansion(expand: %w[card])
+          end
+        end
+
       end
 
+    end
+
+    resource :card_charges do
+      desc 'Return a card charge' do
+        summary "Get a card charge"
+        detail ''
+        produces ['application/json']
+        consumes ['application/json']
+        success Entities::CardCharge
+        failure [[404, "Card charge not found. Check the ID.", Entities::ApiError]]
+        tags ["Card Charges"]
+        nickname "get-a-card-charge"
+      end
+      params do
+        requires :card_charge_id, type: String, desc: 'Card charge ID'
+        use :expand
+      end
+      route_param :card_charge_id do
+        get do
+          Pundit.authorize(nil, [:api, card_charge], :show?, policy_class: Api::CardChargePolicy)
+          present card_charge, with: Api::Entities::CardCharge, **type_expansion(expand: %w[card_charge])
+        end
+      end
     end
 
     resource :donations do
@@ -442,6 +568,29 @@ module Api
       end
     end
 
+    resource :cards do
+      desc 'Return a single card' do
+        summary "Get a single card"
+        detail ''
+        produces ['application/json']
+        consumes ['application/json']
+        success Entities::Card
+        failure [[404, "Card not found. Check the ID.", Entities::ApiError]]
+        tags ["Cards"]
+        nickname "get-a-single-card"
+      end
+      params do
+        requires :card_id, type: String, desc: 'Card ID'
+        use :expand
+      end
+      route_param :card_id do
+        get do
+          Pundit.authorize(nil, [:api, card], :show?)
+          present card, with: Api::Entities::Card, **type_expansion(expand: %w[card])
+        end
+      end
+    end
+
     resource :transactions do
       desc 'Return a single transaction' do
         summary "Get a single transaction"
@@ -511,11 +660,13 @@ module Api
       models: [
         Entities::Organization,
         Entities::Transaction,
+        Entities::CardCharge,
         Entities::AchTransfer,
         Entities::Check,
         Entities::Transfer,
         Entities::Donation,
         Entities::Invoice,
+        Entities::Card,
         Entities::User,
         Entities::ApiError
       ],
@@ -526,6 +677,9 @@ module Api
         },
         {
           name: "Transactions",
+        },
+        {
+          name: "Card Charges",
         },
         {
           name: "Donations",
@@ -541,6 +695,9 @@ module Api
         },
         {
           name: "Transfers"
+        },
+        {
+          name: "Cards"
         }
       ]
     )

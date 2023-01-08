@@ -3,14 +3,7 @@
 require "rails_helper"
 
 RSpec.describe CanonicalTransaction, type: :model do
-  fixtures "canonical_transactions"
-
-  let(:canonical_transaction) { canonical_transactions(:canonical_transaction1) }
-
-  it "factory is valid" do
-    canonical_transaction = create(:canonical_transaction)
-    expect(canonical_transaction).to be_valid
-  end
+  let(:canonical_transaction) { create(:canonical_transaction) }
 
   it "is valid" do
     expect(canonical_transaction).to be_valid
@@ -49,6 +42,23 @@ RSpec.describe CanonicalTransaction, type: :model do
     it "does permit nil" do
       canonical_transaction.custom_memo = nil
       expect(canonical_transaction).to be_valid
+    end
+  end
+
+  describe "#search_memo" do
+    context "when the memo is a partial match for the search query" do
+      it "still finds the transaction" do
+        canonical_transaction = create(:canonical_transaction, memo: "POSTAGE GOSHIPPO.COM")
+        expect(CanonicalTransaction.search_memo("go shippo")).to contain_exactly(canonical_transaction)
+      end
+    end
+  end
+
+  describe "hcb_code" do
+    it "is reachable from the canonical transaction and is created eagerly" do
+      canonical_transaction = create(:canonical_transaction)
+      expect { canonical_transaction.local_hcb_code }.to_not change(HcbCode, :count)
+      expect(canonical_transaction.local_hcb_code).to be_present
     end
   end
 end

@@ -230,15 +230,25 @@ class AdminController < ApplicationController
       category: params[:category],
       point_of_contact_id: params[:point_of_contact_id],
       approved: params[:approved].to_i == 1,
+      is_public: params[:is_public].to_i == 1,
       sponsorship_fee: params[:sponsorship_fee],
       organized_by_hack_clubbers: params[:organized_by_hack_clubbers].to_i == 1,
-      omit_stats: params[:omit_stats].to_i == 1
+      omit_stats: params[:omit_stats].to_i == 1,
+      demo_mode: params[:demo_mode].to_i == 1
     }
     ::EventService::Create.new(attrs).run
 
     redirect_to events_admin_index_path, flash: { success: "Successfully created #{params[:name]}" }
   rescue => e
     redirect_to event_new_admin_index_path, flash: { error: e.message }
+  end
+
+  def event_balance
+    @event = Event.find(params[:id])
+    @balance = Rails.cache.fetch("admin_event_balance_#{@event.id}", expires_in: 5.minutes) do
+      @event.balance.to_i
+    end
+    render :event_balance, layout: false
   end
 
   def event_toggle_approved
@@ -512,7 +522,8 @@ class AdminController < ApplicationController
     attrs = {
       ach_transfer_id: params[:id],
       scheduled_arrival_date: params[:scheduled_arrival_date],
-      confirmation_number: params[:confirmation_number]
+      confirmation_number: params[:confirmation_number],
+      processor: current_user
     }
     ach_transfer = AchTransferService::Approve.new(attrs).run
 
@@ -547,6 +558,7 @@ class AdminController < ApplicationController
 
     redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
   rescue => e
+    notify_airbrake e
     redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
@@ -559,6 +571,7 @@ class AdminController < ApplicationController
 
     redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
   rescue => e
+    notify_airbrake e
     redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
@@ -753,7 +766,7 @@ class AdminController < ApplicationController
 
     relation = relation.pending if @pending
     relation = relation.reviewing if @reviewing
-    # relation = relation.processing if @processing # TODO: remove ruby logic from scope
+    relation = relation.processing if @processing
 
     @count = relation.count
     @disbursements = relation.page(@page).per(@per).order("created_at desc")
@@ -1044,8 +1057,8 @@ class AdminController < ApplicationController
       [:end_date, ->(_) { @end_date }]
     ]
     serializer = ->(event) do
-      template.each_with_object({}) do |(header, field), hash|
-        hash[header] = field.call(event)
+      template.to_h.transform_values do |field|
+        field.call(event)
       end
     end
 
@@ -1097,6 +1110,7 @@ class AdminController < ApplicationController
 
   def filtered_events(events: Event.all)
     @q = params[:q].present? ? params[:q] : nil
+    @demo_mode = params[:demo_mode].present? ? params[:demo_mode] : "full" # full accounts only by default
     @pending = params[:pending] == "0" ? nil : true # checked by default
     @unapproved = params[:unapproved] == "0" ? nil : true # checked by default
     @approved = params[:approved] == "0" ? nil : true # checked by default
@@ -1106,7 +1120,11 @@ class AdminController < ApplicationController
     @funded = params[:funded].present? ? params[:funded] : "both" # both by default
     @hidden = params[:hidden].present? ? params[:hidden] : "both" # both by default
     @organized_by_hack_clubbers = params[:organized_by_hack_clubbers].present? ? params[:organized_by_hack_clubbers] : "both" # both by default
-    @category = params[:category].present? ? params[:category] : "all"
+    if params[:category] == "none"
+      @category = "none"
+    else
+      @category = params[:category].present? ? params[:category] : "all"
+    end
     @point_of_contact_id = params[:point_of_contact_id].present? ? params[:point_of_contact_id] : "all"
     if params[:country] == 9999.to_s
       @country = 9999
@@ -1127,7 +1145,13 @@ class AdminController < ApplicationController
     relation = relation.not_funded if @funded == "not_funded"
     relation = relation.organized_by_hack_clubbers if @organized_by_hack_clubbers == "organized_by_hack_clubbers"
     relation = relation.not_organized_by_hack_clubbers if @organized_by_hack_clubbers == "not_organized_by_hack_clubbers"
-    relation = relation.where(category: @category) if @category != "all"
+    relation = relation.demo_mode if @demo_mode == "demo"
+    relation = relation.not_demo_mode if @demo_mode == "full"
+    if @category == "none"
+      relation = relation.where(category: nil)
+    elsif @category != "all"
+      relation = relation.where(category: @category)
+    end
     relation = relation.where(point_of_contact_id: @point_of_contact_id) if @point_of_contact_id != "all"
     if @country == 9999
       relation = relation.where.not(country: "US")
@@ -1165,6 +1189,8 @@ class AdminController < ApplicationController
         airtable_task_size :hackathons
       when :pending_grant_airtable
         airtable_task_size :grant
+      when :pending_bank_applications_airtable
+        airtable_task_size :bank_applications
       when :pending_stickermule_airtable
         airtable_task_size :stickermule
       when :pending_stickers_airtable
@@ -1183,6 +1209,8 @@ class AdminController < ApplicationController
         airtable_task_size :pvsa
       when :pending_theeventhelper_airtable
         airtable_task_size :theeventhelper
+      when :pending_first_grant_airtable
+        airtable_task_size :first_grant
       when :pending_wire_transfers_airtable
         airtable_task_size :wire_transfers
       when :pending_paypal_transfers_airtable
@@ -1228,6 +1256,7 @@ class AdminController < ApplicationController
     # This method could take upwards of 10 seconds. USE IT SPARINGLY
     pending_task :pending_hackathons_airtable
     pending_task :pending_grant_airtable
+    pending_task :pending_bank_applications_airtable
     pending_task :pending_stickermule_airtable
     pending_task :pending_stickers_airtable
     pending_task :pending_wallets_airtable
@@ -1237,6 +1266,7 @@ class AdminController < ApplicationController
     pending_task :pending_domains_airtable
     pending_task :pending_pvsa_airtable
     pending_task :pending_theeventhelper_airtable
+    pending_task :pending_first_grant_airtable
     pending_task :pending_feedback_airtable
     pending_task :wire_transfers
     pending_task :paypal_transfers

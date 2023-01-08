@@ -28,7 +28,6 @@
   <%= form.submit "Search" %>
 <% end %>
 
-
 <%= page_entries_info @disbursements, entry_name: 'disbursements' %>
 
 <table>
@@ -37,7 +36,6 @@
       <th>ID</th>
       <th>Date</th>
       <th>Recipient</th>
-      <th>Memo</th>
       <th>Amount</th>
       <th>Status</th>
       <th>Actions</th>
@@ -53,9 +51,8 @@
             <%= disbursement.source_event.name.upcase %>: <%= disbursement.name %>
           <% end %>
         </td>
-        <td><%= disbursement.transaction_memo %></td>
         <td><%= render_money_amount(disbursement.amount) %></td>
-        <td><%= disbursement.state_text.upcase %></td>
+        <td><%= disbursement.aasm.human_state %></td>
         <td>
           <% if disbursement.reviewing? %>
             <%= link_to "Process", disbursement_process_admin_path(disbursement) %>

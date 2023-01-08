@@ -153,6 +153,7 @@ def invoice_card_check_badge(check, invoice = @invoice)
   content_tag(:span, class: "pr1 #{background} line-height-0 tooltipped tooltipped--w", 'aria-label': text) { tag }
 end
 
+# this information is visible to admins only because payouts should feel instant to the user
 def invoice_payout_datetime(invoice = @invoice)
   date = nil
   title = nil
@@ -176,11 +177,12 @@ def invoice_payout_datetime(invoice = @invoice)
 end
 
 def invoice_fee_type(invoice = @invoice)
-  if @invoice.payment_method_type == "card"
+  case @invoice.payment_method_type
+  when "card"
     brand = @invoice.payment_method_card_brand.humanize.capitalize
     funding = @invoice.payment_method_card_funding.humanize.downcase
     return "#{brand} #{funding} card fee"
-  elsif @invoice.payment_method_type == "ach_credit_transfer"
+  when "ach_credit_transfer"
     "ACH / wire fee"
   else
     "Transfer fee"

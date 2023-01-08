@@ -25,7 +25,8 @@ class CanonicalTransaction < ApplicationRecord
   include Receiptable
 
   include PgSearch::Model
-  pg_search_scope :search_memo, against: [:memo, :friendly_memo, :custom_memo, :hcb_code], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "canonical_transactions.date"
+  pg_search_scope :search_memo, against: [:memo, :friendly_memo, :custom_memo, :hcb_code], using: { tsearch: { any_word: true, prefix: true, dictionary: "english" } }, ranked_by: "canonical_transactions.date"
+  pg_search_scope :pg_text_search, lambda { |query, **args| { query: query }.merge(**args) }
 
   scope :unmapped, -> { includes(:canonical_event_mapping).where(canonical_event_mappings: { canonical_transaction_id: nil }) }
   scope :mapped, -> { includes(:canonical_event_mapping).where.not(canonical_event_mappings: { canonical_transaction_id: nil }) }
@@ -70,11 +71,12 @@ class CanonicalTransaction < ApplicationRecord
   has_one :canonical_pending_transaction, through: :canonical_pending_settled_mapping
   has_many :fees, through: :canonical_event_mapping
 
-  attr_writer :fee_payment, :hashed_transaction, :stripe_cardholder
+  attr_writer :fee_payment, :hashed_transaction, :stripe_cardholder, :local_hcb_code
 
   validates :friendly_memo, presence: true, allow_nil: true
   validates :custom_memo, presence: true, allow_nil: true
 
+  after_create :write_hcb_code
   after_create_commit :write_system_event
 
   def smart_memo
@@ -224,6 +226,10 @@ class CanonicalTransaction < ApplicationRecord
     nil
   end
 
+  def likely_ach_confirmation_number
+    memo.match(/BUSBILLPAY TRAN#(\d+)/)&.[](1)
+  end
+
   def partner_donation
     nil # TODO: implement
   end
@@ -270,9 +276,20 @@ class CanonicalTransaction < ApplicationRecord
 
   private
 
+  def write_hcb_code
+    safely do
+      code = ::TransactionGroupingEngine::Calculate::HcbCode.new(canonical_transaction_or_canonical_pending_transaction: self).run
+
+      self.update_column(:hcb_code, code)
+
+      ::HcbCodeService::FindOrCreate.new(hcb_code: code).run
+    end
+  end
+
   def hashed_transaction
     @hashed_transaction ||= begin
-      Airbrake.notify("There was more (or less) than 1 hashed_transaction for canonical_transaction: #{canonical_transaction.id}") if hashed_transactions.count != 1
+      Airbrake.notify("There was less than 1 hashed_transaction for canonical_transaction: #{self.id}") if hashed_transactions.size < 1
+      Airbrake.notify("There was more than 1 hashed_transaction for canonical_transaction: #{self.id}") if hashed_transactions.size > 1
 
       hashed_transactions.first
     end

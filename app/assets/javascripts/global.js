@@ -16,9 +16,16 @@ BK.select = (selector, filter) =>
   BK.s(selector, filter).attr('aria-selected', true)
 
 // document.getElementsByTagName('html')[0].getAttribute('data-dark') === 'true'
-BK.isDark = () => localStorage.getItem('dark') === 'true'
+BK.isDark = () => {
+  try {
+    return localStorage.getItem('dark') === 'true'
+  } catch(e) {
+    return false
+  }
+}
 BK.styleDark = theme => {
   document.getElementsByTagName('html')[0].setAttribute('data-dark', theme)
+  document.querySelector('meta[name=theme-color]').setAttribute('content', theme ? '#17171d' : '#f9fafc')
   BK.s('toggle_theme').find('svg').toggle()
 }
 BK.toggleDark = () => {

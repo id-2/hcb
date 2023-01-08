@@ -4,27 +4,29 @@
 #
 # Table name: user_sessions
 #
-#  id                     :bigint           not null, primary key
-#  deleted_at             :datetime
-#  device_info            :string
-#  expiration_at          :datetime         not null
-#  fingerprint            :string
-#  ip                     :string
-#  latitude               :decimal(, )
-#  longitude              :decimal(, )
-#  os_info                :string
-#  peacefully_expired     :boolean
-#  session_token          :text
-#  timezone               :string
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
-#  impersonated_by_id     :bigint
-#  user_id                :bigint
-#  webauthn_credential_id :bigint
+#  id                       :bigint           not null, primary key
+#  deleted_at               :datetime
+#  device_info              :string
+#  expiration_at            :datetime         not null
+#  fingerprint              :string
+#  ip                       :string
+#  latitude                 :decimal(, )
+#  longitude                :decimal(, )
+#  os_info                  :string
+#  peacefully_expired       :boolean
+#  session_token_bidx       :string
+#  session_token_ciphertext :text
+#  timezone                 :string
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  impersonated_by_id       :bigint
+#  user_id                  :bigint
+#  webauthn_credential_id   :bigint
 #
 # Indexes
 #
 #  index_user_sessions_on_impersonated_by_id      (impersonated_by_id)
+#  index_user_sessions_on_session_token_bidx      (session_token_bidx)
 #  index_user_sessions_on_user_id                 (user_id)
 #  index_user_sessions_on_webauthn_credential_id  (webauthn_credential_id)
 #
@@ -34,7 +36,10 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class UserSession < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: [:session_token] # ciphertext columns will still be tracked
+  has_encrypted :session_token
+  blind_index :session_token
+
   acts_as_paranoid
 
   belongs_to :user
@@ -80,6 +85,8 @@ class UserSession < ApplicationRecord
   geocoded_by :ip
   after_validation :geocode, if: ->(session){ session.ip.present? and session.ip_changed? }
 
+  validate :user_is_unlocked, on: :create
+
   def impersonated?
     !impersonated_by.nil?
   end
@@ -95,6 +102,14 @@ class UserSession < ApplicationRecord
 
     # Return self to allow chaining
     self
+  end
+
+  private
+
+  def user_is_unlocked
+    if user.locked? && !impersonated?
+      errors.add(:user, "is locked. Please contact support.")
+    end
   end
 
 end

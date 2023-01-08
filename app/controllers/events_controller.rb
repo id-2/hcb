@@ -5,6 +5,9 @@ class EventsController < ApplicationController
 
   include Rails::Pagination
   before_action :set_event, except: [:index, :new, :create, :by_airtable_id]
+  before_action except: [:show, :index] do
+    render_back_to_tour @organizer_position, :welcome, event_path(@event)
+  end
   skip_before_action :signed_in_user
 
   # GET /events
@@ -17,21 +20,27 @@ class EventsController < ApplicationController
 
   # GET /events/1
   def show
+    render_tour @organizer_position, :welcome
+
     authorize @event
 
     # The search query name was historically `search`. It has since been renamed
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
 
-    @organizers = @event.organizer_positions.includes(:user)
+    if params[:tag] && Flipper.enabled?(:transaction_tags_2022_07_29, @event)
+      @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
+    end
+
+    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
       @hide_holiday_features = true
     end
 
-    @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q]).run).page(params[:page]).per(100)
-    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions).run!
+    @transactions = Kaminari.paginate_array(TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run).page(params[:page]).per(params[:per] || 75)
+    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
   end
 
   def fees
@@ -62,7 +71,7 @@ class EventsController < ApplicationController
 
   def team
     authorize @event
-    @positions = @event.organizer_positions.includes(:user)
+    @positions = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
 
@@ -151,6 +160,12 @@ class EventsController < ApplicationController
     authorize @event
   end
 
+  def async_balance
+    authorize @event
+
+    render :async_balance, layout: false
+  end
+
   # (@msw) these pages are for the WIP resources page.
   def connect_gofundme
     @event_name = @event.name
@@ -181,7 +196,7 @@ class EventsController < ApplicationController
   def g_suite_overview
     authorize @event
 
-    @g_suite = @event.g_suites.not_deleted.first
+    @g_suite = @event.g_suites.first
   end
 
   def g_suite_create
@@ -202,7 +217,7 @@ class EventsController < ApplicationController
   def g_suite_verify
     authorize @event
 
-    GSuiteService::MarkVerifying.new(g_suite_id: @event.g_suites.not_deleted.first.id).run
+    GSuiteService::MarkVerifying.new(g_suite_id: @event.g_suites.first.id).run
 
     redirect_to event_g_suite_overview_path(event_id: @event.slug)
   end
@@ -249,6 +264,21 @@ class EventsController < ApplicationController
     @partner_donations = relation.order(created_at: :desc)
   end
 
+  def demo_mode_request_meeting
+    authorize @event
+
+    @event.demo_mode_request_meeting_at = Time.current
+
+    if @event.save!
+      OperationsMailer.with(event_id: @event.id).demo_mode_request_meeting.deliver_later
+      flash[:success] = "We've received your request. We'll be in touch soon!"
+    else
+      flash[:error] = "Something went wrong. Please try again."
+    end
+
+    redirect_to @event
+  end
+
   def bank_fees
     authorize @event
 
@@ -269,8 +299,8 @@ class EventsController < ApplicationController
 
     @transfers_enabled = Flipper.enabled?(:transfers_2022_04_21, current_user)
     @ach_transfers = @event.ach_transfers
-    @checks = @event.checks
-    @disbursements = @transfers_enabled ? @event.outgoing_disbursements : Disbursement.none
+    @checks = @event.checks.includes(:lob_address)
+    @disbursements = @transfers_enabled ? @event.outgoing_disbursements.includes(:destination_event) : Disbursement.none
 
     @stats = {
       deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum,
@@ -278,27 +308,28 @@ class EventsController < ApplicationController
       canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount) + @disbursements.rejected.sum(:amount)
     }
 
-    # only search/filter transfers if organizer is signed in
-    if organizer_signed_in?
-      @ach_transfers = @ach_transfers.in_transit if params[:filter] == "in_transit"
-      @ach_transfers = @ach_transfers.deposited if params[:filter] == "deposited"
-      @ach_transfers = @ach_transfers.rejected if params[:filter] == "canceled"
-      @ach_transfers = @ach_transfers.search_recipient(params[:q]) if params[:q].present?
+    @ach_transfers = @ach_transfers.in_transit if params[:filter] == "in_transit"
+    @ach_transfers = @ach_transfers.deposited if params[:filter] == "deposited"
+    @ach_transfers = @ach_transfers.rejected if params[:filter] == "canceled"
+    @ach_transfers = @ach_transfers.search_recipient(params[:q]) if params[:q].present?
 
-      @checks = @checks.in_transit_or_in_transit_and_processed if params[:filter] == "in_transit"
-      @checks = @checks.deposited if params[:filter] == "deposited"
-      @checks = @checks.canceled if params[:filter] == "canceled"
-      @checks = @checks.search_recipient(params[:q]) if params[:q].present?
+    @checks = @checks.in_transit_or_in_transit_and_processed if params[:filter] == "in_transit"
+    @checks = @checks.deposited if params[:filter] == "deposited"
+    @checks = @checks.canceled if params[:filter] == "canceled"
+    @checks = @checks.search_recipient(params[:q]) if params[:q].present?
 
-      if @transfers_enabled
-        @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
-        @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
-        @disbursements = @disbursements.rejected if params[:filter] == "canceled"
-        @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
-      end
+    if @transfers_enabled
+      @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
+      @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
+      @disbursements = @disbursements.rejected if params[:filter] == "canceled"
+      @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
     end
 
-    @transfers = (@checks + @ach_transfers + @disbursements).sort_by { |o| o.created_at }.reverse
+    @transfers = Kaminari.paginate_array((@checks + @ach_transfers + @disbursements).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
+  end
+
+  def new_transfer
+    authorize @event
   end
 
   def promotions
@@ -346,6 +377,28 @@ class EventsController < ApplicationController
     redirect_back fallback_location: edit_event_path(@event)
   end
 
+  def enable_feature
+    authorize @event
+    feature = params[:feature]
+    if Flipper.enable_actor(feature, @event)
+      flash[:success] = "Opted into beta"
+    else
+      flash[:error] = "Error while opting into beta"
+    end
+    redirect_to edit_event_path(@event)
+  end
+
+  def disable_feature
+    authorize @event
+    feature = params[:feature]
+    if Flipper.disable_actor(feature, @event)
+      flash[:success] = "Opted out of beta"
+    else
+      flash[:error] = "Error while opting out of beta"
+    end
+    redirect_to edit_event_path(@event)
+  end
+
   private
 
   # Only allow a trusted parameter "white list" through.
@@ -358,6 +411,8 @@ class EventsController < ApplicationController
       :sponsorship_fee,
       :expected_budget,
       :omit_stats,
+      :demo_mode,
+      :can_front_balance,
       :emburse_department_id,
       :country,
       :category,
@@ -370,6 +425,7 @@ class EventsController < ApplicationController
       :donation_page_enabled,
       :donation_page_message,
       :is_public,
+      :is_indexable,
       :holiday_features,
       :public_message,
       :custom_css_url,
@@ -390,9 +446,12 @@ class EventsController < ApplicationController
       :address,
       :slug,
       :hidden,
+      :start,
+      :end,
       :donation_page_enabled,
       :donation_page_message,
       :is_public,
+      :is_indexable,
       :holiday_features,
       :public_message,
       :custom_css_url,
@@ -410,8 +469,8 @@ class EventsController < ApplicationController
     return [] if params[:page] && params[:page] != "1"
     return [] unless using_transaction_engine_v2? && using_pending_transaction_engine?
 
-    pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(event_id: @event.id, search: params[:q]).run
-    PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions: pending_transactions).run!
+    pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
+    PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions: pending_transactions, event: @event).run!
     pending_transactions
   end
 

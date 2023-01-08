@@ -5,33 +5,16 @@
 <h1 class="heading">
   <span class="flex items-center">
     Transfers
-    <%= badge_for @transfers.count, class: "bg-muted" %>
+    <%= badge_for @transfers.total_count, class: "bg-muted" %>
   </span>
 
   <% if organizer_signed_in? %>
     <%= link_to "Reimbursement", event_reimbursements_path(@event), class: "btn" %>
-    <action type="button" class="btn bg-accent overflow-visible menu__toggle" data-behavior="menu_toggle" aria-expanded="false" tabindex="0">
-      Send
-      <div class="menu__content" data-behavior="menu_content">
-        <%= link_to "ACH", new_event_ach_transfer_path(@event) %>
-        <%= link_to "Check", new_event_check_path(@event) %>
-        <%= link_to paypal_transfers_airtable_form_url(embed: false, event: @event, user: @current_user),
-          data: { behavior: "modal_trigger", modal: "paypal_transfer" } do %>
-          PayPal
-        <% end %>
-        <%= link_to "Transfer", new_disbursement_path(source_event_id: @event) if @transfers_enabled %>
-      </div>
-    </action>
 
-    <!-- Modal for PayPal transfers -->
-    <section class="modal" data-behavior="modal" role="dialog" id="paypal_transfer">
-      <%= modal_header "PayPal transfer" %>
-      <p class="mt0">PayPal may charge <%= link_to 'fees', 'https://www.paypal.com/us/webapps/mpp/paypal-fees', target: 'blank' %>
-        (eg. currency conversion) for transfers. These fees will be passed down to you. Need help? <%= help_message %>
-      </p>
-      <iframe src='<%= paypal_transfers_airtable_form_url(embed: true, event: @event, user: @current_user) %>' style='border:none;' name='donateFrame' scrolling='yes' frameborder='0' marginheight='0px' marginwidth='0px' height='256px' width='512px' allowfullscreen style="width: 100%; max-width: 100%; max-height: 40vh;"></iframe>
-      <%= link_to "open in a new tab", paypal_transfers_airtable_form_url(embed: false, event: @event, user: @current_user), target: "_blank" %>
-    </section>
+    <%= link_to event_transfers_new_path(event_id: @event.slug), class: "btn bg-success", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
+      <%= inline_icon "payment-transfer" %>
+      Send
+    <% end %>
   <% end %>
 </h1>
 
@@ -50,23 +33,21 @@
   </div>
 </div>
 
-<hr/>
+<hr>
 
-<% if organizer_signed_in? %>
-  <div style="text-align: center;">
-    <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["deposited", "in_transit", "canceled"].include?(params[:filter]), role: "tab" %>
-    <%= link_to "Deposited", "?filter=deposited", class: "filterbar__item", "aria-selected": params[:filter] == "deposited", role: "tab" %>
-    <%= link_to "In Transit", "?filter=in_transit", class: "filterbar__item", "aria-selected": params[:filter] == "in_transit", role: "tab" %>
-    <%= link_to "Canceled", "?filter=canceled", class: "filterbar__item", "aria-selected": params[:filter] == "canceled", role: "tab" %>
+<div style="text-align: center;">
+  <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["deposited", "in_transit", "canceled"].include?(params[:filter]), role: "tab" %>
+  <%= link_to "Deposited", "?filter=deposited", class: "filterbar__item", "aria-selected": params[:filter] == "deposited", role: "tab" %>
+  <%= link_to "In Transit", "?filter=in_transit", class: "filterbar__item", "aria-selected": params[:filter] == "in_transit", role: "tab" %>
+  <%= link_to "Canceled", "?filter=canceled", class: "filterbar__item", "aria-selected": params[:filter] == "canceled", role: "tab" %>
+</div>
+
+<%= form_with(model: nil, local: true, method: :get) do |form| %>
+  <div class="filterbar flex flex-wrap items-center width-100">
+
+    <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
+
   </div>
-
-  <%= form_with(model: nil, local: true, method: :get) do |form| %>
-    <div class="filterbar flex flex-wrap items-center width-100">
-
-      <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
-
-    </div>
-  <% end %>
 <% end %>
 
 <% if @transfers.size > 0 %>
@@ -108,37 +89,39 @@
           <td>
             <%= format_date d.created_at %>
           </td>
-          <td style="max-width: 40ch;" class="overflow-hidden truncate" title="<%= d.name if organizer_signed_in? %>">
-            <% if organizer_signed_in? %>
-              <% if d.is_a?(Disbursement) %>
-                <strong>
-                  <% if d.destination_event.is_public? || organizer_signed_in?(d.destination_event) %>
-                    <%= link_to d.destination_event.name, d.destination_event %>
-                  <% else %>
-                    <%= d.destination_event.name %>
-                  <% end %>
-                </strong>
-                for
-              <% end %>
-              <%= d.name %>
-            <% else %>
-              <span class="muted">(Sign in to view)</span>
+          <td style="max-width: 40ch;" class="overflow-hidden truncate" title="<%= d.name %>">
+            <% if d.is_a?(Disbursement) %>
+              <strong>
+                <% if d.destination_event.is_public? || organizer_signed_in?(d.destination_event) %>
+                  <%= link_to d.destination_event.name, d.destination_event %>
+                <% else %>
+                  <%= d.destination_event.name %>
+                <% end %>
+              </strong>
+              for
             <% end %>
+            <%= d.name %>
           </td>
           <td style="text-align: right;">
             <%= render_money(d.amount) %>
           </td>
           <td>
-            <%= link_to "Details", hcb_code_url(d.local_hcb_code.hashid) if organizer_signed_in? %>
+            <%# the link below can be changed back to `d.local_hcb_code.hashid` after hcb_codes are converted into proper associations and are preloaded in the controller %>
+            <%= link_to "Details", hcb_code_url(d.hcb_code) if organizer_signed_in? %>
           </td>
         </tr>
       <% end %>
     </tbody>
   </table>
 
+  <%= paginate @transfers %>
+
 </article>
 <% else %>
   <%= blankslate 'No transfers yet' %>
 <% end %>
 
-
+<section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="send_transfer">
+  <%= modal_header "Transfer money" %>
+  <%= render "transfer_form" %>
+</section>

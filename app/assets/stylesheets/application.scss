@@ -169,6 +169,10 @@ action {
   }
 }
 
+summary {
+  cursor: pointer;
+}
+
 @import 'components/avatars';
 @import 'components/badges';
 @import 'components/buttons';
@@ -201,6 +205,10 @@ action {
 @import 'components/loading';
 @import 'components/partner_signup';
 @import 'components/file_dropzone';
+@import 'components/footer';
+@import 'components/welcome';
+@import 'components/tabs';
+@import 'components/tour';
 
 .turbo-progress-bar {
   height: 0.125rem;
@@ -218,6 +226,10 @@ action {
 
 #HW_badge {
   position: static;
+}
+
+#HW_frame_cont {
+  transform: translateY(30px);
 }
 
 .admin-tools {
@@ -243,6 +255,32 @@ action {
   margin-bottom: -0.75rem;
   border-radius: 0;
   border: 0;
+}
+
+@keyframes flying-spook {
+  from {
+    left: 0;
+    top: 100%;
+  }
+
+  to {
+    left: 100%;
+    top: 10rem;
+  }
+}
+
+.flying-spook {
+  position: fixed;
+  left: 0;
+  top: 100%;
+  width: 3rem;
+  z-index: 10;
+
+  animation: ease-in flying-spook 30s 10s;
+}
+
+.flying-spook.ghost {
+  animation-delay: 50s;
 }
 
 // Make mobile views nice. Full-bleed separator lines

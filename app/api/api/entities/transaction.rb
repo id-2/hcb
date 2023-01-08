@@ -10,6 +10,7 @@ module Api
         check
         transfer
         bank_account_transaction
+        card_charge
       ].freeze
 
       when_expanded do
@@ -18,8 +19,11 @@ module Api
           # However, for Disbursements, this will always result in an
           # amount_cents of 0 (zero) since there are two equal, by opposite,
           # Canonical Transactions. Therefore, for the API, we are overriding the
-          # default amount_cents exposure defined in the LinkedObjectBase.k0jjkk
+          # default amount_cents exposure defined in the LinkedObjectBase.
           next hcb_code.disbursement.amount if hcb_code.disbursement?
+          next hcb_code.donation.amount if hcb_code.donation?
+          next hcb_code.invoice.item_amount if hcb_code.invoice?
+          next -hcb_code.ach_transfer.amount if hcb_code.ach_transfer?
 
           hcb_code.amount_cents
         end
@@ -33,7 +37,29 @@ module Api
           values: LINKED_OBJECT_TYPES
         }
         expose :pending, documentation: { type: "boolean" } do |hcb_code, options|
+          if hcb_code.event.can_front_balance?
+            next hcb_code.canonical_transactions.empty? && hcb_code.canonical_pending_transactions.none? { |pt| pt.fronted? }
+          end
+
           hcb_code.canonical_transactions.empty?
+        end
+
+        expose :receipts do
+          expose :count, documentation: { type: 'integer' } do |hcb_code, options|
+            hcb_code.receipts.size
+          end
+          expose :missing, documentation: { type: 'boolean' } do |hcb_code, options|
+            # This logic really needs to be moved inside the HcbCode model
+            hcb_code.type == :card_charge &&
+              !hcb_code.no_or_lost_receipt? &&
+              hcb_code.receipts.none?
+          end
+        end
+
+        expose :comments do
+          expose :count, documentation: { type: 'integer' } do |hcb_code, options|
+            hcb_code.not_admin_only_comments_count
+          end
         end
       end
 
@@ -41,8 +67,17 @@ module Api
         hcb_code.event
       end
 
+      expose_associated Tag, documentation: { type: Tag, is_array: true }, as: :tags do |hcb_code, options|
+        hcb_code.tags
+      end
+
       when_showing LinkedObjectBase::API_LINKED_OBJECT_TYPE do
         [
+          {
+            entity: Entities::CardCharge,
+            # Convert the HcbCode to it's equivalent CardCharge.
+            hcb_method: ->(hcb_code) { Models::CardCharge.find(hcb_code.id) },
+          },
           {
             entity: Entities::AchTransfer,
             hcb_method: :ach_transfer
@@ -74,7 +109,11 @@ module Api
           }, documentation: {
             type: entity
           } do |hcb_code, options|
-            linked_objects = hcb_code.public_send(method)
+            linked_objects = if method.is_a? Proc
+                               method.call(hcb_code)
+                             else
+                               hcb_code.public_send(method)
+                             end
             entity.represent(linked_objects, options_hide([self, Organization]))
           end
 

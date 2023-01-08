@@ -8,9 +8,12 @@
 #  aasm_state                      :string
 #  address                         :text
 #  beta_features_enabled           :boolean
+#  can_front_balance               :boolean          default(FALSE), not null
 #  category                        :integer
 #  country                         :integer
 #  custom_css_url                  :string
+#  demo_mode                       :boolean          default(FALSE), not null
+#  demo_mode_request_meeting_at    :datetime
 #  donation_page_enabled           :boolean          default(TRUE)
 #  donation_page_message           :text
 #  end                             :datetime
@@ -18,7 +21,7 @@
 #  has_fiscal_sponsorship_document :boolean
 #  hidden_at                       :datetime
 #  holiday_features                :boolean          default(TRUE), not null
-#  is_public                       :boolean          default(FALSE)
+#  is_public                       :boolean          default(TRUE)
 #  last_fee_processed_at           :datetime
 #  name                            :text
 #  omit_stats                      :boolean          default(FALSE)
@@ -70,7 +73,7 @@ class Event < ApplicationRecord
 
   include AASM
   include PgSearch::Model
-  pg_search_scope :search_name, against: [:name, :slug, :id], using: { tsearch: { prefix: true, dictionary: "english" } }
+  pg_search_scope :search_name, against: [:name, :slug, :id], using: { tsearch: { prefix: true, dictionary: "simple" } }
 
   monetize :total_fees_v2_cents
 
@@ -79,6 +82,7 @@ class Event < ApplicationRecord
   scope :pending_or_unapproved, -> { where(aasm_state: [:pending, :unapproved]) }
   scope :transparent, -> { where(is_public: true) }
   scope :not_transparent, -> { where(is_public: false) }
+  scope :indexable, -> { where(is_public: true, is_indexable: true, demo_mode: false) }
   scope :omitted, -> { where(omit_stats: true) }
   scope :not_omitted, -> { where(omit_stats: false) }
   scope :hidden, -> { where("hidden_at is not null") }
@@ -175,6 +179,45 @@ class Event < ApplicationRecord
     where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", 5.days.ago, self.event_ids_with_pending_fees_greater_than_0_v2.to_a.map { |a| a["event_id"] })
   end
 
+  scope :demo_mode, -> { where(demo_mode: true) }
+  scope :not_demo_mode, -> { where(demo_mode: false) }
+  scope :filter_demo_mode, ->(demo_mode) { demo_mode.nil? || demo_mode.blank? ? all : where(demo_mode: demo_mode) }
+
+  BADGES = {
+    # Qualifier must be a method on Event. If the method returns true, the badge
+    # will be displayed for the event.
+    omit_stats: {
+      qualifier: :omit_stats?,
+      emoji: '🏦',
+      description: 'Omitted from stats'
+    },
+    transparent: {
+      qualifier: :is_public?,
+      emoji: '📈',
+      description: 'Transparency mode enabled'
+    },
+    hidden: {
+      qualifier: :hidden_at?,
+      emoji: '🕵️‍♂️',
+      description: 'Hidden'
+    },
+    organized_by_hack_clubbers: {
+      qualifier: :organized_by_hack_clubbers?,
+      emoji: '🦕',
+      description: 'Organized by Hack Clubbers'
+    },
+    demo_mode: {
+      qualifier: :demo_mode?,
+      emoji: '🧪',
+      description: 'Demo Account'
+    },
+    winter_hardware_grant: {
+      qualifier: :hardware_grant?,
+      emoji: '❄️',
+      description: 'Winter hardware grant'
+    }
+  }.freeze
+
   aasm do
     # All events should be approved prior to creation
     state :approved, initial: true # Full fiscal sponsorship
@@ -248,6 +291,7 @@ class Event < ApplicationRecord
   has_many :bank_fees
 
   has_many :reimbursements
+  has_many :tags, -> { includes(:hcb_codes) }
 
   belongs_to :partner
   has_one :partnered_signup, required: false
@@ -257,6 +301,11 @@ class Event < ApplicationRecord
   has_one_attached :logo
 
   validate :point_of_contact_is_admin
+
+  include ::UserService::CanOpenDemoMode
+  attr_accessor :demo_mode_limit_email
+
+  validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
   validates :name, :sponsorship_fee, :organization_identifier, presence: true
   validates :slug, uniqueness: true, presence: true, format: { without: /\s/ }
@@ -268,6 +317,7 @@ class Event < ApplicationRecord
     "WHEN id = 999 THEN '2'     "\
     "WHEN id = 689 THEN '3'     "\
     "WHEN id = 636 THEN '4'     "\
+    "WHEN id = 506 THEN '5'     "\
     "ELSE 'z' || name END ASC   "
   )
 
@@ -275,7 +325,11 @@ class Event < ApplicationRecord
     hackathon: 0,
     'hack club': 1,
     nonprofit: 2,
-    event: 3
+    event: 3,
+    'high school hackathon': 4,
+    'robotics team': 5,
+    'hardware grant': 6,
+    'hack club hq': 7
   }
 
   def country_us?
@@ -292,7 +346,12 @@ class Event < ApplicationRecord
   end
 
   def admin_dropdown_description
-    "#{name} - #{id}"
+    desc = "#{name} - #{id}"
+
+    badges = BADGES.map { |_, badge| send(badge[:qualifier]) ? badge[:emoji] : nil }.compact
+    desc += " [#{badges.join(' ')}]" if badges.any?
+
+    desc
   end
 
   def disbursement_dropdown_description
@@ -324,14 +383,13 @@ class Event < ApplicationRecord
   end
 
   def balance_v2_cents(start_date: nil, end_date: nil)
-    @flipper_balance ||= Flipper.enabled?(:fronted_balance_2022_06_17, self)
-    @balance_v2_cents ||= begin
-      sum = 0
-      sum += settled_balance_cents(start_date: start_date, end_date: end_date)
-      sum += pending_outgoing_balance_v2_cents(start_date: start_date, end_date: end_date)
-      sum += fronted_incoming_balance_v2_cents(start_date: start_date, end_date: end_date) if @flipper_balance
-      sum
-    end
+    @balance_v2_cents ||=
+      begin
+        sum = settled_balance_cents(start_date: start_date, end_date: end_date)
+        sum += pending_outgoing_balance_v2_cents(start_date: start_date, end_date: end_date)
+        sum += fronted_incoming_balance_v2_cents(start_date: start_date, end_date: end_date) if can_front_balance?
+        sum
+      end
   end
 
   # This calculates v2 cents of settled (Canonical Transactions)
@@ -369,14 +427,24 @@ class Event < ApplicationRecord
   end
 
   def fronted_incoming_balance_v2_cents(start_date: nil, end_date: nil)
-    @fronted_incoming_balance_v2_cents ||= begin
-      cpt = canonical_pending_transactions.incoming_disbursement.unsettled
+    @fronted_incoming_balance_v2_cents ||=
+      begin
+        pts = canonical_pending_transactions.incoming.fronted.not_declined
 
-      cpt = cpt.where("date >= ?", start_date) if start_date
-      cpt = cpt.where("date <= ?", end_date) if end_date
+        pts = pts.where("date >= ?", @start_date) if @start_date
+        pts = pts.where("date <= ?", @end_date) if @end_date
 
-      cpt.sum(:amount_cents)
-    end
+        pt_sum_by_hcb_code = pts.group(:hcb_code).sum(:amount_cents)
+        hcb_codes = pt_sum_by_hcb_code.keys
+
+        ct_sum_by_hcb_code = canonical_transactions.where(hcb_code: hcb_codes)
+                                                   .group(:hcb_code)
+                                                   .sum(:amount_cents)
+
+        pt_sum_by_hcb_code.reduce 0 do |sum, (hcb_code, pt_sum)|
+          sum + [pt_sum - (ct_sum_by_hcb_code[hcb_code] || 0), 0].max
+        end
+      end
   end
 
   def pending_balance_v2_cents(start_date: nil, end_date: nil)
@@ -388,7 +456,7 @@ class Event < ApplicationRecord
   def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil)
     @pending_incoming_balance_v2_cents ||=
       begin
-        cpt = canonical_pending_transactions.incoming.unsettled
+        cpt = canonical_pending_transactions.incoming.unsettled.not_fronted
 
         cpt = cpt.where("date >= ?", start_date) if start_date
         cpt = cpt.where("date <= ?", end_date) if end_date
@@ -410,7 +478,7 @@ class Event < ApplicationRecord
   end
 
   def balance_available_v2_cents
-    @balance_available_v2_cents ||= balance_v2_cents - fee_balance_v2_cents
+    @balance_available_v2_cents ||= balance_v2_cents - (can_front_balance? ? fronted_fee_balance_v2_cents : fee_balance_v2_cents)
   end
 
   def balance
@@ -440,6 +508,20 @@ class Event < ApplicationRecord
     @fee_balance ||= total_fees - total_fee_payments
   end
 
+  # `fee_balance_v2_cents`, but it includes fees on fronted (unsettled) transactions to prevent overspending before fees are charged
+  def fronted_fee_balance_v2_cents
+    feed_fronted_balance = canonical_pending_transactions
+                           .incoming
+                           .fronted
+                           .not_declined
+                           .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
+                           .sum(&:fronted_amount)
+
+    # TODO: make sure this has the same rounding error has the rest of the codebase
+    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee)
+  end
+
+  # This intentionally does not include fees on fronted transactions to make sure they aren't actually charged
   def fee_balance_v2_cents
     @fee_balance_v2_cents ||= total_fees_v2_cents - total_fee_payments_v2_cents
   end
@@ -546,6 +628,12 @@ class Event < ApplicationRecord
     if slug_previously_changed?
       slugs.create(slug: slug)
     end
+  end
+
+  def demo_mode_limit
+    return if can_open_demo_mode? demo_mode_limit_email
+
+    errors.add(:demo_mode, "limit reached for user")
   end
 
 end

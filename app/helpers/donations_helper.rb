@@ -20,17 +20,18 @@ module DonationsHelper
     timestamp ? format_datetime(timestamp) : "–"
   end
 
+  # this information is visible to admins only because payouts should feel instant to the user
   def donation_payout_datetime(donation = @donation)
     date = nil
     title = nil
     if donation.deposited?
-      title = "Funds available since"
+      title = "Funds available since "
       date = @hcb_code.canonical_transactions.pluck(:date).max
     elsif donation.payout_creation_queued_at && donation.payout.nil?
-      title = "Transfer scheduled"
+      title = "Transfer scheduled for "
       date = donation.payout_creation_queued_for
     elsif donation.payout_creation_queued_at && donation.payout.present?
-      title = "Funds should be available"
+      title = "Funds should be available from "
       date = donation.payout.arrival_date
     end
 
@@ -96,11 +97,12 @@ module DonationsHelper
   end
 
   def donation_fee_type(donation = @donation)
-    if donation.payment_method_type == "card"
+    case donation.payment_method_type
+    when "card"
       brand = donation.payment_method_card_brand.humanize.capitalize
       funding = donation.payment_method_card_funding.humanize.capitalize
       return "#{brand} #{funding} card fee"
-    elsif donation.payment_method_type == "ach_credit_transfer"
+    when "ach_credit_transfer"
       "ACH / wire fee"
     else
       "Transfer fee"

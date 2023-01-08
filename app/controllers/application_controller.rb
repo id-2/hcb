@@ -3,8 +3,15 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
   include SessionsHelper
+  include ToursHelper
 
   protect_from_forgery
+
+  before_action do
+    if current_user&.admin? || current_session&.impersonated_by&.admin?
+      Rack::MiniProfiler.authorize_request
+    end
+  end
 
   # Ensure users are signed in. Create one-off exceptions to this on routes
   # that you want to be unauthenticated with skip_before_action.
@@ -77,6 +84,10 @@ class ApplicationController < ActionController::Base
     headers["X-Accel-Buffering"] = "no"
     headers["Cache-Control"] ||= "no-cache"
     headers.delete("Content-Length")
+  end
+
+  def confetti!
+    flash[:confetti] = true
   end
 
 end

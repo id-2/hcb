@@ -2,42 +2,61 @@
 <% page_md %>
 <%= render 'events/nav' %>
 
+<% @perks_available = organizer_signed_in? && !@event.demo_mode? %>
+
 <h1>
   Promotions &amp; perks
 </h1>
+
+<% if (@event.hackathon? || @event.high_school_hackathon?) && (@event.country_us? || @event.country == "CA") || Flipper.enabled?(:hackathon_grant, @event) %>
+  <div class="card pb0 mb3 promo-hackathon-grant" id="hackathon-grant" style="border: 2px solid #ec3750">
+    <div class="card__banner card__banner--top flex justify-between items-center">
+      <h3 class="h1 p2 my0 flex flex-column items-start smoke">
+        <span class="badge bg-success m0 mb1">New!</span>
+        💵 Hackathon Grant
+      </h3>
+      <%= link_to 'Apply',
+        @perks_available ? "https://hackclub.com/hackathons/grant/" : root_path,
+        class: "btn mr1 #{'disabled' unless @perks_available} tooltipped tooltipped--w",
+        "aria-label" => "Get notified when grant applications are open.",
+        target: :_blank %>
+    </div>
+
+    <p>
+      Hack Club is partnering with <a href="https://firstinspires.org" target="_blank"><i>FIRST®</i></a> to offer <strong>$500</strong> grants to in-person high school hackathons until June 30th, 2023. <strong>Applications are now open.</strong>
+    </p>
+  </div>
+<% end %>
 
 <div class="card mb3" id="1password">
   <div class="card__banner card__banner--top flex justify-between items-center promo-1password">
     <%= image_tag '1password.svg', width: 210, class: "p2" %>
     <%= link_to 'Apply',
-      organizer_signed_in? ? "https://hack.af/1passpromo?prefill_Project%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Your%20Name=#{current_user.full_name}&prefill_Email=#{current_user.email}" : root_path,
-      class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
-      target: :_blank
-     %>
+      @perks_available ? airtable_form("shrzBkriPDd6ngbgp", { "Project Name" => @event.name, "Bank URL" => event_url(@event), "Your Name" => current_user.full_name, "Email" => current_user.email }, ["Project Name", "Bank URL"]) : root_path,
+      class: "btn bg-success mr1 #{'disabled' unless @perks_available}",
+      target: :_blank %>
   </div>
 
   <p class="mb0">
-    <%= link_to '1Password', 'https://1password.com' %> is providing $100 USD of credit to all organizations 
+    <%= link_to '1Password', 'https://1password.com' %> is providing $100 USD of credit to all organizations
     on Hack Club Bank. 1Password is a password manager that allows you to securely keep and share account logins
     and credentials with your teammates; we use it ourselves at Hack Club HQ!
   </p>
 </div>
 
-
 <div class="card pb0 mb3" id="event-helper">
   <div class="card__banner card__banner--top flex justify-between items-center promo-event-helper">
     <%= image_tag 'https://cloud-fz66hmje0-hack-club-bot.vercel.app/0theeventhelperbutbetter.png', width: 60 %>
     <%= link_to 'Purchase',
-      organizer_signed_in? ? "https://hack.af/event-helper-perk?prefill_Event%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Submitter%20Name=#{current_user.full_name}&prefill_Submitter%20Email=#{current_user.email}" : root_path,
-      class: "btn mr1 #{'disabled' unless organizer_signed_in?}",
-      target: :_blank
-    %>
+      @perks_available ? airtable_form("shrtBxs52NfNkgLPW", { "Event Name" => @event.name, "Bank URL" => event_url(@event), "Submitter Name" => current_user.full_name, "Submitter Email" => current_user.email }, ["Event Name", "Bank URL"]) : root_path,
+      class: "btn mr1 #{'disabled' unless @perks_available}",
+      target: :_blank %>
   </div>
 
   <p>
     <%= link_to 'The Event Helper', 'https://www.theeventhelper.com/', target: :_blank %>
-    is partnering with Hack Club Bank to create a simplified way for your team to 
-    purchase event insurance. Just apply with your event details to receive a quote from the Bank team. 
+    is partnering with Hack Club Bank to create a simplified way for your team to
+    purchase event insurance. Just apply with your event details to receive a quote from the Bank team.
     All costs are directly from The Event Helper, we don't charge a fee on top.
   </p>
 
@@ -72,16 +91,16 @@
 <div class="card mb3" id="wallets">
   <div class="card__banner card__banner--top flex justify-between items-center promo-wallets">
     <h3 class="h1 p2 my0 color-black">Wallets (beta)</h3>
-    <%= link_to 'Request',
-                organizer_signed_in? ? "https://hack.af/hcb-wallets?prefill_Organization%20Name=#{@event.name}&prefill_Recipient%20Name=#{current_user.full_name}&prefill_Login%20Email=#{current_user.email}" : root_path,
-                class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
-                target: :_blank
-    %>
+    <%= link_to 'Out of stock!',
+                @perks_available ? airtable_form("shrx9Bpv5UKhszWlM", { "Organization Name" => @event.name, "Recipient Name" => current_user.full_name, "Login Email" => current_user.email }, ["Organization Name", "Login Email"]) : root_path,
+                class: "btn bg-success mr1 #{'disabled' unless @perks_available}",
+                target: :_blank, disabled: true %>
   </div>
 
   <p class="mb0">
     The days of needing thick leather wallets are coming to an end. Have physical Hack Club Bank cards, but not sure how to keep them?
-    We'll ship you a <a href="https://hack.af/minimalist-wallet" target="_blank">minimalist wallet</a>—durable with a slim form factor designed to carry the basic necessities. Each wallet is individually printed and personally shipped out by the Bank team.
+    We'll ship you a <a href="https://hack.af/minimalist-wallet" target="_blank">minimalist wallet</a>—durable with a slim form factor
+    designed to carry the basic necessities. Each wallet is individually printed and personally shipped out by the Bank team (while supplies last!).
   </p>
 </div>
 
@@ -89,10 +108,9 @@
   <div class="card__banner card__banner--top flex justify-between items-center promo-pvsa">
     <%= image_tag 'https://cloud-q7i8htyv7-hack-club-bot.vercel.app/0pvsa-logo-2x.png', width: 60 %>
     <%= link_to 'Purchase',
-      organizer_signed_in? ? "https://hack.af/pvsa-order?prefill_Event%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Submitter%20Email=#{current_user.email}" : root_path,
-      class: "btn mr1 #{'disabled' unless organizer_signed_in?}",
-      target: :_blank
-    %>
+      @perks_available ? airtable_form("shrPlG3a9WMBDhB69", { "Event Name" => @event.name, "Bank URL" => event_url(@event), "Submitter Email" => current_user.email}, ["Event Name", "Bank URL"] ) : root_path,
+      class: "btn mr1 #{'disabled' unless @perks_available}",
+      target: :_blank %>
   </div>
 
   <p>
@@ -141,16 +159,15 @@
     <div
       class="card__banner card__banner--top flex justify-between items-center promo-domains">
       <h3 class="h1 p2 my0 color-black">Domains</h3>
-        <% if !@event.g_suites.not_deleted.none? && organizer_signed_in? %>
+        <% if !@event.g_suites.none? && @perks_available %>
           <div class="actions tooltipped tooltipped--w inline-block mt1" aria-label="You already own a domain!">
             <span class="btn bg-success disabled">Apply</span>
           </div>
         <% else %>
           <%= link_to 'Apply',
-            organizer_signed_in? ? "https://hack.af/bank-domains?prefill_Project%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Name=#{current_user.first_name}&prefill_Login%20email=#{current_user.email}" : root_path,
-            class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
-            target: :_blank
-          %>
+            @perks_available ? airtable_form("shrKUmCPpbZ7Pdl0B", { "Project Name" => @event.name, "Bank URL" => event_url(@event), "Name" => current_user.full_name, "Login email" => current_user.email }, ["Project Name", "Bank URL", "Name", "Login email"]) : root_path,
+            class: "btn bg-success mr1 #{'disabled' unless @perks_available}",
+            target: :_blank %>
         <% end %>
     </div>
 
@@ -172,10 +189,9 @@
         <%= image_tag 'stickers/icon-sticker-light.svg', width: 50, class: 'sticker ml2 xs-hide' %>
       </span>
     <%= link_to 'Request',
-      organizer_signed_in? ? "https://hack.af/hcb-stickers?prefill_Recipient%20Name=#{current_user.full_name}&prefill_Login%20Email=#{current_user.email}&prefill_Organization=#{@event.name}" : root_path,
-      class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
-      target: :_blank
-     %>
+      @perks_available ? airtable_form("shrSSUq9y8YIESs2e", { "Recipient Name" => current_user.full_name, "Login Email" => current_user.email, "Organization" => @event.name }, ["Organization", "Login Email"]) : root_path,
+      class: "btn bg-success mr1 #{'disabled' unless @perks_available}",
+      target: :_blank %>
   </div>
 
   <div class="mb0">
@@ -195,10 +211,9 @@
   <div class="card__banner card__banner--top flex justify-between items-center promo-sendy">
     <h3 class="h1 white p2 my0">Sendy</h3>
     <%= link_to 'Apply',
-      organizer_signed_in? ? "https://hack.af/sendypromo?prefill_Project%20Name=#{@event.name}&prefill_Bank%20URL=#{event_url(@event)}&prefill_Your%20name=#{current_user.full_name}&prefill_Domain%20URL=#{@event.g_suites.not_deleted.first&.domain}" : root_path,
-      class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
-      target: :_blank
-     %>
+      @perks_available ? airtable_form("shrfNzwwEGTlc7Zn7", { "Project Name" => @event.name, "Bank URL" => event_url(@event), "Your name" => current_user.full_name, "Login email" => current_user.email, "Domain URL" => @event.g_suites.first&.domain }, ["Project Name", "Bank URL", "Your name", "Login email"]) : root_path,
+      class: "btn bg-success mr1 #{'disabled' unless @perks_available}",
+      target: :_blank %>
   </div>
 
   <p class="mb0">
@@ -213,11 +228,10 @@
     <div class="card__banner card__banner--top flex justify-between items-center" style="background-color:#4E2817">
       <%= image_tag 'stickermule.svg', width: 240 %>
       <%= link_to 'Expired',
-                  organizer_signed_in? ? "https://hack.af/stickermule?prefill_Event%20Name=#{@event.name}&prefill_First%20Name=#{current_user.first_name}&prefill_Email=#{current_user.email}" : root_path,
-                  class: "btn bg-success mr1 #{'disabled' unless organizer_signed_in?}",
+                  @perks_available ? "https://hack.af/stickermule?prefill_Event%20Name=#{@event.name}&prefill_First%20Name=#{current_user.first_name}&prefill_Email=#{current_user.email}" : root_path,
+                  class: "btn bg-success mr1 #{'disabled' unless @perks_available}",
                   target: :_blank,
-                  disabled: true
-      %>
+                  disabled: true %>
     </div>
 
     <p class="muted">
@@ -281,10 +295,9 @@
     <div class="card__banner card__banner--top flex justify-between items-center" style="background-color:#eee">
       <%= image_tag 'github.png', width: 170 %>
       <%= link_to 'Expired',
-        organizer_signed_in? ? "https://hack.af/grant?prefill_Event%20Name=#{@event.name}" : root_path,
-        class: "btn bg-accent mr1 #{'disabled' unless organizer_signed_in?}",
-        disabled: true
-      %>
+        @perks_available ? "https://hack.af/grant?prefill_Event%20Name=#{@event.name}" : root_path,
+        class: "btn bg-accent mr1 #{'disabled' unless @perks_available}",
+        disabled: true %>
     </div>
 
     <p class="muted">

@@ -1,5 +1,5 @@
 <tr
-  class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %>"
+  class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %> <%= "transaction--fancy" if ct.local_hcb_code.hackathon_grant? && ct.amount > 0 %>"
   id="<%= ct.local_hcb_code.hashid %>"
   <% if defined?(receipt_upload_button) %>
     data-controller="file-drop"
@@ -10,37 +10,50 @@
       dragenter->file-drop#dragenter
       dragleave->file-drop#dragleave
     "
-  <% end %>
->
+  <% end %>>
     <% if ct.fee_payment? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Hack Club Bank Fee payment">
         <%= inline_icon "minus-fill" %>
       </td>
-    <% elsif ct.check? %>
+    <% elsif ct.local_hcb_code.fee_revenue? %>
+      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Fee revenue">
+        <%= inline_icon "plus-fill" %>
+      </td>
+    <% elsif ct.local_hcb_code.check? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing check">
         <%= inline_icon "payment-transfer" %>
       </td>
-    <% elsif ct.ach_transfer? %>
+    <% elsif ct.local_hcb_code.ach_transfer? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing ACH">
         <%= inline_icon "payment-transfer" %>
       </td>
     <% elsif ct.raw_stripe_transaction %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction<%= !defined?(authorless) && ct.stripe_cardholder ? ' by ' + ct.stripe_cardholder.user.initial_name : ''%>">
+      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction<%= !defined?(authorless) && ct.stripe_cardholder ? ' by ' + ct.stripe_cardholder.user.initial_name : '' %>">
         <% unless defined?(authorless) || !ct.stripe_cardholder %>
           <%= avatar_for ct.stripe_cardholder.user, 24 %>
         <% else %>
           <%= inline_icon "card" %>
         <% end %>
       </td>
-    <% elsif ct.invoice? %>
+    <% elsif ct.local_hcb_code.invoice? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Invoice">
         <%= inline_icon "briefcase" %>
       </td>
-    <% elsif ct.donation? %>
+    <% elsif ct.local_hcb_code.donation? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Donation">
         <%= inline_icon "support" %>
       </td>
-    <% elsif ct.disbursement? %>
+    <% elsif ct.local_hcb_code.hackathon_grant? %>
+      <% if ct.amount.positive? %>
+        <td class="transaction__icon tooltipped tooltipped--e" aria-label="Hackathon grant">
+          <%= inline_icon "purse" %>
+        </td>
+      <% else %>
+        <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing hackathon grant">
+          <%= inline_icon "door-leave" %>
+        </td>
+      <% end %>
+    <% elsif ct.local_hcb_code.disbursement? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Disbursement">
         <% if ct.amount.negative? %>
           <%= inline_icon "door-leave" %>
@@ -59,9 +72,59 @@
   </td>
   <td class="transaction__memo">
     <div>
-      <span title="<%= ct.local_hcb_code.memo %>">
-        <%= ct.local_hcb_code.memo %>
-      </span>
+      <div class="flex-auto">
+        <div class="flex items-center justify-start">
+          <span title="<%= ct.local_hcb_code.memo %>">
+            <% if ct.local_hcb_code.hackathon_grant? %>
+              💰 Grant from Hack Club and <i>FIRST</i>®
+            <% else %>
+              <%= ct.local_hcb_code.memo %>
+            <% end %>
+          </span>
+
+          <% if !defined?(receipt_upload_button) && organizer_signed_in? && Flipper.enabled?(:transaction_tags_2022_07_29, @event || ct.local_hcb_code.event) %>
+            <div class="overflow-visible relative" style="margin-left: 0.5rem;" data-controller="menu" data-menu-append-to-value="turbo-frame#ledger">
+              <button class="list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">+ Add tag</button>
+              <div class="menu__content menu__content--2 menu__content--compact menu__content--left h6" data-menu-target="content">
+                <% (@event || ct.local_hcb_code.event).tags.each do |tag| %>
+                  <div class="flex items-center">
+                    <%= button_to toggle_tag_hcb_code_path(id: ct.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
+                      <%= "✓" if ct.local_hcb_code.tags.include?(tag) %>
+
+                      <%= tag.label %>
+                    <% end %>
+                    <%= button_to event_tag_path(@event || ct.local_hcb_code.event, tag), class: "menu__action", method: :delete, title: "Delete this tag", form: { "data-turbo" => "true", "data-turbo-confirm" => tag.removal_confirmation_message } do %>
+                      <%= inline_icon "delete", size: 16, style: "margin: 0" %>
+                    <% end %>
+                  </div>
+                <% end %>
+                <% if (@event || ct.local_hcb_code.event).tags.any? %>
+                  <div class="menu__divider"></div>
+                <% end %>
+                <%= form_with url: event_tags_path(@event || ct.local_hcb_code.event), data: { turbo: true } do |form| %>
+                  <%= form.hidden_field :hcb_code_id, value: ct.local_hcb_code.hashid %>
+                  <%= form.text_field :label, data: { "behavior" => (@event || ct.local_hcb_code.event).tags.none? ? "autofocus" : "" }, class: "menu__input", placeholder: "+ Create tag", autocomplete: "off", required: true %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
+          <div class="flex flex-wrap" style="gap: 0.25rem">
+            <% ct.local_hcb_code.tags.filter {|tag| !@event || tag.event == @event}.each do |tag| %>
+              <div class="badge tx-tag m0 shrink-none flex items-center">
+                <%= tag.label %>
+                <% if organizer_signed_in? %>
+                  <%= button_to toggle_tag_hcb_code_path(id: ct.local_hcb_code.hashid, tag_id: tag.id), class: "p0 line-height-0 bg-transparent border-none cursor-pointer link-reset", form_class: "line-height-0", form: { "data-turbo" => "true" } do %>
+                    <%= inline_icon "view-close", size: 16 %>
+                  <% end %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
 
       <% if ct.local_hcb_code %>
         <%= list_badge_for ct.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: !ct.raw_stripe_transaction, required: ct.raw_stripe_transaction && !ct.local_hcb_code.no_or_lost_receipt? %>
@@ -73,7 +136,7 @@
     <span><%= number_to_currency ct.amount %></span>
   </td>
   <td>
-    <%= link_to "Details", ct.url if organizer_signed_in? || defined?(force_display_details) %>
+    <%= link_to "Details", ct.local_hcb_code.url if organizer_signed_in? || defined?(force_display_details) %>
   </td>
   <% if defined?(receipt_upload_button) %>
     <td style="width: 1%">

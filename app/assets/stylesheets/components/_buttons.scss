@@ -68,6 +68,35 @@ input[type='submit'],
   &.btn--destroy {
     @include gradient(error);
   }
+
+}
+
+.btn--form-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  line-height: 1.25;
+  color: map-get($palette, info);
+  background-color: rgba(map-get($palette, accent), 0.25);
+
+  &:hover, &:focus {
+    color: map-get($palette, info);
+  }
+
+  html[data-dark='true'] & {
+    color: map-get($palette, white);
+  }
+}
+
+.btn-small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.75;
+  padding: 0.25rem 1rem;
 }
 
 form .flex-auto + input[type='submit'] {

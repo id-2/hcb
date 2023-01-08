@@ -5,9 +5,9 @@
   <% content_for :head do %>
     <% img = "https://workshop-cards.hackclub.com/#{url_encode(@event.name)}.png?theme=light&fontSize=225px&caption=Transparent%2520Finances&brand=Bank" %>
     <meta name="twitter:card" content="summary_large_image">
-    <meta property="og:image" content="<%= img %>"/>
+    <meta property="og:image" content="<%= img %>">
     <meta name="twitter:image" content="<%= img %>">
-    <meta property="og:site_name" content="Hack Club Bank" />
+    <meta property="og:site_name" content="Hack Club Bank">
     <meta property="og:url" content="<%= event_path(@event) %>">
     <meta property="og:title" content="<%= @event.name %>">
     <meta name="twitter:title" content="<%= @event.name %>">
@@ -43,11 +43,11 @@
       "mailto:#{@organizers.map(&:user).map(&:email).join(',')}",
       class: 'info mb1 mr2' if admin_signed_in? %>
     <% @organizers.each do |position| %>
-      <div class="avatar-grow line-height-0 tooltipped tooltipped--s mb1 mr1" aria-label="<%= position.user.full_name %>">
+      <div class="avatar-grow line-height-0 tooltipped tooltipped--s mb1 mr1" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.full_name %>">
         <%= avatar_for position.user, 36 %>
       </div>
     <% end %>
-    <%= pop_icon_to 'member-add', event_team_path(@event), class: 'mb1' %>
+    <%= pop_icon_to 'member-add', event_team_path(@event), class: 'mb1', data: { 'tour-step' => 'invite' } %>
   <% else %>
     <p class="slate bold h3 mr2">No organizers invited yet</p>
     <%= pop_icon_to 'member-add', event_team_path(@event) %>
@@ -61,7 +61,7 @@
 <% end %>
 
 <div class="statset">
-  <div class="stat statset__wide">
+  <div class="stat statset__wide" data-tour-step="balance">
     <span class="stat__label">Account balance</span>
     <span class="stat__value"><%= render_money_amount @event.balance_v2_cents %></span>
   </div>
@@ -73,15 +73,27 @@
       </span>
       <span class="stat__value">—</span>
     </action>
-    <action class="stat stat--small" area="deposits">
-      <span class="stat__label flex items-center">
-        Incoming deposits
-        <%= inline_icon 'external', size: 24, class: 'muted ml1', 'aria-label': 'Icon indicating click for more' %>
-      </span>
-      <span class="stat__value">—</span>
-    </action>
   <% end %>
 </div>
+
+<% if @event.demo_mode? && organizer_signed_in? %>
+  <div class="card border b--info pb0 mb2 mt2 max-width-2 overflow-y-auto">
+    <div class="flex items-center info">
+      <%= inline_icon 'welcome', size: 32, class: 'mr1' %>
+      <p class="bold mt0 mb0">Welcome to Demo Mode</p>
+    </div>
+    <ul class="mt1 mb2">
+      <li>You can invite other team members.</li>
+      <li>Your financial tools are restricted.</li>
+      <li>Your account may be removed after a week of inactivity.</li>
+      <li>When you're ready to fully activate your account, <%= link_to "click here", "#", data: { behavior: :modal_trigger, modal: :demo_mode, "tour-step": :activate_account } %>.</li>
+    </ul>
+    <div class="border-top card__banner card__darker secondary">
+      <strong>Questions?</strong>
+      <%= help_message %>
+    </div>
+  </div>
+<% end %>
 
 <h2 class="heading">
   Transactions
@@ -103,44 +115,78 @@
   <% end %>
 </h2>
 
+<%= turbo_frame_tag :ledger do %>
+  <div class="filterbar flex flex-row items-center width-100">
 
-<%= form_with(model: nil, local: true, method: :get) do |form| %>
-  <div class="filterbar flex flex-wrap items-center width-100">
+    <%= form_with(model: nil, local: true, method: :get, class: "flex-auto md-mr2") do |form| %>
+      <%= form.text_field :q, placeholder: "Search", style: "width auto; max-width: none;", value: params[:q] %>
+      <% if @tag %>
+        <%= form.hidden_field :tag, value: @tag.label %>
+      <% end %>
+    <% end %>
 
-    <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
+    <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 %>
+      <div data-controller="menu" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-end">
+        <button
+          type="button"
+          class="btn btn-small bg-info menu__toggle menu__toggle--arrowless overflow-visible z1 mr1"
+          data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
+          <%= inline_icon 'filter', size: 16 %>
+          <% if @tag %>
+            <span class="sm-hide md-hide flex items-center">
+              <span class="nowrap">Filtered by</span>
+              <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1"><%= @tag.label %></span>
+            </span>
+          <% else %>
+            <span class="sm-hide md-hide nowrap">Filter</span>
+          <% end %>
+        </button>
+        <div class="menu__content menu__content--2 menu__content--compact h5" data-menu-target="content">
+          <% if @tag %>
+            <%= link_to do %>
+              <%= inline_icon "view-close", size: 24 %>
+              Clear filters
+            <% end %>
 
-    <!--
-    <div data-behavior="filterbar" role="tablist" class="filterbar__filters flex mt1 lg-mt0">
-      <%= filterbar_item 'All', :exists, true %>
-      <%= filterbar_item 'Revenue', :fee_applies %>
-      <%#= filterbar_item 'Fees', :fee_payment %>
-      <%#= filterbar_item 'Card', :card %>
+            <div class="menu__divider"></div>
+          <% end %>
+
+          <% @event.tags.each do |tag| %>
+            <div class="flex items-center">
+              <%= link_to tag.label, { tag: tag.label, q: params[:q] }.compact, class: "flex-auto menu__action" %>
+              <% if organizer_signed_in? %>
+                <%= button_to event_tag_path(@event, tag), class: "menu__action", method: :delete, title: "Delete this tag", form: { "data-turbo" => "true", "data-turbo-confirm" => tag.removal_confirmation_message } do %>
+                  <%= inline_icon "delete", size: 20, style: "margin: 0" %>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @pending_transactions.any? || @transactions.any? %>
+    <div class="table-container" data-tour-step="transactions">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="right-align">Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody data-behavior="transactions">
+            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event } %>
+
+            <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event } %>
+          </tbody>
+        </table>
     </div>
-    -->
-
-  </div>
-<% end %>
-
-<% if @pending_transactions.any? || @transactions.any? %>
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Date</th>
-          <th>Description</th>
-          <th class="right-align">Amount</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody data-behavior="transactions">
-        <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event } %>
-
-        <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event } %>
-      </tbody>
-    </table>
-  </div>
-  <%= paginate @transactions %>
-<% else %>
-  <%= blankslate 'No transactions yet' %>
+    <%= paginate @transactions %>
+  <% else %>
+    <%= blankslate 'No transactions yet' %>
+  <% end %>
 <% end %>

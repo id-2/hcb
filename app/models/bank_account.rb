@@ -4,21 +4,22 @@
 #
 # Table name: bank_accounts
 #
-#  id                 :bigint           not null, primary key
-#  failed_at          :datetime
-#  failure_count      :integer          default(0)
-#  is_positive_pay    :boolean
-#  name               :text
-#  plaid_access_token :text
-#  should_sync        :boolean          default(TRUE)
-#  should_sync_v2     :boolean          default(FALSE)
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
-#  plaid_account_id   :text
-#  plaid_item_id      :text
+#  id                            :bigint           not null, primary key
+#  failed_at                     :datetime
+#  failure_count                 :integer          default(0)
+#  is_positive_pay               :boolean
+#  name                          :text
+#  plaid_access_token_ciphertext :text
+#  should_sync                   :boolean          default(TRUE)
+#  should_sync_v2                :boolean          default(FALSE)
+#  created_at                    :datetime         not null
+#  updated_at                    :datetime         not null
+#  plaid_account_id              :text
+#  plaid_item_id                 :text
 #
 class BankAccount < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: [:plaid_access_token] # ciphertext columns will still be tracked
+  has_encrypted :plaid_access_token
 
   has_many :transactions
 

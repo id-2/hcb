@@ -36,15 +36,20 @@ Rails.application.routes.draw do
   get "bookkeeping", to: "admin#bookkeeping"
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
 
+  get "wrapped", to: "users#wrapped"
+
   scope :my do
     get "/", to: redirect("/"), as: :my
     get "settings", to: "users#edit", as: :my_settings
-
+    get "settings/previews", to: "users#edit_featurepreviews"
+    get "settings/security", to: "users#edit_security"
+    get "settings/admin", to: "users#edit_admin"
     resources :stripe_authorizations, only: [:index, :show], path: "transactions" do
       resources :comments
     end
     get "inbox", to: "static_pages#my_inbox", as: :my_inbox
     get "missing_receipts", to: "static_pages#my_missing_receipts_list", as: :my_missing_receipts_list
+    get "missing_receipts_icon", to: "static_pages#my_missing_receipts_icon", as: :my_missing_receipts_icon
     get "receipts", to: redirect("/my/inbox")
     get "receipts/:id", to: "stripe_authorizations#receipt", as: :my_receipt
 
@@ -66,6 +71,9 @@ Rails.application.routes.draw do
     collection do
       get "impersonate", to: "users#impersonate"
       get "auth", to: "users#auth"
+      post "auth", to: "users#auth_submit"
+      get "auth/login_preference", to: "users#choose_login_preference", as: :choose_login_preference
+      post "auth/login_preference", to: "users#set_login_preference", as: :set_login_preference
       post "webauthn", to: "users#webauthn_auth"
       get "webauthn/auth_options", to: "users#webauthn_options"
       post "login_code", to: "users#login_code"
@@ -92,6 +100,11 @@ Rails.application.routes.draw do
       # For compatibility with the previous WebAuthn login flow
       get "webauthn", to: redirect("/users/auth")
     end
+    member do
+      get "previews", to: "users#edit_featurepreviews"
+      get "security", to: "users#edit_security"
+      get "admin", to: "users#edit_admin"
+    end
     post "delete_profile_picture", to: "users#delete_profile_picture"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
 
@@ -101,9 +114,6 @@ Rails.application.routes.draw do
       end
     end
   end
-
-  # webhooks
-  post "webhooks/donations", to: "donations#accept_donation_hook"
 
   resources :admin, only: [] do
     collection do
@@ -147,6 +157,7 @@ Rails.application.routes.draw do
 
     member do
       get "transaction", to: "admin#transaction"
+      get "event_balance", to: "admin#event_balance"
       get "event_process", to: "admin#event_process"
       put "event_toggle_approved", to: "admin#event_toggle_approved"
       put "event_reject", to: "admin#event_reject"
@@ -181,6 +192,11 @@ Rails.application.routes.draw do
   end
 
   resources :organizer_positions, only: [:destroy], as: "organizers" do
+    member do
+      post "set_index"
+      post "mark_visited"
+    end
+
     resources :organizer_position_deletion_requests, only: [:new], as: "remove"
   end
 
@@ -219,8 +235,11 @@ Rails.application.routes.draw do
   end
   resources :stripe_cardholders, only: [:new, :create, :update]
   resources :stripe_cards, only: %i[create index show] do
+    get "edit"
+    post "update_name"
     post "freeze"
     post "defrost"
+    post "activate"
   end
   resources :emburse_cards, except: %i[new create]
 
@@ -273,6 +292,8 @@ Rails.application.routes.draw do
       post "receipt"
       get "attach_receipt"
       get "dispute"
+      post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
+      post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
     end
 
     resources :comments
@@ -387,6 +408,7 @@ Rails.application.routes.draw do
 
   get "api/v1/events/find", to: "api#event_find" # to be deprecated
   post "api/v1/disbursements", to: "api#disbursement_new" # to be deprecated
+  post "api/v1/events/create_demo", to: "api#create_demo_event"
 
   post "stripe/webhook", to: "stripe#webhook"
   get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"
@@ -405,6 +427,13 @@ Rails.application.routes.draw do
   get "/integrations/frankly" => "integrations#frankly"
 
   post "twilio/messaging", to: "admin#twilio_messaging"
+
+  resources :tours, only: [] do
+    member do
+      post "mark_complete"
+      post "set_step"
+    end
+  end
 
   match "/404", to: "errors#not_found", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -429,6 +458,10 @@ Rails.application.routes.draw do
     get "cards/new", to: "stripe_cards#new"
     get "stripe_cards/shipping", to: "stripe_cards#shipping", as: :stripe_cards_shipping
 
+    get "transfers/new", to: "events#new_transfer"
+
+    get "async_balance", to: "events#async_balance", as: :async_balance
+
     # (@eilla1) these pages are for the wip resources page and will be moved later
     get "connect_gofundme", to: "events#connect_gofundme", as: :connect_gofundme
     get "receive_check", to: "events#receive_check", as: :receive_check
@@ -439,6 +472,7 @@ Rails.application.routes.draw do
     get "promotions", to: "events#promotions", as: :promotions
     get "donations", to: "events#donation_overview", as: :donation_overview
     get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overview
+    post "demo_mode_request_meeting", to: "events#demo_mode_request_meeting", as: :demo_mode_request_meeting
     get "bank_fees", to: "events#bank_fees", as: :bank_fees
     resources :disbursements, only: [:new, :create]
     resources :checks, only: [:new, :create]
@@ -454,6 +488,12 @@ Rails.application.routes.draw do
       resources :comments
     end
     resources :reimbursements, only: [:index, :new, :create]
+    resources :tags, only: [:create, :destroy]
+
+    member do
+      post "disable_feature"
+      post "enable_feature"
+    end
   end
 
   # rewrite old event urls to the new ones not prefixed by /events/

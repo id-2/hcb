@@ -7,23 +7,52 @@
   <h2 class="h2 mt0 border-none">
     <%= @source.name %>
     <span class="regular muted">
-      <%= @hcb_code.disbursement.fulfilled? ? 'transferred' : (@hcb_code.disbursement.pending? ||
-        @hcb_code.disbursement.processed?) ? 'transferring' : 'transfer of' %>
+      <% if @hcb_code.disbursement.fulfilled? || (@destination.can_front_balance? && (@hcb_code.disbursement.processed? || @hcb_code.disbursement.pending?)) %>
+        transferred
+      <% elsif @hcb_code.disbursement.processed? || @hcb_code.disbursement.pending? %>
+        transferring
+      <% else %>
+        transfer of
+      <% end %>
     </span>
     <span class="regular"><%= render_money @hcb_code.disbursement.amount %></span>
     <span class="regular muted">to</span>
     <%= @destination.name %>
     <span class="badge h4 md-right ml0 bg-<%= @hcb_code.disbursement.state %>">
-      <%= @hcb_code.disbursement.state_text %>
+      <%= @hcb_code.disbursement.state_text.humanize %>
       <%= inline_icon @hcb_code.disbursement.state_icon, size: 20 if @hcb_code.disbursement.state_icon %>
     </span>
   </h2>
 
   <section class="card__banner card__darker details-horiz border-top border-bottom">
+    <% unless @hcb_code.disbursement.requested_by.nil? %>
+      <p>
+        <% if @hcb_code.disbursement.reviewing? || @hcb_code.disbursement.rejected? %>
+          <strong>Requested by</strong>
+        <% else %>
+          <strong>Sent by</strong>
+        <% end %>
+        <%= user_mention @hcb_code.disbursement.requested_by %>
+      </p>
+    <% end %>
+
+    <% unless @hcb_code.disbursement.fulfilled_by.nil? %>
+      <% admin_tools('', 'p') do %>
+        <strong>Fulfilled by</strong>
+        <%= user_mention @hcb_code.disbursement.fulfilled_by %>
+      <% end %>
+    <% end %>
+
     <p>
-      <strong>Transferred at</strong>
-      <%= format_datetime @hcb_code.disbursement.created_at %>
+      <% if @hcb_code.disbursement.processed? %>
+        <strong>Transferred at</strong>
+        <%= format_datetime @hcb_code.disbursement.transferred_at %>
+      <% else %>
+        <strong>Requested at</strong>
+        <%= format_datetime @hcb_code.disbursement.created_at %>
+      <% end %>
     </p>
+
     <% admin_tools('', 'p') do %>
       <strong>Disbursement ID</strong>
       <%= link_to @hcb_code.disbursement.id, @hcb_code.disbursement %>
@@ -59,19 +88,21 @@
       <%= organizer_signed_in? ? @hcb_code.disbursement.name : 'Sign in to view' %>
     </p>
 
+    <%= render 'hcb_codes/tags', hcb_code: @hcb_code, event: (@event || @hcb_code.event) %>
+
     <% if @hcb_code.disbursement.fulfilled? %>
       <p>
         <strong>Confirmation letter</strong>
           <span class="muted">
             <a href="/disbursements/<%= @hcb_code.disbursement.id %>/confirmation.pdf" target="_blank">
-            <%= organizer_signed_in? ? 'View confirmation letter' : 'Sign in to view'  %>
+            <%= organizer_signed_in? ? 'View confirmation letter' : 'Sign in to view' %>
             </a>
           </span>
       </p>
     <% end %>
   </section>
 
-  <% if Flipper.enabled?(:fronted_balance_2022_06_17, @event) %>
+  <% if @event.can_front_balance? %>
     <section class="card__banner card__darker secondary border-top">
       <p class="my0 italic">
         Hack Club Bank transfers are immediately reflected in your account balance.
@@ -80,4 +111,3 @@
   <% end %>
 
 </article>
-

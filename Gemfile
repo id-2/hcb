@@ -10,7 +10,7 @@ gem "dotenv-rails", groups: [:development, :test]
 # gem 'sassc-rails' # required for rails 6
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem "rails", "6.1.6"
+gem "rails", "6.1.7"
 # Use postgresql as the database for Active Record
 gem "pg", ">= 0.18", "< 2.0"
 # Use Puma as the app server
@@ -19,11 +19,10 @@ gem "puma", "~> 4.3"
 gem "sassc-rails"
 # Include jQuery
 gem "jquery-rails"
-# Use Uglifier as compressor for JavaScript assets
-gem "uglifier", ">= 1.3.0"
+# Use Terser as compressor for JavaScript assets
+gem "terser", "~> 1.1"
 # Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker
 gem "react-rails"
-gem "webpacker", "~> 4.0"
 # See https://github.com/rails/execjs#readme for more supported runtimes
 # Due to a bug in mini_racer >=0.5.0 running on GitHub Actions, we've had to
 # roll back to mini_racer 0.4.0: https://github.com/rubyjs/mini_racer/issues/218.
@@ -121,7 +120,11 @@ gem "flipper"
 gem "flipper-active_record"
 gem "flipper-ui"
 
+# Send SMS messages
+gem "twilio-ruby"
+
 group :development, :test do
+  gem "erb_lint", require: false
   gem "relaxed-rubocop"
   gem "rspec-rails", "~> 5.0.0"
   gem "rubocop"
@@ -150,12 +153,11 @@ group :development do
   # For https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb
   gem 'htmlbeautifier', require: false
 
-  # Lets you set a breakpoint with a REPL using binding.pry
-  gem "pry-byebug"
-  gem "pry-rails"
-
   # adds comments to models with database fields
   gem 'annotate'
+
+  # for running webpack-dev-server and rails server together via Procfile
+  gem "foreman"
 end
 
 group :test do
@@ -171,7 +173,16 @@ group :test do
   gem 'faker'
 end
 
+group :development, :test do
+  # Lets you set a breakpoint with a REPL using binding.pry
+  gem "pry-byebug"
+  gem "pry-rails"
+end
+
 group :production do
+  # Performance tracking
+  gem 'skylight'
+
   # Enable compression in production
   # gem "heroku-deflater"
 
@@ -185,6 +196,7 @@ gem "ahoy_matey" # event engine
 gem "airbrake" # exception tracking
 gem "awesome_print"
 gem "blazer" # business intelligence tool/dashboard
+gem "blind_index" # needed to query and/or guarantee uniqueness for  lockbox encrypted fields
 gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
 gem "chronic"
 gem "dry-validation"
@@ -223,3 +235,15 @@ gem "browser", "~> 5.3"
 gem "geo_pattern", "~> 1.4" # for procedurally generated patterns on Cards
 
 gem "comma", "~> 4.6"
+
+
+gem "jsbundling-rails", "~> 1.0"
+
+gem "rack-mini-profiler", "~> 3.0"
+gem "stackprof" # Used with `rack-mini-profiler` to provide flamegraphs
+
+gem "country_select", "~> 8.0"
+
+gem "lab_tech" # Integrates `scientist` with ActiveRecord for experiment data collection
+gem "scientist" # Refactor testing for critical paths
+gem "table_print" # Pretty print tables in the console (used with `lab_tech`)
