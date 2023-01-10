@@ -1,7 +1,8 @@
 <% page_sm %>
+<% no_transparency_header %>
 <%= render 'events/nav' if organizer_signed_in? %>
 
-<h1>Get reimbursed by <%= @event.name %></h1>
+<h1 class="center">Get reimbursed by <%= @event.name %></h1>
 
 <%= form_with model: Reimbursement.new, url: event_reimbursements_path(@event) do |form| %>
     <div class="field">

@@ -29,7 +29,8 @@
     <%= dock_item 'Reimbursements',
       event_reimbursements_path(event_id: @event.slug),
       tooltip: 'Reimburse!',
-      icon: 'friend' %>
+      icon: 'friend',
+      async_badge: reimbursements_icon_event_path(@event) %>
     <%= dock_item 'Donations',
       @event.partner.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
       event_donation_overview_path(event_id: @event.slug),

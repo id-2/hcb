@@ -399,6 +399,11 @@ class EventsController < ApplicationController
     redirect_to edit_event_path(@event)
   end
 
+  def reimbursements_icon
+    authorize @event
+    @count = @event.reimbursements.pending_approval.count
+  end
+
   private
 
   # Only allow a trusted parameter "white list" through.

@@ -493,6 +493,7 @@ Rails.application.routes.draw do
     member do
       post "disable_feature"
       post "enable_feature"
+      get "reimbursements_icon"
     end
   end
 
