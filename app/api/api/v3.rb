@@ -22,14 +22,14 @@ module Api
       end
 
       def transactions
-        # TODO: this can be optimized
         @transactions ||=
           begin
-            pending = PendingTransactionEngine::PendingTransaction::All.new(event_id: org.id).run
-            settled = TransactionGroupingEngine::Transaction::All.new(event_id: org.id).run
+            pending = PendingTransactionEngine::PendingTransaction::All.new(event_id: org.id).run.pluck(:hcb_code)
+            settled = TransactionGroupingEngine::Transaction::All.new(event_id: org.id).canonical_transactions_grouped.pluck(:hcb_code)
 
-            combined = paginate(Kaminari.paginate_array(pending + settled))
-            combined.map(&:local_hcb_code)
+            combined = pending + settled
+            combined = paginate(Kaminari.paginate_array(combined))
+            HcbCode.where(hcb_code: combined)
           end
       end
 
