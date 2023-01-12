@@ -31,27 +31,54 @@ module PendingTransactionEngine
             # rubocop:disable Naming/VariableNumber
             included_local_hcb_code_associations << :tags if Flipper.enabled?(:transaction_tags_2022_07_29, @event)
             # rubocop:enable Naming/VariableNumber
-            cpts = CanonicalPendingTransaction.includes(:raw_pending_stripe_transaction,
-                                                        local_hcb_code: included_local_hcb_code_associations)
-                                              .unsettled
-                                              .where(id: canonical_pending_event_mappings.pluck(:canonical_pending_transaction_id))
-                                              .order("canonical_pending_transactions.date desc, canonical_pending_transactions.id desc")
 
-            if @tag_id
-              cpts =
-                cpts.joins("LEFT JOIN hcb_codes ON hcb_codes.hcb_code = canonical_pending_transactions.hcb_code")
-                    .joins("LEFT JOIN hcb_codes_tags ON hcb_codes_tags.hcb_code_id = hcb_codes.id")
-                    .where("hcb_codes_tags.tag_id = ?", @tag_id)
-                    .where("hcb_codes.hcb_code = ?", "HCB-#{@hcb_code_type}-%")
-            end
+            cpts = CanonicalPendingTransaction
+                   .includes(:raw_pending_stripe_transaction, local_hcb_code: included_local_hcb_code_associations)
+                   .unsettled
+                   .where(id: canonical_pending_event_mappings.pluck(:canonical_pending_transaction_id))
+                   .order("canonical_pending_transactions.date desc, canonical_pending_transactions.id desc")
+                   .then(&filter_tags)
+                   .then(&filter_hcb_code_type)
+                   .then(&filter_search_memo)
+
 
             if event.can_front_balance?
               cpts = cpts.not_fronted
             end
 
-            cpts = cpts.search_memo(@search) if @search.present?
             cpts
           end
+      end
+
+      def filter_tags
+        filter do |cpts|
+          next if @tag_id.nil?
+
+          cpts.joins("LEFT JOIN hcb_codes ON hcb_codes.hcb_code = canonical_pending_transactions.hcb_code")
+              .joins("LEFT JOIN hcb_codes_tags ON hcb_codes_tags.hcb_code_id = hcb_codes.id")
+              .where("hcb_codes_tags.tag_id = ?", @tag_id)
+        end
+      end
+
+      def filter_hcb_code_type
+        filter do |cpts|
+          next if @hcb_code_type.nil?
+
+          cpts.where("canonical_pending_transactions.hcb_code like ?", "HCB-#{@hcb_code_type}-%")
+        end
+
+      end
+
+      def filter_search_memo
+        filter do |cpts|
+          cpts.search_memo(@search) if @search.present?
+        end
+      end
+
+      def filter(&block)
+        lambda do |active_record_association|
+          block.call(active_record_association) || active_record_association
+        end
       end
 
     end

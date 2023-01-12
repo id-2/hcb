@@ -60,15 +60,23 @@ module TransactionGroupingEngine
         "and (#{type}.memo ilike '%#{@search}%' or #{type}.custom_memo ilike '%#{@search}%')"
       end
 
-      def filter
-        if @tag_id
-          <<~SQL
-            left join hcb_codes on hcb_codes.hcb_code = q1.hcb_code
-            left join hcb_codes_tags on hcb_codes_tags.hcb_code_id = hcb_codes.id
-            where hcb_codes_tags.tag_id = #{@tag_id}
-            where hcb_codes.hcb_code = 'HCB-#{@hcb_code_type}-%'
-          SQL
-        end
+      def filter_tags
+        return unless @tag_id
+
+        <<~SQL
+          left join hcb_codes on hcb_codes.hcb_code = q1.hcb_code
+          left join hcb_codes_tags on hcb_codes_tags.hcb_code_id = hcb_codes.id
+          where hcb_codes_tags.tag_id = #{@tag_id}
+        SQL
+      end
+
+      def filter_hcb_code_type
+        return unless @hcb_code_type
+
+        <<~SQL
+          left join hcb_codes on hcb_codes.hcb_code = q1.hcb_code
+          where hcb_codes.hcb_code like 'HCB-#{@hcb_code_type}-%'
+        SQL
       end
 
       def canonical_transactions_grouped
@@ -208,12 +216,14 @@ module TransactionGroupingEngine
             #{event.can_front_balance? ? "#{pt_group_sql}\nunion" : ''}
             #{ct_group_sql}
           ) q1
-          #{filter}
+          #{filter_tags}
+          #{filter_hcb_code_type}
           order by date desc, pt_ids[0] desc, ct_ids[0] desc
         SQL
 
         ActiveRecord::Base.connection.execute(q)
       end
+
       public :canonical_transactions_grouped
 
     end
