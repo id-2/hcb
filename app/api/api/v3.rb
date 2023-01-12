@@ -48,11 +48,23 @@ module Api
           begin
             hcb_code_card_type = TransactionGroupingEngine::Calculate::HcbCode::STRIPE_CARD_CODE
             pending = PendingTransactionEngine::PendingTransaction::All.new(event_id: org.id, hcb_code_type: hcb_code_card_type).run.pluck(:hcb_code)
-            settled = TransactionGroupingEngine::Transaction::All.new(event_id: org.id, hcb_code_type: hcb_code_card_type).canonical_transactions_grouped.pluck(:hcb_code)
+            settled = TransactionGroupingEngine::Transaction::All.new(event_id: org.id, hcb_code_type: hcb_code_card_type).canonical_transactions_grouped.pluck("hcb_code")
 
             combined = pending + settled
             combined = paginate(Kaminari.paginate_array(combined))
+
+            # ==================================================================
+            # TODO: RAILS 7
+            # Rails 7 introduces #in_order_of
+            # In the meantime, we'll have to use an ugly psql workaround
+
+            # Models::CardCharge.where(hcb_code: combined).in_order_of(hcb_code: combined)
+
+            # WORKAROUND:
+            hcb_order = combined.map { |h| ActiveRecord::Base.connection.quote(h) }.join(",")
             Models::CardCharge.where(hcb_code: combined)
+                              .order(Arel.sql("array_position(array[#{hcb_order}], hcb_code)"))
+            # ==================================================================
           end
       end
 
