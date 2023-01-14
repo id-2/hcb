@@ -1,5 +1,5 @@
 <% title "Team overview" %>
-<% page_sm %>
+<% page_md %>
 <%= render 'nav' %>
 
 <h1 class="flex items-center">
@@ -8,7 +8,9 @@
 </h1>
 
 <% if @positions.any? %>
+<div class="grid grid--spacious grid--ultrawide">
   <% @positions.each do |position| %>
+    <div class="max-width-2" style="justify-self: center; width: 24rem;">
     <%= creator_bar position.organizer_position_invite, prefix: 'invited ' %>
     <article class="card pt0 pb0 mb2">
       <section class='flex items-center'>
@@ -45,7 +47,11 @@
         </section>
       <% end %>
     </article>
+      <%= pop_icon_to 'member-remove', new_organizer_remove_path(organizer_id: position.id), class: 'error', disabled: !organizer_signed_in? unless position.user == current_user %>
+      <%= pop_icon_to 'controls', edit_user_path(position.user.slug), class: 'ml2' if position.user == current_user && !admin_signed_in? %>
+    </div>
   <% end %>
+</div>
 <% else %>
   <%= blankslate 'No others on your team yet' %>
 <% end %>
