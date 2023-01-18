@@ -23,22 +23,20 @@
       <% end %>
     </h2>
 
-    <div class="table-container">
-      <table>
-        <tbody data-behavior="transactions">
-          <% @hcb_codes[card.hashid].each do |hcb_code| %>
-            <% if hcb_code.canonical_transactions.any? %>
-              <% hcb_code.canonical_transactions.each do |ct| %>
-                <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: ct, force_display_details: true, receipt_upload_button: true } %>
-              <% end %>
-            <% else %>
-              <% hcb_code.canonical_pending_transactions.each do |pt| %>
-                <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt: pt, force_display_details: true, receipt_upload_button: true } %>
-              <% end %>
+    <div class="overflow-x-auto">
+      <div class="transaction-list">
+        <% @hcb_codes[card.hashid].each do |hcb_code| %>
+          <% if hcb_code.canonical_transactions.any? %>
+            <% hcb_code.canonical_transactions.each do |ct| %>
+              <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: ct, force_display_details: true, receipt_upload_button: true } %>
+            <% end %>
+          <% else %>
+            <% hcb_code.canonical_pending_transactions.each do |pt| %>
+              <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt: pt, force_display_details: true, receipt_upload_button: true } %>
             <% end %>
           <% end %>
-        </tbody>
-      </table>
+        <% end %>
+      </div>
     </div>
   </section>
 <% end %>
