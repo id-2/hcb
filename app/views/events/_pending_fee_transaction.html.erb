@@ -1,9 +1,14 @@
-<tr class="transaction--negative muted">
-  <td class="transaction__icon tooltipped tooltipped--e" aria-label="Hack Club Bank Fee payment">
+<div class="transaction--negative muted" style="<%= "padding-right: 3.5rem" if organizer_signed_in? %>">
+  <div class="transaction__icon tooltipped tooltipped--e" aria-label="Hack Club Bank Fee payment">
     <%= inline_icon "minus-fill" %>
-  </td>
-  <td><%= Date.today.strftime("%Y-%m-%d") %></td>
-  <td class="transaction__memo">PENDING: HACK CLUB BANK FEE</td>
-  <td class="italic">-$<%= render_money_amount @event.fronted_fee_balance_v2_cents %></td>
-  <td></td>
-</tr>
+  </div>
+  <div class="transaction__date"><%= Date.today.strftime("%Y-%m-%d") %></div>
+  <div class="transaction__date--mobile"><%= Date.today.strftime("%B %-d, %Y") %></div>
+  <div class="transaction__memo">
+    <span class="xs-hide">PENDING:</span>
+    <%= inline_icon "clock", size: 24, class: "mr1 align-top sm-hide md-hide lg-hide" %>
+    <span class="align-top">HACK CLUB BANK FEE</span>
+  </div>
+  <div class="italic transaction__amount">-$<%= render_money_amount @event.fronted_fee_balance_v2_cents %></div>
+  <div></div>
+</div>

@@ -1,4 +1,4 @@
-<tr
+<div
   class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
   id="<%= ct.local_hcb_code.hashid %>"
   <% if defined?(receipt_upload_button) %>
@@ -12,65 +12,67 @@
     "
   <% end %>>
     <% if ct.fee_payment? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Hack Club Bank Fee payment">
-        <%= inline_icon "minus-fill" %>
-      </td>
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Hack Club Bank Fee payment">
+          <%= inline_icon "minus-fill" %>
+      </div>
     <% elsif ct.local_hcb_code.fee_revenue? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Fee revenue">
-        <%= inline_icon "plus-fill" %>
-      </td>
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Fee revenue">
+          <%= inline_icon "plus-fill" %>
+      </div>
     <% elsif ct.local_hcb_code.check? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing check">
-        <%= inline_icon "payment-transfer" %>
-      </td>
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing check">
+          <%= inline_icon "payment-transfer" %>
+      </div>
     <% elsif ct.local_hcb_code.ach_transfer? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing ACH">
-        <%= inline_icon "payment-transfer" %>
-      </td>
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing ACH">
+          <%= inline_icon "payment-transfer" %>
+      </div>
     <% elsif ct.raw_stripe_transaction %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction<%= !defined?(authorless) && ct.stripe_cardholder ? ' by ' + ct.stripe_cardholder.user.initial_name : '' %>">
-        <% unless defined?(authorless) || !ct.stripe_cardholder %>
-          <%= avatar_for ct.stripe_cardholder.user, 24 %>
-        <% else %>
-          <%= inline_icon "card" %>
-        <% end %>
-      </td>
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction<%= !defined?(authorless) && ct.stripe_cardholder ? ' by ' + ct.stripe_cardholder.user.initial_name : '' %>">
+          <% unless defined?(authorless) || !ct.stripe_cardholder %>
+            <%= avatar_for ct.stripe_cardholder.user, 24 %>
+          <% else %>
+            <%= inline_icon "card" %>
+          <% end %>
+      </div>
     <% elsif ct.local_hcb_code.invoice? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Invoice">
-        <%= inline_icon "briefcase" %>
-      </td>
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Invoice">
+          <%= inline_icon "briefcase" %>
+      </div>
     <% elsif ct.local_hcb_code.donation? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Donation">
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Donation">
         <%= inline_icon "support" %>
-      </td>
+      </div>
     <% elsif ct.local_hcb_code.disbursement&.special_appearance? %>
       <% if ct.amount.negative? %>
-        <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing <%= ct.local_hcb_code.disbursement.special_appearance[:title] %>">
+        <div class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing <%= ct.local_hcb_code.disbursement.special_appearance[:title] %>">
           <%= inline_icon "door-leave" %>
-        </td>
+        </div>
       <% else %>
-        <td class="transaction__icon tooltipped tooltipped--e" aria-label="<%= ct.local_hcb_code.disbursement.special_appearance[:title] %>">
+        <div class="transaction__icon tooltipped tooltipped--e" aria-label="<%= ct.local_hcb_code.disbursement.special_appearance[:title] %>">
           <%= inline_icon "#{ct.local_hcb_code.disbursement.special_appearance[:icon] || 'door-enter'}" %>
-        </td>
+        </div>
       <% end %>
     <% elsif ct.local_hcb_code.disbursement? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Disbursement">
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Disbursement">
         <% if ct.amount.negative? %>
           <%= inline_icon "door-leave" %>
         <% else %>
           <%= inline_icon "door-enter" %>
         <% end %>
-      </td>
+      </div>
     <% else %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Bank account transaction">
-        <%= inline_icon "bank-account" %>
-      </td>
+      <div class="transaction__icon tooltipped tooltipped--e" aria-label="Bank account transaction">
+          <%= inline_icon "bank-account" %>
+      </div>
     <% end %>
-  </td>
-  <td>
+  <div class="transaction__date">
     <%= ct.date %>
-  </td>
-  <td class="transaction__memo">
+  </div>
+  <div class="transaction__date--mobile">
+    <%= (ct.date.is_a?(String) ? Date.parse(ct.date) : ct.date).strftime("%B %-d, %Y") %>
+  </div>
+  <div class="transaction__memo">
     <div>
       <div class="flex-auto">
         <div class="flex items-center justify-start">
@@ -107,7 +109,7 @@
         </div>
 
         <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
-          <div class="flex flex-wrap" style="gap: 0.25rem">
+          <div class="flex flex-wrap xs-hide" style="gap: 0.25rem">
             <% ct.local_hcb_code.tags.filter {|tag| !@event || tag.event == @event}.each do |tag| %>
               <div class="badge tx-tag m0 shrink-none flex items-center">
                 <%= tag.label %>
@@ -123,19 +125,29 @@
       </div>
 
       <% if ct.local_hcb_code %>
-        <%= list_badge_for ct.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: !ct.raw_stripe_transaction, required: ct.raw_stripe_transaction && !ct.local_hcb_code.no_or_lost_receipt? %>
-        <%= list_badge_for admin_signed_in? ? ct.local_hcb_code.comments.size : ct.local_hcb_code.not_admin_only_comments_count, "note", "post", optional: true %>
+        <div class="xs-hide flex">
+          <%= list_badge_for ct.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: !ct.raw_stripe_transaction, required: ct.raw_stripe_transaction && !ct.local_hcb_code.no_or_lost_receipt? %>
+          <%= list_badge_for admin_signed_in? ? ct.local_hcb_code.comments.size : ct.local_hcb_code.not_admin_only_comments_count, "note", "post", optional: true %>
+        </div>
       <% end %>
     </div>
-  </td>
-  <td class="nowrap">
+  </div>
+  <div class="nowrap transaction__amount">
     <span><%= number_to_currency ct.amount %></span>
-  </td>
-  <td>
+    <% if organizer_signed_in? || defined?(force_display_details) %>
+      <div class="sm-hide md-hide lg-hide ml2 muted"><%= inline_icon "view-forward" %></div>
+    <% end %>
+  </div>
+  <div class="xs-hide">
     <%= link_to "Details", ct.local_hcb_code.url if organizer_signed_in? || defined?(force_display_details) %>
-  </td>
+  </div>
+  <div class="transaction__badges--mobile">
+    <%= list_badge_for ct.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: !ct.raw_stripe_transaction, required: ct.raw_stripe_transaction && !ct.local_hcb_code.no_or_lost_receipt? %>
+    <%= list_badge_for admin_signed_in? ? ct.local_hcb_code.comments.size : ct.local_hcb_code.not_admin_only_comments_count, "note", "post", optional: true %>
+  </div>
+  <%= link_to "", ct.local_hcb_code.url, class: "sm-hide md-hide lg-hide absolute inset-0" if organizer_signed_in? || defined?(force_display_details) %>
   <% if defined?(receipt_upload_button) %>
-    <td style="width: 1%">
+    <div style="width: 1%" class="xs-hide">
       <%= form_with url: receipt_hcb_code_path(ct.local_hcb_code), data: { controller: "submit-form", "file-drop-target" => "form" } do |form| %>
         <%= form.file_field :file, id: "file_#{ct.local_hcb_code.hashid}", multiple: true, required: true, class: "display-none", data: { action: "change->submit-form#submit", "file-drop-target" => "fileInput" } %>
         <%= form.hidden_field :redirect_url, value: my_inbox_path %>
@@ -146,6 +158,6 @@
           Add a receipt
         <% end %>
       <% end %>
-    </td>
+    </div>
   <% end %>
-</tr>
+</div>

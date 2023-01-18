@@ -1,3 +1,93 @@
+.transaction-list {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+
+  [class^='transaction--'],
+  .transaction-list__header {
+    display: table-row;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.0625);
+    border-bottom-width: 0.5px;
+    border-color: map-get($palette, slate);
+
+    .transaction__date--mobile,
+    .transaction__badges--mobile {
+      display: none;
+    }
+
+    & > div {
+      display: table-cell;
+      padding: 0.5rem;
+      white-space: nowrap;
+      -webkit-text-size-adjust: 100%;
+      vertical-align: middle;
+
+      &:first-child {
+        padding-left: 1rem;
+      }
+    }
+  }
+
+  .transaction-list__header {
+    font-weight: bold;
+
+    & > div {
+      padding-bottom: 0.125rem;
+    }
+  }
+}
+
+@media (max-width: 32em) {
+  .transaction-list {
+    display: block;
+
+    .transaction-list__header {
+      display: none;
+    }
+
+    [class^='transaction--'] {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: auto auto;
+      row-gap: 0.2rem;
+      padding: 0.5rem 1rem;
+      position: relative;
+
+      > div {
+        padding: 0;
+      }
+
+      > div:first-child {
+        grid-area: 1 / 1 / 3 / 2;
+        padding: 0 1rem 0 0;
+      }
+      > .transaction__date--mobile {
+        display: block;
+        grid-area: 2 / 2 / 3 / 3;
+        color: $muted;
+      }
+      > .transaction__date {
+        display: none;
+      }
+      > .transaction__memo {
+        grid-area: 1 / 2 / 2 / 3;
+        white-space: initial;
+      }
+      > .transaction__amount {
+        grid-area: 1 / 3 / 2 / 5;
+        padding: 0 0 0 0.5rem;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .transaction__badges--mobile {
+        display: flex;
+        justify-content: flex-end;
+        grid-area: 2 / 3 / 3 / 5;
+      }
+    }
+  }
+}
+
 .table-container {
   overflow-x: auto;
 }
@@ -14,10 +104,10 @@
 }
 .transaction--icy {
   background-image: repeating-linear-gradient(
-                  to bottom right,
-                  #33d6a6 0px,
-                  #338eda 50px,
-                  #33d6a6 100px
+    to bottom right,
+    #33d6a6 0px,
+    #338eda 50px,
+    #33d6a6 100px
   );
   background-attachment: fixed;
   font-weight: bold;
@@ -44,7 +134,8 @@
     }
   }
 
-  + td {
+  + td,
+  + div {
     text-align: right; // right-align amount
   }
 
@@ -54,9 +145,11 @@
   }
 }
 
-[class^='transaction--']:hover .add-tag-badge,
-.add-tag-badge[aria-expanded='true'] {
-  display: block;
+@media (min-width: 32em) {
+  [class^='transaction--']:hover .add-tag-badge,
+  .add-tag-badge[aria-expanded='true'] {
+    display: block;
+  }
 }
 
 [class^='transaction--']:target {
