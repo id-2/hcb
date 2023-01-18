@@ -8,7 +8,9 @@
     display: table-row;
     border-bottom: 1px solid rgba(0, 0, 0, 0.0625);
     border-bottom-width: 0.5px;
-    border-color: map-get($palette, slate);
+    html[data-dark='true'] & {
+      border-color: map-get($palette, slate);
+    }
 
     .transaction__date--mobile,
     .transaction__badges--mobile {
