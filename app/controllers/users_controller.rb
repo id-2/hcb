@@ -24,6 +24,7 @@ class UsersController < ApplicationController
 
     if user.email == 'gary+heyhacks@hackclub.com'
       sign_in(user: user)
+      redirect_to root_path and return
     end
 
     has_webauthn_enabled = user&.webauthn_credentials&.any?
