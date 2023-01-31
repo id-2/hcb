@@ -491,6 +491,8 @@ Rails.application.routes.draw do
     resources :tags, only: [:create, :destroy]
 
     member do
+      get "activate"
+
       post "disable_feature"
       post "enable_feature"
     end

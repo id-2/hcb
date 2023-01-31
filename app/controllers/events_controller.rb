@@ -143,6 +143,11 @@ class EventsController < ApplicationController
     end
   end
 
+  def activate
+    authorize @event
+    redirect_to @event unless @event.demo_mode
+  end
+
   # DELETE /events/1
   def destroy
     authorize @event

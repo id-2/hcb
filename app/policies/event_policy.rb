@@ -52,6 +52,10 @@ class EventPolicy < ApplicationPolicy
     user_or_admin
   end
 
+  def activate?
+    user&.admin?
+  end
+
   def destroy?
     user&.admin? && record.demo_mode?
   end
