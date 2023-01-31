@@ -25,7 +25,7 @@ FriendlyId.defaults do |config|
   # When there is no good candidate, a UUID will be appended, matching the existing
   # conflict behavior.
 
-  # config.treat_reserved_as_conflict = true
+  config.treat_reserved_as_conflict = true
 
   #  ## Friendly Finders
   #

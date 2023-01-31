@@ -5,10 +5,36 @@ class EventsController < ApplicationController
 
   include Rails::Pagination
   before_action :set_event, except: [:index, :new, :create, :by_airtable_id]
-  before_action except: [:show, :index] do
-    render_back_to_tour @organizer_position, :welcome, event_path(@event)
+  before_action except: [:show, :index, :new, :create] do
+    render_back_to_tour @organizer_position, :welcome, event_path(@event) if @event
   end
-  skip_before_action :signed_in_user
+  skip_before_action :signed_in_user, except: [:new, :create]
+
+  def new
+    authorize Event
+  end
+
+  def create
+    authorize Event
+
+    visibility = params[:event][:visibility]
+
+    event = Event.create!(params
+                            .require(:event)
+                            .permit(:name, :category)
+                            .merge(
+                              users: [current_user],
+                              # demo_mode_limit_email: current_user.email,
+                              is_public: ["transparent", "unlisted"].include?(visibility),
+                              is_indexable: visibility == "transparent",
+                              partner: Partner.find_by(slug: "bank"),
+                              organization_identifier: "bank_#{SecureRandom.hex}",
+                              sponsorship_fee: 0.07,
+                              demo_mode: true
+                            ))
+
+    redirect_to event
+  end
 
   # GET /events
   def index

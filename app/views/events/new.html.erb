@@ -1,0 +1,89 @@
+<%= render 'users/nav' if signed_in? %>
+<%= page_sm %>
+
+<%= form_with model: Event.new do |form| %>
+  <h1 class="center">Start a new project.</h1>
+
+  <% admin_tools "mb2" do %>
+    Admin? Create an organization from the <%= link_to "admin dashboard", event_new_admin_index_path %>.
+  <% end %>
+
+  <div class="field mb3">
+    <%= form.label :name, "Organization name" %>
+    <%= form.text_field :name, required: true, placeholder: "Windy City Hacks", class: "fit", autofocus: true %>
+  </div>
+
+  <p class="mt0 mb1">Organization visibility</p>
+  <div class="field field--options flex fit items-start mb3">
+    <div class="flex flex-column flex-auto" style="flex-basis: 0">
+      <%= form.radio_button :visibility, :transparent, checked: true %>
+      <%= form.label :visibility, value: :transparent, class: "pointer" do %>
+        <%= inline_icon "explore", size: 28 %>
+        Transparent
+      <% end %>
+      <small class="center mt1 muted">Your finances are public on the Internet</small>
+    </div>
+    <div class="flex flex-column flex-auto" style="flex-basis: 0">
+      <%= form.radio_button :visibility, :unlisted %>
+      <%= form.label :visibility, value: :unlisted, class: "pointer" do %>
+        <%= inline_icon "private-fill", size: 28 %>
+        Unlisted
+      <% end %>
+      <small class="center mt1 muted">Your finances are visible to anyone with your link</small>
+    </div>
+    <div class="flex flex-column flex-auto" style="flex-basis: 0">
+      <%= form.radio_button :visibility, :private %>
+      <%= form.label :visibility, value: :private, class: "pointer" do %>
+        <%= inline_icon "private", size: 28 %>
+        Private
+      <% end %>
+      <small class="center mt1 muted">Your finances are only visible to you</small>
+    </div>
+  </div>
+
+  <p class="mt0 mb1">What are you using Bank for?</p>
+  <div class="field field--options field--options--wide fit">
+    <%= form.radio_button :category, :hackathon %>
+    <%= form.label :category, value: :hackathon, class: "pointer" do %>
+      <%= inline_icon "event-code", size: 28 %>
+      Hackathon
+    <% end %>
+
+    <%= form.radio_button :category, "hack club" %>
+    <%= form.label :category, value: "hack club", class: "pointer" do %>
+      <%= inline_icon "flag", size: 28 %>
+      Club
+    <% end %>
+
+    <%= form.radio_button :category, "robotics team" %>
+    <%= form.label :category, value: "robotics team", class: "pointer" do %>
+      <%= inline_icon "sam", size: 28 %>
+      Robotics team
+    <% end %>
+
+    <%= form.radio_button :category, :event %>
+    <%= form.label :category, value: :event, class: "pointer" do %>
+      <%= inline_icon "event-check", size: 28 %>
+      Event
+    <% end %>
+
+    <%= form.radio_button :category, :nonprofit %>
+    <%= form.label :category, value: :nonprofit, class: "pointer" do %>
+      <%= inline_icon "friend", size: 28 %>
+      Nonprofit
+    <% end %>
+
+    <%= form.radio_button :category, "", checked: false %>
+    <%= form.label :category, value: "", class: "pointer" do %>
+      <%= inline_icon "more-fill", size: 28 %>
+      Other
+    <% end %>
+  </div>
+
+  <div class="actions flex justify-end">
+    <button type="submit" class="btn">
+      Continue
+      <%= inline_icon :enter %>
+    </button>
+  </div>
+<% end %>

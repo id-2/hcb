@@ -222,6 +222,10 @@ legend {
   }
 }
 
+.field--options--wide {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 textarea.card {
   max-width: none;
   border: 0;

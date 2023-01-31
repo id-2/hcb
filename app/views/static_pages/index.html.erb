@@ -67,7 +67,7 @@
             </li>
           <% end %>
         <% end %>
-        <a href="https://hackclub.com/bank/apply/?userEmail=<%= current_user.email %>&firstName=<%= current_user.first_name %>&lastName=<%= current_user.last_name %>&returningUser=Yes,%20I%20have%20used%20Hack%20Club%20Bank%20before&userPhone=<%= current_user.phone_number %>">
+        <%= link_to new_event_path do %>
           <li class="card card--hover bold brand-sans flex items-center justify-center align-center h-100" style="max-width: 90vw">
             <div class="center">
               <div class="pop success mx-auto" style="display: flex; margin-bottom: 4px;">
@@ -76,7 +76,7 @@
               New Project
             </div>
           </li>
-        </a>
+        <% end %>
       </ul>
 
       <% if @events.hidden.any? %>
@@ -115,10 +115,10 @@
     <% end %>
     <% if @events.empty? && @invites.empty? && !current_user.admin? %>
       <%= blankslate 'No projects associated with your account yet.' %>
-      <a href="https://hackclub.com/bank/apply/?userEmail=<%= current_user.email %>&firstName=<%= current_user.first_name %>&lastName=<%= current_user.last_name %>&returningUser=No,%20first%20time!&userPhone=<%= current_user.phone_number %>" class="btn bg-success">
+      <%= link_to new_event_path, class: "btn bg-success" do %>
         <%= inline_icon 'plus' %>
         New project
-      </a>
+      <% end %>
     <% end %>
   <% end %>
 
