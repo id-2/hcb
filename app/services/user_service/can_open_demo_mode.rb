@@ -5,17 +5,7 @@ module UserService
     def can_open_demo_mode?(email_address)
       user = User.find_by_email email_address
 
-      return true if user.nil?
-
-      # Users can only be in 2 demo mode events
-      demo_mode_count = 0
-      demo_mode_count += user.events.demo_mode.size
-      demo_mode_count += OrganizerPositionInvite.includes(:user, :event)
-                                                .pending
-                                                .where(user: user)
-                                                .where(event: { demo_mode: true })
-                                                .size
-      demo_mode_count < 2
+      user.nil? || user.can_open_demo_mode?
     end
   end
 end

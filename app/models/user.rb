@@ -200,6 +200,17 @@ class User < ApplicationRecord
     full_name.blank?
   end
 
+  def can_open_demo_mode?
+    demo_mode_count = 0
+    demo_mode_count += events.demo_mode.size
+    demo_mode_count += OrganizerPositionInvite.includes(:user, :event)
+                                              .pending
+                                              .where(user: self)
+                                              .where(event: { demo_mode: true })
+                                              .size
+    demo_mode_count < 2
+  end
+
   private
 
   def namae
