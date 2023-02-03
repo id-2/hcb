@@ -3,15 +3,15 @@
 require "cgi"
 
 module EventsHelper
-  def dock_item(name, tooltip, icon, url, lg = false, async_badge = nil, options = {})
-    link_to (url unless options[:disabled]), options.merge(
-      class: "dock__item #{lg && 'dock__item--lg'} tooltipped tooltipped--e #{"disabled" if options[:disabled]}",
+  def dock_item(name, url = nil, icon:, tooltip: nil, async_badge: nil, disabled: false, **options)
+    link_to (url unless disabled), options.merge(
+      class: "dock__item tooltipped tooltipped--e #{"disabled" if disabled}",
       'aria-label': tooltip
     ) do
       (content_tag :div, class: "line-height-0 relative" do
         if async_badge
           inline_icon(icon, size: 32, class: "primary") +
-          content_tag(:div, nil, 'data-src': async_badge, 'data-behavior': :async_frame, as: :div)
+          turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" })
         else
           inline_icon(icon, size: 32, class: "primary")
         end

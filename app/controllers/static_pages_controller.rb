@@ -5,6 +5,7 @@ require "net/http"
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
   skip_before_action :signed_in_user, only: [:stats, :stats_custom_duration, :project_stats, :branding, :faq]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :faq]
 
   def index
     if signed_in?
@@ -86,11 +87,7 @@ class StaticPagesController < ApplicationController
       count
     end
 
-    if @missing_receipt_count.zero?
-      head :ok
-    else
-      render :my_missing_receipts_icon, layout: false
-    end
+    render :my_missing_receipts_icon, layout: false
   end
 
   def my_inbox
@@ -155,7 +152,12 @@ class StaticPagesController < ApplicationController
 
     render json: {
       date: now,
-      events_count: Event.not_omitted.not_hidden.approved.where("created_at <= ?", now).size,
+      events_count: Event.not_omitted
+                         .not_hidden
+                         .not_demo_mode
+                         .approved
+                         .where("created_at <= ?", now)
+                         .count,
       last_transaction_date: tx_all.order(:date).last.date.to_time.to_i,
 
       # entire time period. this remains to prevent breaking changes to existing systems that use this endpoint

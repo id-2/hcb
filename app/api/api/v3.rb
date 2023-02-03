@@ -10,6 +10,10 @@ module Api
     default_format :json
 
     helpers do
+      def orgs
+        @orgs ||= paginate(Event.indexable.order(created_at: :asc))
+      end
+
       def org
         @org ||=
           begin
@@ -206,6 +210,25 @@ module Api
       }
     end
 
+    desc 'Return a list of transparent organizations' do
+      summary "Get a list of transparent organizations"
+      detail "Returns a list of organizations in <a href='https://changelog.bank.hackclub.com/transparent-finances-(optional-feature)-151427'><strong>Transparency Mode</strong></a> that have opted in to public listing."
+      failure [[404]]
+      is_array true
+      produces ['application/json']
+      consumes ['application/json']
+      success Entities::Organization
+      tags ["Organizations"]
+      nickname "list-transparent-organizations"
+    end
+    params do
+      use :pagination, per_page: 50, max_per_page: 100
+      use :expand
+    end
+    get :organizations do
+      present orgs, with: Api::Entities::Organization, **type_expansion(expand: %w[organization user])
+    end
+
     resource :organizations do
       desc 'Return a transparent organization' do
         summary 'Get a single organization'
@@ -244,7 +267,7 @@ module Api
             nickname "list-an-organizations-transactions"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do
@@ -266,7 +289,7 @@ module Api
             nickname "list-an-organizations-card-charges"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do
@@ -288,7 +311,7 @@ module Api
             nickname "list-an-organizations-donations"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do
@@ -310,7 +333,7 @@ module Api
             nickname "list-an-organizations-transfers"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do
@@ -332,7 +355,7 @@ module Api
             nickname "list-an-organizations-invoices"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do
@@ -354,7 +377,7 @@ module Api
             nickname "list-an-organizations-ach-transfers"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do
@@ -376,7 +399,7 @@ module Api
             nickname "list-an-organizations-checks"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do
@@ -398,7 +421,7 @@ module Api
             nickname "list-an-organizations-cards"
           end
           params do
-            use :pagination, per_page: 50, max_per_page: 500
+            use :pagination, per_page: 50, max_per_page: 100
             use :expand
           end
           get do

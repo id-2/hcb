@@ -8,7 +8,6 @@ class StripeController < ApplicationController
   def webhook
     payload = request.body.read
     sig_header = request.headers['Stripe-Signature']
-    event = nil
 
     begin
       event = StripeService.construct_webhook_event(payload, sig_header)
@@ -27,14 +26,18 @@ class StripeController < ApplicationController
       head 400
       return
     end
-
-    head 200
   end
 
   private
 
   def handle_issuing_authorization_request(event)
-    ::StripeAuthorizationService::Webhook::HandleIssuingAuthorizationRequest.new(stripe_event: event).run
+    approved = ::StripeAuthorizationService::Webhook::HandleIssuingAuthorizationRequest.new(stripe_event: event).run
+
+    response.set_header "Stripe-Version", "2022-08-01"
+
+    render json: {
+      approved: approved
+    }
   end
 
   def handle_issuing_authorization_created(event)
@@ -45,6 +48,8 @@ class StripeController < ApplicationController
 
     # put the transaction on the pending ledger in almost realtime
     ::StripeAuthorizationJob::CreateFromWebhook.perform_later(auth_id)
+
+    head 200
   end
 
   def handle_issuing_authorization_updated(event)
@@ -54,6 +59,8 @@ class StripeController < ApplicationController
     sa = StripeAuthorization.find_or_initialize_by(stripe_id: auth[:id])
     sa.sync_from_stripe!
     sa.save
+
+    head 200
   end
 
   def handle_issuing_transaction_created(event)
@@ -62,17 +69,23 @@ class StripeController < ApplicationController
     return unless amount < 0
 
     TopupStripeJob.perform_later
+
+    head 200
   end
 
   def handle_issuing_card_updated(event)
     card = StripeCard.find_by(stripe_id: event[:data][:object][:id])
     card.sync_from_stripe!
     card.save
+
+    head 200
   end
 
   def handle_charge_succeeded(event)
     charge = event[:data][:object]
     ::PartnerDonationService::HandleWebhookChargeSucceeded.new(charge).run
+
+    head 200
   end
 
   def handle_invoice_paid(event)
@@ -88,6 +101,8 @@ class StripeController < ApplicationController
       cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Invoice.new(raw_pending_invoice_transaction: rpit).run
       ::PendingEventMappingEngine::Map::Single::Invoice.new(canonical_pending_transaction: cpt).run
     end
+
+    head 200
   end
 
   def handle_charge_dispute_funds_withdrawn(event)
@@ -118,6 +133,31 @@ class StripeController < ApplicationController
       invoice.canonical_pending_transactions.update_all(fronted: false)
     end
 
+    head 200
+  end
+
+  def handle_payment_intent_succeeded(event)
+    # only proceed if payment intent is a donation and not an invoice
+    return unless event.data.object.metadata[:donation].present?
+
+    # get donation to process
+    donation = Donation.find_by_stripe_payment_intent_id(event.data.object.id)
+
+    pi = StripeService::PaymentIntent.retrieve(
+      id: donation.stripe_payment_intent_id,
+      expand: ["charges.data.balance_transaction"]
+    )
+    donation.set_fields_from_stripe_payment_intent(pi)
+    donation.save!
+
+    DonationService::Queue.new(donation_id: donation.id).run # queues/crons payout. DEPRECATE. most is unnecessary if we just run in a cron
+
+    donation.send_receipt!
+
+    # Import the donation onto the ledger
+    rpdt = ::PendingTransactionEngine::RawPendingDonationTransactionService::Donation::ImportSingle.new(donation: donation).run
+    cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Donation.new(raw_pending_donation_transaction: rpdt).run
+    ::PendingEventMappingEngine::Map::Single::Donation.new(canonical_pending_transaction: cpt).run
   end
 
 end

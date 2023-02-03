@@ -61,7 +61,6 @@ class HcbCode < ApplicationRecord
   end
 
   def memo
-    return "💰 Grant from Hack Club and FIRST®" if hackathon_grant?
     return disbursement_memo if disbursement?
     return invoice_memo if invoice?
     return donation_memo if donation?
@@ -109,35 +108,52 @@ class HcbCode < ApplicationRecord
     end
   end
 
-  has_many :canonical_pending_transactions, foreign_key: 'hcb_code', primary_key: 'hcb_code', inverse_of: :local_hcb_code
+  has_many :canonical_pending_transactions,
+           foreign_key: 'hcb_code',
+           primary_key: 'hcb_code',
+           inverse_of: :local_hcb_code
 
-  has_many :canonical_transactions, -> { order("canonical_transactions.date desc, canonical_transactions.id desc") }, foreign_key: 'hcb_code', primary_key: 'hcb_code'
+  has_many :canonical_transactions,
+           -> { order("canonical_transactions.date desc, canonical_transactions.id desc") },
+           foreign_key: 'hcb_code',
+           primary_key: 'hcb_code',
+           inverse_of: :local_hcb_code
 
   def event
     events.first
   end
 
   def events
-    @events ||= begin
-      ids = [
-        canonical_pending_transactions.map { |cpt| cpt.event&.id },
-        canonical_transactions.map { |ct| ct.event&.id },
-        invoice.try(:event).try(:id),
-        donation.try(:event).try(:id),
-        partner_donation.try(:event).try(:id),
-        ach_transfer.try(:event).try(:id),
-        check.try(:event).try(:id),
-        disbursement.try(:event).try(:id),
-        incoming_bank_fee? ? EventMappingEngine::EventIds::INCOMING_FEES : nil,
-        fee_revenue? ? EventMappingEngine::EventIds::HACK_CLUB_BANK : nil
-      ].compact.flatten.uniq
+    @events ||=
+      begin
+        ids = [].concat(canonical_pending_transactions.includes(:canonical_pending_event_mapping).pluck(:event_id))
+                .concat(canonical_transactions.includes(:canonical_event_mapping).pluck(:event_id))
+                .uniq
 
-      Event.where(id: ids)
-    end
-  end
+        return Event.where(id: ids) unless ids.empty?
 
-  def hackathon_grant?
-    disbursement? && disbursement.source_event_id == EventMappingEngine::EventIds::HACKATHON_GRANT_FUND
+        ids.concat([
+          invoice.try(:event).try(:id),
+          donation.try(:event).try(:id),
+          partner_donation.try(:event).try(:id),
+          ach_transfer.try(:event).try(:id),
+          check.try(:event).try(:id),
+          disbursement.try(:event).try(:id),
+        ].compact.uniq)
+
+        ids << EventMappingEngine::EventIds::INCOMING_FEES if incoming_bank_fee?
+        ids << EventMappingEngine::EventIds::HACK_CLUB_BANK if fee_revenue?
+
+        # I'm trying to figure out if the 2nd set of ids (with try) is necessary
+        # ~ @garyhtou
+        if ids.empty?
+          Airbrake.notify("HcbCode has no events at all!", hcb_code: hcb_code, id: id)
+        else
+          Airbrake.notify("HcbCode has no events from CT & PT", hcb_code: hcb_code, id: id)
+        end
+
+        Event.where(id: ids)
+      end
   end
 
   def fee_payment?
@@ -197,7 +213,7 @@ class HcbCode < ApplicationRecord
   end
 
   def disbursement_memo
-    smartish_custom_memo || "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
+    smartish_custom_memo || disbursement.special_appearance_memo || "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
   end
 
   def stripe_card?

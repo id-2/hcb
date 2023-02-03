@@ -8,6 +8,7 @@
 #  accepted_at           :datetime
 #  cancelled_at          :datetime
 #  initial               :boolean          default(FALSE)
+#  is_signee             :boolean
 #  rejected_at           :datetime
 #  slug                  :string
 #  created_at            :datetime         not null
@@ -92,7 +93,8 @@ class OrganizerPositionInvite < ApplicationRecord
 
     self.organizer_position = OrganizerPosition.new(
       event: event,
-      user: user
+      user: user,
+      is_signee: is_signee
     )
 
     self.accepted_at = Time.current
@@ -149,6 +151,10 @@ class OrganizerPositionInvite < ApplicationRecord
     # https://github.com/norman/friendly_id/issues/480
     sequence = OrganizerPositionInvite.where("slug LIKE ?", "#{slug}-%").size + 2
     [slug, "#{slug} #{sequence}"]
+  end
+
+  def signee?
+    is_signee
   end
 
   private

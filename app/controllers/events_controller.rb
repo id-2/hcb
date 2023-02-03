@@ -32,7 +32,7 @@ class EventsController < ApplicationController
       @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
     end
 
-    @organizers = @event.organizer_positions.includes(:user)
+    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc).limit(5)
     @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
@@ -71,7 +71,7 @@ class EventsController < ApplicationController
 
   def team
     authorize @event
-    @positions = @event.organizer_positions.includes(:user)
+    @positions = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
 
@@ -122,8 +122,8 @@ class EventsController < ApplicationController
     authorize @event
 
     @event.destroy
-    flash[:success] = "Project successfully destroyed."
-    redirect_to events_url
+    flash[:success] = "Organization successfully deleted."
+    redirect_to root_path
   end
 
   def emburse_card_overview
@@ -425,6 +425,7 @@ class EventsController < ApplicationController
       :donation_page_enabled,
       :donation_page_message,
       :is_public,
+      :is_indexable,
       :holiday_features,
       :public_message,
       :custom_css_url,
@@ -450,6 +451,7 @@ class EventsController < ApplicationController
       :donation_page_enabled,
       :donation_page_message,
       :is_public,
+      :is_indexable,
       :holiday_features,
       :public_message,
       :custom_css_url,

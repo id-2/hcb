@@ -9,7 +9,6 @@
 #  amount          :integer
 #  deposited_at    :datetime
 #  errored_at      :datetime
-#  fulfilled_at    :datetime
 #  in_transit_at   :datetime
 #  name            :string
 #  pending_at      :datetime
@@ -72,6 +71,23 @@ class Disbursement < ApplicationRecord
   scope :fulfilled, -> { deposited }
   scope :reviewing_or_processing, -> { where(aasm_state: [:reviewing, :pending, :in_transit]) }
 
+  SPECIAL_APPEARANCES = {
+    hackathon_grant: {
+      title: 'Hackathon grant',
+      memo: "💰 Grant from Hack Club and FIRST®",
+      css_class: "transaction--fancy",
+      icon: 'purse',
+      qualifier: ->(d) { d.source_event_id == EventMappingEngine::EventIds::HACKATHON_GRANT_FUND }
+    },
+    winter_hardware_wonderland: {
+      title: 'Winter Hardware Wonderland grant',
+      memo: "❄️ Winter Hardware Wonderland Grant",
+      css_class: "transaction--icy",
+      icon: 'freeze',
+      qualifier: ->(d) { d.source_event_id == EventMappingEngine::EventIds::WINTER_HARDWARE_WONDERLAND_GRANT_FUND }
+    }
+  }.freeze
+
   aasm timestamps: true do
     state :reviewing, initial: true # Being reviewed by an admin
     state :pending                  # Waiting to be processed by the TX engine
@@ -112,6 +128,12 @@ class Disbursement < ApplicationRecord
 
   alias_attribute :approved_at, :pending_at
 
+  # Returns the perceived time of the transfer to an event with fronting enabled
+  def transferred_at
+    # `approved_at` isn't set on some old disbursements, so fall back to `in_transit_at`.
+    approved_at || in_transit_at
+  end
+
   def hcb_code
     "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::DISBURSEMENT_CODE}-#{id}"
   end
@@ -147,10 +169,6 @@ class Disbursement < ApplicationRecord
     }
   end
 
-  def status
-    state
-  end
-
   def state
     if fulfilled?
       :success
@@ -171,6 +189,8 @@ class Disbursement < ApplicationRecord
     end
   end
 
+  alias_method :status, :state
+
   def v3_api_state
     state_text.underscore
   end
@@ -184,6 +204,8 @@ class Disbursement < ApplicationRecord
       else
         "processing"
       end
+    elsif rejected? && approved_at.present? # Disbursements that were approved, then rejected
+      "canceled"
     elsif rejected?
       "rejected"
     elsif errored?
@@ -205,6 +227,26 @@ class Disbursement < ApplicationRecord
 
   def transaction_memo
     "HCB DISBURSE #{id}"
+  end
+
+  def special_appearance_name
+    SPECIAL_APPEARANCES.each do |key, value|
+      return key if value[:qualifier].call(self)
+    end
+
+    nil
+  end
+
+  def special_appearance
+    SPECIAL_APPEARANCES[special_appearance_name]
+  end
+
+  def special_appearance?
+    !special_appearance_name.nil?
+  end
+
+  def special_appearance_memo
+    special_appearance&.[](:memo)
   end
 
   private

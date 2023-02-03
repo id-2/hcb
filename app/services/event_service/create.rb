@@ -2,13 +2,15 @@
 
 module EventService
   class Create
-    def initialize(name:, point_of_contact_id:, emails: [], country: [], category: [], is_public: false, approved: false, sponsorship_fee: 0.07, organized_by_hack_clubbers: false, omit_stats: false, can_front_balance: true, demo_mode: false)
+    def initialize(name:, point_of_contact_id:, emails: [], is_signee: true, country: [], category: [], is_public: true, is_indexable: true, approved: false, sponsorship_fee: 0.07, organized_by_hack_clubbers: false, omit_stats: false, can_front_balance: true, demo_mode: false)
       @name = name
       @emails = emails
+      @is_signee = is_signee
       @country = country
       @category = category
       @point_of_contact_id = point_of_contact_id
       @is_public = is_public
+      @is_indexable = is_indexable
       @approved = approved || false
       @sponsorship_fee = sponsorship_fee ? sponsorship_fee.to_f : 0.07
       @organized_by_hack_clubbers = organized_by_hack_clubbers
@@ -29,7 +31,7 @@ module EventService
         # event.mark_approved! if @approved
 
         @emails.each do |email|
-          OrganizerPositionInviteService::Create.new(event: event, sender: point_of_contact, user_email: email, initial: true).run!
+          OrganizerPositionInviteService::Create.new(event: event, sender: point_of_contact, user_email: email, initial: true, is_signee: @is_signee).run!
         end
       end
     end
@@ -47,6 +49,7 @@ module EventService
         organized_by_hack_clubbers: @organized_by_hack_clubbers,
         omit_stats: @omit_stats,
         is_public: @is_public,
+        is_indexable: @is_indexable,
         sponsorship_fee: @sponsorship_fee,
         can_front_balance: @can_front_balance,
         expected_budget: 100.0,

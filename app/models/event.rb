@@ -8,10 +8,11 @@
 #  aasm_state                      :string
 #  address                         :text
 #  beta_features_enabled           :boolean
-#  can_front_balance               :boolean          default(FALSE), not null
+#  can_front_balance               :boolean          default(TRUE), not null
 #  category                        :integer
 #  country                         :integer
 #  custom_css_url                  :string
+#  deleted_at                      :datetime
 #  demo_mode                       :boolean          default(FALSE), not null
 #  demo_mode_request_meeting_at    :datetime
 #  donation_page_enabled           :boolean          default(TRUE)
@@ -21,6 +22,7 @@
 #  has_fiscal_sponsorship_document :boolean
 #  hidden_at                       :datetime
 #  holiday_features                :boolean          default(TRUE), not null
+#  is_indexable                    :boolean          default(TRUE)
 #  is_public                       :boolean          default(TRUE)
 #  last_fee_processed_at           :datetime
 #  name                            :text
@@ -70,6 +72,8 @@ class Event < ApplicationRecord
   has_country_enum :country
 
   has_paper_trail
+  acts_as_paranoid
+  validates_as_paranoid
 
   include AASM
   include PgSearch::Model
@@ -82,6 +86,7 @@ class Event < ApplicationRecord
   scope :pending_or_unapproved, -> { where(aasm_state: [:pending, :unapproved]) }
   scope :transparent, -> { where(is_public: true) }
   scope :not_transparent, -> { where(is_public: false) }
+  scope :indexable, -> { where(is_public: true, is_indexable: true, demo_mode: false) }
   scope :omitted, -> { where(omit_stats: true) }
   scope :not_omitted, -> { where(omit_stats: false) }
   scope :hidden, -> { where("hidden_at is not null") }
@@ -209,6 +214,11 @@ class Event < ApplicationRecord
       qualifier: :demo_mode?,
       emoji: '🧪',
       description: 'Demo Account'
+    },
+    winter_hardware_grant: {
+      qualifier: :hardware_grant?,
+      emoji: '❄️',
+      description: 'Winter hardware grant'
     }
   }.freeze
 
@@ -240,10 +250,10 @@ class Event < ApplicationRecord
   belongs_to :point_of_contact, class_name: "User", optional: true
 
   # Used for tracking slug history
-  has_many :slugs, -> { order(id: :desc) }, class_name: "FriendlyId::Slug", as: :sluggable
+  has_many :slugs, -> { order(id: :desc) }, class_name: "FriendlyId::Slug", as: :sluggable, dependent: :destroy
 
   has_many :organizer_position_invites
-  has_many :organizer_positions
+  has_many :organizer_positions, dependent: :destroy
   has_many :users, through: :organizer_positions
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
@@ -301,7 +311,8 @@ class Event < ApplicationRecord
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
   validates :name, :sponsorship_fee, :organization_identifier, presence: true
-  validates :slug, uniqueness: true, presence: true, format: { without: /\s/ }
+  validates :slug, presence: true, format: { without: /\s/ }
+  validates_uniqueness_of_without_deleted :slug
 
   after_save :update_slug_history
 
@@ -321,7 +332,8 @@ class Event < ApplicationRecord
     event: 3,
     'high school hackathon': 4,
     'robotics team': 5,
-    'hardware grant': 6
+    'hardware grant': 6,
+    'hack club hq': 7
   }
 
   def country_us?
@@ -605,7 +617,9 @@ class Event < ApplicationRecord
   end
 
   def total_fee_payments_v2_cents
-    @total_fee_payments_v2_cents ||= -canonical_transactions.where(id: canonical_transaction_ids_from_hack_club_fees).sum(:amount_cents)
+    @total_fee_payments_v2_cents ||=
+      canonical_transactions.where(id: canonical_transaction_ids_from_hack_club_fees).sum(:amount_cents).abs +
+      canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
   end
 
   def canonical_event_mapping_ids_from_hack_club_fees

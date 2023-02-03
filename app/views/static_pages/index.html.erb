@@ -15,7 +15,7 @@
       <% end %>
     </span>
   </div>
-  <span class="badge ml0 h5 caps <%= Rails.env.development? ? 'bg-success' : by_season("", fall: "bg-warning") %>"><%= flavor_text %></span>
+  <span class="badge ml0 h5 caps <%= Rails.env.development? ? 'bg-success' : by_season("", fall: "bg-warning") %>" id="flavor-text" data-turbo-permanent><%= flavor_text %></span>
 </h1>
 
 <main class="flex flex-column items-center center pb3">
@@ -55,7 +55,7 @@
                   </span>
                   <span>
                     <%= inline_icon 'card', size: 20, class: 'muted align-middle', 'aria-label': 'Cards', style: 'transform: scale(1.2)' %>
-                    <strong><%= event.stripe_cards.count %></strong>
+                    <strong><%= event.stripe_cards.active.count %></strong>
                   </span>
                 </div>
               <% end %>
@@ -81,7 +81,7 @@
 
       <% if @events.hidden.any? %>
         <details class="w-100 left-align">
-          <summary><h3 class="inline-block pb0 border-none">Hidden projects</h3></summary>
+          <summary><h4 class="inline-block pb0 border-none muted">Hidden projects</h4></summary>
           <ul class="grid grid--narrow left-align mt0">
             <% @events.hidden.each do |event| %>
               <%= link_to event do %>
