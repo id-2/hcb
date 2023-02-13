@@ -151,7 +151,7 @@ class FlavorTextService
       "AKA the nonprofit-atorium",
       "Open late",
       "From the makers of Hack Club",
-      "Now in color!",
+      "<span style=\"cursor:pointer\" onclick=\"document.querySelector('#flavor-text').innerText='oops!';document.querySelector('html').style = 'filter: grayscale(100%)'\">Now in color!</span>".html_safe,
       "Filmed on location",
       "From the makers of Hack Club Bank",
       "Soon to be a major cryptocurrency!",
