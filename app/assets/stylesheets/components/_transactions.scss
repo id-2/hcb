@@ -23,16 +23,28 @@
   font-weight: bold;
   color: $white;
 }
-.transaction--first {
-  background-image: repeating-linear-gradient(
-    to bottom right,
-    rgb(255, 78, 84) 0px,
-    rgb(255, 166, 169) 50px,
-    rgb(255, 78, 84) 100px
+.transaction--frc {
+  background-image: linear-gradient(
+    135deg,
+    rgb(236, 29, 37) 0% 40%,
+    white 40% 60%,
+    rgb(0, 103, 178) 60% 100%
   );
   background-attachment: fixed;
+
   font-weight: bold;
   color: $black;
+}
+
+html[data-dark='true'] {
+  .transaction--frc {
+    background-image: linear-gradient(
+      135deg,
+      rgb(236, 29, 37) 0% 40%,
+      #8492a6 40% 60%,
+      rgb(0, 103, 178) 60% 100%
+    );
+  }
 }
 
 .transaction__memo {

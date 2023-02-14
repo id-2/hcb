@@ -89,8 +89,8 @@ class Disbursement < ApplicationRecord
     first_transparency_grant: {
       title: 'FIRST® Transparency grant',
       memo: "🤖 FIRST® Transparency Grant",
-      css_class: "transaction--first",
-      icon: 'idea',
+      css_class: "transaction--frc",
+      icon: 'sam',
       qualifier: ->(d) { d.source_event_id == EventMappingEngine::EventIds::FIRST_TRANSPARENCY_GRANT_FUND }
     }
   }.freeze
