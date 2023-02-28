@@ -24,13 +24,21 @@
   color: $white;
 }
 .transaction--frc {
-  background-image: linear-gradient(
-    135deg,
-    rgb(236, 29, 37) 0% 40%,
-    white 40% 60%,
-    rgb(0, 103, 178) 60% 100%
-  );
-  background-attachment: fixed;
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    opacity: 0.3;
+    background-image: url('/assets/frc-background.png');
+    background-size: 40rem;
+    background-position: center;
+    background-attachment: fixed;
+  }
 
   font-weight: bold;
   color: $black;
@@ -38,12 +46,10 @@
 
 html[data-dark='true'] {
   .transaction--frc {
-    background-image: linear-gradient(
-      135deg,
-      rgb(236, 29, 37) 0% 40%,
-      #8492a6 40% 60%,
-      rgb(0, 103, 178) 60% 100%
-    );
+    color: $white;
+    &::after {
+      filter: invert(100%);
+    }
   }
 }
 
