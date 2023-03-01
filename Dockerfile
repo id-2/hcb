@@ -5,6 +5,13 @@ WORKDIR /usr/src/app
 
 RUN apt-get -y update -qq
 
+# Install chromium for puppeteer/grover
+RUN apt-get install -y chromium \
+    fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
+    --no-install-recommends
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
+
 # install postgresql-client for easy importing of production database & vim
 # for easy editing of credentials
 RUN apt-get -y install postgresql-client vim poppler-utils
