@@ -61,9 +61,6 @@
       "url": "https://github.com/heroku/heroku-buildpack-chromedriver"
     },
     {
-      "url": "https://github.com/dscout/wkhtmltopdf-buildpack.git"
-    },
-    {
       "url": "heroku/nodejs"
     },
     {

@@ -93,9 +93,6 @@ gem "rubyzip", ">= 1.2.1"
 # Manage CORS
 gem "rack-cors"
 
-# Converting HTML to PDFs
-gem "wicked_pdf"
-
 # Markdown in Comments
 gem "redcarpet"
 
@@ -152,8 +149,6 @@ group :development do
   gem "web-console", ">= 3.3.0"
   # Preview emails
   gem "letter_opener_web"
-  # Generate PDFs from HTML. Version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
-  gem "wkhtmltopdf-binary", "0.12.3"
   # Ruby language server
   gem "solargraph", require: false
   gem "solargraph-rails", "~> 0.2.0", require: false
