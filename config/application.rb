@@ -54,6 +54,8 @@ module Bank
 
     config.exceptions_app = routes
 
+    config.middleware.use Grover::Middleware
+
     # TODO: Pre-load grape API
     # ::API::V3.compile!
 

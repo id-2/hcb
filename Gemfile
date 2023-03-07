@@ -126,6 +126,9 @@ gem "flipper-ui"
 # Send SMS messages
 gem "twilio-ruby"
 
+# Generate HTML => PDF
+gem "grover"
+
 group :development, :test do
   gem "erb_lint", require: false
   gem "relaxed-rubocop"
