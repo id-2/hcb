@@ -37,3 +37,9 @@ RUN ln -s /usr/src/app/.rubocop.yml ~/.rubocop.yml
 RUN ln -s /usr/src/app/.rubocop_todo.yml ~/.rubocop_todo.yml
 
 ADD . /usr/src/app
+
+# Our production build envrionment does not have access to production secrets
+# (e.g. SECRET_KEY_BASE). However, assets:precompile requires it. We can just
+# set it to a dummy value. There will soon be a SECRET_KEY_BASE_DUMMY env
+# variable to handle this. See https://github.com/rails/rails/pull/46760
+RUN SECRET_KEY_BASE=dummy bundle exec rake assets:precompile
