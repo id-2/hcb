@@ -84,6 +84,14 @@ class StripeCardholder < ApplicationRecord
     stripe_obj[:requirements].try(:[], :disabled_reason)
   end
 
+  def terms_accepted?
+    stripe_obj[:individual].try(:[], :card_issuing).try(:[], :user_terms_acceptance).try(:[], :ip).present?
+  end
+
+  def accept_terms!(ip:)
+    ::StripeCardholderService::AcceptTerms(cardholder: self, ip: ip).run
+  end
+
   private
 
   def stripe_obj

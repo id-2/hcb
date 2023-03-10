@@ -112,6 +112,8 @@ class StripeCardsController < ApplicationController
       stripe_shipping_address_line2: sc[:stripe_shipping_address_line2],
       stripe_shipping_address_postal_code: sc[:stripe_shipping_address_postal_code],
       stripe_shipping_address_country: sc[:stripe_shipping_address_country],
+      ip: request.remote_ip,
+      user_agent: request.user_agent
     }
     ::StripeCardService::Create.new(attrs).run
 

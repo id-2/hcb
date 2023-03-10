@@ -4,6 +4,7 @@ module StripeCardService
   class Create
     def initialize(current_user:, event_id:,
                    card_type:,
+                   ip:, user_agent: nil,
                    stripe_shipping_name: nil, stripe_shipping_address_city: nil, stripe_shipping_address_state: nil,
                    stripe_shipping_address_line1: nil, stripe_shipping_address_line2: nil, stripe_shipping_address_postal_code: nil, stripe_shipping_address_country: "US")
       @current_user = current_user
@@ -17,12 +18,19 @@ module StripeCardService
       @stripe_shipping_address_line2 = stripe_shipping_address_line2
       @stripe_shipping_address_postal_code = stripe_shipping_address_postal_code
       @stripe_shipping_address_country = stripe_shipping_address_country
+
+      @ip = ip
+      @user_agent = user_agent
     end
 
     def run
       raise ArgumentError, "not permitted under spend only plan" if event.unapproved?
 
       stripe_cardholder
+
+      unless stripe_cardholder.terms_accepted?
+        stripe_cardholder.accept_terms! ip: @ip, user_agent: @user_agent
+      end
 
       ActiveRecord::Base.transaction do
         card = event.stripe_cards.create!(attrs)

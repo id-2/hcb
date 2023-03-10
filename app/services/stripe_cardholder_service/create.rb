@@ -57,18 +57,12 @@ module StripeCardholderService
         individual: {
           first_name: @current_user.first_name,
           last_name: @current_user.last_name,
-          dob: dob,
-          card_issuing: {
-            user_terms_acceptance: {
-              date: DateTime.now.to_i,
-              ip: @current_session.ip
-            }
-          }
+          dob: dob
         }
       }
     end
 
-    def dob
+    def(dob)
       return nil unless @current_user.birthday
       # We don't want to share the dob for users under 13
       # https://github.com/hackclub/bank/pull/3071#issuecomment-1268880804
