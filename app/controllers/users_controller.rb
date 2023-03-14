@@ -59,7 +59,7 @@ class UsersController < ApplicationController
   def login_code
     @return_to = params[:return_to]
     @email = params[:email].downcase
-    @force_use_email = params[:force_use_email]
+    @force_use_email = params[:force_use_email] || Rails.env.development?
 
     initialize_sms_params
 
