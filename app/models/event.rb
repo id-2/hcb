@@ -523,27 +523,12 @@ class Event < ApplicationRecord
                            .not_waived
                            .not_declined
                            .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
-                           .includes(:event, local_hcb_code: { canonical_transactions: :canonical_event_mapping })
+                           .includes(:event,
+                                     local_hcb_code: {
+                                       canonical_transactions: :canonical_event_mapping,
+                                       fronted_canonical_pending_transactions: :canonical_pending_event_mapping
+                                     })
                            .sum(&:fronted_amount)
-
-    # TODO: make sure this has the same rounding error has the rest of the codebase
-    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee)
-  end
-
-  # `fee_balance_v2_cents`, but it includes fees on fronted (unsettled) transactions to prevent overspending before fees are charged
-  def fast_fronted_fee_balance_v2_cents
-    feed_fronted_balance = canonical_pending_transactions
-                             .incoming
-                             .fronted
-                             .not_waived
-                             .not_declined
-                             .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
-                             .includes(:event,
-                                       local_hcb_code: {
-                                         canonical_transactions: :canonical_event_mapping,
-                                         fronted_canonical_pending_transactions: :canonical_pending_event_mapping
-                                       })
-                             .sum(&:fast_fronted_amount)
 
     # TODO: make sure this has the same rounding error has the rest of the codebase
     fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee)
