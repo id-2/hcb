@@ -178,12 +178,9 @@ class CanonicalPendingTransaction < ApplicationRecord
   def fast_fronted_amount
     return 0 if !fronted || self.amount_cents.negative? || declined?
 
-    pts = local_hcb_code.canonical_pending_transactions
-                        .includes(:canonical_pending_event_mapping)
-                        .where(canonical_pending_event_mapping: { event_id: event.id })
-                        .where(fronted: true)
-                        .order(date: :asc, id: :asc)
-    pts_sum = pts.map(&:amount_cents).sum
+    pts = local_hcb_code.fronted_canonical_pending_transactions
+                        .filter {|ct| ct.canonical_pending_event_mapping.event_id == event.id}
+    pts_sum = pts.sum(&:amount_cents)
     return 0 if pts_sum.negative?
 
     cts_sum = local_hcb_code.canonical_transactions

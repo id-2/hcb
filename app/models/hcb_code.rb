@@ -112,6 +112,13 @@ class HcbCode < ApplicationRecord
            primary_key: "hcb_code",
            inverse_of: :local_hcb_code
 
+  has_many :fronted_canonical_pending_transactions,
+           -> { fronted.order(date: :asc, id: :asc) },
+           foreign_key: "hcb_code",
+           primary_key: "hcb_code",
+           inverse_of: :local_hcb_code,
+           class_name: "CanonicalPendingTransaction"
+
   has_many :canonical_transactions,
            -> { order("canonical_transactions.date desc, canonical_transactions.id desc") },
            foreign_key: "hcb_code",
