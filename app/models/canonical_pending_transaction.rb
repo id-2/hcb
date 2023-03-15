@@ -145,6 +145,44 @@ class CanonicalPendingTransaction < ApplicationRecord
                         .where(canonical_pending_event_mapping: { event_id: event.id })
                         .where(fronted: true)
                         .order(date: :asc, id: :asc)
+    pts_sum = pts.sum(:amount_cents)
+    return 0 if pts_sum.negative?
+
+    cts_sum = local_hcb_code.canonical_transactions
+                            .includes(:canonical_event_mapping)
+                            .where(canonical_event_mapping: { event_id: event.id })
+                            .sum(:amount_cents)
+
+    # PTs that were chronologically created first in an HcbCode are first
+    # responsible for "contributing" to the fronted amount. After a PT's
+    # amount_cents is fully allocated to the fronted amount, the next
+    # chronological PT in the hcb_code is responsible for allocating it's own
+    # amount_cents towards the fronted amount.
+    #
+    # The code below is a simplified implementation of that "algorithm".
+
+    prior_pt_sum = pts.reduce(0) do |sum, pt|
+      # Sum until this PT (inclusive)
+      sum += pt.amount_cents
+      break sum if pt.id == self.id
+    end
+    residual = prior_pt_sum - cts_sum
+
+    if residual.positive?
+      [residual, amount_cents].min
+    else
+      0
+    end
+  end
+
+  def fast_fronted_amount
+    return 0 if !fronted || self.amount_cents.negative? || declined?
+
+    pts = local_hcb_code.canonical_pending_transactions
+                        .includes(:canonical_pending_event_mapping)
+                        .where(canonical_pending_event_mapping: { event_id: event.id })
+                        .where(fronted: true)
+                        .order(date: :asc, id: :asc)
     pts_sum = pts.map(&:amount_cents).sum
     return 0 if pts_sum.negative?
 
