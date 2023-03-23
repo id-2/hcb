@@ -1,0 +1,27 @@
+name: (Test) MRSK - Local Docker Build
+on: [push]
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.1.0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7.7'
+          bundler-cache: true
+
+      - name: Deploy to atm2
+        env:
+          MRSK_REGISTRY_USERNAME: ${{ github.actor }}
+          MRSK_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          MRSK_SSH_KEY: ${{ secrets.MRSK_SSH_KEY }}
+        run: |
+          echo "deploying Bank to atm2!"
+          mkdir -p ~/.ssh/
+          echo "$MRSK_SSH_KEY" > ~/.ssh/id_rsa && sudo chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H atm2.hcb.gg > ~/.ssh/known_hosts
+          ssh-keyscan -H warehouse.hcb.gg > ~/.ssh/known_hosts
+          bundle exec mrsk deploy --destination atm2

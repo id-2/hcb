@@ -33,9 +33,7 @@ env:
 
 # Configure builder setup.
 builder:
-  remote:
-    arch: amd64
-    host: ssh://root@warehouse.hcb.gg
+  multiarch: false
 
 # Use accessory services (secrets come from .env).
 accessories:
