@@ -226,6 +226,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_06_20_180029) do
     t.index ["creator_id"], name: "index_blazer_queries_on_creator_id"
   end
 
+  create_table "bulletins", force: :cascade do |t|
+    t.string "type"
+    t.string "title"
+    t.integer "status", default: 0, null: false
+    t.datetime "published_at"
+    t.bigint "author_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_bulletins_on_author_id"
+    t.index ["type", "status", "published_at", "author_id"], name: "idx_bulletins_on_type_and_status_and_published_at_and_author_id"
+  end
+
   create_table "canonical_event_mappings", force: :cascade do |t|
     t.bigint "canonical_transaction_id", null: false
     t.bigint "event_id", null: false

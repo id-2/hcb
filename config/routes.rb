@@ -39,6 +39,10 @@ Rails.application.routes.draw do
   post "feedback", to: "static_pages#feedback"
   get "wrapped", to: "users#wrapped"
 
+  scope module: :bulletins do
+    resources :announcements
+  end
+
   scope :my do
     get "/", to: redirect("/"), as: :my
     get "settings", to: "users#edit", as: :my_settings
