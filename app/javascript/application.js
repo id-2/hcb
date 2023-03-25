@@ -19,3 +19,5 @@ import './controllers'
 
 import { Turbo } from '@hotwired/turbo-rails'
 window.Turbo = Turbo
+import "trix"
+import "@rails/actiontext"
