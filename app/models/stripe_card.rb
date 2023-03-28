@@ -335,7 +335,7 @@ class StripeCard < ApplicationRecord
   end
 
   def raw_stripe_transaction_ids
-    @raw_stripe_transaction_ids ||= RawStripeTransaction.where("stripe_transaction->'card'->>'id' = ?", stripe_id).pluck(:id)
+    @raw_stripe_transaction_ids ||= RawStripeTransaction.where("stripe_transaction->>'card' = ?", stripe_id).pluck(:id)
   end
 
   def issued?

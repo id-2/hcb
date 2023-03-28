@@ -211,6 +211,20 @@
   <% end %>
 </article>
 
+<% if @subscriptions.exists? %>
+  <h2 class="flex items-center">Detected subscriptions <span class="badge bg-info">Beta</span></h2>
+  <div class="flex mb2 overflow-auto" style="-webkit-mask-image: linear-gradient(to right, white 90%, transparent 100%)">
+    <% @subscriptions.each do |subscription| %>
+      <div class="card mr1" style="flex-basis: 18rem; flex-shrink: 0; flex-grow: 0">
+        <div class="flex justify-between">
+          <h3 class="regular m0 h3 mr1"><%= subscription.memo.humanize %></h3>
+          <span><%= render_money subscription.amount_cents.abs %></span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
 <% if @hcb_codes.exists? %>
   <h2 class="heading h2 line-height-4 mt0 ml0 pt1 pb1 pl2 pr2">Transactions on this card</h2>
 

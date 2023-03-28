@@ -84,6 +84,11 @@ class StripeCardsController < ApplicationController
                       .includes(canonical_pending_transactions: [:raw_pending_stripe_transaction], canonical_transactions: { hashed_transactions: [:raw_stripe_transaction] })
                       .page(params[:page]).per(25)
 
+    @subscriptions = @card.canonical_transactions
+                          .select(:memo, :amount_cents, "COUNT(*)", "MAX(canonical_transactions.date) AS last_charged_at")
+                          .where("amount_cents < 0")
+                          .group(:amount_cents, :memo)
+                          .having("COUNT(*) > 1 AND MAX(canonical_transactions.date) > ?", 3.months.ago)
   end
 
   def new
