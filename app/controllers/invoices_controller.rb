@@ -73,10 +73,10 @@ class InvoicesController < ApplicationController
 
     attrs = {
       event_id: params[:event_id],
-      due_date: due_date,
+      due_date:,
       item_description: filtered_params[:item_description],
       item_amount: filtered_params[:item_amount],
-      current_user: current_user,
+      current_user:,
 
       sponsor_id: sponsor_attrs[:id],
       sponsor_name: sponsor_attrs[:name],

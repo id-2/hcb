@@ -18,7 +18,7 @@ class GSuiteAccountsController < ApplicationController
 
     attrs = {
       g_suite: @g_suite,
-      current_user: current_user,
+      current_user:,
       backup_email: g_suite_account_params[:backup_email],
       address: g_suite_account_params[:address],
       first_name: g_suite_account_params[:first_name],

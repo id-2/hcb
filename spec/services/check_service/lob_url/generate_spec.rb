@@ -7,7 +7,7 @@ RSpec.describe CheckService::LobUrl::Generate, type: :model do
 
   let(:attrs) do
     {
-      check: check,
+      check:,
     }
   end
 

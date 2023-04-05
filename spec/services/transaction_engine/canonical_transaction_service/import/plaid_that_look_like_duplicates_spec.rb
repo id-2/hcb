@@ -46,7 +46,7 @@ RSpec.describe TransactionEngine::CanonicalTransactionService::Import::PlaidThat
       raw_plaid_transaction = create(:raw_plaid_transaction)
       duplicate_hash = "1234"
       2.times do
-        create(:hashed_transaction, primary_hash: duplicate_hash, raw_plaid_transaction: raw_plaid_transaction)
+        create(:hashed_transaction, primary_hash: duplicate_hash, raw_plaid_transaction:)
       end
     end
 

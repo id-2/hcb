@@ -9,7 +9,7 @@ RSpec.describe CanonicalTransactionService::SetFriendlyMemo, type: :model do
   let(:attrs) do
     {
       canonical_transaction_id: canonical_transaction.id,
-      friendly_memo: friendly_memo
+      friendly_memo:
     }
   end
 

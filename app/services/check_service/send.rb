@@ -12,7 +12,7 @@ module CheckService
       ActiveRecord::Base.transaction do
         check.mark_in_transit!
         lob_check = Partners::Lob::Checks::Create.new(lob_attrs).run
-        check.update_columns(update_attrs(lob_check: lob_check))
+        check.update_columns(update_attrs(lob_check:))
       end
 
       check.reload
@@ -26,7 +26,7 @@ module CheckService
         memo: check.memo,
         amount_cents: check.amount,
         description: check.description,
-        message: message
+        message:
       }
     end
 
@@ -37,7 +37,7 @@ module CheckService
         lob_id: lob_check["id"],
         lob_url: lob_check["url"],
         check_number: lob_check["check_number"],
-        transaction_memo: transaction_memo,
+        transaction_memo:,
         expected_delivery_date: lob_check["expected_delivery_date"]
       }
     end

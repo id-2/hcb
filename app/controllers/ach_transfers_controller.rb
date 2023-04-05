@@ -56,7 +56,7 @@ class AchTransfersController < ApplicationController
       recipient_tel: ach_transfer_params[:recipient_tel],
       amount_cents: (ach_transfer_params[:amount].to_f * 100).to_i,
       payment_for: ach_transfer_params[:payment_for],
-      current_user: current_user
+      current_user:
     }
     ach_transfer = AchTransferService::Create.new(attrs).run
 

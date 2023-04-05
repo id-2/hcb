@@ -23,10 +23,10 @@ module DonationService
         raise ArgumentError, "production only" unless Rails.env.production?
 
         # 3. Process remotely
-        ::Partners::Stripe::Refunds::Create.new(payment_intent_id: payment_intent_id).run
+        ::Partners::Stripe::Refunds::Create.new(payment_intent_id:).run
 
         # 4. Transfer on SVB
-        transfer_from_fs_main_to_fs_operating!(amount_cents: amount_cents, memo: memo) # make the transfer on remote bank similar to monthly fee service
+        transfer_from_fs_main_to_fs_operating!(amount_cents:, memo:) # make the transfer on remote bank similar to monthly fee service
       end
 
       sleep 5

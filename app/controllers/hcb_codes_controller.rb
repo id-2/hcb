@@ -38,7 +38,7 @@ class HcbCodesController < ApplicationController
       pos = txs.index { |tx| tx.hcb_code == hcb } + 1
       page = (pos.to_f / 100).ceil
 
-      redirect_to event_path(@event, page: page, anchor: hcb_id)
+      redirect_to event_path(@event, page:, anchor: hcb_id)
     else
       redirect_to event_path(@event, anchor: hcb_id)
     end
@@ -63,7 +63,7 @@ class HcbCodesController < ApplicationController
       content: params[:content],
       file: params[:file],
       admin_only: params[:admin_only],
-      current_user: current_user
+      current_user:
     }
     ::HcbCodeService::Comment::Create.new(attrs).run
 
@@ -88,9 +88,9 @@ class HcbCodesController < ApplicationController
       params[:file].each do |file|
         attrs = {
           hcb_code_id: @hcb_code.id,
-          file: file,
+          file:,
           upload_method: params[:upload_method],
-          current_user: current_user
+          current_user:
         }
         ::HcbCodeService::Receipt::Create.new(attrs).run
       end

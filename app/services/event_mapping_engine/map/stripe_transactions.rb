@@ -36,7 +36,7 @@ module EventMappingEngine
 
           attrs = {
             canonical_transaction_id: canonical_transaction.id,
-            event_id: event_id
+            event_id:
           }
           ::CanonicalEventMapping.create!(attrs)
         end

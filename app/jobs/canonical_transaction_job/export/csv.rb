@@ -12,14 +12,14 @@ module CanonicalTransactionJob
                 .gsub(/[^0-9a-z_]/i, "-").gsub(" ", "_")
         title += ".csv"
 
-        csv_enumerator = CanonicalTransactionService::Export::Csv.new(event_id: event_id).run
+        csv_enumerator = CanonicalTransactionService::Export::Csv.new(event_id:).run
         csv = csv_enumerator.reduce(:+)
 
         params = {
           event: @event,
           user: @user,
           mime_type: "text/csv",
-          title: title,
+          title:,
           content: csv
         }
         CanonicalTransactionMailer.export_ready(params).deliver_later

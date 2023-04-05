@@ -14,12 +14,12 @@ module SeleniumService
 
     def attrs
       {
-        cookies: cookies
+        cookies:
       }
     end
 
     def cookies
-      ::SeleniumService::ParseCookies.new(cookie_txt: cookie_txt).run
+      ::SeleniumService::ParseCookies.new(cookie_txt:).run
     end
 
     def cookie_txt

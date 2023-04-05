@@ -17,8 +17,8 @@ module SystemEventService
 
       def attrs
         {
-          name: name,
-          properties: properties
+          name:,
+          properties:
         }
       end
 

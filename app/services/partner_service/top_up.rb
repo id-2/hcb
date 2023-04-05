@@ -15,9 +15,9 @@ module PartnerService
 
     def attrs
       {
-        stripe_api_key: stripe_api_key,
+        stripe_api_key:,
         amount_cents: @amount_cents,
-        statement_descriptor: statement_descriptor
+        statement_descriptor:
       }
     end
 

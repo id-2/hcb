@@ -60,7 +60,7 @@ class LoginCode < ApplicationRecord
       self.code = SecureRandom.random_number(999_999).to_s
       self.code = code.ljust(6, "0") # left pad w/ zero
 
-      break unless LoginCode.active.find_by(code: code)
+      break unless LoginCode.active.find_by(code:)
     end
   end
 

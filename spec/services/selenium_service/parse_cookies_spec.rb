@@ -8,7 +8,7 @@ RSpec.describe SeleniumService::ParseCookies, type: :model do
 
   let(:attrs) do
     {
-      cookie_txt: cookie_txt
+      cookie_txt:
     }
   end
 

@@ -34,7 +34,7 @@ module UserService
       user = User.find(@user_id)
 
       if TwilioVerificationService.new.check_verification_token(user.phone_number, login_code)
-        { user: user }
+        { user: }
       else
         { errors: "login code is invalid" }
       end

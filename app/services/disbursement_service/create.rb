@@ -24,8 +24,8 @@ module DisbursementService
       disbursement = Disbursement.create!(attrs)
 
       # 1. Create the raw pending transactions
-      rpidt = ::PendingTransactionEngine::RawPendingIncomingDisbursementTransactionService::Disbursement::ImportSingle.new(disbursement: disbursement).run
-      rpodt = ::PendingTransactionEngine::RawPendingOutgoingDisbursementTransactionService::Disbursement::ImportSingle.new(disbursement: disbursement).run
+      rpidt = ::PendingTransactionEngine::RawPendingIncomingDisbursementTransactionService::Disbursement::ImportSingle.new(disbursement:).run
+      rpodt = ::PendingTransactionEngine::RawPendingOutgoingDisbursementTransactionService::Disbursement::ImportSingle.new(disbursement:).run
 
       # 2. Canonize the newly added raw pending transactions
       i_cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::IncomingDisbursement.new(raw_pending_incoming_disbursement_transaction: rpidt).run
@@ -50,7 +50,7 @@ module DisbursementService
         event_id: destination_event.id,
         name: @name,
         amount: amount_cents,
-        requested_by: requested_by
+        requested_by:
       }
     end
 
