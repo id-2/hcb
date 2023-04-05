@@ -18,7 +18,7 @@ module PendingTransactionEngine
               amount_cents: @raw_pending_stripe_transaction.amount_cents,
               raw_pending_stripe_transaction_id: @raw_pending_stripe_transaction.id
             }
-            ::CanonicalPendingTransaction.create!(attrs)
+            ::CanonicalPendingTransaction.create!(**attrs)
           end
         end
 

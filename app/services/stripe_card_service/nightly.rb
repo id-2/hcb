@@ -23,7 +23,7 @@ module StripeCardService
           canonical_transaction_id: ct.id,
           custom_memo: "💳 New user card fee"
         }
-        ::CanonicalTransactionService::SetCustomMemo.new(attrs).run
+        ::CanonicalTransactionService::SetCustomMemo.new(**attrs).run
       end
     end
 

@@ -34,7 +34,7 @@ module TransactionEngine
             memo: et.memo.upcase
           }
 
-          ::TransactionEngine::HashedTransactionService::PrimaryHash.new(attrs).run
+          ::TransactionEngine::HashedTransactionService::PrimaryHash.new(**attrs).run
         end
 
       end

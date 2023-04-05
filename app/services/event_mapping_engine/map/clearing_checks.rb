@@ -26,14 +26,14 @@ module EventMappingEngine
               canonical_transaction_id: ct.id,
               event_id: guessed_event_id
             }
-            ::CanonicalEventMapping.create!(attrs)
+            ::CanonicalEventMapping.create!(**attrs)
 
             # pair
             attrs = {
               canonical_transaction_id: paired_canonical_transaction.id,
               event_id: guessed_event_id
             }
-            ::CanonicalEventMapping.create!(attrs)
+            ::CanonicalEventMapping.create!(**attrs)
           end
         end
       end

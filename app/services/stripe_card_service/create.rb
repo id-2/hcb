@@ -26,7 +26,7 @@ module StripeCardService
       stripe_cardholder
 
       ActiveRecord::Base.transaction do
-        card = event.stripe_cards.create!(attrs)
+        card = event.stripe_cards.create!(**attrs)
 
         remote_stripe_card = create_remote_stripe_card!
 

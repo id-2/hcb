@@ -13,7 +13,7 @@ module Partners
           end
 
           def run
-            ::StripeService::Issuing::Card.retrieve(attrs)
+            ::StripeService::Issuing::Card.retrieve(**attrs)
           end
 
           private

@@ -11,7 +11,7 @@ module Partners
         end
 
         def run
-          ::StripeService::Invoice.retrieve(attrs)
+          ::StripeService::Invoice.retrieve(**attrs)
         end
 
         private

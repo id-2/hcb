@@ -17,7 +17,7 @@ module HcbCodeService
       end
 
       def run
-        hcb_code.comments.create!(attrs)
+        hcb_code.comments.create!(**attrs)
       end
 
       private

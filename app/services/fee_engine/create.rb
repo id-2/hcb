@@ -24,7 +24,7 @@ module FeeEngine
         amount_cents_as_decimal:,
         event_sponsorship_fee:
       }
-      Fee.create!(attrs)
+      Fee.create!(**attrs)
     end
 
     private

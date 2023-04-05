@@ -9,7 +9,7 @@ module PendingTransactionEngine
         end
 
         def run
-          ::RawPendingIncomingDisbursementTransaction.find_or_create_by(attrs)
+          ::RawPendingIncomingDisbursementTransaction.find_or_create_by(**attrs)
         end
 
         private

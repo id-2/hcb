@@ -15,14 +15,14 @@ module CanonicalTransactionService
           canonical_transaction.canonical_event_mapping.destroy!
         end
 
-        canonical_event_mapping = CanonicalEventMapping.create!(attrs) if event
+        canonical_event_mapping = CanonicalEventMapping.create!(**attrs) if event
 
         attrs = {
           canonical_transaction:,
           canonical_event_mapping:,
           user: @user
         }
-        ::SystemEventService::Write::SettledTransactionMapped.new(attrs).run
+        ::SystemEventService::Write::SettledTransactionMapped.new(**attrs).run
       end
 
       canonical_transaction

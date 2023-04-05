@@ -29,7 +29,7 @@ RSpec.describe TransactionEngine::HashedTransactionService::RawCsvTransaction::I
         attrs = raw_csv_transaction.attributes
         attrs.delete("id")
 
-        RawCsvTransaction.create!(attrs)
+        RawCsvTransaction.create!(**attrs)
       end
 
       it "changes count" do

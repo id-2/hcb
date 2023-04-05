@@ -11,7 +11,7 @@ module Partners
         end
 
         def run
-          ::StripeService::Balance.retrieve(attrs)
+          ::StripeService::Balance.retrieve(**attrs)
         end
 
         private

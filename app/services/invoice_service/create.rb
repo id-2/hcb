@@ -34,7 +34,7 @@ module InvoiceService
       ActiveRecord::Base.transaction do
         sponsor
 
-        invoice = Invoice.create!(attrs)
+        invoice = Invoice.create!(**attrs)
 
         item = StripeService::InvoiceItem.create(remote_invoice_item_attrs)
         remote_invoice = StripeService::Invoice.create(remote_invoice_attrs(invoice:))
@@ -48,7 +48,7 @@ module InvoiceService
         attrs = {
           invoice_id: invoice.id
         }
-        ::InvoiceService::SyncRemoteToLocal.new(attrs).run
+        ::InvoiceService::SyncRemoteToLocal.new(**attrs).run
       end
 
       invoice

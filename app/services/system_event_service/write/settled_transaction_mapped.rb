@@ -14,7 +14,7 @@ module SystemEventService
       end
 
       def run
-        ::SystemEventService::Create.new(attrs).run
+        ::SystemEventService::Create.new(**attrs).run
       end
 
       private

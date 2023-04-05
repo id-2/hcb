@@ -114,7 +114,7 @@ class StripeCardsController < ApplicationController
       stripe_shipping_address_postal_code: sc[:stripe_shipping_address_postal_code],
       stripe_shipping_address_country: sc[:stripe_shipping_address_country],
     }
-    ::StripeCardService::Create.new(attrs).run
+    ::StripeCardService::Create.new(**attrs).run
 
     redirect_to event_cards_overview_path(event), flash: { success: "Card was successfully created." }
   rescue => e

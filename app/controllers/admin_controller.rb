@@ -237,7 +237,7 @@ class AdminController < ApplicationController
       omit_stats: params[:omit_stats].to_i == 1,
       demo_mode: params[:demo_mode].to_i == 1
     }
-    ::EventService::Create.new(attrs).run
+    ::EventService::Create.new(**attrs).run
 
     redirect_to events_admin_index_path, flash: { success: "Successfully created #{params[:name]}" }
   rescue => e
@@ -352,7 +352,7 @@ class AdminController < ApplicationController
       memo: params[:memo],
       amount: params[:amount]
     }
-    ::RawCsvTransactionService::Create.new(attrs).run
+    ::RawCsvTransactionService::Create.new(**attrs).run
 
     redirect_to raw_transactions_admin_index_path, flash: { success: "Success" }
   rescue => e
@@ -524,7 +524,7 @@ class AdminController < ApplicationController
       ach_transfer_id: params[:id],
       processor: current_user
     }
-    ach_transfer = AchTransferService::Approve.new(attrs).run
+    ach_transfer = AchTransferService::Approve.new(**attrs).run
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
   rescue => e
@@ -535,7 +535,7 @@ class AdminController < ApplicationController
     attrs = {
       ach_transfer_id: params[:id],
     }
-    ach_transfer = AchTransferService::Reject.new(attrs).run
+    ach_transfer = AchTransferService::Reject.new(**attrs).run
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
   rescue => e
@@ -635,7 +635,7 @@ class AdminController < ApplicationController
     attrs = {
       check_id: params[:id]
     }
-    check = ::CheckService::Send.new(attrs).run
+    check = ::CheckService::Send.new(**attrs).run
 
     redirect_to check_process_admin_path(check), flash: { success: "Success" }
   end
@@ -644,7 +644,7 @@ class AdminController < ApplicationController
     attrs = {
       check_id: params[:id]
     }
-    check = CheckService::MarkInTransitAndProcessed.new(attrs).run
+    check = CheckService::MarkInTransitAndProcessed.new(**attrs).run
 
     redirect_to check_process_admin_path(check), flash: { success: "Success" }
   rescue => e
@@ -799,7 +799,7 @@ class AdminController < ApplicationController
       amount: params[:amount],
       requested_by_id: current_user.id
     }
-    ::DisbursementService::Create.new(attrs).run
+    ::DisbursementService::Create.new(**attrs).run
 
     redirect_to disbursements_admin_index_path, flash: { success: "Success" }
   rescue => e
@@ -898,7 +898,7 @@ class AdminController < ApplicationController
       attachment: params[:attachment],
       user: current_user
     }
-    ::InvoiceService::MarkPaid.new(attrs).run
+    ::InvoiceService::MarkPaid.new(**attrs).run
 
     redirect_to invoices_admin_index_path, flash: { success: "Success" }
   end
@@ -998,7 +998,7 @@ class AdminController < ApplicationController
     attrs = {
       file: params[:file]
     }
-    transaction_csv = TransactionCsv.create!(attrs)
+    transaction_csv = TransactionCsv.create!(**attrs)
 
     ::TransactionEngineJob::TransactionCsvUpload.perform_later(transaction_csv.id)
 
@@ -1024,7 +1024,7 @@ class AdminController < ApplicationController
       verification_key: params[:verification_key],
       dkim_key: params[:dkim_key]
     }
-    @g_suite = GSuiteService::Update.new(attrs).run
+    @g_suite = GSuiteService::Update.new(**attrs).run
 
     redirect_to google_workspace_process_admin_path(@g_suite), flash: { success: "Success" }
   end

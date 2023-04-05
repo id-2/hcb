@@ -26,7 +26,7 @@ module UserService
     end
 
     def create_user!
-      User.create!(attrs)
+      User.create!(**attrs)
     end
 
     def attrs

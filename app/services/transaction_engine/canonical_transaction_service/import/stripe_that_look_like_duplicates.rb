@@ -12,7 +12,7 @@ module TransactionEngine
               amount_cents: ht.amount_cents,
               canonical_hashed_mappings: [CanonicalHashedMapping.new(hashed_transaction: ht)]
             }
-            ::CanonicalTransaction.create!(attrs)
+            ::CanonicalTransaction.create!(**attrs)
           end
         end
 

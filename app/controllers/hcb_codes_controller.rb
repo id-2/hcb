@@ -65,7 +65,7 @@ class HcbCodesController < ApplicationController
       admin_only: params[:admin_only],
       current_user:
     }
-    ::HcbCodeService::Comment::Create.new(attrs).run
+    ::HcbCodeService::Comment::Create.new(**attrs).run
 
     redirect_to params[:redirect_url]
   rescue => e
@@ -92,7 +92,7 @@ class HcbCodesController < ApplicationController
           upload_method: params[:upload_method],
           current_user:
         }
-        ::HcbCodeService::Receipt::Create.new(attrs).run
+        ::HcbCodeService::Receipt::Create.new(**attrs).run
       end
 
       if params[:show_link]

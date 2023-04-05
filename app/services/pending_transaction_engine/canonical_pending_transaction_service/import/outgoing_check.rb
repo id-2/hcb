@@ -14,7 +14,7 @@ module PendingTransactionEngine
                 amount_cents: rpoct.amount_cents,
                 raw_pending_outgoing_check_transaction_id: rpoct.id
               }
-              ct = ::CanonicalPendingTransaction.create!(attrs)
+              ct = ::CanonicalPendingTransaction.create!(**attrs)
             end
 
           end

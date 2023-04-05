@@ -11,7 +11,7 @@ module PendingTransactionEngine
         def run
           return existing_canonical_pending_transaction if existing_canonical_pending_transaction
 
-          ::CanonicalPendingTransaction.find_or_create_by!(attrs) do |cpt|
+          ::CanonicalPendingTransaction.find_or_create_by!(**attrs) do |cpt|
             # In-review disbursements shouldn't be fronted.
             cpt.fronted = !@rpidt.disbursement.reviewing?
           end

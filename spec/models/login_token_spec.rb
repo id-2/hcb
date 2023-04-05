@@ -20,7 +20,7 @@ RSpec.describe LoginToken, type: :model do
 
     it "fails" do
       expect do
-        LoginToken.create!(attrs)
+        LoginToken.create!(**attrs)
       end.to raise_error(ActiveRecord::RecordNotUnique)
     end
   end

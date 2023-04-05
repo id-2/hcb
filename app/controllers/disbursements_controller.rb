@@ -72,7 +72,7 @@ class DisbursementsController < ApplicationController
       amount: disbursement_params[:amount],
       requested_by_id: current_user.id
     }
-    disbursement = DisbursementService::Create.new(attrs).run
+    disbursement = DisbursementService::Create.new(**attrs).run
 
     flash[:success] = "Transfer successfully requested."
 

@@ -87,7 +87,7 @@ class InvoicesController < ApplicationController
       sponsor_address_state: sponsor_attrs[:address_state],
       sponsor_address_postal_code: sponsor_attrs[:address_postal_code]
     }
-    @invoice = ::InvoiceService::Create.new(attrs).run
+    @invoice = ::InvoiceService::Create.new(**attrs).run
 
     flash[:success] = "Invoice successfully created and emailed to #{@invoice.sponsor.contact_email}."
 

@@ -38,7 +38,7 @@ RSpec.describe TransactionEngine::HashedTransactionService::RawPlaidTransaction:
         attrs.delete("id")
         attrs["plaid_transaction_id"] = "plaid_transaction_id99"
 
-        RawPlaidTransaction.create!(attrs)
+        RawPlaidTransaction.create!(**attrs)
       end
 
       it "changes count" do

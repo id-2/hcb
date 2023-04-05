@@ -36,7 +36,7 @@ module TransactionEngine
             amount_cents: rst.amount_cents,
             memo: rst.memo.upcase
           }
-          ::TransactionEngine::HashedTransactionService::PrimaryHash.new(attrs).run
+          ::TransactionEngine::HashedTransactionService::PrimaryHash.new(**attrs).run
         end
 
       end

@@ -3,7 +3,7 @@
 module MfaRequestService
   class Create
     def run
-      MfaRequest.create!(attrs)
+      MfaRequest.create!(**attrs)
     end
 
     private

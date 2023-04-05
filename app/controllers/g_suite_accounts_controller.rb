@@ -25,7 +25,7 @@ class GSuiteAccountsController < ApplicationController
       last_name: g_suite_account_params[:last_name]
     }
     begin
-      GSuiteAccountService::Create.new(attrs).run
+      GSuiteAccountService::Create.new(**attrs).run
 
       flash[:success] = "Google Workspace account created."
     rescue => e

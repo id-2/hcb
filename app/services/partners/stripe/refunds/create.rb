@@ -11,7 +11,7 @@ module Partners
         end
 
         def run
-          ::StripeService::Refund.create(attrs)
+          ::StripeService::Refund.create(**attrs)
         end
 
         private

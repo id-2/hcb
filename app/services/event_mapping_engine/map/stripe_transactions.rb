@@ -38,7 +38,7 @@ module EventMappingEngine
             canonical_transaction_id: canonical_transaction.id,
             event_id:
           }
-          ::CanonicalEventMapping.create!(attrs)
+          ::CanonicalEventMapping.create!(**attrs)
         end
       end
 

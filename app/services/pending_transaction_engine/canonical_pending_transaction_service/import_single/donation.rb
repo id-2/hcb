@@ -18,7 +18,7 @@ module PendingTransactionEngine
             raw_pending_donation_transaction_id: @raw_pending_donation_transaction.id,
             fronted: true
           }
-          ::CanonicalPendingTransaction.create!(attrs)
+          ::CanonicalPendingTransaction.create!(**attrs)
         end
 
         private

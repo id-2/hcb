@@ -11,7 +11,7 @@ module Partners
         end
 
         def run
-          ::StripeService::PaymentIntent.retrieve(attrs)
+          ::StripeService::PaymentIntent.retrieve(**attrs)
         end
 
         private

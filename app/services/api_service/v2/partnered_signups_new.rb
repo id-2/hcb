@@ -18,7 +18,7 @@ module ApiService
           existing_event.save!
           existing_event.reload
         else
-          ::Event.create!(attrs)
+          ::Event.create!(**attrs)
         end
       end
 

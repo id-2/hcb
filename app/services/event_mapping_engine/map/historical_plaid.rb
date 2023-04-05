@@ -40,7 +40,7 @@ module EventMappingEngine
             event_id:
           }
 
-          ::CanonicalEventMapping.create!(attrs)
+          ::CanonicalEventMapping.create!(**attrs)
         end
       end
 

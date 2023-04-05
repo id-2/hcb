@@ -14,7 +14,7 @@ module PendingTransactionEngine
                 amount_cents: rpit.amount_cents,
                 raw_pending_bank_fee_transaction_id: rpit.id
               }
-              ct = ::CanonicalPendingTransaction.create!(attrs)
+              ct = ::CanonicalPendingTransaction.create!(**attrs)
             end
 
           end

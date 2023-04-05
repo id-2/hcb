@@ -10,7 +10,7 @@ module RawCsvTransactionService
     end
 
     def run
-      ::RawCsvTransaction.create!(attrs)
+      ::RawCsvTransaction.create!(**attrs)
     end
 
     private

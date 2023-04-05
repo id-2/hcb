@@ -44,7 +44,7 @@ module GSuiteService
     end
 
     def g_suite
-      @g_suite ||= GSuite.new(attrs)
+      @g_suite ||= GSuite.new(**attrs)
     end
 
     def event

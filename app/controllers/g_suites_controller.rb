@@ -33,7 +33,7 @@ class GSuitesController < ApplicationController
       verification_key: g_suite_params[:verification_key],
       dkim_key: g_suite_params[:dkim_key],
     }
-    @g_suite = GSuiteService::Update.new(attrs).run
+    @g_suite = GSuiteService::Update.new(**attrs).run
 
     if @g_suite.persisted?
       flash[:success] = "Google Workspace changes saved."

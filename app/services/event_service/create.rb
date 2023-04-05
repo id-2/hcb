@@ -25,7 +25,7 @@ module EventService
       raise ArgumentError, "sponsorship_fee must be 0 to 0.5" unless (@sponsorship_fee >= 0.0 && @sponsorship_fee <= 0.5)
 
       ActiveRecord::Base.transaction do
-        event = ::Event.create!(attrs)
+        event = ::Event.create!(**attrs)
 
         # Event aasm_state is already approved by default.
         # event.mark_approved! if @approved

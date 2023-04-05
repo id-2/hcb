@@ -32,7 +32,7 @@ module TransactionEngine
           memo: row["Description"],
           csv_transaction_id: csv_transaction_id(row)
         }
-        RawCsvTransaction.create!(attrs)
+        RawCsvTransaction.create!(**attrs)
       rescue ActiveRecord::RecordNotUnique, ArgumentError => e
         # rescue not unique
       end

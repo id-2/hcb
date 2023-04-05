@@ -8,7 +8,7 @@ module PartnerService
     end
 
     def run
-      ::Partners::Stripe::Topup::Create.new(attrs).run
+      ::Partners::Stripe::Topup::Create.new(**attrs).run
     end
 
     private

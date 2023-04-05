@@ -16,7 +16,7 @@ module SystemEventService
     def run
       raise ArgumentError, "invalid system event name #{@name}" unless valid_event_name?
 
-      Ahoy::Event.create!(attrs)
+      Ahoy::Event.create!(**attrs)
     end
 
     private

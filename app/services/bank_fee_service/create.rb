@@ -11,7 +11,7 @@ module BankFeeService
       raise ArgumentError, "must be an event that has a balance greater than 0" unless event.fee_balance_v2_cents > 0
 
       ActiveRecord::Base.transaction do
-        bank_fee = event.bank_fees.create!(attrs)
+        bank_fee = event.bank_fees.create!(**attrs)
 
         event.update_column(:last_fee_processed_at, Time.now)
         # TODO: mark individual fees that have already been processed here as processed - this can then replace `last_fee_processed_at` brittleness

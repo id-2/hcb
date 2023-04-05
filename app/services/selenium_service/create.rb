@@ -7,7 +7,7 @@ module SeleniumService
     end
 
     def run
-      ::SeleniumSession.create!(attrs)
+      ::SeleniumSession.create!(**attrs)
     end
 
     private

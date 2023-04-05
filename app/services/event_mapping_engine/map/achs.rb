@@ -14,7 +14,7 @@ module EventMappingEngine
             canonical_transaction_id: ct.id,
             event_id: guessed_event_id
           }
-          ::CanonicalEventMapping.create!(attrs)
+          ::CanonicalEventMapping.create!(**attrs)
         end
 
         likely_increase_achs.find_each(batch_size: 100) do |ct|

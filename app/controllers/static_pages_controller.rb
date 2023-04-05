@@ -12,7 +12,7 @@ class StaticPagesController < ApplicationController
       attrs = {
         current_user:
       }
-      @service = StaticPageService::Index.new(attrs)
+      @service = StaticPageService::Index.new(**attrs)
 
       @events = @service.events
       @organizer_positions = @service.organizer_positions.not_hidden

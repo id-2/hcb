@@ -15,7 +15,7 @@ module HcbCodeService
 
       def run
         hcb_code.update_column(:marked_no_or_lost_receipt_at, nil)
-        hcb_code.receipts.create!(attrs)
+        hcb_code.receipts.create!(**attrs)
       end
 
       private

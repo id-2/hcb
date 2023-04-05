@@ -21,7 +21,7 @@ module PopulateService
             email:,
             admin_at: Time.now.utc
           }
-          user = User.create!(attrs)
+          user = User.create!(**attrs)
 
           attrs = {
             point_of_contact: user,
@@ -29,13 +29,13 @@ module PopulateService
             sponsorship_fee: "100.00",
             slug: "developmentevent"
           }
-          event = Event.create!(attrs)
+          event = Event.create!(**attrs)
 
           attrs = {
             user:,
             event:
           }
-          organizer_position = OrganizerPosition.create!(attrs)
+          organizer_position = OrganizerPosition.create!(**attrs)
 
           event
         end

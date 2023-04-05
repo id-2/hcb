@@ -21,7 +21,7 @@ module DisbursementService
       raise ArgumentError, "amount_cents must be greater than 0" unless amount_cents > 0
       raise ArgumentError, "You don't have enough money to make this disbursement." unless ample_balance?(amount_cents, @source_event) || requested_by.admin?
 
-      disbursement = Disbursement.create!(attrs)
+      disbursement = Disbursement.create!(**attrs)
 
       # 1. Create the raw pending transactions
       rpidt = ::PendingTransactionEngine::RawPendingIncomingDisbursementTransactionService::Disbursement::ImportSingle.new(disbursement:).run

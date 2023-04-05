@@ -58,7 +58,7 @@ class AchTransfersController < ApplicationController
       payment_for: ach_transfer_params[:payment_for],
       current_user:
     }
-    ach_transfer = AchTransferService::Create.new(attrs).run
+    ach_transfer = AchTransferService::Create.new(**attrs).run
 
     flash[:success] = "ACH Transfer successfully submitted."
 

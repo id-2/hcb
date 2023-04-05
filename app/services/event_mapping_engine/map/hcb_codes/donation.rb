@@ -23,7 +23,7 @@ module EventMappingEngine
                 canonical_transaction_id: ct.id,
                 event_id: guessed_event_id
               }
-              ::CanonicalEventMapping.create!(attrs)
+              ::CanonicalEventMapping.create!(**attrs)
             end
           end
         end

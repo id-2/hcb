@@ -26,7 +26,7 @@ module Api
           token: contract[:login_token],
           ip: request.remote_ip
         }
-        service = AuthService::Token.new(attrs)
+        service = AuthService::Token.new(**attrs)
         user = service.run
 
         if service.force_manual_login?
@@ -76,7 +76,7 @@ module Api
         user_email: contract[:email],
         organization_public_id: contract[:public_id]
       }
-      login_token = ApiService::V2::GenerateLoginToken.new(attrs).run
+      login_token = ApiService::V2::GenerateLoginToken.new(**attrs).run
 
       render json: Api::V2::GenerateLoginUrlSerializer.new(organization_public_id: contract[:public_id], login_token:).run
     end
@@ -104,7 +104,7 @@ module Api
       attrs[:owner_address_country] = params[:owner_address_country] if params[:owner_address_country]
       attrs[:owner_birthdate] = params[:owner_birthdate] if params[:owner_birthdate]
 
-      @partnered_signup = PartneredSignup.create!(attrs)
+      @partnered_signup = PartneredSignup.create!(**attrs)
 
       render json: Api::V2::PartneredSignupSerializer.new(partnered_signup: @partnered_signup).run
     end
@@ -116,7 +116,7 @@ module Api
       attrs = {
         partner_id: current_partner.id,
       }
-      partnered_signups = ::ApiService::V2::FindPartneredSignups.new(attrs).run
+      partnered_signups = ::ApiService::V2::FindPartneredSignups.new(**attrs).run
 
       render json: Api::V2::PartneredSignupsSerializer.new(partnered_signups:).run
     end
@@ -129,7 +129,7 @@ module Api
         partner_id: current_partner.id,
         partnered_signup_public_id: contract[:public_id]
       }
-      partnered_signup = ::ApiService::V2::FindPartneredSignup.new(attrs).run
+      partnered_signup = ::ApiService::V2::FindPartneredSignup.new(**attrs).run
 
       # if partnered_signup does not exist, throw not found error
       raise ActiveRecord::RecordNotFound and return unless partnered_signup
@@ -145,7 +145,7 @@ module Api
         partner_id: current_partner.id,
         organization_public_id: contract[:organization_id]
       }
-      partner_donation = ::ApiService::V2::DonationsNew.new(attrs).run
+      partner_donation = ::ApiService::V2::DonationsNew.new(**attrs).run
 
       render json: Api::V2::DonationsNewSerializer.new(partner_donation:).run
     end
@@ -157,7 +157,7 @@ module Api
       attrs = {
         partner_id: current_partner.id,
       }
-      organizations = ::ApiService::V2::FindOrganizations.new(attrs).run
+      organizations = ::ApiService::V2::FindOrganizations.new(**attrs).run
 
       render json: Api::V2::OrganizationsSerializer.new(organizations:).run
     end
@@ -170,7 +170,7 @@ module Api
         partner_id: current_partner.id,
         organization_public_id: contract[:public_id]
       }
-      event = ::ApiService::V2::FindOrganization.new(attrs).run
+      event = ::ApiService::V2::FindOrganization.new(**attrs).run
 
       # if event does not exist, throw not found error
       raise ActiveRecord::RecordNotFound and return unless event

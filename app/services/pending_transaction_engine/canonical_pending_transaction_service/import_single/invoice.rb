@@ -18,7 +18,7 @@ module PendingTransactionEngine
             raw_pending_invoice_transaction_id: @raw_pending_invoice_transaction.id,
             fronted: true
           }
-          ::CanonicalPendingTransaction.create!(attrs)
+          ::CanonicalPendingTransaction.create!(**attrs)
         end
 
         private

@@ -12,7 +12,7 @@ module StripeCardholderService
       raise ArgumentError, "not permitted under spend only plan" if event.unapproved?
 
       ActiveRecord::Base.transaction do
-        stripe_cardholder = ::StripeCardholder.create!(attrs)
+        stripe_cardholder = ::StripeCardholder.create!(**attrs)
 
         remote_cardholder = ::StripeService::Issuing::Cardholder.create(remote_attrs)
 

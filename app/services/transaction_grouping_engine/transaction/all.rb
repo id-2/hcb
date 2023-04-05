@@ -30,7 +30,7 @@ module TransactionGroupingEngine
           raw_canonical_pending_transaction_ids: ctg["canonical_pending_transaction_ids"],
           event:
         }
-        CanonicalTransactionGrouped.new(attrs)
+        CanonicalTransactionGrouped.new(**attrs)
       end
 
       def event

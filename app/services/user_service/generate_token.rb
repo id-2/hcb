@@ -8,7 +8,7 @@ module UserService
     end
 
     def run
-      user.login_tokens.create!(attrs)
+      user.login_tokens.create!(**attrs)
     end
 
     private

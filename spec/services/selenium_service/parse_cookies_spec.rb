@@ -12,7 +12,7 @@ RSpec.describe SeleniumService::ParseCookies, type: :model do
     }
   end
 
-  let(:service) { SeleniumService::ParseCookies.new(attrs) }
+  let(:service) { SeleniumService::ParseCookies.new(**attrs) }
 
   it "parses" do
     result = service.run

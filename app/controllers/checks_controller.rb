@@ -35,7 +35,7 @@ class ChecksController < ApplicationController
 
       current_user:
     }
-    check = CheckService::Create.new(attrs).run
+    check = CheckService::Create.new(**attrs).run
 
     flash[:success] = "Your check is scheduled to send on #{check.send_date.to_date}"
 

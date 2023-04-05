@@ -207,7 +207,7 @@ class EventsController < ApplicationController
       event_id: @event.id,
       domain: params[:domain]
     }
-    GSuiteService::Create.new(attrs).run
+    GSuiteService::Create.new(**attrs).run
 
     redirect_to event_g_suite_overview_path(event_id: @event.slug)
   rescue => e

@@ -14,7 +14,7 @@ module PartnerDonationService
 
       ActiveRecord::Base.transaction do
         partner_donation.mark_in_transit!
-        ::Partners::Stripe::Payouts::Create.new(attrs).run
+        ::Partners::Stripe::Payouts::Create.new(**attrs).run
       end
     end
 

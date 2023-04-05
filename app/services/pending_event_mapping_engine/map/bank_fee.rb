@@ -11,7 +11,7 @@ module PendingEventMappingEngine
             event_id: cpt.raw_pending_bank_fee_transaction.likely_event_id,
             canonical_pending_transaction_id: cpt.id
           }
-          CanonicalPendingEventMapping.create!(attrs)
+          CanonicalPendingEventMapping.create!(**attrs)
         end
       end
 

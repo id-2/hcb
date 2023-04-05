@@ -15,7 +15,7 @@ module PendingEventMappingEngine
             event_id: @canonical_pending_transaction.raw_pending_outgoing_disbursement_transaction.likely_event_id,
             canonical_pending_transaction_id: @canonical_pending_transaction.id
           }
-          CanonicalPendingEventMapping.create!(attrs)
+          CanonicalPendingEventMapping.create!(**attrs)
         end
 
       end
