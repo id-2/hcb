@@ -1,4 +1,4 @@
-FROM ruby:2.7.7
+FROM ruby:3.2.1
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -16,7 +16,8 @@ RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr
 RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update; apt-get install -y nodejs yarn
 
-RUN gem install bundler -v 2.1.4
+# now included by default
+# RUN gem install bundler -v 2.4.6
 
 ADD yarn.lock /usr/src/app/yarn.lock
 ADD package.json /usr/src/app/package.json
@@ -28,7 +29,12 @@ ENV BUNDLE_GEMFILE=Gemfile \
   BUNDLE_JOBS=4 \
   BUNDLE_PATH=/bundle
 
-RUN bundle install
+# RUN bundle install
+
+RUN gem update --system 3.4.10
+RUN bundle update --bundler
+RUN /usr/local/bin/gem install bundler:2.4.6
+RUN /usr/local/bin/bundle install
 RUN yarn install --check-files
 
 # Rubocop can't find config when ran with solargraph inside docker

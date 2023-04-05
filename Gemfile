@@ -171,8 +171,8 @@ end
 
 group :development, :test do
   # Lets you set a breakpoint with a REPL using binding.pry
-  gem "pry-byebug"
-  gem "pry-rails"
+  # gem "pry-byebug"
+  # gem "pry-rails"
 end
 
 gem "mrsk", github: "mrsked/mrsk", ref: "83dc82661b8a02dd1fbb0ee91261104cee127862" # deployments - locking to recent commit to get changes until new release
@@ -232,7 +232,7 @@ gem "webauthn", "~> 2.5"
 
 gem "browser", "~> 5.3"
 
-gem "geo_pattern", "~> 1.4" # for procedurally generated patterns on Cards
+gem "geo_pattern" # for procedurally generated patterns on Cards
 
 gem "comma", "~> 4.6"
 
@@ -242,9 +242,9 @@ gem "jsbundling-rails", "~> 1.0"
 gem "rack-mini-profiler", "~> 3.0"
 gem "stackprof" # Used with `rack-mini-profiler` to provide flamegraphs
 
-gem "country_select", "~> 8.0"
+gem "country_select", "~> 8.0" # Used for stripe shipping address
 
-gem "airrecord", "~> 1.0"
+gem "airrecord", "~> 1.0" # Used for submitting feedback to airtable
 
 # temporarily remove lab_tech because it's not compatible with rails 7
 # gem "lab_tech" # Integrates `scientist` with ActiveRecord for experiment data collection
