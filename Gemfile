@@ -66,7 +66,7 @@ gem "phonelib"
 gem "rounding"
 
 # Checks!
-gem "lob"
+gem "lob", "~> 5.4.6"
 
 # Jobs!
 gem "sidekiq"
