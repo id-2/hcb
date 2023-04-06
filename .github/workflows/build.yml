@@ -1,0 +1,19 @@
+name: Build
+on: [workflow_call]
+jobs:
+  cache_build:
+    name: 'Build project and cache result'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          # ruby-version is read from .ruby-version file
+          bundler-cache: true
+      - uses: actions/cache@v2
+        id: restore-build
+        with:
+          path: ./*
+          key: ${{ github.sha }}
