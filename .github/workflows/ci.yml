@@ -24,6 +24,7 @@ jobs:
   erblint:
     name: 'ERB Lint'
     runs-on: ubuntu-latest
+    needs: [cache_build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -50,6 +51,7 @@ jobs:
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
+    needs: [cache_build]
     services:
       postgres:
         image: postgres:latest
@@ -105,6 +107,7 @@ jobs:
   zeitwerk:
     name: Zeitwerk
     runs-on: ubuntu-latest
+    needs: [cache_build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
