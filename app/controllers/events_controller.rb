@@ -43,7 +43,7 @@ class EventsController < ApplicationController
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
     @mock_total = 0
-    if @event.demo_mode? && session[:show_mock_data]
+    if @event.demo_mode? && params[:show_mock_data]&.downcase == "true"
       mock_transaction_descriptions = [
         { desc: "🌶️ Jalapeños for the steamy social salsa sesh", amount: -9.57 },
         { desc: "👩‍💻 Payment for club coding lessons (solid gold; rare; imported)", amount: -127.63 },
@@ -208,7 +208,7 @@ class EventsController < ApplicationController
     authorize @event
 
     # Generate mock data
-    if @event.demo_mode? && session[:show_mock_data]
+    if @event.demo_mode? && params[:show_mock_data]
       @session_user_stripe_cards = []
 
       # The user's cards
@@ -334,7 +334,7 @@ class EventsController < ApplicationController
 
     @recurring_donations = @event.recurring_donations.active.order(created_at: :desc)
 
-    if @event.demo_mode? && session[:show_mock_data]
+    if @event.demo_mode? && params[:show_mock_data]
       @donations = []
       @recurring_donations = []
       @stats = { deposited: 0, in_transit: 0, refunded: 0 }
@@ -457,7 +457,7 @@ class EventsController < ApplicationController
     @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
 
     # Generate mock data
-    if @event.demo_mode? && session[:show_mock_data]
+    if @event.demo_mode? && params[:show_mock_data]
       @transfers = []
       @stats = { deposited: 0, in_transit: 0, canceled: 0 }
 
