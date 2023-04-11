@@ -56,18 +56,17 @@
           <p class="bold center m0" style="font-size: 2rem;">Playground Mode</p>
           <div class="grid g3" style="grid-template-columns: 1fr 2fr 1fr; place-items: center;">
             <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn bg-primary shrink-none nowrap" do %>
-              <%= inline_icon 'welcome' %>Request Activation
+              <%= inline_icon "welcome" %>Request Activation
             <% end %>
-            <p class="center m0">While in Playground mode, explore the dashboard with mock data, and invite your team.<br />To utilise financial features, activate your account!</p>
-            <button 
-              id="mock-data-toggle" 
-              data-mock-data-status=<%= session[:show_mock_data] %> 
-              class="btn btn-small shrink-none nowrap"
-            >
-              <%= inline_icon 'view' %>
+            <p class="center m0">While in Playground mode, explore the dashboard with mock data, and invite your team.<br>To utilise financial features, activate your account!</p>
+            <button
+              id="mock-data-toggle"
+              data-mock-data-status="<%= session[:show_mock_data] %>"
+              class="btn btn-small shrink-none nowrap">
+              <%= inline_icon "view" %>
               <%= session[:show_mock_data] ? "Hide" : "Show" %> Mock Data
             </button>
-            <script>   
+            <script>
               document.getElementById("mock-data-toggle").addEventListener("click", ({ target }) => {
                 const currentStatus = target.dataset.mockDataStatus === "true" ? true : false;
                 const url = new URL(window.location.href);
@@ -79,10 +78,10 @@
         </div>
       </div>
       <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="demo_mode">
-        <%= modal_header "Demo Mode" %>
+        <%= modal_header "Playground Mode" %>
         <% if organizer_signed_in? %>
           <p>
-            Your account is in <strong>demo mode</strong>. You can sign in and poke around, but many features are disabled. Once you're ready to activate your account, you can schedule a call with the Hack Club Bank team.
+            Your account is in <strong>Playground Mode</strong>. You can sign in and poke around, but many features are disabled. Once you're ready to activate your account, you can schedule a call with the Hack Club Bank team.
           </p>
           <% if @event.demo_mode_request_meeting_at.blank? %>
             <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn btn-success" do %>
