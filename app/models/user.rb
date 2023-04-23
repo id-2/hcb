@@ -118,28 +118,24 @@ class User < ApplicationRecord
     update!(admin_at: nil)
   end
 
-  def first_name
-    @first_name ||= begin
-      return nil unless namae.given || namae.particle
+  memoized def first_name
+    return nil unless namae.given || namae.particle
 
-      (namae.given || namae.particle).split(" ").first
-    end
+    (namae.given || namae.particle).split(" ").first
   end
 
-  def last_name
-    @last_name ||= begin
-      return nil unless namae.family
+  memoized def last_name
+    return nil unless namae.family
 
-      namae.family.split(" ").last
-    end
+    namae.family.split(" ").last
   end
 
-  def initial_name
-    @initial_name ||= if name.strip.split(" ").count == 1
-                        name
-                      else
-                        "#{(first_name || last_name)[0..20]} #{(last_name || first_name)[0, 1]}"
-                      end
+  memoized def initial_name
+    if name.strip.split(" ").count == 1
+      name
+    else
+      "#{(first_name || last_name)[0..20]} #{(last_name || first_name)[0, 1]}"
+    end
   end
 
   def safe_name
@@ -207,16 +203,16 @@ class User < ApplicationRecord
 
   private
 
-  def namae
-    @namae ||= Namae.parse(name).first || Namae.parse(name_simplified).first || Namae::Name.new(given: name_simplified)
+  memoized def namae
+    Namae.parse(name).first || Namae.parse(name_simplified).first || Namae::Name.new(given: name_simplified)
   end
 
   def name_simplified
     name.split(/[^[[:word:]]]+/).join(" ")
   end
 
-  def email_handle
-    @email_handle ||= email.split("@").first
+  memoized def email_handle
+    email.split("@").first
   end
 
   def slug_candidates
@@ -244,6 +240,20 @@ class User < ApplicationRecord
       # turn all this stuff off until they reverify
       self.phone_number_verified = false
       self.use_sms_auth = false
+    end
+  end
+
+  def memoized(method_name, &block)
+    original_method = method(method_name)
+
+    define_method(method_name) do |*args, &fn|
+      instance_var = "@#{method_name}".to_sym
+      cached_value = instance_variable_get(instance_var)
+
+      return cached_value if instance_variable_defined?(cached_value)
+
+      value = original_method.call(*args, &fn)
+      instance_variable_set(instance_var, value)
     end
   end
 
