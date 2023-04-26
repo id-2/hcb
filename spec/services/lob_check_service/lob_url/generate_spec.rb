@@ -2,22 +2,22 @@
 
 require "rails_helper"
 
-RSpec.describe CheckService::LobUrl::Generate, type: :model do
-  let(:check) { create(:check) }
+RSpec.describe LobCheckService::LobUrl::Generate, type: :model do
+  let(:lob_check) { create(:lob_check) }
 
   let(:attrs) do
     {
-      check: check,
+      lob_check: lob_check,
     }
   end
 
-  let(:service) { CheckService::LobUrl::Generate.new(attrs) }
+  let(:service) { LobCheckService::LobUrl::Generate.new(attrs) }
 
   let(:url) { "http://lob.com/some/url" }
   let(:resp) { { "url" => url } }
 
   before do
-    allow(service).to receive(:remote_check).and_return(resp)
+    allow(service).to receive(:remote_lob_check).and_return(resp)
   end
 
   it "returns a url" do

@@ -2,9 +2,9 @@
 
 require "rails_helper"
 
-RSpec.describe CheckService::Create, type: :model do
+RSpec.describe LobCheckService::Create, type: :model do
   context "when an event has ample balance" do
-    it "creates a check with the correct amount" do
+    it "creates a lob check with the correct amount" do
       # Set up event with ample balance of 1000 cents
       event = create(:event)
       canonical_transaction = create(:canonical_transaction, amount_cents: 1000)
@@ -24,9 +24,9 @@ RSpec.describe CheckService::Create, type: :model do
 
       expect do
         service.run
-      end.to change(Check, :count).by(1)
+      end.to change(LobCheck, :count).by(1)
 
-      expect(Check.last.amount).to eq(207)
+      expect(LobCheck.last.amount).to eq(207)
     end
 
   end

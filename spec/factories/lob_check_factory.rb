@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :check do
+  factory :lob_check do
     association :creator, factory: :user
     association :lob_address
     amount { 100 }
