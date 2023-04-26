@@ -3,7 +3,7 @@
 module LobCheckJob
   class Nightly < ApplicationJob
     def perform
-      CheckService::Nightly.new.run
+      LobCheckService::Nightly.new.run
     end
 
   end

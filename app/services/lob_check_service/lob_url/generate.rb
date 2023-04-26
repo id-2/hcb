@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module CheckService
+module LobCheckService
   module LobUrl
     class Generate
       def initialize(check:)

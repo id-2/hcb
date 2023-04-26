@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-module CheckService
+module LobCheckService
   class Nightly
     def run
       # process checks ready to be sent (check created on lob)
       scheduled_checks.where("send_date <= ?", Time.now.utc).each do |check|
-        ::CheckService::Send.new(check_id: check.id).run
+        ::LobCheckService::Send.new(check_id: check.id).run
       end
 
       # in_transit_and_processed -> deposited

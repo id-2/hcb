@@ -35,7 +35,7 @@ class ChecksController < ApplicationController
 
       current_user: current_user
     }
-    check = CheckService::Create.new(attrs).run
+    check = LobCheckService::Create.new(attrs).run
 
     flash[:success] = "Your check is scheduled to send on #{check.send_date.to_date}"
 
@@ -56,7 +56,7 @@ class ChecksController < ApplicationController
   def cancel
     authorize @check
 
-    ::CheckService::Cancel.new(check_id: @check.id).run
+    ::LobCheckService::Cancel.new(check_id: @check.id).run
 
     redirect_to @check
   end

@@ -628,14 +628,14 @@ class AdminController < ApplicationController
 
     response.status = 200
 
-    self.response_body = ::CheckService::PositivePay::Csv.new(check_id: @check.id).run
+    self.response_body = ::LobCheckService::PositivePay::Csv.new(check_id: @check.id).run
   end
 
   def check_send
     attrs = {
       check_id: params[:id]
     }
-    check = ::CheckService::Send.new(attrs).run
+    check = ::LobCheckService::Send.new(attrs).run
 
     redirect_to check_process_admin_path(check), flash: { success: "Success" }
   end
@@ -644,7 +644,7 @@ class AdminController < ApplicationController
     attrs = {
       check_id: params[:id]
     }
-    check = CheckService::MarkInTransitAndProcessed.new(attrs).run
+    check = LobCheckService::MarkInTransitAndProcessed.new(attrs).run
 
     redirect_to check_process_admin_path(check), flash: { success: "Success" }
   rescue => e

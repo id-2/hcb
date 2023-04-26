@@ -2,7 +2,7 @@
 
 require "csv"
 
-module CheckService
+module LobCheckService
   module PositivePay
     class Csv
       def initialize(check_id:)

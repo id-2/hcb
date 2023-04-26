@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-module CheckService
-  class Cancel
+module LobCheckService
+  class MarkInTransitAndProcessed
     def initialize(check_id:)
       @check_id = check_id
     end
 
     def run
-      check.mark_canceled!
+      check.mark_in_transit_and_processed!
 
       check
     end

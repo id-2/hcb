@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module CheckService
+module LobCheckService
   class Send
     def initialize(check_id:)
       @check_id = check_id
