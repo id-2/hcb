@@ -36,7 +36,7 @@
 #  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (lob_address_id => lob_addresses.id)
 #
-class Check < ApplicationRecord
+class LobCheck < ApplicationRecord
   self.table_name = "checks" # This was called "Check" before "IncreaseCheck" was added
 
   has_paper_trail skip: [:description] # ciphertext columns will still be tracked
