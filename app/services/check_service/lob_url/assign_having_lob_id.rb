@@ -5,7 +5,7 @@ module CheckService
     class AssignHavingLobId
       def run
         checks.each do |check|
-          CheckJob::LobUrl::SingleAssignHavingLobId.perform_later(check: check)
+          LobCheckJob::LobUrl::SingleAssignHavingLobId.perform_later(check: check)
         end
       end
 

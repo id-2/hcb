@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module CheckJob
+module LobCheckJob
   module LobUrl
     class SingleAssignHavingLobId < ApplicationJob
       def perform(check:)

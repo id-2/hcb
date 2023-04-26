@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module CheckJob
+module LobCheckJob
   class Nightly < ApplicationJob
     def perform
       CheckService::Nightly.new.run
