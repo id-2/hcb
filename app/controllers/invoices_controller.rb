@@ -153,8 +153,7 @@ class InvoicesController < ApplicationController
     @invoice.archived_at = DateTime.now
     @invoice.archived_by = current_user
 
-    if @invoice.save
-    else
+    unless @invoice.save
       flash[:error] = "Something went wrong while trying to archive this invoice!"
     end
     redirect_to @invoice
