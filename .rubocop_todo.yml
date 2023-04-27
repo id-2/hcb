@@ -134,13 +134,6 @@ Style/OptionalBooleanParameter:
     - 'app/models/g_suite_account.rb'
 
 
-# Offense count: 3
-# This cop supports safe auto-correction (--auto-correct).
-Style/RedundantRegexpEscape:
-  Exclude:
-    - 'app/mailboxes/receipt_uploads_mailbox.rb'
-    - 'app/models/g_suite.rb'
-
 # Offense count: 19
 # This cop supports unsafe auto-correction (--auto-correct-all).
 # Configuration parameters: Mode.
