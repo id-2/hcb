@@ -2,19 +2,19 @@
 
 module EventMappingEngine
   module GuessEventId
-    class Check
+    class LobCheck
       def initialize(canonical_transaction:)
         @canonical_transaction = canonical_transaction
       end
 
       def run
-        check.event.id
+        lob_check.event.id
       end
 
       private
 
-      def check
-        @check ||= ::Check.in_transit_and_processed.where(check_number: check_number, amount: -amount_cents).order("created_at asc").first
+      def lob_check
+        @lob_check ||= ::LobCheck.in_transit_and_processed.where(check_number: check_number, amount: -amount_cents).order("created_at asc").first
       end
 
       def amount_cents

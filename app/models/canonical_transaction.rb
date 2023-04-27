@@ -51,8 +51,8 @@ class CanonicalTransaction < ApplicationRecord
 
   scope :likely_hack_club_bank_issued_cards, -> { where("memo ilike 'Hack Club Bank Issued car%' or memo ilike 'HCKCLB Issued car%'") }
   scope :likely_github, -> { where("memo ilike '%github grant%'") }
-  scope :likely_clearing_checks, -> { where("memo ilike '%Withdrawal - Inclearing Check #%' or memo ilike '%Withdrawal - On-Us Deposited Ite #%'") }
-  scope :likely_checks, -> { where("memo ilike '%Check TO ACCOUNT REDACTED'") }
+  scope :likely_clearing_lob_checks, -> { where("memo ilike '%Withdrawal - Inclearing Check #%' or memo ilike '%Withdrawal - On-Us Deposited Ite #%'") }
+  scope :likely_lob_checks, -> { where("memo ilike '%Check TO ACCOUNT REDACTED'") }
   scope :likely_increase_checks, -> { joins(hashed_transactions: :raw_increase_transaction).where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'check_transfer_intention'") }
   scope :likely_disbursements, -> { where("memo ilike 'HCB DISBURSE%'") }
   scope :likely_achs, -> { where("memo ilike '%BUSBILLPAY%'") }

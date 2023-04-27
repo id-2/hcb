@@ -51,17 +51,17 @@ module EventMappingEngine
       ::EventMappingEngine::Map::Github.new.run
     end
 
-    def map_checks!
+    def map_lob_checks!
       begin
-        ::EventMappingEngine::Map::Checks.new.run
+        ::EventMappingEngine::Map::LobChecks.new.run
       rescue => e
         Airbrake.notify(e)
       end
     end
 
-    def map_clearing_checks!
+    def map_clearing_lob_checks!
       begin
-        ::EventMappingEngine::Map::ClearingChecks.new.run
+        ::EventMappingEngine::Map::ClearingLobChecks.new.run
       rescue => e
         Airbrake.notify(e)
       end

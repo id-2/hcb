@@ -8,7 +8,7 @@ class ChecksController < ApplicationController
   # GET /checks/new
   def new
     @lob_address = LobAddress.new(event: @event)
-    @check = Check.new(lob_address: @lob_address)
+    @check = LobCheck.new(lob_address: @lob_address)
 
     authorize @check
   end
@@ -85,7 +85,7 @@ class ChecksController < ApplicationController
   private
 
   def set_check
-    @check = Check.includes(:creator).find(params[:id] || params[:check_id])
+    @check = LobCheck.includes(:creator).find(params[:id] || params[:check_id])
     @event = @check.event
   end
 

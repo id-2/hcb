@@ -581,9 +581,9 @@ class AdminController < ApplicationController
     if @event_id
       @event = Event.find(@event_id)
 
-      relation = @event.checks.includes(lob_address: :event)
+      relation = @event.lob_checks.includes(lob_address: :event)
     else
-      relation = Check.includes(lob_address: :event)
+      relation = LobCheck.includes(lob_address: :event)
     end
 
     if @q
@@ -612,13 +612,13 @@ class AdminController < ApplicationController
   end
 
   def check_process
-    @check = Check.find(params[:id])
+    @check = LobCheck.find(params[:id])
 
     render layout: "admin"
   end
 
   def check_positive_pay_csv
-    @check = Check.find(params[:id])
+    @check = LobCheck.find(params[:id])
 
     headers["Content-Type"] = "text/csv"
     headers["Content-disposition"] = "attachment; filename=check-#{@check.id}-#{@check.check_number}.csv"
@@ -1231,7 +1231,7 @@ class AdminController < ApplicationController
       when :emburse_transactions
         EmburseTransaction.under_review.size
       when :checks
-        # Check.pending.size + Check.unfinished_void.size
+        # LobCheck.pending.size + LobCheck.unfinished_void.size
         0
       when :ach_transfers
         AchTransfer.pending.size

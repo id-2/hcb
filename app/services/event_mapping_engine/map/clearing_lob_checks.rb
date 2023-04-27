@@ -2,11 +2,11 @@
 
 module EventMappingEngine
   module Map
-    class ClearingChecks
+    class ClearingLobChecks
       def run
-        likely_clearing_checks.find_each(batch_size: 100) do |ct|
+        likely_clearing_lob_checks.find_each(batch_size: 100) do |ct|
           # 1 locate event id
-          guessed_event_id = ::EventMappingEngine::GuessEventId::ClearingCheck.new(canonical_transaction: ct).run
+          guessed_event_id = ::EventMappingEngine::GuessEventId::ClearingLobCheck.new(canonical_transaction: ct).run
 
           next unless guessed_event_id
 
@@ -40,8 +40,8 @@ module EventMappingEngine
 
       private
 
-      def likely_clearing_checks
-        ::CanonicalTransaction.unmapped.likely_clearing_checks.order("date asc")
+      def likely_clearing_lob_checks
+        ::CanonicalTransaction.unmapped.likely_clearing_lob_checks.order("date asc")
       end
 
     end

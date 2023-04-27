@@ -24,25 +24,25 @@ class RawPendingOutgoingCheckTransaction < ApplicationRecord
   end
 
   def check_number
-    check.check_number || "-----"
+    lob_check.check_number || "-----"
   end
 
   def likely_event_id
-    @likely_event_id ||= check.event.id
+    @likely_event_id ||= lob_check.event.id
   end
 
-  def check
-    @check ||= ::Check.find_by(id: check_transaction_id)
+  def lob_check
+    @lob_check ||= ::LobCheck.find_by(id: check_transaction_id)
   end
 
   private
 
   def raw_memo
-    check.memo
+    lob_check.memo
   end
 
   def raw_name
-    check.lob_address.name
+    lob_check.lob_address.name
   end
 
 end

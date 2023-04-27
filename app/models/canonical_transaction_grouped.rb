@@ -11,7 +11,7 @@ class CanonicalTransactionGrouped
     return donation_memo if donation?
     return partner_donation_memo if partner_donation?
     return ach_transfer_memo if ach_transfer?
-    return check_memo if check?
+    return lob_check_memo if lob_check?
     return ct&.smart_memo if stripe_card?
 
     pt&.smart_memo
@@ -98,8 +98,8 @@ class CanonicalTransactionGrouped
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::ACH_TRANSFER_CODE
   end
 
-  def check?
-    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::CHECK_CODE
+  def lob_check?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::LOB_CHECK_CODE
   end
 
   def disbursement?
@@ -164,12 +164,12 @@ class CanonicalTransactionGrouped
     smartish_custom_memo || "ACH TO #{ach_transfer.smart_memo}"
   end
 
-  def check
-    Check.find(hcb_i2)
+  def lob_check
+    LobCheck.find(hcb_i2)
   end
 
-  def check_memo
-    smartish_custom_memo || "CHECK TO #{check.smart_memo}"
+  def lob_check_memo
+    smartish_custom_memo || "CHECK TO #{lob_check.smart_memo}"
   end
 
   def disbursement

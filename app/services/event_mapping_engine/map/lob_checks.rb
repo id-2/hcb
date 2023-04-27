@@ -2,11 +2,11 @@
 
 module EventMappingEngine
   module Map
-    class Checks
+    class LobChecks
       def run
         likely_checks.find_each(batch_size: 100) do |ct|
           # 1 locate event id
-          guessed_event_id = ::EventMappingEngine::GuessEventId::Check.new(canonical_transaction: ct).run
+          guessed_event_id = ::EventMappingEngine::GuessEventId::LobCheck.new(canonical_transaction: ct).run
 
           next unless guessed_event_id
 

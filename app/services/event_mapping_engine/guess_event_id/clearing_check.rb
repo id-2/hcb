@@ -2,7 +2,7 @@
 
 module EventMappingEngine
   module GuessEventId
-    class ClearingCheck
+    class ClearingLobCheck
       def initialize(canonical_transaction:)
         @canonical_transaction = canonical_transaction
       end
@@ -14,7 +14,7 @@ module EventMappingEngine
       private
 
       def check
-        @check ||= ::Check.find_by(check_number: check_number)
+        @check ||= ::LobCheck.find_by(check_number: check_number)
       end
 
       def memo

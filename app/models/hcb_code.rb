@@ -137,7 +137,7 @@ class HcbCode < ApplicationRecord
           donation.try(:event).try(:id),
           partner_donation.try(:event).try(:id),
           ach_transfer.try(:event).try(:id),
-          check.try(:event).try(:id),
+          lob_check.try(:event).try(:id),
           increase_check.try(:event).try(:id),
           disbursement.try(:event).try(:id),
         ].compact.uniq)
@@ -277,12 +277,12 @@ class HcbCode < ApplicationRecord
     smartish_custom_memo || "ACH TO #{ach_transfer.smart_memo}"
   end
 
-  def check
-    @check ||= Check.find_by(id: hcb_i2) if check?
+  def lob_check
+    @lob_check ||= LobCheck.find_by(id: hcb_i2) if lob_check?
   end
 
-  def check_memo
-    smartish_custom_memo || "CHECK TO #{check.smart_memo}"
+  def lob_check_memo
+    smartish_custom_memo || "CHECK TO #{lob_check.smart_memo}"
   end
 
   def increase_check
