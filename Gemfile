@@ -172,9 +172,11 @@ group :development, :test do
 
   gem "rspec-rails", "~> 5.0.0"
 
-  # Lets you set a breakpoint with a REPL using binding.pry
-  gem "pry-byebug"
-  gem "pry-rails"
+  unless ENV["DISABLE_PRY"] == "true"
+    # Lets you set a breakpoint with a REPL using binding.pry
+    gem "pry-byebug"
+    gem "pry-rails"
+  end
 end
 
 group :development, :staging do
