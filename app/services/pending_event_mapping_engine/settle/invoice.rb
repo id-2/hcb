@@ -28,14 +28,8 @@ module PendingEventMappingEngine
 
             next if cts.count < 1 # no match found yet. not processed.
 
-            Airbrake.notify("matched more than 1 canonical transaction for canonical pending transaction #{cpt.id}") if cts.count > 1
-            ct = cts.first
 
             # 3. mark no longer pending
-            CanonicalPendingTransactionService::Settle.new(
-              canonical_transaction: ct,
-              canonical_pending_transaction: cpt
-            ).run!
           else
             # invoice.manually_marked_as_paid? as true typically
             # special case for invoices that are marked paid but are missing a payout! these seem to be sent to bill.com
@@ -59,15 +53,15 @@ module PendingEventMappingEngine
               next
             end
 
-            Airbrake.notify("matched more than 1 canonical transaction for canonical pending transaction #{cpt.id}") if cts.count > 1
-            ct = cts.first
 
             # 3. mark no longer pending
-            CanonicalPendingTransactionService::Settle.new(
-              canonical_transaction: ct,
-              canonical_pending_transaction: cpt
-            ).run!
           end
+          Airbrake.notify("matched more than 1 canonical transaction for canonical pending transaction #{cpt.id}") if cts.count > 1
+          ct = cts.first
+          CanonicalPendingTransactionService::Settle.new(
+            canonical_transaction: ct,
+            canonical_pending_transaction: cpt
+          ).run!
         end
       end
 

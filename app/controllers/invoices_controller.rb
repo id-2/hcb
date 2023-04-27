@@ -154,11 +154,10 @@ class InvoicesController < ApplicationController
     @invoice.archived_by = current_user
 
     if @invoice.save
-      redirect_to @invoice
     else
       flash[:error] = "Something went wrong while trying to archive this invoice!"
-      redirect_to @invoice
     end
+    redirect_to @invoice
   end
 
   def unarchive
@@ -171,11 +170,10 @@ class InvoicesController < ApplicationController
 
     if @invoice.save
       flash[:success] = "Invoice has been un-archived."
-      redirect_to @invoice
     else
       flash[:error] = "Something went wrong while trying to archive this invoice!"
-      redirect_to @invoice
     end
+    redirect_to @invoice
   end
 
   private

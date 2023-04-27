@@ -110,15 +110,6 @@ Style/HashLikeCase:
   Exclude:
     - 'app/models/ach_transfer.rb'
 
-# Offense count: 14
-# This cop supports safe auto-correction (--auto-correct).
-Style/IdenticalConditionalBranches:
-  Exclude:
-    - 'app/controllers/g_suite_accounts_controller.rb'
-    - 'app/controllers/invoices_controller.rb'
-    - 'app/controllers/receipts_controller.rb'
-    - 'app/services/pending_event_mapping_engine/settle/invoice.rb'
-
 # Offense count: 13
 # Configuration parameters: AllowedMethods.
 # AllowedMethods: respond_to_missing?
