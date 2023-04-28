@@ -78,6 +78,9 @@ gem "money-rails"
 gem "monetize"
 gem "rounding"
 
+# Currency conversion for donation page
+gem "eu_central_bank"
+
 gem "business_time"
 
 gem "wicked_pdf" # HTML to PDF conversion
@@ -145,12 +148,6 @@ gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
 gem "dry-validation"
 
 gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching; required in config/boot.rb
-
-gem "country_select", "~> 8.0"
-
-gem "money"
-
-gem 'eu_central_bank', git: 'https://github.com/RubyMoney/eu_central_bank.git', branch: "main"
 
 gem "mrsk" # deployments
 

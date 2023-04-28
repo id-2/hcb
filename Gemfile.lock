@@ -1,12 +1,3 @@
-GIT
-  remote: https://github.com/RubyMoney/eu_central_bank.git
-  revision: 440d9b4b5a1dcb90881a8b706f48973070093653
-  branch: main
-  specs:
-    eu_central_bank (1.7.0)
-      money (~> 6.13, >= 6.13.6)
-      nokogiri (~> 1.9)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -240,6 +231,9 @@ GEM
       tzinfo
     ethon (0.15.0)
       ffi (>= 1.15.0)
+    eu_central_bank (1.7.0)
+      money (~> 6.13, >= 6.13.6)
+      nokogiri (~> 1.9)
     execjs (2.8.1)
     factory_bot (6.2.1)
       activesupport (>= 5.0.0)
@@ -788,8 +782,8 @@ DEPENDENCIES
   country_select (~> 8.0)
   docusign_esign (~> 3.13)
   dry-validation
-  eu_central_bank!
   erb_lint
+  eu_central_bank
   factory_bot_rails
   faker
   faraday
@@ -824,7 +818,6 @@ DEPENDENCIES
   maildown
   mini_magick
   monetize
-  money
   money-rails
   mrsk
   namae
