@@ -64,7 +64,7 @@ class DonationsController < ApplicationController
       @exchange_rate = fetch_exchange_rate(@event.donation_page_currency)
     end
 
-    d_params = public_donation_params
+    d_params = donation_params
 
     d_params[:amount] = Monetize.parse(public_donation_params[:amount].to_f / @exchange_rate).cents
 
