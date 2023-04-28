@@ -10,12 +10,38 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "2.7.5"
+          ruby-version: '2.7.7'
           bundler-cache: true
       - name: Run Rubocop
         env:
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bundle exec rubocop
+  erblint:
+    name: 'ERB Lint'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7.7'
+          bundler-cache: true
+      - name: Run erblint
+        run: bundle exec erblint app/views/
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: yarn install
+      - name: Run ESLint
+        run: yarn lint
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
@@ -31,19 +57,19 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-        - 5432:5432
+          - 5432:5432
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "2.7.5"
+          ruby-version: '2.7.7'
           bundler-cache: true
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: "10.21.0"
+          node-version: 18
       - name: Find yarn cache location
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -64,7 +90,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bank_test
           RAILS_ENV: test
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-        run: bundler exec rails db:create db:migrate RAILS_ENV=test
+        run: bundler exec rails db:create db:schema:load RAILS_ENV=test
       - name: Run RSpec
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bank_test
@@ -80,12 +106,12 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "2.7.5"
+          ruby-version: '2.7.7'
           bundler-cache: true
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: "10.21.0"
+          node-version: 18
       - name: Find yarn cache location
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -102,4 +128,5 @@ jobs:
       - name: Run zeitwerk:check
         env:
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+          RAILS_ENV: test
         run: bundle exec rails zeitwerk:check

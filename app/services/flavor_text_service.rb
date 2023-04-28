@@ -2,42 +2,55 @@
 
 class FlavorTextService
   include ActionView::Helpers::NumberHelper
+  include SeasonalHelper
 
-  def initialize(user: nil, env: Rails.env)
+  def initialize(user: nil, env: Rails.env, deterministic: true)
     @user = user
     @env = env
+    @seed = deterministic ? Time.now.to_i / 5.minutes : Random.new_seed
+    @random = Random.new(@seed)
   end
 
   def generate
-    return development_flavor_texts.sample if @env == "development"
-    return holiday_flavor_texts.sample if holiday?
-    return birthday_flavor_texts.sample if @user&.birthday?
+    return development_flavor_texts.sample(random: @random) if @env == "development"
+    return holiday_flavor_texts.sample(random: @random) if winter?
+    return @random.rand > 0.5 ? spooky_flavor_texts.sample(random: @random) : flavor_texts.sample(random: @random) if fall? # ~50% chance of spookiness
+    return birthday_flavor_texts.sample(random: @random) if @user&.birthday?
 
-    flavor_texts.sample
+    in_frc_team = @user&.events&.exists?(category: Event.categories["robotics team"])
+
+    if in_frc_team
+      (flavor_texts + frc_flavor_texts).sample(random: @random)
+    else
+      flavor_texts.sample(random: @random)
+    end
   end
 
   def development_flavor_texts
     [
       "Hack the Bank Mode",
-      "Development Mode"
+      "Development Mode",
+      "super secret admin mode",
+      "Puts the 'dev' in 'financially devious'!",
+      "Rails.env.fun?"
     ]
   end
 
   def birthday_flavor_texts
     [
-      "Happy birthday! #{['🎂', '🎈', '🎉', '🥳'].sample}",
-      "<a href='https://www.youtube.com/watch?v=XNV2EyC1NrQ' target='_blank' style='color: inherit'>happy birthday</a>",
+      "Happy birthday! #{['🎂', '🎈', '🎉', '🥳'].sample(random: @random)}",
+      "<a href='https://www.youtube.com/watch?v=XNV2EyC1NrQ' target='_blank' style='color: inherit'>happy birthday</a>".html_safe,
       "herpy derpday",
-      "<a href='https://www.youtube.com/watch?v=1G9iEvQYM4I&t=3s' target='_blank' style='color: inherit'>wahoo!</a>",
+      "<a href='https://www.youtube.com/watch?v=1G9iEvQYM4I&t=3s' target='_blank' style='color: inherit'>wahoo!</a>".html_safe,
       "it’s the birthday (boy|girl|person|dinosaur)!",
-      "#{%w[🦩 🕊 🦅 🦆 🐓 🦤 🦉 🦃 🐣].sample} harpy bird-day!"
+      "#{%w[🦩 🕊 🦅 🦆 🐓 🦤 🦉 🦃 🐣].sample(random: @random)} harpy bird-day!"
     ]
   end
 
   def holiday_flavor_texts
     [
-      *(["<a href='https://hack.af/hcb-stickers?prefill_Recipient%20Name=#{@user.full_name}&prefill_Login%20Email=#{@user.email}&prefill_Organization=#{@user.events.first&.name}' target='_blank' style='color: inherit'>Want a gift?</a>"] if @user),
-      *(["<a href='https://hack.af/hcb-stickers?prefill_Recipient%20Name=#{@user.full_name}&prefill_Login%20Email=#{@user.email}&prefill_Organization=#{@user.events.first&.name}' target='_blank' style='color: inherit'>A present, from us to you</a>"] if @user),
+      *(["<a href='https://hack.af/hcb-stickers?#{URI.encode_www_form "prefill_Recipient Name": @user.full_name, "prefill_Login Email": @user.email, prefill_Organization: @user.events.first&.name}' target='_blank' style='color: inherit'>Want a gift?</a>".html_safe] if @user),
+      *(["<a href='https://hack.af/hcb-stickers?#{URI.encode_www_form "prefill_Recipient Name": @user.full_name, "prefill_Login Email": @user.email, prefill_Organization: @user.events.first&.name}' target='_blank' style='color: inherit'>A present, from us to you</a>".html_safe] if @user),
       "Hacky Holidays",
       "let there be snow",
       "ho ho ho ho",
@@ -54,11 +67,11 @@ class FlavorTextService
       "is that Olaf?",
       "did you mean, 'hacky holidays!'",
       "didja mean hacky new year?",
-      "<a href='https://santatracker.google.com/' target='_blank' style='color: inherit'>Santa's on the way!</a>",
+      "<a href='https://santatracker.google.com/' target='_blank' style='color: inherit'>Santa's on the way!</a>".html_safe,
       "dashing through the snow",
       "defrosting...",
       "send snow photos to bank@hackclub.com",
-      "Dasher, Dancer, Prancer, Vixen,<br/>Comet, Cupid, Donner, Blitzen",
+      "Dasher, Dancer, Prancer, Vixen,<br/>Comet, Cupid, Donner, Blitzen".html_safe,
       "Recommended by Santa",
       "Recommended by Santa's elves",
       "Built by Santa's elves",
@@ -72,6 +85,37 @@ class FlavorTextService
       "u seein' the snow outside?",
       "Dear Santa...",
       "where's my gingerbread house"
+    ]
+  end
+
+  def spooky_flavor_texts
+    [
+      "Spooky edition",
+      "Boo!",
+      "Trick or treat!",
+      "👻",
+      "🧛",
+      "🎃",
+      "Pumpkin spice is the pumpkin spice of life."
+    ]
+  end
+
+  def frc_flavor_texts
+    [
+      "Built by someone from team ##{[1759, 8724, 461, 6763, 1519].sample(random: @random)}!",
+      "Safety FIRST!",
+      "Safety glasses == invincible",
+      "Stop! Where are your safety glasses?",
+      "something something ‘gracious professionalism’",
+      "help I’ve run out of FIRST puns",
+      "do the robot!",
+      "It’s not battlebots mom!",
+      "I heard next year is a water game",
+      "Did you bring enough #{%w[zip-ties ductape].sample(random: @random)}?",
+      "Duct tape, ductape, duck tape",
+      "🦆 📼",
+      "Build season? Bank season!",
+      "Build season already?"
     ]
   end
 
@@ -121,12 +165,12 @@ class FlavorTextService
       "Coming to a browser near you",
       "Hand-crafted by our resident byte-smiths",
       "B O N K",
-      "#{rand 4..9}0% bug free!",
-      "#{rand 1..4}0% less bugs!",
+      "#{@random.rand 4..9}0% bug free!",
+      "#{@random.rand 1..4}0% less bugs!",
       "Ask your doctor if Hack Club Bank is right for you",
-      "Now with an <a href='https://bank.hackclub.com/docs/api/v3'>API</a>!",
-      "<a href='https://bank.hackclub.com/docs/api/v3'>README</a>",
-      "Read the <a href='https://bank.hackclub.com/docs/api/v3'>docs</a>!",
+      "Now with an&nbsp;<a href='https://bank.hackclub.com/docs/api/v3'>API</a>!".html_safe,
+      "<a href='https://bank.hackclub.com/docs/api/v3'>README</a>".html_safe,
+      "Read the&nbsp;<a href='https://bank.hackclub.com/docs/api/v3'>docs</a>!".html_safe,
       'Now with "code"',
       "Closed source!",
       "Finally complete!",
@@ -185,7 +229,7 @@ class FlavorTextService
       'Made using "money"',
       "Chosen #1 by dinosaurs everywhere",
       "Accountants HATE him",
-      "Congratulations, you are the #{number_with_delimiter(10**rand(1..5))}th visitor!",
+      "Congratulations, you are the #{number_with_delimiter(10**@random.rand(1..5))}th visitor!",
       "All the finance that's fit to print",
       "You've got this",
       "Don't forget to drink water!",
@@ -206,13 +250,14 @@ class FlavorTextService
       "git add ./cash/money",
       "Wireframed with real wire!",
       "Made from 100% recycled pixels",
+      "💖🙌💅🙌💖💁‍♀️💁‍♀️😂😂😂",
       "Open on weekdays!",
       "Open on #{Date.today.strftime("%A")}s",
       "??? profit!",
-      "Did you see the price of #{%w[Ðogecoin ₿itcoin Ξtherium].sample}?!",
+      "Did you see the price of #{%w[Ðogecoin ₿itcoin Ξtherium].sample(random: @random)}?!",
       "Guess how much it costs to run this thing!",
       "Bytes served fresh daily by Heroku",
-      "Running with Ruby on Rails 6",
+      "Running with Ruby on Rails #{Rails.gem_version.canonical_segments.first}",
       "Running on Rails on Ruby",
       "Try saying that 5 times fast!",
       "Try saying it backwards 3 times fast!",
@@ -222,14 +267,14 @@ class FlavorTextService
       "Achievement unlocked!",
       "20,078 lines of code",
       "Now you have two problems",
-      "It's #{%w[collaborative multiplayer].sample} #{%w[venmo cashapp paypal finance banking].sample}!",
+      "It's #{%w[collaborative multiplayer].sample(random: @random)} #{%w[venmo cashapp paypal finance banking].sample(random: @random)}!",
       "Fake it till you make it!",
       "Your move, Robinhood",
       "If you can read this, the page's status code is 200",
       "If you can read this, the page has loaded",
       "Now go and buy yourself something nice",
       "[Insert splash text here]",
-      "<img src='https://cloud-cno1f4man-hack-club-bot.vercel.app/0zcbx5dwld8161.png' style='transform:translateX(-1rem);width:2rem;height:auto;margin-right:-1.4em;'>",
+      "<img src='https://cloud-cno1f4man-hack-club-bot.vercel.app/0zcbx5dwld8161.png' style='transform:translateX(-1rem);width:2rem;height:auto;margin-right:-1.4em;'>".html_safe,
       "Absolutely financial!",
       "Positively financial!",
       "Financially fantastic!",
@@ -255,7 +300,7 @@ class FlavorTextService
       "[OK]",
       "tell your parents it's educational",
       "You found the 3rd Easter egg on the site",
-      "A proud sponsor of fiscal #{%w[things thingies stuff].sample}",
+      "A proud sponsor of fiscal #{%w[things thingies stuff].sample(random: @random)}",
       "Now with 10% more hacks!",
       "Now with more clubs!",
       "Please stow your money in the upright position",
@@ -277,15 +322,15 @@ class FlavorTextService
       "Hack Club Moneybucks",
       "If you know, you know",
       "We put the 'ants' in 'pants'",
-      "We used this&nbsp;<a href='https://zephyr.hackclub.com' target='_blank'>to buy a train</a>",
+      "We used this&nbsp;<a href='https://zephyr.hackclub.com' target='_blank'>to buy a train</a>".html_safe,
       "🚂 choo choo!",
       "To the moon! 🚀",
       "Do Only Good Everyday",
-      "Much #{%w[happy cool fun].sample}. wow!",
-      "Very #{%w[bank currency].sample}. wow!",
-      "Such #{%w[internet fascinate bank hack].sample}. wow!",
-      "So #{%w[currency bank].sample}. wow!",
-      "Many #{%w[excite amaze].sample}. wow!",
+      "Much #{%w[happy cool fun].sample(random: @random)}. wow!",
+      "Very #{%w[bank currency].sample(random: @random)}. wow!",
+      "Such #{%w[internet fascinate bank hack].sample(random: @random)}. wow!",
+      "So #{%w[currency bank].sample(random: @random)}. wow!",
+      "Many #{%w[excite amaze].sample(random: @random)}. wow!",
       "JavaScript brewed fresh daily",
       "It's our business doing finance with you",
       "Flash plugin failed to load",
@@ -293,24 +338,24 @@ class FlavorTextService
       "ACH, checks, and credit, oh my!",
       "Debit, she said",
       "U want sum bank?",
-      "* not #{%w[banc banq].sample}",
+      "* not #{%w[banc banq].sample(random: @random)}",
       "Our ledger's thicker than a bowl of oatmeal",
       "receptz plzzzz",
       "Reciepts? Receipts? Recepts?",
       "Receipts are kinda like a recipe for money",
       "Receipts are kinda like a recipe for a nonprofit",
       "Receipts are kinda like a recipe for losing money",
-      "Check the back of this page for an exclusive promo code!<!--\n\n\n\n\n\n\n\n          Use promo code STICKERSNOW for free Hack Club Bank stickers.\n\n          (Alternatively, you could just get some here: https://hack.af/hcb-stickers)\n\n\n\n\n\n\n\n          -->",
+      "Check the back of this page for an exclusive promo code!<!--\n\n\n\n\n\n\n\n          Use promo code STICKERSNOW for free Hack Club Bank stickers.\n\n          (Alternatively, you could just get some here: https://hack.af/hcb-stickers)\n\n\n\n\n\n\n\n          -->".html_safe,
       "You've found the 5th easter egg on the site!",
       "Happiness > Wealthiness, but I didn't tell you that",
       "A wallet is fine too",
       "A penny saved...",
       "check... cheque... checkqu?",
       "1...2...3... is this thing on?",
-      "Welcome to #{%w[cash money].sample} town, population: you",
+      "Welcome to #{%w[cash money].sample(random: @random)} town, population: you",
       "The buck starts here",
       "So... what's your favorite type of pizza?",
-      "<span style='font-size: 2px !important'>If you can read this you've got tiny eyes</span>",
+      "<span style='font-size: 2px !important'>If you can read this you've got tiny eyes</span>".html_safe,
       "Page loaded in: < 24 hrs (I hope)",
       "Old and improved!",
       "Newly loaded!",
@@ -335,47 +380,47 @@ class FlavorTextService
       "Dream work makes the memes work!",
       "Meme work makes the team work!",
       "Don't let your dreams be memes!",
-      "<em>Vrooooooommmmmmm!</em>",
-      "Loaded in #{rand(10..35)}ms... jk– i don't actually know how long it took",
-      "Loaded in #{rand(10..35)}ms... jk– i can't count",
+      "<em>Vrooooooommmmmmm!</em>".html_safe,
+      "Loaded in #{@random.rand(10..35)}ms... jk– i don't actually know how long it took",
+      "Loaded in #{@random.rand(10..35)}ms... jk– i can't count",
       "Turns out it's hard to make one of these things",
       "Look ma, no articles of incorporation!",
       "Task failed successfully!",
       "TODO: come up with some actual jokes for this box",
       "asdgfhjdk I'm out of jokes",
-      "asdgfhjdk I'm out of #{%w[money cash bank finance financial].sample} puns",
+      "asdgfhjdk I'm out of #{%w[money cash bank finance financial].sample(random: @random)} puns",
       "Send your jokes to bank@hackclub.com",
       "Cha-ching!",
       "Hey there cutie!",
       "You're looking great today :)",
       "Great! You're here!",
-      "No time to explain: #{%w[quack bark honk].sample} as loud as you can!",
-      "Please see attached #{%w[gif avi mp3 wav zip].sample}",
+      "No time to explain: #{%w[quack bark honk].sample(random: @random)} as loud as you can!",
+      "Please see attached #{%w[gif avi mp3 wav zip].sample(random: @random)}",
       "Cont. on page 42",
       "See fig. 42",
-      "<span class='hide-print'>Try printing this, I dare you</span><span class='hide-non-print'>Gottem!</span>",
-      "<em>SUPREME</em>",
+      "<span class='hide-print'>Try printing this, I dare you</span><span class='hide-non-print'>Gottem!</span>".html_safe,
+      "<em>SUPREME</em>".html_safe,
       "You need to wake up",
       "you need to wake up! Pinch yourself",
       "stop dreaming, you need to wake up!",
-      "The only bank brave enough to say '#{%w[sus poggers pog oops uwu].sample}'",
+      "The only bank brave enough to say '#{%w[sus poggers pog oops uwu].sample(random: @random)}'",
       "Fees lookin pretty sus",
       "Are you suuuuure you aren't a robot?",
-      "#{%w[laugh cry smile giggle smirk].sample} here if you aren't a robot",
+      "#{%w[laugh cry smile giggle smirk].sample(random: @random)} here if you aren't a robot",
       "Show emotion here if you aren't a robot",
-      "<a href='/robots.txt' target='_blank'>Click here if you are a robot</a>",
-      "Robot?&nbsp;<a href='/robots.txt' target='_blank'>Click here</a>",
+      "<a href='/robots.txt' target='_blank'>Click here if you are a robot</a>".html_safe,
+      "Robot?&nbsp;<a href='/robots.txt' target='_blank'>Click here</a>".html_safe,
       "Your ad here!",
       "Make sure your homework is submitted and readable! 👀",
       "What the dollar doin?",
       "Did you mean \"Hack Club Bonk\"?",
       "Did you mean \"Hack Club is jank\"?",
-      "Did you mean \"<a href='https://zephyr.hackclub.com' target='_blank'>Hack Club Train</a>\"?",
+      "Did you mean \"<a href='https://zephyr.hackclub.com' target='_blank'>Hack Club Train</a>\"?".html_safe,
       "Are you feeling lucky?",
       "Not our fault if it ain't in the vault!",
       "...and you can take that to the bank",
-      "Hello&nbsp;<span class='md-hide lg-hide'>tiny</span><span class='sm-hide xs-hide'>large</span>-screened person!",
-      "👀&nbsp;<span class='md-hide lg-hide hide-print'>📱</span><span class='sm-hide xs-hide hide-print'>🖥</span><span class='hide-non-print'>🖨</span>",
+      "Hello&nbsp;<span class='md-hide lg-hide'>tiny</span><span class='sm-hide xs-hide'>large</span>-screened person!".html_safe,
+      "👀&nbsp;<span class='md-hide lg-hide hide-print'>📱</span><span class='sm-hide xs-hide hide-print'>🖥</span><span class='hide-non-print'>🖨</span>".html_safe,
       "Do you have enough money? I'm positive!",
       "Ever just wonder... why?",
       "asljhdjhakshjdahkdshaksdhaks",
@@ -389,21 +434,21 @@ class FlavorTextService
       "Where's the money lebowski?!",
       "We put the 'poggers' in 'taxes' (there isn't any)",
       "We put the 'fun' in 'accrual-based accounting' (there isn't any)",
-      *(["<a href='https://hack.af/hcb-stickers?prefill_Recipient%20Name=#{@user.full_name}&prefill_Login%20Email=#{@user.email}&prefill_Organization=#{@user.events.first&.name}' target='_blank' style='color: inherit'>Want stickers?</a>"] if @user),
+      *(["<a href='https://hack.af/hcb-stickers?#{URI.encode_www_form "prefill_Recipient Name": @user.full_name, "prefill_Login Email": @user.email, prefill_Organization: @user.events.first&.name}' target='_blank' style='color: inherit'>Want stickers?</a>".html_safe] if @user),
       "🐨 Koalaty banking",
       "If money doesn’t grow on trees, then why do banks have branches?",
       "I was gonna tell a Bank joke, but ran out of interest",
       "If money talks, why do we need bank tellers?",
       "We’ll be here all week",
-      "Honk club <img src='https://cloud-1kf8h2v89-hack-club-bot.vercel.app/1goose-honk-right-intensifies.gif' style='height:1.25em;margin-left:0.5em;'/>",
+      "Honk club <img src='https://cloud-1kf8h2v89-hack-club-bot.vercel.app/1goose-honk-right-intensifies.gif' style='height:1.25em;margin-left:0.5em;'/>".html_safe,
       "Handle with care",
       "This side up",
       "if it makes sense it’ll make dollars",
-      "<a href='https://www.dinosaurbbq.org' target='_blank' style='color: inherit'>dinosaurbbq.org</a>",
-      "<a href='/my/settings#security-keys'>☝️ You can sign in with your fingerprint!</a>",
+      "<a href='https://www.dinosaurbbq.org' target='_blank' style='color: inherit'>dinosaurbbq.org</a>".html_safe,
+      "<a href='/my/settings#security-keys'>☝️ You can sign in with your fingerprint!</a>".html_safe,
       "Totally fungible!",
       "For Hack Clubbers everywhere",
-      "<a href='https://cloud-g3k0oo8ci-hack-club-bot.vercel.app/0img_7439.mp4' target='_blank'>Now a currency?</a>",
+      "<a href='https://cloud-g3k0oo8ci-hack-club-bot.vercel.app/0img_7439.mp4' target='_blank'>Now a currency?</a>".html_safe,
       "Not responsible for any major financial collapse!",
       "In today’s economy?!",
       "Send us your best haiku!",
@@ -415,10 +460,10 @@ class FlavorTextService
       "non-profit doesn’t mean no profit!",
       "0 days since last accident",
       "teen built, teen approved!",
-      "a #{%w[megabyte megabit].sample} of #{%w[mulah money].sample}",
+      "a #{%w[megabyte megabit].sample(random: @random)} of #{%w[mulah money].sample(random: @random)}",
       "byte me",
       "now only 2 ticks short of a clock cycle!",
-      "not running on the <a href='https://github.com/hackclub/the-hacker-zephyr' target='_blank' style='color: inherit'>zephyrnet</a>!",
+      "not running on the <a href='https://github.com/hackclub/the-hacker-zephyr' target='_blank' style='color: inherit'>zephyrnet</a>!".html_safe,
       "not available offline!",
       "as seen online",
       "online only!",
@@ -429,18 +474,23 @@ class FlavorTextService
       "same classic taste",
       "you can account on us!",
       "accountants, assemble!",
-      "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>we ran our own hackathon on it!</a>",
-      "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>good enough for us to use!</a>",
-      "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>dogfooded by us!</a>",
-      "<strike>Runs on Airtable™</strike>",
-      "Got a hankering for some Bankering?"
+      "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>we ran our own hackathon on it!</a>".html_safe,
+      "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>good enough for us to use!</a>".html_safe,
+      "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>dogfooded by us!</a>".html_safe,
+      "<strike>Runs on Airtable™</strike>".html_safe,
+      "Got a hankering for some Bankering?",
+      "<marquee scrollamount='5'>💸💸💸</marquee>".html_safe,
+      "Wow, that’s a lot of money. Need some help carrying it?",
+      "I would rather check my Facebook than face my checkbook.",
+      "The only part not outstanding is our balance"
     ]
   end
 
   private
 
-  def holiday?
-    rand(100) >= 5 && DateTime.now <= Date.new(2022, 2, 13)
+  # Used by `SeasonalHelper`
+  def current_user
+    @user
   end
 
 end

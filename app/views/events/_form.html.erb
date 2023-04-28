@@ -1,14 +1,15 @@
 <%= form_with(model: event, local: true, class: "mb3") do |form| %>
   <%= form_errors event, "organization" %>
 
-  <div class="field">
-    <p class="mt0">
-      <%= event.name %> is on the <strong><%= event.plan_name %></strong> plan and charging
-      <strong><%= number_to_percentage(event.sponsorship_fee * 100, significant: true, strip_insignificant_zeros: true) %></strong> of revenue
-      <% if event.high_school_hackathon? && event.sponsorship_fee == 0 %>(until December 31st, 2022 on the <a href="https://changelog.bank.hackclub.com/bank-now-provides-free-durian-241524">high school hackathon fee waiver</a>)<% end %>
-    </p>
-  </div>
-
+  <% unless @event.demo_mode? %>
+    <div class="field">
+      <p class="mt0">
+        <%= event.name %> is on the <strong><%= event.plan_name %></strong> plan and charging
+        <strong><%= number_to_percentage(event.sponsorship_fee * 100, significant: true, strip_insignificant_zeros: true) %></strong> of revenue
+        <% if event.high_school_hackathon? && event.sponsorship_fee == 0 %>(until June 30th, 2023 on the <a href="https://changelog.bank.hackclub.com/bank-now-provides-free-durian-241524">high school hackathon fee waiver</a>)<% end %>
+      </p>
+    </div>
+  <% end %>
   <h3 class="mb1">Organization profile</h3>
 
   <div class="card">
@@ -18,13 +19,15 @@
         Displayed on your
         <%= link_to "donation page",
           @event.donation_page_enabled? ? start_donation_donations_path(@event) : { anchor: "donations" },
-          target: @event.donation_page_enabled? ? "_blank" : nil
-        %>.
+          target: @event.donation_page_enabled? ? "_blank" : nil %>.
       </p>
       <% if @event.logo.attached? %>
         <%= image_tag @event.logo, height: 72 %>
       <% end %>
-      <%= form.file_field :logo %>
+      <div class="field--fileupload">
+        <%= form.label :logo, "Choose File", class: "field--fileupload__label" %>
+        <%= form.file_field :logo, class: "field--fileupload__field" %>
+      </div>
 
       <% if @event.logo.attached? %>
         <%= link_to "Remove logo", event_remove_logo_path(@event), class: "block mt1", method: :post %>
@@ -56,7 +59,7 @@
         </ul>
         <div class="field">
           <%= form.label :custom_css_url, "Custom CSS URL" %>
-          <%= form.text_field :custom_css_url, type: 'url',  placeholder: "https://bank.hackclub.com/dinobbq.css", class: "w-100 fit" %>
+          <%= form.text_field :custom_css_url, type: "url", placeholder: "https://bank.hackclub.com/dinobbq.css", class: "w-100 fit" %>
         </div>
         <%= form.submit "Update" %>
       </div>
@@ -104,10 +107,9 @@
 
   <div class="card mb3">
     <ul class="mt0 pl2 mb2">
-      <li><strong>Only use this if you know what you’re doing.</strong></li>
       <li>Unauthenticated users will be able to access a <strong>read-only</strong> version of your account.</li>
       <li>None of Hack Club Bank’s pages will change for signed in team members.</li>
-      <li>We’ll do our best effort to redact contact info, but we can’t guarantee it doesn't show up in these
+      <li>We’ll do our best to redact contact info, but we can’t guarantee it doesn't show up in these
         fields:
         <ul>
           <li>Transaction display names</li>
@@ -121,8 +123,12 @@
       <%= form.check_box :is_public %>
       <%= form.label :is_public, "Enable Transparency Mode" %>
     </div>
-    <% if false %> <%# Holiday features disabled site-wide %>
-      <div class="field field--checkbox" data-behavior="holiday_features_transparency <% if !event.is_public? %>autohide<% end %>">
+    <div class="field field--checkbox" data-behavior="additional_transparency_settings <% if !event.is_public? %>autohide<% end %>">
+      <%= form.check_box :is_indexable %>
+      <%= form.label :is_indexable, "List #{@event.name} in Hack Club Bank public directory" %>
+    </div>
+    <% unless @hide_holiday_features || !winter? %>
+      <div class="field field--checkbox" data-behavior="additional_transparency_settings <% if !event.is_public? %>autohide<% end %>">
         <%= form.check_box :holiday_features %>
         <%= form.label :holiday_features, "Enable Holiday Features ⛄ for Transparency Mode" %>
       </div>
@@ -168,12 +174,11 @@
                 event_toggle_hidden_path(event),
                 method: :put,
                 "data-confirm": "Do you really want to #{event.hidden? ? "un-hide" : "hide"} #{event.name}?",
-                class: "btn bg-success" if event.persisted?
-    %>
+                class: "btn bg-success" if event.persisted? %>
   <% end %>
 
   <% admin_tools do %>
-    <div class="field">
+    <div class="field" id="admin_settings">
       <%= form.label :name, "Name (if changed, also change in G Suite)" %>
       <%= form.text_field :name %>
     </div>
@@ -190,17 +195,22 @@
 
     <div class="field">
       <%= form.label :country %>
-      <%= form.collection_select :country, Event.countries.map{|c| [c.first, get_country_name_from_alpha2(c.first)]}, :first, :last, { include_blank: 'Select a country'} %>
+      <%= form.collection_select :country, Event.countries.map{ |c| [c.first, get_country_name_from_alpha2(c.first)] }, :first, :last, { include_blank: "Select a country" } %>
     </div>
 
     <div class="field">
       <%= form.label :category %>
-      <%= form.collection_select :category, Event.categories, :first, :first, { include_blank: 'Select a category'} %>
+      <%= form.collection_select :category, Event.categories, :first, :first, { include_blank: "Select a category" } %>
     </div>
 
     <div class="field">
       <%= form.label :point_of_contact_id, "Point of contact" %>
       <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email %>
+    </div>
+
+    <div class="field field--checkbox">
+      <%= form.check_box :demo_mode %>
+      <%= form.label :demo_mode, "Is in Playground Mode?" %>
     </div>
 
     <div class="field field--checkbox">
@@ -230,5 +240,14 @@
     <div class="action">
       <%= form.submit "Update" %>
     </div>
+  <% end %>
+<% end %>
+
+<% admin_tools do %>
+  <%= button_to "Delete organization", event_path(@event), method: :delete, class: "btn bg-error", disabled: !@event.demo_mode?, data: { confirm: "⚠️ Are you sure you'd like to delete this organization?" } %>
+  <% unless @event.demo_mode? %>
+    <p class="h5 muted mt0 mb1">
+      Only demo accounts can be deleted.
+    </p>
   <% end %>
 <% end %>

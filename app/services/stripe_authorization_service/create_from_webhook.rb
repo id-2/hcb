@@ -25,15 +25,21 @@ module StripeAuthorizationService
 
         # 5. instantly mark the transaction as declined if it was declined on Stripe's end
         unless remote_stripe_transaction.approved
-          CanonicalPendingDeclinedMapping.create!(canonical_pending_transaction_id: cpt.id)
+          cpt.decline!
         end
       end
 
       if cpt
         if remote_stripe_transaction.approved
           CanonicalPendingTransactionMailer.with(canonical_pending_transaction_id: cpt.id).notify_approved.deliver_later
+          user = cpt&.stripe_card&.user
+          if Flipper.enabled?(:sms_receipt_notifications_2022_11_23, user)
+            CanonicalPendingTransactionJob::SendTwilioMessage.perform_later(cpt_id: cpt.id, user_id: user.id)
+          end
         else
-          CanonicalPendingTransactionMailer.with(canonical_pending_transaction_id: cpt.id).notify_declined.deliver_later
+          unless cpt&.stripe_card&.frozen?
+            CanonicalPendingTransactionMailer.with(canonical_pending_transaction_id: cpt.id).notify_declined.deliver_later
+          end
         end
       end
     end

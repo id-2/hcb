@@ -7,7 +7,9 @@
 #  id                                  :bigint           not null, primary key
 #  activated                           :boolean          default(FALSE)
 #  card_type                           :integer          default("virtual"), not null
+#  is_platinum_april_fools_2023        :boolean
 #  last4                               :text
+#  name                                :string
 #  purchased_at                        :datetime
 #  spending_limit_amount               :integer
 #  spending_limit_interval             :integer
@@ -42,6 +44,8 @@
 #
 class StripeCard < ApplicationRecord
   include Hashid::Rails
+  include PublicIdentifiable
+  set_public_id_prefix :crd
 
   has_paper_trail
 
@@ -55,6 +59,7 @@ class StripeCard < ApplicationRecord
   scope :frozen, -> { where(stripe_status: "inactive") }
   scope :active, -> { where(stripe_status: "active") }
   scope :physical_shipping, -> { physical.includes(:user, :event).reject { |c| c.stripe_obj[:shipping][:status] == "delivered" } }
+  scope :platinum, -> { where(is_platinum_april_fools_2023: true) }
 
   belongs_to :event
   belongs_to :stripe_cardholder
@@ -65,6 +70,7 @@ class StripeCard < ApplicationRecord
   has_many :stripe_authorizations
   alias_attribute :authorizations, :stripe_authorizations
   alias_attribute :transactions, :stripe_authorizations
+  alias_attribute :platinum, :is_platinum_april_fools_2023
 
   alias_attribute :last_four, :last4
 
@@ -108,16 +114,16 @@ class StripeCard < ApplicationRecord
     "•••• •••• •••• ••••"
   end
 
+  def hidden_cvc
+    "•••"
+  end
+
   def hidden_card_number_with_last_four
     "•••• •••• •••• #{last4}"
   end
 
   def stripe_name
     stripe_cardholder.stripe_name
-  end
-
-  def name
-    stripe_name
   end
 
   def total_spent
@@ -173,7 +179,7 @@ class StripeCard < ApplicationRecord
   end
 
   def frozen?
-    stripe_status == "inactive"
+    activated? && stripe_status == "inactive"
   end
 
   def deactivated?
@@ -295,7 +301,12 @@ class StripeCard < ApplicationRecord
   end
 
   def hcb_codes
-    @hcb_codes ||= ::HcbCode.where(hcb_code: canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes)
+    all_hcb_codes = canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes
+    if Flipper.enabled?(:transaction_tags_2022_07_29, self.event)
+      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes).includes(:tags)
+    else
+      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes)
+    end
   end
 
   def remote_shipping_status

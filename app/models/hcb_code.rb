@@ -32,8 +32,6 @@ class HcbCode < ApplicationRecord
 
   before_create :generate_and_set_short_code
 
-  attr_writer :not_admin_only_comments_count
-
   comma do
     hcb_code "HCB Code"
     created_at "Created at"
@@ -61,13 +59,15 @@ class HcbCode < ApplicationRecord
   end
 
   def memo
-    return "💰 Grant from Hack Club and FIRST®" if hackathon_grant?
     return disbursement_memo if disbursement?
     return invoice_memo if invoice?
     return donation_memo if donation?
     return partner_donation_memo if partner_donation?
     return ach_transfer_memo if ach_transfer?
     return check_memo if check?
+    return increase_check_memo if increase_check?
+    return fee_revenue_memo if fee_revenue?
+    return ach_payment_memo if ach_payment?
 
     custom_memo || ct.try(:smart_memo) || pt.try(:smart_memo) || ""
   end
@@ -108,34 +108,45 @@ class HcbCode < ApplicationRecord
     end
   end
 
-  has_many :canonical_pending_transactions, foreign_key: 'hcb_code', primary_key: 'hcb_code'
+  has_many :canonical_pending_transactions,
+           foreign_key: "hcb_code",
+           primary_key: "hcb_code",
+           inverse_of: :local_hcb_code
 
-  has_many :canonical_transactions, -> { order("date desc, id desc") }, foreign_key: 'hcb_code', primary_key: 'hcb_code'
+  has_many :canonical_transactions,
+           -> { order("canonical_transactions.date desc, canonical_transactions.id desc") },
+           foreign_key: "hcb_code",
+           primary_key: "hcb_code",
+           inverse_of: :local_hcb_code
 
   def event
     events.first
   end
 
   def events
-    @events ||= begin
-      ids = [
-        canonical_pending_transactions.map { |cpt| cpt.event&.id },
-        canonical_transactions.map { |ct| ct.event&.id },
-        invoice.try(:event).try(:id),
-        donation.try(:event).try(:id),
-        partner_donation.try(:event).try(:id),
-        ach_transfer.try(:event).try(:id),
-        check.try(:event).try(:id),
-        disbursement.try(:event).try(:id),
-        incoming_bank_fee? ? EventMappingEngine::EventIds::INCOMING_FEES : nil
-      ].compact.flatten.uniq
+    @events ||=
+      begin
+        ids = [].concat(canonical_pending_transactions.includes(:canonical_pending_event_mapping).pluck(:event_id))
+                .concat(canonical_transactions.includes(:canonical_event_mapping).pluck(:event_id))
+                .uniq
 
-      Event.where(id: ids)
-    end
-  end
+        return Event.where(id: ids) unless ids.empty?
 
-  def hackathon_grant?
-    disbursement? && disbursement.source_event_id == EventMappingEngine::EventIds::HACKATHON_GRANT_FUND
+        ids.concat([
+          invoice.try(:event).try(:id),
+          donation.try(:event).try(:id),
+          partner_donation.try(:event).try(:id),
+          ach_transfer.try(:event).try(:id),
+          check.try(:event).try(:id),
+          increase_check.try(:event).try(:id),
+          disbursement.try(:event).try(:id),
+        ].compact.uniq)
+
+        ids << EventMappingEngine::EventIds::INCOMING_FEES if incoming_bank_fee?
+        ids << EventMappingEngine::EventIds::HACK_CLUB_BANK if fee_revenue?
+
+        Event.where(id: ids)
+      end
   end
 
   def fee_payment?
@@ -154,8 +165,32 @@ class HcbCode < ApplicationRecord
     pt.try(:stripe_cardholder) || ct.try(:stripe_cardholder)
   end
 
+  def stripe_merchant
+    pt&.raw_pending_stripe_transaction&.stripe_transaction&.dig("merchant_data") || ct.raw_stripe_transaction.stripe_transaction["merchant_data"]
+  end
+
+  def stripe_merchant_currency
+    pt&.raw_pending_stripe_transaction&.stripe_transaction&.dig("merchant_currency") || ct.raw_stripe_transaction.stripe_transaction["merchant_currency"]
+  end
+
+  def stripe_refund?
+    stripe_force_capture? && ct&.stripe_refund?
+  end
+
   def stripe_auth_dashboard_url
     pt.try(:stripe_auth_dashboard_url) || ct.try(:stripe_auth_dashboard_url)
+  end
+
+  def raw_emburse_transaction
+    ct&.raw_emburse_transaction
+  end
+
+  def emburse_card
+    ct&.emburse_card
+  end
+
+  def card
+    stripe_card || emburse_card
   end
 
   def bank_fee?
@@ -164,6 +199,10 @@ class HcbCode < ApplicationRecord
 
   def incoming_bank_fee?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::INCOMING_BANK_FEE_CODE
+  end
+
+  def fee_revenue?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::FEE_REVENUE_CODE
   end
 
   def invoice?
@@ -186,16 +225,24 @@ class HcbCode < ApplicationRecord
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::CHECK_CODE
   end
 
+  def increase_check?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::INCREASE_CHECK_CODE
+  end
+
   def disbursement?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::DISBURSEMENT_CODE
   end
 
   def disbursement_memo
-    smartish_custom_memo || "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
+    smartish_custom_memo || disbursement.special_appearance_memo || "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
   end
 
   def stripe_card?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::STRIPE_CARD_CODE
+  end
+
+  def stripe_force_capture?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::STRIPE_FORCE_CAPTURE_CODE
   end
 
   def invoice
@@ -238,12 +285,40 @@ class HcbCode < ApplicationRecord
     smartish_custom_memo || "CHECK TO #{check.smart_memo}"
   end
 
+  def increase_check
+    @increase_check ||= IncreaseCheck.find_by(id: hcb_i2) if increase_check?
+  end
+
+  def increase_check_memo
+    "Check to #{increase_check.recipient_name}".upcase
+  end
+
   def disbursement
     @disbursement ||= Disbursement.find_by(id: hcb_i2) if disbursement?
   end
 
   def bank_fee
     @bank_fee ||= BankFee.find_by(id: hcb_i2) if bank_fee?
+  end
+
+  def fee_revenue
+    @fee_revenue ||= FeeRevenue.find_by(id: hcb_i2) if fee_revenue?
+  end
+
+  def fee_revenue_memo
+    "Fee revenue from #{fee_revenue.start.strftime("%b %e")} to #{fee_revenue.end.strftime("%b %e")}"
+  end
+
+  def ach_payment?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::ACH_PAYMENT_CODE
+  end
+
+  def ach_payment
+    @ach_payment ||= AchPayment.find(hcb_i2) if ach_payment?
+  end
+
+  def ach_payment_memo
+    "Bank transfer"
   end
 
   def unknown?
@@ -270,6 +345,10 @@ class HcbCode < ApplicationRecord
     JSON.parse(raw_canonical_transaction_ids)
   end
 
+  def no_transactions?
+    !pt && !ct
+  end
+
   def pt
     canonical_pending_transactions.first
   end
@@ -291,11 +370,7 @@ class HcbCode < ApplicationRecord
   end
 
   def receipt_required?
-    if type == :card_charge && !pt.declined?
-      true
-    else
-      false
-    end
+    (type == :card_charge && !pt.declined?) || !!raw_emburse_transaction
   end
 
   def local_hcb_code
@@ -306,11 +381,15 @@ class HcbCode < ApplicationRecord
     self.short_code = ::HcbCodeService::Generate::ShortCode.new.run
   end
 
-  # delete this method once preload is on by default
   def not_admin_only_comments_count
-    return @not_admin_only_comments_count if defined?(@not_admin_only_comments_count)
-
-    @not_admin_only_comments_count = comments.not_admin_only.count
+    # `not_admin_only.count` always issues a new query to the DB because a scope is being applied.
+    # However, if comments have been preloaded, it's more likely to be faster to count
+    # the non admin comments in memory. The vast majority of HcbCodes have fewer than 4 comments
+    @not_admin_only_comments_count ||= if comments.loaded?
+                                         comments.count { |c| !c.admin_only }
+                                       else
+                                         comments.not_admin_only.count
+                                       end
   end
 
 end

@@ -3,29 +3,16 @@
 require "rails_helper"
 
 RSpec.describe UserService::ExchangeLoginCodeForUser, type: :model do
-  fixtures "users"
+  let(:login_code) { create(:login_code) }
+  let(:user) { login_code.user }
 
-  let(:user) { users(:user1) }
-
-  let(:user_id) { 1234 }
-  let(:login_code) { "555-555" }
-
-  let(:auth_token) { "abcd" }
-
-  let(:attrs) do
-    {
-      user_id: user_id,
-      login_code: login_code
-    }
-  end
-
-  let(:service) { UserService::ExchangeLoginCodeForUser.new(attrs) }
-
-  let(:exchange_login_code_resp) do
-    {
-      auth_token: auth_token
-    }
-  end
+  let(:service) {
+    UserService::ExchangeLoginCodeForUser.new(
+      user_id: user.id,
+      login_code: login_code.code,
+      sms: sms
+    )
+  }
 
   let(:exchange_login_code_error_resp) do
     {
@@ -33,34 +20,44 @@ RSpec.describe UserService::ExchangeLoginCodeForUser, type: :model do
     }
   end
 
-  let(:get_user_resp) do
-    {
-      email: user.email,
-      admin_at: user.admin_at
-    }
-  end
+  context "email" do
+    let(:sms) { false }
 
-
-  before do
-    allow(service).to receive(:exchange_login_code_resp).and_return(exchange_login_code_resp)
-    allow(service).to receive(:get_user_resp).and_return(get_user_resp)
-  end
-
-  it "returns the user" do
-    user = service.run
-
-    expect(user.id).to eql(user.id)
-  end
-
-  context "when login code response has errors" do
-    before do
-      allow(service).to receive(:exchange_login_code_resp).and_return(exchange_login_code_error_resp)
+    context "when sent by email" do
+      it "exchanges login code for user in bank" do
+        exchanged_user = service.run
+        expect(exchanged_user).to eq(user)
+      end
     end
 
-    it "raises error" do
-      expect do
-        service.run
-      end.to raise_error(::Errors::InvalidLoginCode)
+    context "when login code doesn't exist" do
+      let(:service) {
+        UserService::ExchangeLoginCodeForUser.new(
+          user_id: user.id,
+          login_code: "does not exist",
+          sms: sms
+        )
+      }
+
+      it "raises error" do
+        expect do
+          service.run
+        end.to raise_error(::Errors::InvalidLoginCode)
+      end
+    end
+
+  end
+
+  context "sms" do
+    let(:sms) { true }
+
+    context "when sent by sms" do
+      it "calls twilio" do
+        expect(TwilioVerificationService).to receive_message_chain(:new, :check_verification_token).and_return(true)
+
+        exchanged_user = service.run
+        expect(exchanged_user).to eq(user)
+      end
     end
   end
 end

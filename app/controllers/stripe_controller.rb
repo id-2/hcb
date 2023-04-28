@@ -7,8 +7,7 @@ class StripeController < ApplicationController
 
   def webhook
     payload = request.body.read
-    sig_header = request.headers['Stripe-Signature']
-    event = nil
+    sig_header = request.headers["Stripe-Signature"]
 
     begin
       event = StripeService.construct_webhook_event(payload, sig_header)
@@ -27,14 +26,18 @@ class StripeController < ApplicationController
       head 400
       return
     end
-
-    head 200
   end
 
   private
 
   def handle_issuing_authorization_request(event)
-    ::StripeAuthorizationService::Webhook::HandleIssuingAuthorizationRequest.new(stripe_event: event).run
+    approved = ::StripeAuthorizationService::Webhook::HandleIssuingAuthorizationRequest.new(stripe_event: event).run
+
+    response.set_header "Stripe-Version", "2022-08-01"
+
+    render json: {
+      approved: approved
+    }
   end
 
   def handle_issuing_authorization_created(event)
@@ -45,6 +48,8 @@ class StripeController < ApplicationController
 
     # put the transaction on the pending ledger in almost realtime
     ::StripeAuthorizationJob::CreateFromWebhook.perform_later(auth_id)
+
+    head 200
   end
 
   def handle_issuing_authorization_updated(event)
@@ -54,6 +59,8 @@ class StripeController < ApplicationController
     sa = StripeAuthorization.find_or_initialize_by(stripe_id: auth[:id])
     sa.sync_from_stripe!
     sa.save
+
+    head 200
   end
 
   def handle_issuing_transaction_created(event)
@@ -62,21 +69,34 @@ class StripeController < ApplicationController
     return unless amount < 0
 
     TopupStripeJob.perform_later
+
+    head 200
   end
 
   def handle_issuing_card_updated(event)
     card = StripeCard.find_by(stripe_id: event[:data][:object][:id])
     card.sync_from_stripe!
     card.save
+
+    head 200
   end
 
   def handle_charge_succeeded(event)
     charge = event[:data][:object]
     ::PartnerDonationService::HandleWebhookChargeSucceeded.new(charge).run
+
+    head 200
   end
 
   def handle_invoice_paid(event)
-    invoice = Invoice.find_by(stripe_invoice_id: event[:data][:object][:id])
+    stripe_invoice = event[:data][:object]
+
+    if stripe_invoice.subscription.present?
+      RecurringDonationService::HandleInvoicePaid.new(stripe_invoice).run
+      return
+    end
+
+    invoice = Invoice.find_by(stripe_invoice_id: stripe_invoice[:id])
     return unless invoice
 
     # Mark invoice as paid
@@ -87,6 +107,32 @@ class StripeController < ApplicationController
       rpit = ::PendingTransactionEngine::RawPendingInvoiceTransactionService::Invoice::ImportSingle.new(invoice: invoice).run
       cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Invoice.new(raw_pending_invoice_transaction: rpit).run
       ::PendingEventMappingEngine::Map::Single::Invoice.new(canonical_pending_transaction: cpt).run
+    end
+
+    head 200
+  end
+
+  def handle_customer_subscription_updated(event)
+    recurring_donation = RecurringDonation.find_by(stripe_subscription_id: event.data.object.id)
+    return unless recurring_donation
+
+    recurring_donation.sync_with_stripe_subscription!
+    recurring_donation.save!
+  end
+
+  alias_method :handle_customer_subscription_deleted, :handle_customer_subscription_updated
+
+  def handle_setup_intent_succeeded(event)
+    setup_intent = event.data.object
+    return unless setup_intent.metadata.recurring_donation_id
+
+    suppress(ActiveRecord::RecordNotFound) do
+      recurring_donation = RecurringDonation.find(setup_intent.metadata.recurring_donation_id)
+      StripeService::Subscription.update(recurring_donation.stripe_subscription_id, default_payment_method: setup_intent.payment_method)
+      recurring_donation.sync_with_stripe_subscription!
+      recurring_donation.save!
+
+      RecurringDonationMailer.with(recurring_donation: recurring_donation).payment_method_changed.deliver_later
     end
   end
 
@@ -118,6 +164,72 @@ class StripeController < ApplicationController
       invoice.canonical_pending_transactions.update_all(fronted: false)
     end
 
+    head 200
+  end
+
+  def handle_charge_refunded(event)
+    charge = event[:data][:object]
+
+    donation = Donation.find_by(stripe_payment_intent_id: charge[:payment_intent])
+    return unless donation
+
+    donation.mark_refunded! unless donation.refunded?
+
+    StripeService::Topup.create(
+      amount: charge[:amount_refunded],
+      currency: "usd",
+      description: "Refund for donation #{donation.id}",
+      statement_descriptor: "HCB-#{donation.local_hcb_code.short_code}"
+    )
+  end
+
+  def handle_payment_intent_succeeded(event)
+    # only proceed if payment intent is a donation and not an invoice
+    return unless event.data.object.metadata[:donation].present?
+
+    # get donation to process
+    donation = Donation.find_by_stripe_payment_intent_id(event.data.object.id)
+
+    pi = StripeService::PaymentIntent.retrieve(
+      id: donation.stripe_payment_intent_id,
+      expand: ["charges.data.balance_transaction"]
+    )
+    donation.set_fields_from_stripe_payment_intent(pi)
+    donation.save!
+
+    DonationService::Queue.new(donation_id: donation.id).run # queues/crons payout. DEPRECATE. most is unnecessary if we just run in a cron
+
+    donation.send_receipt!
+
+    # Import the donation onto the ledger
+    rpdt = ::PendingTransactionEngine::RawPendingDonationTransactionService::Donation::ImportSingle.new(donation: donation).run
+    cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Donation.new(raw_pending_donation_transaction: rpdt).run
+    ::PendingEventMappingEngine::Map::Single::Donation.new(canonical_pending_transaction: cpt).run
+  end
+
+  def handle_source_transaction_created(event)
+    stripe_source_transaction = event.data.object
+    source = StripeAchPaymentSource.find_by(stripe_source_id: stripe_source_transaction.source)
+
+    return unless source
+
+    charge = source.charge!(stripe_source_transaction.amount)
+
+    ach_payment = source.ach_payments.create(
+      stripe_source_transaction_id: stripe_source_transaction.id,
+      stripe_charge_id: charge.id,
+    )
+
+    ach_payment.create_stripe_payout!
+    ach_payment.create_fee_reimbursement!
+
+    CanonicalPendingTransaction.create(
+      date: Time.at(stripe_source_transaction.created).to_date,
+      event: source.event,
+      amount_cents: stripe_source_transaction.amount,
+      memo: "Bank transfer",
+      ach_payment: ach_payment
+    )
   end
 
 end

@@ -21,11 +21,15 @@
 #  updated_at                :datetime         not null
 #  creator_id                :bigint
 #  event_id                  :bigint
+#  increase_id               :text
+#  processor_id              :bigint
 #
 # Indexes
 #
-#  index_ach_transfers_on_creator_id  (creator_id)
-#  index_ach_transfers_on_event_id    (event_id)
+#  index_ach_transfers_on_creator_id    (creator_id)
+#  index_ach_transfers_on_event_id      (event_id)
+#  index_ach_transfers_on_increase_id   (increase_id) UNIQUE
+#  index_ach_transfers_on_processor_id  (processor_id)
 #
 # Foreign Keys
 #
@@ -33,7 +37,8 @@
 #  fk_rails_...  (event_id => events.id)
 #
 class AchTransfer < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: [:account_number] # ciphertext columns will still be tracked
+  has_encrypted :account_number
 
   include PublicIdentifiable
   set_public_id_prefix :ach
@@ -45,9 +50,8 @@ class AchTransfer < ApplicationRecord
   pg_search_scope :search_recipient, against: [:recipient_name], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "ach_transfers.created_at"
 
   belongs_to :creator, class_name: "User"
+  belongs_to :processor, class_name: "User", optional: true
   belongs_to :event
-
-  has_encrypted :account_number
 
   validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
   validates_length_of :routing_number, is: 9

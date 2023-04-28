@@ -18,7 +18,7 @@ $(tput setaf 9)Hack Club Bank:$(tput sgr0) Step 1/7: Install Heroku (Quiet)"
 if ! command -v heroku &> /dev/null
 then
   echo "running|||"
-  (curl https://cli-assets.heroku.com/install-ubuntu.sh | sh) > /dev/null 2>&1
+  (curl https://cli-assets.heroku.com/install.sh | sh) > /dev/null 2>&1
 fi
 echo "$(tput setaf 9)Hack Club Bank:$(tput sgr0) $(tput setaf 10)Done$(tput sgr0)"
 echo "
@@ -56,8 +56,6 @@ echo "$(tput setaf 9)Hack Club Bank:$(tput sgr0) $(tput setaf 10)Done$(tput sgr0
 
 echo "
 $(tput setaf 9)Hack Club Bank:$(tput sgr0) Step 7/7: Docker Database Setup"
-# max@maxwofford.com: This is a hack to get past https://github.com/hackclub/bank/issues/2445 while developing. This isn't a long-term fix.
-env $(cat .env.docker) docker-compose run --service-ports web yarn install --check-files
 env $(cat .env.docker) docker-compose run --service-ports web bundle exec rails db:test:prepare RAILS_ENV=test
 env $(cat .env.docker) docker-compose run --service-ports web bundle exec rails db:prepare
 env $(cat .env.docker) docker-compose run --service-ports web pg_restore --verbose --clean --no-acl --no-owner -h db -U postgres -d bank_development latest.dump
@@ -94,5 +92,5 @@ K      L   U   B      H
     HACK FOUNDATION
 
 Hack Club Bank, A Hack Club Project
-2022 The Hack Foundation
+2023 The Hack Foundation
 "

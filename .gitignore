@@ -28,7 +28,6 @@
 /config/master.key
 .env*
 !.env.example
-!.env.docker
 !.env.docker.example
 
 latest.dump*
@@ -41,11 +40,6 @@ latest.dump*
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
-
-# Ignore (and don't ignore) for dotenv.
-.env
-.env.me
-!.env.project
 
 # IntelliJ
 .idea

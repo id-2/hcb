@@ -3,24 +3,22 @@
 
 <%= render "events/nav" if @event %>
 
-
 <% if @transaction&.local_hcb_code %>
   <% admin_tools("mt3") do %>
     <p>
       <strong>HCB Code:</strong>
       <span>
-        <%= link_to @transaction.hcb_code , @transaction.local_hcb_code %>
+        <%= link_to @transaction.hcb_code, @transaction.local_hcb_code %>
       </span>
     </p>
   <% end %>
 <% end %>
 
 <% if @transaction.stripe_auth_dashboard_url %>
-  <% admin_tools('mt1') do %>
-    <%= link_to 'View on Stripe', @transaction.stripe_auth_dashboard_url, class: 'btn bg-accent' %>
+  <% admin_tools("mt1") do %>
+    <%= link_to "View on Stripe", @transaction.stripe_auth_dashboard_url, class: "btn bg-accent" %>
   <% end %>
 <% end %>
-
 
 <article class="card mt2">
   <h1 class="heading h1 mt0 mb0">
@@ -119,7 +117,7 @@
           <strong>Fee</strong>
           <span>
             <%= render_money fee.amount_cents_as_decimal %> (<%= render_percentage fee.event_sponsorship_fee %>)
-            <% admin_tools('py0 ml1', 'span') do %>
+            <% admin_tools("py0 ml1", "span") do %>
               <%= link_to "[waive fee]", waive_fee_canonical_transaction_url(@transaction), method: :post if fee.amount_cents_as_decimal > 0 %>
             <% end %>
           </span>
@@ -145,7 +143,7 @@
         <%= link_to "View", emburse_transfer_path(@transaction.emburse_transfer) %>
       </p>
     <% end %>
-    
+
   </section>
 
   <% unless using_transaction_engine_v2? || @transaction.is_a?(CanonicalTransaction) %>

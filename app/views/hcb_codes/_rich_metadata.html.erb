@@ -23,8 +23,13 @@
   <%= render partial: "hcb_codes/check", locals: {} %>
 <% end %>
 
+<%# check %>
+<% if @hcb_code.increase_check? && @hcb_code.increase_check.present? %>
+  <%= render partial: "hcb_codes/increase_check", locals: {} %>
+<% end %>
+
 <%# stripe card %>
-<% if @hcb_code.stripe_card? && @hcb_code.stripe_card.present? %>
+<% if (@hcb_code.stripe_card? || @hcb_code.stripe_force_capture?) && @hcb_code.stripe_card.present? %>
   <%= render partial: "hcb_codes/stripe_card", locals: {} %>
 <% end %>
 
@@ -36,6 +41,16 @@
 <%# bank fee %>
 <% if @hcb_code.bank_fee? && @hcb_code.bank_fee.present? %>
   <%= render partial: "hcb_codes/bank_fee", locals: {} %>
+<% end %>
+
+<%# fee revenue %>
+<% if @hcb_code.fee_revenue? && @hcb_code.fee_revenue.present? %>
+  <%= render partial: "hcb_codes/fee_revenue", locals: {} %>
+<% end %>
+
+<%# ach payment %>
+<% if @hcb_code.ach_payment? && @hcb_code.ach_payment.present? %>
+  <%= render "ach_payment" %>
 <% end %>
 
 <%# unknown (most likely a direct to bank account transaction) %>

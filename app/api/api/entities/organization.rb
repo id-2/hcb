@@ -6,7 +6,22 @@ module Api
       when_expanded do
         expose :name
         expose :slug
+        expose :category, documentation: {
+          values: %w[
+            hackathon
+            high_school_hackathon
+            event
+            hack_club
+            nonprofit
+            robotics_team
+            hardware_grant
+            hack_club_hq
+          ]
+        } do |organization|
+          organization.category&.parameterize&.underscore
+        end
         expose :is_public, as: :transparent, documentation: { type: "boolean" }
+        expose :demo_mode, documentation: { type: "boolean" }
         expose :logo do |organization|
           organization.logo.attached? ? Rails.application.routes.url_helpers.url_for(organization.logo) : nil
         end
@@ -14,7 +29,7 @@ module Api
           event.public_message.presence
         end
         expose :balances do
-          expose :balance_v2_cents, as: :balance_cents, documentation: { type: "integer" }
+          expose :balance_available_v2_cents, as: :balance_cents, documentation: { type: "integer" }
           expose :fee_balance_v2_cents, as: :fee_balance_cents, documentation: { type: "integer" }
           expose :pending_incoming_balance_v2_cents, as: :incoming_balance_cents, documentation: { type: "integer" }
         end

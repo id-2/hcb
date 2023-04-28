@@ -1,12 +1,12 @@
-<% title 'Send an ACH transfer' %>
+<% title "Send an ACH transfer" %>
 <% page_sm %>
-<%= render 'events/nav' %>
+<%= render "events/nav", selected: :transfers %>
 
 <h1>Send an ACH transfer</h1>
 
 <div class="card border b--warning pb0 mt3 mb3">
   <div class="flex items-center warning">
-    <%= inline_icon 'info', size: 32, class: 'mr1' %>
+    <%= inline_icon "info", size: 32, class: "mr1" %>
     <p class="bold mt0 mb0">Important info about ACH transfers:</p>
   </div>
   <ul class="mt1 mb2">
@@ -15,9 +15,9 @@
     <li>These are US banking system restrictions, so we have limited ability to fix mistakes.</li>
   </ul>
   <div class="border-top card__banner card__darker secondary">
-    <strong class="warning">Questions?</strong> 
+    <strong class="warning">Questions?</strong>
       <%= help_message %>
   </div>
 </div>
 
-<%= render 'form', ach_transfer: @ach_transfer %>
+<%= render "form", ach_transfer: @ach_transfer %>

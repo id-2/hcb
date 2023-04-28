@@ -1,11 +1,11 @@
 <% title "Reimbursements for #{@event.name}" %>
 <% page_md %>
-<%= render 'events/nav' %>
+<%= render "events/nav" %>
 
 <h1 class="heading">
   Reimbursements
-  <%= link_to 'https://app.expensify.com/', class: 'btn', target: '_blank' do %>
-    <%= inline_icon 'external' %>
+  <%= link_to "https://app.expensify.com/", class: "btn", target: "_blank" do %>
+    <%= inline_icon "external" %>
     Open Expensify
   <% end %>
 </h1>
@@ -20,12 +20,12 @@
   </p>
 
   <p>
-    Get in touch with the Bank team 
+    Get in touch with the Bank team
     <% if organizer_signed_in? %>
       (<%= help_message %>)
     <% else %>
       <span class="muted">(sign in to view)</span>
-    <% end%>
+    <% end %>
      with the email of the person to be reimbursed, and they'll be invited
     to Expensify to upload their receipts.
   </p>
@@ -71,11 +71,11 @@
         <p>
         If you think you have an exceptional case where using Expensify isn't sensible, feel free to get in touch with
         us!
-				<% if organizer_signed_in? %>
-					<%= help_message %>
-				<% else %>
-					<span class="muted">(sign in to view)</span>
-				<% end%>
+        <% if organizer_signed_in? %>
+          <%= help_message %>
+        <% else %>
+          <span class="muted">(sign in to view)</span>
+        <% end %>
         </p>
       </article>
     </details>
@@ -109,4 +109,3 @@
     </details>
   </li>
 </ul>
-

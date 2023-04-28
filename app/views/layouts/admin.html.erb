@@ -8,14 +8,15 @@
 
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <%= javascript_include_tag 'dark', 'data-turbo-track': 'reload' %>
+    <%= javascript_include_tag "dark", 'data-turbo-track': "reload" %>
     <%= stylesheet_link_tag "admin", media: "all", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "bundle", 'data-turbo-track': "reload", defer: true %>
     <%= javascript_include_tag "admin", "data-turbo-track": "reload", defer: true %>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-<%= Rails.env %>-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-<%= Rails.env %>-16x16.png">
     <%= yield(:head) if content_for?(:head) %>
   </head>
-  <body>
+  <body data-turbo="<%= Flipper.enabled?(:turbo_2023_01_23, current_user) %>">
     <% flash.each do |key, value| %>
       <% if key == "error" %>
         <p style="text-align:center;background:red;color:white;"><%= value %></p>
@@ -24,7 +25,7 @@
       <% else %>
         <p style="text-align:center;background:darkblue;color:white;"><%= value %></p>
       <% end %>
-      <hr />
+      <hr>
     <% end %>
 
     <p>
@@ -57,11 +58,13 @@
       |
       <%= link_to "achs (#{AchTransfer.pending.count})", ach_admin_index_path %>
       |
-      <%= link_to "checks (#{Check.in_transit.count + Check.admin_count_offset})", check_admin_index_path %>
+      <%= link_to "checks (#{IncreaseCheck.pending.count})", increase_checks_admin_index_path %>
       |
       <%= link_to "Partner donations", partner_donations_admin_index_path %>
       |
       <%= link_to "donations", donations_admin_index_path %>
+      |
+      <%= link_to "Recurring donations", recurring_donations_admin_index_path %>
       |
       <%= link_to "disbursements (#{Disbursement.reviewing.count})", disbursements_admin_index_path %>
       |
@@ -74,17 +77,15 @@
       <%= link_to "hcb codes", hcb_codes_admin_index_path %>
       |
       <%= link_to "transaction csvs", transaction_csvs_admin_index_path %>
-      |
-      <%= link_to "selenium sessions", selenium_sessions_admin_index_path %>
-
 
     </p>
 
-    <hr/>
+    <hr>
 
     <div id="main" class="overflow-x-auto overflow-y-auto">
       <%= yield %>
     </div>
 
+    <%= render "application/footer" unless (@no_app_shell || @hide_footer) %>
   </body>
 </html>

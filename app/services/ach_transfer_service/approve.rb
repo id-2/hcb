@@ -2,31 +2,31 @@
 
 module AchTransferService
   class Approve
-    def initialize(ach_transfer_id:, scheduled_arrival_date:, confirmation_number:)
+    def initialize(ach_transfer_id:, processor:)
       @ach_transfer_id = ach_transfer_id
-      @scheduled_arrival_date = scheduled_arrival_date
-      @confirmation_number = confirmation_number
+      @processor = processor
     end
 
     def run
-      raise ArgumentError, "scheduled_arrival_date is required" unless @scheduled_arrival_date.present?
-      raise ArgumentError, "confirmation_number is required" unless @confirmation_number.present?
-
       ActiveRecord::Base.transaction do
+        increase_ach_transfer = Increase::AchTransfers.create(
+          account_id: IncreaseService::AccountIds::FS_MAIN,
+          account_number: ach_transfer.account_number,
+          routing_number: ach_transfer.routing_number,
+          amount: ach_transfer.amount,
+          statement_descriptor: ach_transfer.payment_for,
+          individual_name: ach_transfer.recipient_name[0...22],
+          company_name: ach_transfer.event.name[0...16]
+        )
+
         ach_transfer.mark_in_transit!
-        ach_transfer.scheduled_arrival_date = chronic_scheduled_arrival_date
-        ach_transfer.confirmation_number = @confirmation_number
-        ach_transfer.save!
+        ach_transfer.update!(increase_id: increase_ach_transfer["id"], processor: @processor)
       end
 
       ach_transfer
     end
 
     private
-
-    def chronic_scheduled_arrival_date
-      @chronic_scheduled_arrival_date ||= Chronic.parse(@scheduled_arrival_date)
-    end
 
     def ach_transfer
       @ach_transfer ||= AchTransfer.find(@ach_transfer_id)

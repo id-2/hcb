@@ -2,7 +2,7 @@
 
 module ReceiptService
   class Create
-    def initialize(receiptable:, attachments:, uploader:, upload_method: nil)
+    def initialize(attachments:, uploader:, upload_method: nil, receiptable: nil)
       @attachments = attachments
       @receiptable = receiptable
       @uploader = uploader
@@ -10,6 +10,10 @@ module ReceiptService
     end
 
     def run!
+      suppress(ActiveModel::MissingAttributeError) do
+        @receiptable&.update(marked_no_or_lost_receipt_at: nil)
+      end
+
       receipt_ids = []
       ActiveRecord::Base.transaction do
         @attachments.each do |attachment|
@@ -25,9 +29,8 @@ module ReceiptService
       {
         file: attachment,
         uploader: @uploader,
-        receiptable_type: @receiptable.class.name,
-        receiptable_id: @receiptable.id,
-        upload_method: @upload_method
+        upload_method: @upload_method,
+        receiptable: @receiptable   # Receiptable may be nil
       }
     end
 

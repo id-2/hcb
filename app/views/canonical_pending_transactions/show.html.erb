@@ -1,22 +1,22 @@
 <% title "Pending transaction for #{@canonical_pending_transaction.amount}" %>
 <% page_sm %>
 
-<%= render 'events/nav' if @event %>
+<%= render "events/nav" if @event %>
 
 <% if @canonical_pending_transaction&.local_hcb_code %>
   <% admin_tools("mt3") do %>
     <p>
       <strong>HCB Code:</strong>
       <span>
-        <%= link_to @canonical_pending_transaction.hcb_code , @canonical_pending_transaction.local_hcb_code %>
+        <%= link_to @canonical_pending_transaction.hcb_code, @canonical_pending_transaction.local_hcb_code %>
       </span>
     </p>
   <% end %>
 <% end %>
 
 <% if @canonical_pending_transaction.stripe_auth_dashboard_url %>
-  <% admin_tools('mt1') do %>
-    <%= link_to 'View on Stripe', @canonical_pending_transaction.stripe_auth_dashboard_url, class: 'btn bg-accent' %>
+  <% admin_tools("mt1") do %>
+    <%= link_to "View on Stripe", @canonical_pending_transaction.stripe_auth_dashboard_url, class: "btn bg-accent" %>
   <% end %>
 <% end %>
 

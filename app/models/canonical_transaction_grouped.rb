@@ -3,7 +3,7 @@
 class CanonicalTransactionGrouped
   include ActiveModel::Model
 
-  attr_accessor :hcb_code, :date, :amount_cents, :raw_canonical_transaction_ids, :raw_canonical_pending_transaction_ids, :event
+  attr_accessor :hcb_code, :date, :amount_cents, :raw_canonical_transaction_ids, :raw_canonical_pending_transaction_ids, :event, :running_balance
   attr_writer :canonical_transactions, :canonical_pending_transactions, :local_hcb_code
 
   def memo
@@ -108,6 +108,10 @@ class CanonicalTransactionGrouped
 
   def stripe_card?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::STRIPE_CARD_CODE
+  end
+
+  def stripe_refund?
+    local_hcb_code.stripe_refund?
   end
 
   def local_hcb_code

@@ -19,8 +19,9 @@ class OrganizerPositionInvitesController < ApplicationController
 
   def create
     user_email = invite_params[:email]
+    is_signee = invite_params[:is_signee]
 
-    service = OrganizerPositionInviteService::Create.new(event: @event, sender: current_user, user_email: user_email)
+    service = OrganizerPositionInviteService::Create.new(event: @event, sender: current_user, user_email: user_email, is_signee: is_signee)
 
     @invite = service.model
 
@@ -30,18 +31,14 @@ class OrganizerPositionInvitesController < ApplicationController
       flash[:success] = "Invite successfully sent to #{user_email}"
       redirect_to event_team_path @invite.event
     else
-      render "new"
+      render :new, status: :unprocessable_entity
     end
   end
 
   def show
     # If the user's not signed in, redirect them to login page
     unless signed_in?
-      hide_footer
-      @skip_verfiy_authorized = true
-      @prefill_email = @invite.user.email
-
-      render "users/auth" and return
+      return redirect_to auth_users_path(email: @invite.user.email, return_to: organizer_position_invite_path(@invite)), flash: { info: "Please sign in to accept this invitation." }
     end
 
     authorize @invite
@@ -98,7 +95,7 @@ class OrganizerPositionInvitesController < ApplicationController
   end
 
   def invite_params
-    params.require(:organizer_position_invite).permit(:email)
+    params.require(:organizer_position_invite).permit(:email, :is_signee)
   end
 
 end

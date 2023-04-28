@@ -5,6 +5,7 @@ require "net/http"
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
   skip_before_action :signed_in_user, only: [:stats, :stats_custom_duration, :project_stats, :branding, :faq]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :faq]
 
   def index
     if signed_in?
@@ -14,7 +15,10 @@ class StaticPagesController < ApplicationController
       @service = StaticPageService::Index.new(attrs)
 
       @events = @service.events
+      @organizer_positions = @service.organizer_positions.not_hidden
       @invites = @service.invites
+
+      @show_event_reorder_tip = current_user.organizer_positions.where.not(sort_index: nil).none?
     end
     if admin_signed_in?
       @transaction_volume = CanonicalTransaction.included_in_stats.sum("@amount_cents")
@@ -83,33 +87,54 @@ class StaticPagesController < ApplicationController
       count
     end
 
-    if @missing_receipt_count.zero?
-      head :ok
-    else
-      render :my_missing_receipts_icon, layout: false
-    end
+    render :my_missing_receipts_icon, layout: false
   end
 
   def my_inbox
-    stripe_cards = current_user.stripe_cards.includes(:event)
-    emburse_cards = current_user.emburse_cards.includes(:event)
+    user_cards = current_user.stripe_cards + current_user.emburse_cards
+    user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
+    user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
 
-    @hcb_codes = {}
-    @count = 0
+    hcb_codes_missing_ids = user_hcb_codes.missing_receipt.filter(&:receipt_required?).pluck(:id)
+    hcb_codes_missing = HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
 
-    @cards = (stripe_cards + emburse_cards).filter do |card|
-      has_missing_receipt_tx = false
-      card.hcb_codes.missing_receipt.each do |hcb_code|
-        next unless hcb_code.receipt_required?
+    @count = hcb_codes_missing.count # Total number of HcbCodes missing receipts
+    @hcb_codes = hcb_codes_missing.page(params[:page]).per(params[:per] || 20)
 
-        @hcb_codes[card.hashid] ||= []
-        @hcb_codes[card.hashid] << hcb_code
-        @count += 1
-        has_missing_receipt_tx = true
+    @card_hcb_codes = @hcb_codes.group_by { |hcb| hcb.card.to_global_id.to_s }
+    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys)
+    # Ideally we'd preload (includes) events for @cards, but that isn't
+    # supported yet: https://github.com/rails/globalid/pull/139
+
+    @receipts = Receipt.where(user: current_user, receiptable: nil)
+  end
+
+  def receipt
+    if params[:file] # Ignore if no files were uploaded
+      ::ReceiptService::Create.new(
+        uploader: current_user,
+        attachments: params[:file],
+        upload_method: params[:upload_method]
+      ).run!
+
+      if params[:show_link]
+        flash[:success] = { text: "#{"Receipt".pluralize(params[:file].length)} added!", link: hcb_code_path(@hcb_code), link_text: "View" }
+      else
+        flash[:success] = "#{"Receipt".pluralize(params[:file].length)} added!"
       end
-
-      has_missing_receipt_tx
     end
+
+    return redirect_to params[:redirect_url] if params[:redirect_url]
+
+    redirect_back
+
+  rescue => e
+    Airbrake.notify(e)
+
+    flash[:error] = e.message
+    return redirect_to params[:redirect_url] if params[:redirect_url]
+
+    redirect_back
   end
 
   def project_stats
@@ -148,17 +173,29 @@ class StaticPagesController < ApplicationController
                        .map(&:to_i)
                        .map { |time| { created_at: time } }
 
-    tx_all = CanonicalTransaction.included_in_stats.where("date <= ?", now)
+    tx_all = CanonicalTransaction.where.not("hcb_code LIKE 'HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::BANK_FEE_CODE}%'")
+                                 .included_in_stats
+                                 .where("date <= ?", now)
+
+    pending_tx_all = CanonicalPendingTransaction.where(raw_pending_bank_fee_transaction_id: nil)
+                                                .included_in_stats
+                                                .unsettled
+                                                .and(CanonicalPendingTransaction.outgoing.or(CanonicalPendingTransaction.fronted))
 
     render json: {
       date: now,
-      events_count: Event.not_omitted.not_hidden.approved.where("created_at <= ?", now).size,
+      events_count: Event.not_omitted
+                         .not_hidden
+                         .not_demo_mode
+                         .approved
+                         .where("created_at <= ?", now)
+                         .count,
       last_transaction_date: tx_all.order(:date).last.date.to_time.to_i,
 
       # entire time period. this remains to prevent breaking changes to existing systems that use this endpoint
-      raised: tx_all.revenue.sum(:amount_cents),
+      raised: tx_all.revenue.sum(:amount_cents) + pending_tx_all.incoming.sum(:amount_cents),
       transactions_count: tx_all.size,
-      transactions_volume: tx_all.sum("@amount_cents"),
+      transactions_volume: tx_all.sum("@amount_cents") + pending_tx_all.sum("@amount_cents"),
 
       # entire (all), year, quarter, and month time periods
       all: CanonicalTransactionService::Stats::During.new.run,
@@ -195,6 +232,25 @@ class StaticPagesController < ApplicationController
     render json: {
       event_id: nil
     }
+  end
+
+  def feedback
+    message = params[:message]
+    share_email = params[:share_email] || "1"
+
+    feedback = {
+      "Share your idea(s)" => message,
+    }
+
+    if share_email == "1"
+      feedback["Name"] = current_user.full_name
+      feedback["Email"] = current_user.email
+      feedback["Organization"] = current_user.events.first&.name
+    end
+
+    Feedback.create(feedback)
+
+    head :no_content
   end
 
 end

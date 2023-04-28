@@ -3,240 +3,206 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "2.7.5"
+ruby File.read(File.join(File.dirname(__FILE__), ".ruby-version")).strip
 
-gem "dotenv-rails", groups: [:development, :test]
+gem "rails", "~> 7.0.4"
 
-# gem 'sassc-rails' # required for rails 6
+gem "puma", "~> 4.3" # app server
 
-# Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem "rails", "6.1.6"
-# Use postgresql as the database for Active Record
-gem "pg", ">= 0.18", "< 2.0"
-# Use Puma as the app server
-gem "puma", "~> 4.3"
-# Use SCSS for stylesheets
-gem "sassc-rails"
-# Include jQuery
-gem "jquery-rails"
-# Use Terser as compressor for JavaScript assets
-gem "terser", "~> 1.1"
-# Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker
-gem "react-rails"
-# See https://github.com/rails/execjs#readme for more supported runtimes
-# Due to a bug in mini_racer >=0.5.0 running on GitHub Actions, we've had to
-# roll back to mini_racer 0.4.0: https://github.com/rubyjs/mini_racer/issues/218.
-gem "mini_racer", "~> 0.4.0", platforms: :ruby
-# Turbo makes navigating your web application faster. Read more: https://github.com/hotwired/turbo
-gem "turbo-rails", "~> 0.8.3"
-# Use Redis adapter to run Action Cable in production
-gem "redis", "~> 4.0"
-# Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
+gem "pg", ">= 0.18", "< 2.0" # database
+gem "redis", "~> 5.0" # for caching, jobs, etc.
+gem "sidekiq", "~> 6.5.5" # background jobs
+gem "sidekiq-cron", "~> 1.1" # run Sidekiq jobs at scheduled intervals
 
-# Use ActiveStorage variant
-# gem 'mini_magick', '~> 4.8'
-
-gem "httparty"
-
-# For Plaid integration
-gem "plaid", "~> 6.0"
-# And Stripe...
-gem "stripe"
-# And AWS usage...
-gem "aws-sdk-s3", require: false
-# And our own API...
-gem "faraday"
-
-# Reduces boot times through caching; required in config/boot.rb
-gem "bootsnap", ">= 1.4.4", require: false
-
-# Allow un-deletions
-gem "acts_as_paranoid", "~> 0.8.1"
-# friendly ids in URLs
-gem "friendly_id", "~> 5.2.0"
-
-# Email validation!
-gem "validates_email_format_of"
-# Phone validation!
-gem "phonelib"
-
-# Rounding dates
-gem "rounding"
-
-# Checks!
-gem "lob"
-
-# Jobs!
-gem "sidekiq"
-
-# Authorization!
-gem "pundit"
-
-# Helper for automatically adding links to rendered text
-gem "rinku", require: "rails_rinku"
-# Allow Markdown for views
-gem "maildown"
-
-# Generating QR codes for donation pages
-gem "rqrcode"
-
-# For Excel data exports... the custom ref is from
-# https://github.com/straydogstudio/axlsx_rails/blob/ce5b69e4ac46f4a84f4b9194d01080f6f626fbcd/README.md
-gem "caxlsx"
-gem "caxlsx_rails"
-gem "rubyzip", ">= 1.2.1"
-
-# Manage CORS
-gem "rack-cors"
-
-# Converting HTML to PDFs
-gem "wicked_pdf"
-
-# Markdown in Comments
-gem "redcarpet"
-
-# Localize to user's timezone
-gem "local_time"
-# Calculate dates with business days
-gem "business_time"
-
-# Image Processing for ActiveStorage
 gem "image_processing", "~> 1.2"
 gem "mini_magick"
 
+
+gem "jsbundling-rails", "~> 1.0"
+gem "terser", "~> 1.1" # JS compressor
+gem "sassc-rails"
+gem "jquery-rails"
+gem "react-rails"
+gem "turbo-rails", "~> 1.4"
+
+gem "invisible_captcha"
+gem "local_time" # client-side timestamp converter for cache-safe rendering
+gem "country_select", "~> 8.0"
+
+
+gem "httparty" # web requests
+gem "faraday" # wen requests
+
+gem "increase", "~> 0.3.1"
+gem "stripe", "8.2.0"
+gem "plaid", "~> 6.0"
+
+gem "aws-sdk-s3", require: false
+
+gem "airrecord", "~> 1.0" # Airtable API for internal operations
+
+gem "twilio-ruby" # SMS notifications
+
+gem "lob"
+
+gem "docusign_esign", "~> 3.13" # DocuSign API
+
+gem "google-apis-admin_directory_v1", "~> 0.23.0" # GSuite
+
+# net-http is required in top level Gemfile to avoid these warnings
+# /usr/local/lib/ruby/2.7.0/net/protocol.rb:66: warning: already initialized constant Net::ProtocRetryError
+# /bundle/ruby/2.7.0/gems/net-protocol-0.1.3/lib/net/protocol.rb:68: warning: previous definition of ProtocRetryError was here
+# https://github.com/ruby/net-imap/issues/16
+gem "net-http"
+gem "uri", "0.10.0" # lock to default version of uri from Ruby 2.7
+
+
+gem "pg_search" # full-text search
+
+gem "lockbox" # encrypt sensitive data
+gem "blind_index" # needed to query and/or guarantee uniqueness for encrypted fields with lockbox
+
+gem "aasm" # state machine
+
+gem "paper_trail" # track changes to models
+gem "acts_as_paranoid", "~> 0.8.1" # enables soft deletions
+
+gem "friendly_id", "~> 5.2.0" # slugs
+gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
+
+gem "active_storage_validations" # file validations
+gem "validates_email_format_of" # email address validations
+gem "phonelib" # phone number validations
+
+gem "money-rails"
+gem "monetize"
+gem "rounding"
+
+gem "business_time"
+
+gem "wicked_pdf" # HTML to PDF conversion
+
+
+gem "rack-cors" # manage CORS
+gem "rack-attack" # rate limiting
+gem "browser", "~> 5.3" # browser detection
+
 # Pagination
-gem "api-pagination"
 gem "kaminari"
+gem "api-pagination"
 
-# Google (GSuite)
-gem "google-apis-admin_directory_v1", "~> 0.23.0"
 
-# Validations on receipt files
-gem "active_storage_validations"
-
-# Feature-flags
-gem "flipper"
+gem "flipper" # feature flags
 gem "flipper-active_record"
 gem "flipper-ui"
 
-group :development, :test do
-  gem "relaxed-rubocop"
-  gem "rspec-rails", "~> 5.0.0"
-  gem "rubocop"
-  gem "webdrivers"
-end
+gem "scientist" # helps refactor code for critical paths with confidence
+# gem "lab_tech" # collects data from scientist experiments
+gem "table_print" # pretty prints tables in console (used with lab_tech)
 
-group :development, :staging do
-  # Prints out how many SQL queries were executed
-  gem 'query_count'
-end
 
-group :development do
-  # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  gem "listen", "~> 3.2"
-  gem "web-console", ">= 3.3.0"
-  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem "spring"
-  gem "spring-watcher-listen", "~> 2.0.0"
-  # Preview emails
-  gem "letter_opener_web"
-  # Generate PDFs from HTML. Version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
-  gem "wkhtmltopdf-binary", "0.12.3"
-  # Ruby language server
-  gem "solargraph", require: false
-  gem "solargraph-rails", "~> 0.2.0", require: false
-  # For https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb
-  gem 'htmlbeautifier', require: false
+gem "pundit" # implements authorization policies
 
-  # Lets you set a breakpoint with a REPL using binding.pry
-  gem "pry-byebug"
-  gem "pry-rails"
+# API V3
+gem "grape"
+gem "grape-entity" # For Grape::Entity ( https://github.com/ruby-grape/grape-entity )
+gem "grape-kaminari"
+gem "grape-route-helpers"
+gem "grape-swagger"
+gem "grape-swagger-entity", "~> 0.3"
 
-  # adds comments to models with database fields
-  gem 'annotate'
+gem "maildown" # markdown for views
+gem "redcarpet" # markdown parsing
 
-  # for running webpack-dev-server and rails server together via Procfile
-  gem "foreman"
-end
-
-group :test do
-  # Adds support for Capybara system testing and selenium driver
-  # gem 'capybara', '>= 2.15', '< 4.0'
-  # gem 'selenium-webdriver'
-  # Easy installation and use of chromedriver to run system tests with Chrome
-  # gem 'chromedriver-helper'
-
-  # For creating test data in the database
-  gem 'factory_bot_rails'
-  # For initializing fake values
-  gem 'faker'
-end
-
-group :production do
-  # Performance tracking
-  gem 'skylight'
-
-  # Enable compression in production
-  # gem "heroku-deflater"
-
-  # Heroku language runtime metrics
-  # https://devcenter.heroku.com/articles/language-runtime-metrics-ruby#add-the-barnes-gem-to-your-application
-  gem "barnes"
-end
-
-gem "aasm" # state machine
-gem "ahoy_matey" # event engine
-gem "airbrake" # exception tracking
-gem "awesome_print"
-gem "blazer" # business intelligence tool/dashboard
-gem "blind_index" # needed to query and/or guarantee uniqueness for  lockbox encrypted fields
-gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
-gem "chronic"
-gem "dry-validation"
-gem "geocoder" # lookup lat/lng for Stripe Cards shipment tracking
-gem "grape" # API v3
-gem 'grape-entity' # For Grape::Entity ( https://github.com/ruby-grape/grape-entity )
-gem 'grape-kaminari'
-gem 'grape-route-helpers'
-gem "grape-swagger" # API v3
-gem 'grape-swagger-entity', '~> 0.3'
-gem "hashid-rails", "~> 1.0"
-gem "hiredis"
-gem "invisible_captcha"
-gem "lockbox" # encrypt partner stripe keys and other sensitive fields
-gem "monetize" # for handling human input for money amounts
-gem "money-rails" # back cent fields as money objects
 gem "namae" # multi-cultural human name parser
-gem "newrelic_rpm"
-gem "paper_trail" # track changes on models
-gem "pg_search"
-gem 'premailer-rails' # css to inline styles for emails
-gem "rack-attack"
+gem "premailer-rails" # css to inline styles for emails
 gem "safely_block"
-gem "selenium-webdriver", "4.0.0.beta3"
-gem "sidekiq-cron", "~> 1.1" # run sidekiq scheduled tasks
-gem "strong_migrations" # protects against risky migrations that could cause application harm on deploy
+gem "strong_migrations" # protects against risky migrations
 gem "swagger-blocks"
 gem "xxhash" # fast hashing
 
-gem "docusign_esign", "~> 3.13"
-
 gem "webauthn", "~> 2.5"
 
-gem "browser", "~> 5.3"
+gem "ahoy_matey" # analytics
+gem "airbrake" # exception tracking
+gem "blazer" # business intelligence tool/dashboard
 
-gem "geo_pattern", "~> 1.4" # for procedurally generated patterns on Cards
+gem "geo_pattern" # create procedurally generated patterns for Cards
+gem "comma", "~> 4.6" # CSV generation
+gem "faker" # Create mock data
 
-gem "comma", "~> 4.6"
+gem "chronic" # time/date parsing
+gem "rinku", require: "rails_rinku" # auto-linking URLs in text
 
+gem "geocoder" # lookup lat/lng for Stripe Cards shipment tracking
 
-gem "jsbundling-rails", "~> 1.0"
+gem "rqrcode" # QR code generation
 
-gem "rack-mini-profiler", "~> 3.0"
+gem "brakeman" # static security vulnerability scanner
+
+gem "awesome_print" # pretty print objects in console
+gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
+gem "dry-validation"
+
+gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching; required in config/boot.rb
 
 gem "country_select", "~> 8.0"
 
 gem "money"
 
 gem 'eu_central_bank', git: 'https://github.com/RubyMoney/eu_central_bank.git', branch: "main"
+
+gem "mrsk" # deployments
+
+group :production do
+  gem "skylight"
+
+  # gem "heroku-deflater" # compression
+
+  # Heroku language runtime metrics
+  # https://devcenter.heroku.com/articles/language-runtime-metrics-ruby#add-the-barnes-gem-to-your-application
+  gem "barnes"
+end
+
+group :test do
+  gem "factory_bot_rails" # Test data
+end
+
+group :development, :test do
+  gem "erb_lint", require: false
+  gem "rubocop"
+  gem "relaxed-rubocop"
+
+  gem "rspec-rails", "~> 5.0.0"
+
+  # Lets you set a breakpoint with a REPL using binding.pry
+  gem "pry-byebug", require: ENV["EXCLUDE_PRY"] != "true"
+  gem "pry-rails", require: ENV["EXCLUDE_PRY"] != "true"
+end
+
+group :development, :staging do
+  gem "query_count"
+
+  gem "rack-mini-profiler", "~> 3.0"
+  gem "stackprof" # used by `rack-mini-profiler` to provide flamegraphs
+end
+
+group :development do
+  gem "annotate" # comment models with database schema
+
+  # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
+  gem "listen", "~> 3.2"
+  gem "web-console", ">= 3.3.0"
+
+  gem "letter_opener_web" # preview emails
+
+  gem "wkhtmltopdf-binary", "0.12.3" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
+
+  # Ruby language server
+  gem "solargraph", require: false
+  gem "solargraph-rails", "~> 0.2.0", require: false
+
+  gem "htmlbeautifier", require: false # for https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb
+
+  gem "foreman"
+end

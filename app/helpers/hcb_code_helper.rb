@@ -5,9 +5,9 @@ require "cgi"
 module HcbCodeHelper
   def disputed_transactions_airtable_form_url(embed: false, hcb_code: nil, user: nil)
     # The airtable form is located within the Bank Promotions base
-    form_id = "shrf05pqZMlRs3gYJ"
-    embed_url = "https://airtable.com/embed/#{form_id}"
-    url = "https://airtable.com/#{form_id}"
+    form_id = "7dq8JWC4Fsus"
+    embed_url = "https://forms.hackclub.com/t/#{form_id}"
+    url = "https://forms.hackclub.com/t/#{form_id}"
 
     prefill = []
     prefill << "prefill_Your+Name=#{CGI.escape(user.full_name)}" if user
@@ -25,6 +25,10 @@ module HcbCodeHelper
     can_dispute, error_reason = ::HcbCodeService::CanDispute.new(hcb_code: hcb_code).run
 
     can_dispute
+  end
+
+  def name_contains_emoji?(name)
+    /^\p{Emoji}/ !~ name
   end
 
   def country_to_emoji(country_code)

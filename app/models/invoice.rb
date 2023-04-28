@@ -91,7 +91,8 @@
 #  fk_rails_...  (sponsor_id => sponsors.id)
 #
 class Invoice < ApplicationRecord
-  has_paper_trail
+  has_paper_trail skip: [:payment_method_ach_credit_transfer_account_number] # ciphertext columns will still be tracked
+  has_encrypted :payment_method_ach_credit_transfer_account_number
 
   include PublicIdentifiable
   set_public_id_prefix :inv
@@ -128,8 +129,6 @@ class Invoice < ApplicationRecord
   belongs_to :fee_reimbursement, required: false
   belongs_to :archived_by, class_name: "User", required: false
 
-  has_encrypted :payment_method_ach_credit_transfer_account_number
-
   has_one_attached :manually_marked_as_paid_attachment
 
   aasm do
@@ -157,7 +156,7 @@ class Invoice < ApplicationRecord
 
   validate :due_date_cannot_be_in_past, on: :create
 
-  validates :item_amount, numericality: { greater_than_or_equal_to: 100 }
+  validates :item_amount, numericality: { greater_than_or_equal_to: 100, message: "must be at least $1" }
 
   before_create :set_defaults
 

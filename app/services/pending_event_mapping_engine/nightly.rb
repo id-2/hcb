@@ -7,6 +7,8 @@ module PendingEventMappingEngine
       settle_canonical_pending_outgoing_check!
       decline_canonical_pending_outgoing_check!
 
+      settle_canonical_pending_increase_check!
+
       map_canonical_pending_outgoing_ach!
       settle_canonical_pending_outgoing_ach!
       decline_canonical_pending_outgoing_ach!
@@ -38,6 +40,8 @@ module PendingEventMappingEngine
       map_canonical_pending_incoming_disbursement!
       settle_canonical_pending_incoming_disbursement_hcb_code!
       decline_canonical_pending_incoming_disbursement!
+
+      settle_canonical_pending_ach_payment!
 
       true
     end
@@ -78,6 +82,14 @@ module PendingEventMappingEngine
 
     def decline_canonical_pending_outgoing_check!
       ::PendingEventMappingEngine::Decline::OutgoingCheck.new.run
+    end
+
+    def settle_canonical_pending_increase_check!
+      CanonicalPendingTransaction.unsettled.increase_check.each do |cpt|
+        if cpt.local_hcb_code.ct
+          CanonicalPendingSettledMapping.create!(canonical_pending_transaction: cpt, canonical_transaction: cpt.local_hcb_code.ct)
+        end
+      end
     end
 
     def map_canonical_pending_outgoing_ach!
@@ -150,6 +162,10 @@ module PendingEventMappingEngine
 
     def settle_canonical_pending_partner_donation_hcb_code!
       ::PendingEventMappingEngine::Settle::PartnerDonationHcbCode.new.run
+    end
+
+    def settle_canonical_pending_ach_payment!
+      ::PendingEventMappingEngine::Settle::AchPayment.new.run
     end
 
   end

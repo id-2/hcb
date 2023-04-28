@@ -2,6 +2,7 @@
 
 class UsersController < ApplicationController
   skip_before_action :signed_in_user, only: [:auth, :auth_submit, :choose_login_preference, :set_login_preference, :webauthn_options, :webauthn_auth, :login_code, :exchange_login_code]
+  skip_before_action :redirect_to_onboarding, only: [:edit, :update, :logout]
   skip_after_action :verify_authorized, except: [:edit, :update]
 
   def impersonate
@@ -19,7 +20,7 @@ class UsersController < ApplicationController
   end
 
   def auth_submit
-    @email = params[:email].downcase
+    @email = params[:email]&.downcase
     user = User.find_by(email: @email)
 
     has_webauthn_enabled = user&.webauthn_credentials&.any?
@@ -62,7 +63,8 @@ class UsersController < ApplicationController
 
     initialize_sms_params
 
-    resp = ::Partners::HackclubApi::RequestLoginCode.new(email: @email, sms: @use_sms_auth).run
+    resp = LoginCodeService::Request.new(email: @email, sms: @use_sms_auth, ip_address: request.ip, user_agent: request.user_agent).run
+
     if resp[:error].present?
       flash[:error] = resp[:error]
       return redirect_to auth_users_path
@@ -125,13 +127,12 @@ class UsersController < ApplicationController
 
       sign_in(user: user, fingerprint_info: fingerprint_info, webauthn_credential: stored_credential)
 
-      return_to = params[:return_to] if params[:return_to].present? && params[:return_to].start_with?(root_url)
-      redirect_to(return_to || root_path)
+      redirect_to(params[:return_to] || root_path)
 
-    rescue WebAuthn::SignCountVerificationError => e
+    rescue WebAuthn::SignCountVerificationError, WebAuthn::Error => e
       redirect_to auth_users_path, flash: { error: "Something went wrong." }
-    rescue WebAuthn::Error => e
-      redirect_to auth_users_path, flash: { error: "Something went wrong." }
+    rescue ActiveRecord::RecordInvalid => e
+      redirect_to auth_users_path, flash: { error: e.record.errors&.full_messages&.join(". ") }
     end
   end
 
@@ -159,17 +160,19 @@ class UsersController < ApplicationController
     if user.full_name.blank? || user.phone_number.blank?
       redirect_to edit_user_path(user.slug)
     else
-      return_to = params[:return_to] if params[:return_to].present? && params[:return_to].start_with?(root_url)
-      redirect_to(return_to || root_path)
+      redirect_to(params[:return_to] || root_path)
     end
   rescue Errors::InvalidLoginCode => e
-    flash[:error] = e.message
+    flash.now[:error] = "Invalid login code!"
     # Propagate the to the login_code page on invalid code
     @user_id = params[:user_id]
     @email = params[:email]
     @force_use_email = params[:force_use_email]
     initialize_sms_params
-    return render "login_code", status: :unprocessable_entity
+    return render :login_code, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid => e
+    flash[:error] = e.record.errors&.full_messages&.join(". ")
+    redirect_to auth_users_path
   end
 
   def logout
@@ -208,7 +211,7 @@ class UsersController < ApplicationController
     else
       flash[:error] = "Error while opting into beta"
     end
-    redirect_to edit_user_path(@user)
+    redirect_to settings_previews_path
   end
 
   def disable_feature
@@ -220,10 +223,34 @@ class UsersController < ApplicationController
     else
       flash[:error] = "Error while opting out of beta"
     end
-    redirect_to edit_user_path(@user)
+    redirect_to settings_previews_path
   end
 
   def edit
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    @onboarding = @user.onboarding?
+    show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
+    @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    authorize @user
+  end
+
+  def edit_featurepreviews
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    @onboarding = @user.full_name.blank?
+    show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
+    @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    authorize @user
+  end
+
+  def edit_security
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    @onboarding = @user.full_name.blank?
+    show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
+    @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    authorize @user
+  end
+
+  def edit_admin
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
@@ -235,19 +262,41 @@ class UsersController < ApplicationController
     @user = User.friendly.find(params[:id])
     authorize @user
 
+    if @user.admin? && params[:user][:running_balance_enabled].present?
+      enable_running_balance = params[:user][:running_balance_enabled] == "1"
+      if @user.running_balance_enabled? != enable_running_balance
+        @user.update_attribute(:running_balance_enabled, enable_running_balance)
+      end
+    end
+
+    locked = params[:user][:locked] == "1"
+    if locked && @user == current_user
+      flash[:error] = "As much as you might desire to, you cannot lock yourself out."
+      return redirect_to admin_user_path(@user)
+    elsif locked && @user.admin?
+      flash[:error] = "Contact a engineer to lock out another admin."
+      return redirect_to admin_user_path(@user)
+    elsif locked
+      @user.lock!
+    else
+      @user.unlock!
+    end
+
     if @user.update(user_params)
+      confetti! if !@user.seasonal_themes_enabled_before_last_save && @user.seasonal_themes_enabled? # confetti if the user enables seasonal themes
+
       if @user.full_name_before_last_save.blank?
         flash[:success] = "Profile created!"
         redirect_to root_path
       else
-        flash[:success] = "Updated your profile!"
+        flash[:success] = @user == current_user ? "Updated your profile!" : "Updated #{@user.first_name}'s profile!"
         redirect_to edit_user_path(@user)
       end
     else
       @onboarding = User.friendly.find(params[:id]).full_name.blank?
       show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
       @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -297,6 +346,10 @@ class UsersController < ApplicationController
     redirect_to edit_user_path(current_user)
   end
 
+  def wrapped
+    redirect_to "https://bank-wrapped.hackclub.com/wrapped?user_id=#{current_user.public_id}&org_ids=#{current_user.events.transparent.map(&:public_id).join(",")}", allow_other_host: true
+  end
+
   private
 
   def user_params
@@ -307,7 +360,8 @@ class UsersController < ApplicationController
       :pretend_is_not_admin,
       :sessions_reported,
       :session_duration_seconds,
-      :birthday
+      :birthday,
+      :seasonal_themes_enabled
     )
   end
 

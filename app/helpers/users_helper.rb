@@ -5,7 +5,10 @@ require "cgi"
 
 module UsersHelper
   def gravatar_url(email, name, id, size)
-    name ||= email
+    name ||= begin
+      temp = email.split("@").first.split(/[^a-z\d]/i).compact_blank
+      temp.length == 1 ? temp.first.first(2) : temp.first(2).map(&:first).join
+    end
     hex = Digest::MD5.hexdigest(email.downcase.strip)
     "https://gravatar.com/avatar/#{hex}?s=#{size}&d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/#{CGI.escape(name)}/#{size}/#{get_user_color(id)}/fff"
   end
@@ -28,6 +31,30 @@ module UsersHelper
     src
   end
 
+  def current_user_flavor_text
+    [
+      "You!",
+      "Yourself!",
+      "It's you!",
+      "Someone you used to know!",
+      "You probably know them!",
+      "You’re currently looking in a mirror",
+      "it u!",
+      "Long time no see!",
+      "You look great!",
+      "Your best friend",
+      "Hey there, big spender!",
+      "Yes, you!",
+      "Who do you think you are?!",
+      "Who? You!",
+      "You who!",
+      "Yahoo!",
+      "dats me!",
+      "dats u!",
+      "byte me!"
+    ]
+  end
+
   def avatar_for(user, size = 24, options = {})
     src = profile_picture_for(user, size)
 
@@ -36,49 +63,28 @@ module UsersHelper
     klasses << options[:class] if options[:class]
     klass = klasses.join(" ")
 
-    image_tag(src, options.merge(loading: "lazy", alt: user&.name || "Brown dog grinning and gazing off into the distance", width: size, height: size, class: klass))
+    alt = current_user_flavor_text.sample if user == current_user
+    alt ||= user&.initials
+    alt ||= "Brown dog grinning and gazing off into the distance"
+
+    image_tag(src, options.merge(loading: "lazy", alt: alt, width: size, height: size, class: klass))
   end
 
   def user_mention(user, options = {}, default_name = "No User")
-    if user.nil?
-      name = content_tag :span, default_name
-    else
-      name = content_tag :span, user.initial_name
-    end
-
+    name = content_tag :span, (user&.initial_name || default_name)
     avi = avatar_for user
 
     klasses = ["mention"]
     klasses << %w[mention--admin tooltipped tooltipped--n] if user&.admin?
-    klasses << "mention--current-user" if user == current_user
+    klasses << %w[mention--current-user tooltipped tooltipped--n] if current_user && (user&.id == current_user.id)
     klasses << options[:class] if options[:class]
-    klass = klasses.join(" ")
+    klass = klasses.uniq.join(" ")
 
     aria = if user.nil?
              "No user found"
-           elsif user == current_user
-             [
-               "You!",
-               "Yourself!",
-               "It's you!",
-               "Someone you used to know!",
-               "You probably know them!",
-               "You’re currently looking in a mirror",
-               "it u!",
-               "Long time no see!",
-               "You look great!",
-               "Your best friend",
-               "Hey there, big spender!",
-               "Yes, you!",
-               "Who do you think you are?!",
-               "Who? You!",
-               "You who!",
-               "Yahoo!",
-               "dats me!",
-               "dats u!",
-               "byte me!"
-             ].sample
-           elsif user&.admin?
+           elsif user.id == current_user&.id
+             current_user_flavor_text.sample
+           elsif user.admin?
              "#{user.name.split(' ').first} is an admin"
            end
 
@@ -92,8 +98,8 @@ module UsersHelper
     content_tag :span, content, class: klass, 'aria-label': aria
   end
 
-  def admin_tools(class_name = "", element = "div", &block)
-    return unless current_user&.admin?
+  def admin_tools(class_name = "", element = "div", override_pretend: false, &block)
+    return unless current_user&.admin? || (override_pretend && current_user&.admin_override_pretend?)
 
     concat("<#{element} class='admin-tools #{class_name}'>".html_safe)
     yield

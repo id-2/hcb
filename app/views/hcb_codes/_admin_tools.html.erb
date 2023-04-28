@@ -19,6 +19,7 @@
   </table>
   <table>
     <tr>
+      <th>ID</th>
       <th>TYPE</th>
       <th>DATE</th>
       <th>MEMO</th>
@@ -27,6 +28,9 @@
     </tr>
     <% @hcb_code.canonical_pending_transactions.each do |ct| %>
       <tr>
+        <td>
+          <%= ct.id %>
+        </td>
         <td>
           PENDING
         </td>
@@ -48,6 +52,9 @@
     <% @hcb_code.canonical_transactions.each do |ct| %>
       <tr>
         <td>
+          <%= ct.id %>
+        </td>
+        <td>
           SETTLED
         </td>
         <td>
@@ -64,7 +71,6 @@
         </td>
       </tr>
     <% end %>
-
 
     <% if @hcb_code.ach_transfer? && @hcb_code.ach_transfer.present? && @hcb_code.ach_transfer.t_transaction.present? %>
       <td>
@@ -86,4 +92,3 @@
 
   </table>
 <% end %>
-

@@ -10,11 +10,14 @@
       dragenter->file-drop#dragenter
       dragleave->file-drop#dragleave
     "
-  <% end %>
->
+  <% end %>>
   <% if pt.raw_pending_outgoing_check_transaction_id %>
     <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing check">
       <%= inline_icon "payment-transfer" %>
+    </td>
+  <% elsif pt.increase_check_id %>
+    <td class="transaction__icon tooltipped tooltipped--e" aria-label="Mailed check">
+      <%= inline_icon "email" %>
     </td>
   <% elsif pt.raw_pending_outgoing_ach_transaction_id %>
     <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing ACH">
@@ -29,7 +32,7 @@
       <%= inline_icon "support" %>
     </td>
   <% elsif pt.raw_pending_stripe_transaction_id %>
-    <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction<%= !defined?(authorless) && pt.stripe_cardholder ? ' by ' + pt.stripe_cardholder.user.initial_name : ''%>">
+    <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction<%= !defined?(authorless) && pt.stripe_cardholder ? " by " + pt.stripe_cardholder.user.initial_name : "" %>">
       <% unless defined?(authorless) || !pt.stripe_cardholder %>
         <%= avatar_for pt.stripe_cardholder.user, 24 %>
       <% else %>
@@ -48,6 +51,10 @@
     <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing transfer">
       <%= inline_icon "minus-fill" %>
     </td>
+  <% elsif pt.ach_payment_id %>
+    <td class="transaction__icon tooltipped tooltipped--e" aria-label="Incoming bank transfer">
+      <%= inline_icon "bank-account" %>
+    </td>
   <% else %>
     <td class="transaction__icon tooltipped tooltipped--e" aria-label="Other">
     </td>
@@ -59,14 +66,28 @@
     <div>
       <div class="flex-auto">
         <div class="flex items-center justify-start">
-          <span title="<%= pt.local_hcb_code.memo %>">
-            <% if pt.declined? %>
-              DECLINED:
-            <% else %>
-              PENDING:
+          <%= turbo_frame_tag "#{pt.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis" do %>
+            <span title="<%= pt.local_hcb_code.memo %>">
+              <% if pt.declined? %>
+                DECLINED:
+              <% else %>
+                PENDING:
+              <% end %>
+
+              <%= pt.local_hcb_code.memo %>
+            </span>
+
+            <% if pt.amount_cents.negative? && name_contains_emoji?(pt.local_hcb_code.memo) %>
+              <% admin_tools("memo-frame__ai-button badge m0 ml1 p0 overflow-visible") do %>
+                <a href="<%= memo_frame_hcb_code_path(pt.local_hcb_code, gen_memo: true) %>"
+                   style="padding: 4px 6px"
+                   data-turbo="true"
+                   class="link-reset">
+                  ✨ AI Rename
+                </a>
+              <% end %>
             <% end %>
-            <%= pt.local_hcb_code.memo %>
-          </span>
+          <% end %>
 
           <% if !defined?(receipt_upload_button) && organizer_signed_in? && Flipper.enabled?(:transaction_tags_2022_07_29, @event || pt.local_hcb_code.event) %>
             <div class="overflow-visible relative" style="margin-left: 0.5rem;" data-controller="menu" data-menu-append-to-value="turbo-frame#ledger">
@@ -98,7 +119,7 @@
 
         <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
           <div class="flex flex-wrap" style="gap: 0.25rem">
-            <% pt.local_hcb_code.tags.filter {|tag| !@event || tag.event == @event}.each do |tag| %>
+            <% pt.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event }.each do |tag| %>
               <div class="badge tx-tag m0 shrink-none flex items-center">
                 <%= tag.label %>
                 <% if organizer_signed_in? %>
@@ -121,18 +142,21 @@
   <td class="nowrap<%= " strikethrough" if pt.declined? %><%= " italic" if pt.unsettled? %>">
     <%= number_to_currency pt.amount %>
   </td>
+  <% if @show_running_balance %>
+    <td></td>
+  <% end %>
   <td>
-    <%= link_to "Details", pt.url if organizer_signed_in? || defined?(force_display_details)  %>
+    <%= link_to "Details", pt.url, data: { turbo_frame: "_top" } if organizer_signed_in? || defined?(force_display_details) %>
   </td>
   <% if defined?(receipt_upload_button) %>
     <td style="width: 1%">
-      <%= form_with url: receipt_hcb_code_path(pt.local_hcb_code), data: { controller: "submit-form", "file-drop-target" => "form" } do |form| %>
-        <%= form.file_field :file, id: "file_#{pt.local_hcb_code.hashid}", multiple: true, required: true, class: "display-none", data: { action: "change->submit-form#submit", "file-drop-target" => "fileInput" } %>
+      <%= form_with url: receipt_hcb_code_path(pt.local_hcb_code), data: { controller: "form", "file-drop-target" => "form" } do |form| %>
+        <%= form.file_field :file, id: "file_#{pt.local_hcb_code.hashid}", multiple: true, required: true, class: "display-none", data: { action: "change->form#submit", "file-drop-target" => "fileInput" } %>
         <%= form.hidden_field :redirect_url, value: my_inbox_path %>
         <%= form.hidden_field :show_link, value: true %>
         <%= form.hidden_field :upload_method, value: "receipts_page", data: { "file-drop-target" => "uploadMethod" } %>
         <%= form.label "file_#{pt.local_hcb_code.hashid}", class: "btn", style: "font-size: 0.875rem; font-weight: 600; padding: 0.25rem 1rem;" do %>
-          <%= inline_icon 'plus' %>
+          <%= inline_icon "plus" %>
           Add a receipt
         <% end %>
       <% end %>

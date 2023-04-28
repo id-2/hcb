@@ -8,11 +8,14 @@
 #  amount_cents                                     :integer          not null
 #  custom_memo                                      :text
 #  date                                             :date             not null
+#  fee_waived                                       :boolean          default(FALSE)
 #  fronted                                          :boolean          default(FALSE)
 #  hcb_code                                         :text
 #  memo                                             :text             not null
 #  created_at                                       :datetime         not null
 #  updated_at                                       :datetime         not null
+#  ach_payment_id                                   :bigint
+#  increase_check_id                                :bigint
 #  raw_pending_bank_fee_transaction_id              :bigint
 #  raw_pending_donation_transaction_id              :bigint
 #  raw_pending_incoming_disbursement_transaction_id :bigint
@@ -25,12 +28,15 @@
 #
 # Indexes
 #
+#  index_canonical_pending_transactions_on_ach_payment_id           (ach_payment_id)
 #  index_canonical_pending_transactions_on_hcb_code                 (hcb_code)
+#  index_canonical_pending_transactions_on_increase_check_id        (increase_check_id)
 #  index_canonical_pending_txs_on_raw_pending_bank_fee_tx_id        (raw_pending_bank_fee_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_donation_tx_id        (raw_pending_donation_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_invoice_tx_id         (raw_pending_invoice_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_outgoing_ach_tx_id    (raw_pending_outgoing_ach_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_outgoing_check_tx_id  (raw_pending_outgoing_check_transaction_id)
+#  index_canonical_pending_txs_on_raw_pending_partner_dntn_tx_id    (raw_pending_partner_donation_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_stripe_tx_id          (raw_pending_stripe_transaction_id)
 #  index_cpts_on_raw_pending_incoming_disbursement_transaction_id   (raw_pending_incoming_disbursement_transaction_id)
 #  index_cpts_on_raw_pending_outgoing_disbursement_transaction_id   (raw_pending_outgoing_disbursement_transaction_id)
@@ -55,36 +61,39 @@ class CanonicalPendingTransaction < ApplicationRecord
   belongs_to :raw_pending_partner_donation_transaction, optional: true
   belongs_to :raw_pending_incoming_disbursement_transaction, optional: true
   belongs_to :raw_pending_outgoing_disbursement_transaction, optional: true
+  belongs_to :ach_payment, optional: true
+  belongs_to :increase_check, optional: true
   has_one :canonical_pending_event_mapping
   has_one :event, through: :canonical_pending_event_mapping
   has_many :canonical_pending_settled_mappings
   has_many :canonical_transactions, through: :canonical_pending_settled_mappings
-  has_many :canonical_pending_declined_mappings
+  has_one :canonical_pending_declined_mapping
+  has_one :local_hcb_code, foreign_key: "hcb_code", primary_key: "hcb_code", class_name: "HcbCode"
 
   monetize :amount_cents
 
   scope :safe, -> { where("date >= '2021-01-01'") } # older pending transactions don't yet all map up because of older processes (especially around invoices)
 
   scope :stripe, -> { where("raw_pending_stripe_transaction_id is not null") }
-  scope :incoming, -> { where("amount_cents > 0") }
-  # This should be implemented in https://github.com/hackclub/bank/pull/2621 before these changes are merged
-  scope :incoming_disbursement, -> { where("raw_pending_incoming_disbursement_id is not null") }
-  scope :outgoing, -> { where("amount_cents < 0") }
+  scope :incoming, -> { where(CanonicalPendingTransaction.arel_table[:amount_cents].gt(0)) }
+  scope :outgoing, -> { where(CanonicalPendingTransaction.arel_table[:amount_cents].lt(0)) }
   scope :outgoing_ach, -> { where("raw_pending_outgoing_ach_transaction_id is not null") }
   scope :outgoing_check, -> { where("raw_pending_outgoing_check_transaction_id is not null") }
+  scope :increase_check, -> { where.not(increase_check_id: nil) }
   scope :donation, -> { where("raw_pending_donation_transaction_id is not null") }
   scope :invoice, -> { where("raw_pending_invoice_transaction_id is not null") }
   scope :partner_donation, -> { where("raw_pending_partner_donation_transaction_id is not null") }
   scope :bank_fee, -> { where("raw_pending_bank_fee_transaction_id is not null") }
   scope :incoming_disbursement, -> { where("raw_pending_incoming_disbursement_transaction_id is not null") }
   scope :outgoing_disbursement, -> { where("raw_pending_outgoing_disbursement_transaction_id is not null") }
+  scope :ach_payment, -> { where.not(ach_payment: nil) }
   scope :unmapped, -> { includes(:canonical_pending_event_mapping).where(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }
   scope :mapped, -> { includes(:canonical_pending_event_mapping).where.not(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }
   scope :unsettled, -> {
     includes(:canonical_pending_settled_mappings)
       .where(canonical_pending_settled_mappings: { canonical_pending_transaction_id: nil })
-      .includes(:canonical_pending_declined_mappings)
-      .where(canonical_pending_declined_mappings: { canonical_pending_transaction_id: nil })
+      .includes(:canonical_pending_declined_mapping)
+      .where(canonical_pending_declined_mapping: { canonical_pending_transaction_id: nil })
   }
   scope :missing_hcb_code, -> { where(hcb_code: nil) }
   scope :missing_or_unknown_hcb_code, -> { where("hcb_code is null or hcb_code ilike 'HCB-000%'") }
@@ -99,14 +108,16 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :partner_donation_hcb_code, -> { where("hcb_code ilike 'HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::PARTNER_DONATION_CODE}%'") }
   scope :fronted, -> { where(fronted: true) }
   scope :not_fronted, -> { where(fronted: false) }
-  scope :not_declined, -> { includes(:canonical_pending_declined_mappings).where(canonical_pending_declined_mappings: { canonical_pending_transaction_id: nil }) }
+  scope :not_declined, -> { includes(:canonical_pending_declined_mapping).where(canonical_pending_declined_mapping: { canonical_pending_transaction_id: nil }) }
+  scope :not_waived, -> { where(fee_waived: false) }
+  scope :included_in_stats, -> { includes(canonical_pending_event_mapping: :event).where(events: { omit_stats: false }) }
 
   validates :custom_memo, presence: true, allow_nil: true
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
 
-  attr_writer :local_hcb_code, :stripe_cardholder
+  attr_writer :stripe_cardholder
 
   def mapped?
     @mapped ||= canonical_pending_event_mapping.present?
@@ -116,8 +127,15 @@ class CanonicalPendingTransaction < ApplicationRecord
     @settled ||= canonical_pending_settled_mappings.present?
   end
 
+  def decline!
+    create_canonical_pending_declined_mapping!
+    true
+  rescue ActiveRecord::RecordNotUnique
+    false
+  end
+
   def declined?
-    @declined ||= canonical_pending_declined_mappings.present?
+    @declined ||= canonical_pending_declined_mapping.present?
   end
 
   def unsettled?
@@ -125,19 +143,19 @@ class CanonicalPendingTransaction < ApplicationRecord
   end
 
   def fronted_amount
-    return 0 if declined?
+    return 0 if !fronted || self.amount_cents.negative? || declined?
 
-    pts = local_hcb_code.canonical_pending_transactions.includes(:canonical_pending_event_mapping).where(canonical_pending_event_mapping: { event_id: event.id })
+    pts = local_hcb_code.canonical_pending_transactions
+                        .includes(:canonical_pending_event_mapping)
+                        .where(canonical_pending_event_mapping: { event_id: event.id })
                         .where(fronted: true)
                         .order(date: :asc, id: :asc)
-    cts = local_hcb_code.canonical_transactions.includes(:canonical_event_mapping).where(canonical_event_mapping: { event_id: event.id })
+    pts_sum = pts.map(&:amount_cents).sum
+    return 0 if pts_sum.negative?
 
-    pts_sum = pts.sum(:amount_cents)
-    cts_sum = cts.sum(:amount_cents)
-
-    if self.amount_cents.negative? || pts_sum.negative?
-      return 0
-    end
+    cts_sum = local_hcb_code.canonical_transactions
+                            .filter { |ct| ct.canonical_event_mapping.event_id == event.id }
+                            .sum(&:amount_cents)
 
     # PTs that were chronologically created first in an HcbCode are first
     # responsible for "contributing" to the fronted amount. After a PT's
@@ -147,17 +165,15 @@ class CanonicalPendingTransaction < ApplicationRecord
     #
     # The code below is a simplified implementation of that "algorithm".
 
-    index = pts.pluck(:id).index(self.id)
-    return 0 if index.nil?
-
-    prior_pts = pts.slice(0, index + 1)
-    prior_sum = prior_pts.sum(&:amount_cents)
-    residual = prior_sum - cts_sum
+    prior_pt_sum = pts.reduce(0) do |sum, pt|
+      # Sum until this PT (inclusive)
+      sum += pt.amount_cents
+      break sum if pt.id == self.id
+    end
+    residual = prior_pt_sum - cts_sum
 
     if residual.positive?
       [residual, amount_cents].min
-    elsif residual.negative?
-      amount_cents
     else
       0
     end
@@ -287,10 +303,6 @@ class CanonicalPendingTransaction < ApplicationRecord
     return "/hcb/#{local_hcb_code.hashid}" if local_hcb_code
 
     "/canonical_pending_transactions/#{id}"
-  end
-
-  def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code: hcb_code)
   end
 
   def stripe_cardholder

@@ -16,6 +16,7 @@
 #
 # Indexes
 #
+#  index_canonical_transactions_on_date      (date)
 #  index_canonical_transactions_on_hcb_code  (hcb_code)
 #
 class CanonicalTransaction < ApplicationRecord
@@ -52,8 +53,11 @@ class CanonicalTransaction < ApplicationRecord
   scope :likely_github, -> { where("memo ilike '%github grant%'") }
   scope :likely_clearing_checks, -> { where("memo ilike '%Withdrawal - Inclearing Check #%' or memo ilike '%Withdrawal - On-Us Deposited Ite #%'") }
   scope :likely_checks, -> { where("memo ilike '%Check TO ACCOUNT REDACTED'") }
+  scope :likely_increase_checks, -> { joins(hashed_transactions: :raw_increase_transaction).where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'check_transfer_intention'") }
   scope :likely_disbursements, -> { where("memo ilike 'HCB DISBURSE%'") }
   scope :likely_achs, -> { where("memo ilike '%BUSBILLPAY%'") }
+  scope :likely_increase_achs, -> { joins(hashed_transactions: :raw_increase_transaction).where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'ach_transfer_intention'") }
+  scope :likely_increase_account_number, -> { joins(hashed_transactions: { raw_increase_transaction: :increase_account_number }) }
   scope :likely_hack_club_fee, -> { where("memo ilike '%Hack Club Bank Fee TO ACCOUNT%'") }
   scope :old_likely_hack_club_fee, -> { where("memo ilike '% Fee TO ACCOUNT REDACTED%'") }
   scope :stripe_top_up, -> { where("memo ilike '%Hack Club Bank Stripe Top%' or memo ilike '%HACKC Stripe Top%' or memo ilike '%HCKCLB Stripe Top%'") }
@@ -69,6 +73,7 @@ class CanonicalTransaction < ApplicationRecord
   has_one :event, through: :canonical_event_mapping
   has_one :canonical_pending_settled_mapping
   has_one :canonical_pending_transaction, through: :canonical_pending_settled_mapping
+  has_one :local_hcb_code, foreign_key: "hcb_code", primary_key: "hcb_code", class_name: "HcbCode"
   has_many :fees, through: :canonical_event_mapping
 
   attr_writer :fee_payment, :hashed_transaction, :stripe_cardholder
@@ -125,6 +130,10 @@ class CanonicalTransaction < ApplicationRecord
     hashed_transaction.raw_stripe_transaction
   end
 
+  def raw_increase_transaction
+    hashed_transaction.raw_increase_transaction
+  end
+
   def stripe_cardholder
     @stripe_cardholder ||= begin
       return nil unless raw_stripe_transaction
@@ -139,6 +148,18 @@ class CanonicalTransaction < ApplicationRecord
 
       ::StripeCard.find_by(stripe_id: raw_stripe_transaction.stripe_transaction["card"])
     end
+  end
+
+  def emburse_card
+    @emburse_card ||= begin
+      return nil unless raw_emburse_transaction
+
+      ::EmburseCard.find_by(emburse_id: raw_emburse_transaction.emburse_transaction.dig("card", "id"))
+    end
+  end
+
+  def stripe_refund?
+    raw_stripe_transaction&.refund?
   end
 
   def raw_pending_stripe_transaction
@@ -220,10 +241,20 @@ class CanonicalTransaction < ApplicationRecord
     nil
   end
 
+  def increase_check
+    return linked_object if linked_object.is_a?(IncreaseCheck)
+
+    nil
+  end
+
   def ach_transfer
     return linked_object if linked_object.is_a?(AchTransfer)
 
     nil
+  end
+
+  def likely_ach_confirmation_number
+    memo.match(/BUSBILLPAY TRAN#(\d+)/)&.[](1)
   end
 
   def partner_donation
@@ -258,10 +289,6 @@ class CanonicalTransaction < ApplicationRecord
     @unique_bank_identifier ||= hashed_transactions.first.unique_bank_identifier
   end
 
-  def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code: hcb_code)
-  end
-
   def memo_hcb_code_likely_donation?
     memo.include?("HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::DONATION_CODE}")
   end
@@ -284,8 +311,8 @@ class CanonicalTransaction < ApplicationRecord
 
   def hashed_transaction
     @hashed_transaction ||= begin
-      Airbrake.notify("There was less than 1 hashed_transaction for canonical_transaction: #{self.id}") if hashed_transactions.count < 1
-      Airbrake.notify("There was more than 1 hashed_transaction for canonical_transaction: #{self.id}") if hashed_transactions.count > 1
+      Airbrake.notify("There was less than 1 hashed_transaction for canonical_transaction: #{self.id}") if hashed_transactions.size < 1
+      Airbrake.notify("There was more than 1 hashed_transaction for canonical_transaction: #{self.id}") if hashed_transactions.size > 1
 
       hashed_transactions.first
     end

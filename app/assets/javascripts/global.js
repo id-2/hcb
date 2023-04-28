@@ -25,10 +25,12 @@ BK.isDark = () => {
 }
 BK.styleDark = theme => {
   document.getElementsByTagName('html')[0].setAttribute('data-dark', theme)
+  document.querySelector('meta[name=theme-color]').setAttribute('content', theme ? '#17171d' : '#f9fafc')
   BK.s('toggle_theme').find('svg').toggle()
 }
 BK.toggleDark = () => {
   theme = !BK.isDark()
+  window.dispatchEvent(new CustomEvent('theme-toggle', { detail: theme }))
   return BK.setDark(theme)
 }
 BK.setDark = dark => {

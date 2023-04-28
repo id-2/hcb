@@ -25,14 +25,6 @@ class EventPolicy < ApplicationPolicy
     is_public || user_or_admin
   end
 
-  def fees?
-    user_or_admin
-  end
-
-  def dashboard_stats?
-    is_public || user_or_admin
-  end
-
   # NOTE(@lachlanjc): this is bad, I’m sorry.
   # This is the StripeCardsController#shipping method when rendered on the event
   # card overview page. This should be moved out of here.
@@ -53,7 +45,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def destroy?
-    user&.admin?
+    user&.admin? && record.demo_mode?
   end
 
   def team?
@@ -72,9 +64,21 @@ class EventPolicy < ApplicationPolicy
     is_public || user_or_admin
   end
 
+  def demo_mode_request_meeting?
+    user_or_admin
+  end
+
   # (@eilla1) these pages are for the wip resources page and should be moved later
   def connect_gofundme?
     is_public || user_or_admin
+  end
+
+  def async_balance?
+    is_public || user_or_admin
+  end
+
+  def new_transfer?
+    user_or_admin
   end
 
   def receive_check?
@@ -86,11 +90,11 @@ class EventPolicy < ApplicationPolicy
   end
 
   def g_suite_overview?
-    user_or_admin
+    user_or_admin && !record.hardware_grant?
   end
 
   def g_suite_create?
-    user_or_admin
+    user_or_admin && is_not_demo_mode? && !record.hardware_grant?
   end
 
   def g_suite_verify?
@@ -102,7 +106,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def promotions?
-    is_public || user_or_admin
+    (is_public || user_or_admin) && !record.hardware_grant?
   end
 
   def reimbursements?
@@ -115,10 +119,6 @@ class EventPolicy < ApplicationPolicy
 
   def partner_donation_overview?
     is_public || user_or_admin
-  end
-
-  def bank_fees?
-    user_or_admin
   end
 
   def remove_header_image?
@@ -137,8 +137,16 @@ class EventPolicy < ApplicationPolicy
     user_or_admin
   end
 
+  def account_number?
+    is_public || user_or_admin
+  end
+
   def user_or_admin
     user&.admin? || record.users.include?(user)
+  end
+
+  def is_not_demo_mode?
+    !record.demo_mode?
   end
 
   def is_public

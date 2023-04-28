@@ -10,6 +10,7 @@ module Api
         check
         transfer
         bank_account_transaction
+        card_charge
       ].freeze
 
       when_expanded do
@@ -42,18 +43,41 @@ module Api
 
           hcb_code.canonical_transactions.empty?
         end
+
+        expose :receipts do
+          expose :count, documentation: { type: "integer" } do |hcb_code, options|
+            hcb_code.receipts.size
+          end
+          expose :missing, documentation: { type: "boolean" } do |hcb_code, options|
+            # This logic really needs to be moved inside the HcbCode model
+            hcb_code.type == :card_charge &&
+              !hcb_code.no_or_lost_receipt? &&
+              hcb_code.receipts.none?
+          end
+        end
+
+        expose :comments do
+          expose :count, documentation: { type: "integer" } do |hcb_code, options|
+            hcb_code.not_admin_only_comments_count
+          end
+        end
       end
 
       expose_associated Organization do |hcb_code, options|
         hcb_code.event
       end
 
-      expose_associated Tag, documentation: { type: "array" }, as: :tags do |hcb_code, options|
+      expose_associated Tag, documentation: { type: Tag, is_array: true }, as: :tags do |hcb_code, options|
         hcb_code.tags
       end
 
       when_showing LinkedObjectBase::API_LINKED_OBJECT_TYPE do
         [
+          {
+            entity: Entities::CardCharge,
+            # Convert the HcbCode to it's equivalent CardCharge.
+            hcb_method: ->(hcb_code) { Models::CardCharge.find(hcb_code.id) },
+          },
           {
             entity: Entities::AchTransfer,
             hcb_method: :ach_transfer
@@ -85,7 +109,11 @@ module Api
           }, documentation: {
             type: entity
           } do |hcb_code, options|
-            linked_objects = hcb_code.public_send(method)
+            linked_objects = if method.is_a? Proc
+                               method.call(hcb_code)
+                             else
+                               hcb_code.public_send(method)
+                             end
             entity.represent(linked_objects, options_hide([self, Organization]))
           end
 

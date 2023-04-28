@@ -1,4 +1,4 @@
-FROM ruby:2.7.5
+FROM ruby:2.7.7
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -10,14 +10,17 @@ RUN apt-get -y update -qq
 RUN apt-get -y install postgresql-client vim poppler-utils
 ENV EDITOR=vim
 
-# Install yarn through npm to avoid this bug: https://github.com/docker/for-mac/issues/5864#issuecomment-884336317
-RUN apt-get -y install nodejs npm
-RUN npm install -g yarn
+# Install node18 & yarn
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update; apt-get install -y nodejs yarn
 
 RUN gem install bundler -v 2.1.4
 
 ADD yarn.lock /usr/src/app/yarn.lock
 ADD package.json /usr/src/app/package.json
+ADD .ruby-version /usr/src/app/.ruby-version
 ADD Gemfile /usr/src/app/Gemfile
 ADD Gemfile.lock /usr/src/app/Gemfile.lock
 
@@ -34,3 +37,7 @@ RUN ln -s /usr/src/app/.rubocop.yml ~/.rubocop.yml
 RUN ln -s /usr/src/app/.rubocop_todo.yml ~/.rubocop_todo.yml
 
 ADD . /usr/src/app
+
+EXPOSE 3000
+
+CMD ["bundle", "exec", "foreman", "start", "-f", "Procfile.dev", "-m", "all=1,stripe=0"]

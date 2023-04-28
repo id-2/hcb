@@ -3,14 +3,9 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
   include SessionsHelper
+  include ToursHelper
 
   protect_from_forgery
-
-  before_action do
-    if current_user&.admin? || current_session&.impersonated_by&.admin?
-      Rack::MiniProfiler.authorize_request
-    end
-  end
 
   # Ensure users are signed in. Create one-off exceptions to this on routes
   # that you want to be unauthenticated with skip_before_action.
@@ -19,10 +14,12 @@ class ApplicationController < ActionController::Base
   # Track papertrail edits to specific users
   before_action :set_paper_trail_whodunnit
 
+  # Redirect users to the onboarding page if they haven't completed it yet
+  before_action :redirect_to_onboarding
+
   # Force usage of Pundit on actions
   after_action :verify_authorized
 
-  rescue_from BankApiService::UnauthorizedError, with: :user_not_authenticated
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   def hide_footer
@@ -43,18 +40,21 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Fallback for bad redirects that do not have allow_other_host set to true
+  # https://blog.saeloun.com/2022/02/08/rails-7-raise-unsafe-redirect-error.html#after
+  rescue_from ActionController::Redirecting::UnsafeRedirectError do |exception|
+    Airbrake.notify(exception)
+    redirect_to root_url
+  end
+
   private
 
-  # This being called probably means that the User's access token has expired.
-  def user_not_authenticated
-    sign_out
-    flash[:error] = "You were signed out. Please re-login."
-    if request.get?
-      redirect_to auth_users_path(return_to: request.url)
-    else
-      redirect_to auth_users_path
+  def redirect_to_onboarding
+    if current_user&.onboarding?
+      redirect_to my_settings_path
     end
   end
+
 
   def user_not_authorized
     flash[:error] = "You are not authorized to perform this action."

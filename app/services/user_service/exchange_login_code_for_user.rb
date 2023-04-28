@@ -9,44 +9,37 @@ module UserService
     end
 
     def run
-      raise ::Errors::InvalidLoginCode, error_message if exchange_login_code_resp[:errors].present? || exchange_login_code_resp[:error].present?
-
-      user = User.find_or_initialize_by(email: remote_email)
-      user.api_access_token = remote_access_token
-      user.admin_at = remote_admin_at # TODO: remove admin_at as necessary from a 3rd party auth service
-      user.save!
-
-      user.reload
+      if @sms
+        exchange_login_code_by_sms
+      else
+        exchange_login_code_by_email
+      end
     end
 
     private
 
-    def exchange_login_code_resp
-      @exchange_login_code_resp ||= ::Partners::HackclubApi::ExchangeLoginCode.new(
-        user_id: @user_id,
-        login_code: @login_code,
-        sms: @sms
-      ).run
+    def exchange_login_code_by_sms
+      login_code = @login_code.delete("-")
+      user = User.find(@user_id)
+
+      raise ::Errors::InvalidLoginCode if login_code.length != 6
+
+      if TwilioVerificationService.new.check_verification_token(user.phone_number, login_code)
+        user
+      else
+        raise ::Errors::InvalidLoginCode
+      end
     end
 
-    def get_user_resp
-      @get_user_resp ||= ::Partners::HackclubApi::GetUser.new(user_id: @user_id, access_token: remote_access_token).run
-    end
+    def exchange_login_code_by_email
+      login_code = LoginCode.active.find_by(code: @login_code.delete("-"), user_id: @user_id)
 
-    def remote_access_token
-      exchange_login_code_resp[:auth_token]
-    end
+      raise ::Errors::InvalidLoginCode if login_code.nil?
+      raise ::Errors::InvalidLoginCode if login_code.created_at < (Time.current - 15.minutes)
 
-    def remote_email
-      get_user_resp[:email]
-    end
+      login_code.update(used_at: Time.current)
 
-    def remote_admin_at
-      get_user_resp[:admin_at]
-    end
-
-    def error_message
-      "Invalid login code"
+      login_code.user
     end
 
   end

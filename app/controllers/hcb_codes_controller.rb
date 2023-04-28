@@ -44,6 +44,15 @@ class HcbCodesController < ApplicationController
     end
   end
 
+  def memo_frame
+    @hcb_code = HcbCode.find(params[:id])
+    authorize @hcb_code
+
+    if params[:gen_memo]
+      @ai_memo = HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run
+    end
+  end
+
   def comment
     @hcb_code = HcbCode.find(params[:id])
 
@@ -77,13 +86,12 @@ class HcbCodesController < ApplicationController
 
     if params[:file] # Ignore if no files were uploaded
       params[:file].each do |file|
-        attrs = {
-          hcb_code_id: @hcb_code.id,
-          file: file,
-          upload_method: params[:upload_method],
-          current_user: current_user
-        }
-        ::HcbCodeService::Receipt::Create.new(attrs).run
+        ::ReceiptService::Create.new(
+          receiptable: @hcb_code,
+          uploader: current_user,
+          attachments: [file],
+          upload_method: params[:upload_method]
+        ).run!
       end
 
       if params[:show_link]
@@ -100,7 +108,10 @@ class HcbCodesController < ApplicationController
   rescue => e
     Airbrake.notify(e)
 
-    redirect_to params[:redirect_url], flash: { error: e.message }
+    flash[:error] = e.message
+    return redirect_to params[:redirect_url] if params[:redirect_url]
+
+    redirect_back fallback_location: @hcb_code.url
   end
 
   def attach_receipt
@@ -116,6 +127,19 @@ class HcbCodesController < ApplicationController
 
   end
 
+  def send_receipt_sms
+    @hcb_code = HcbCode.find(params[:id])
+
+    authorize @hcb_code
+
+    cpt = @hcb_code.canonical_pending_transactions.first
+
+    CanonicalPendingTransactionJob::SendTwilioMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
+
+    flash[:success] = "SMS queued for delivery!"
+    redirect_back fallback_location: @hcb_code
+  end
+
   def dispute
     @hcb_code = HcbCode.find(params[:id])
 
@@ -124,7 +148,7 @@ class HcbCodesController < ApplicationController
     can_dispute, error_reason = ::HcbCodeService::CanDispute.new(hcb_code: @hcb_code).run
 
     if can_dispute
-      redirect_to disputed_transactions_airtable_form_url(embed: false, hcb_code: @hcb_code, user: @current_user)
+      redirect_to disputed_transactions_airtable_form_url(embed: false, hcb_code: @hcb_code, user: @current_user), allow_other_host: true
     else
       redirect_to @hcb_code, flash: { error: error_reason }
     end
@@ -146,6 +170,29 @@ class HcbCodesController < ApplicationController
     end
 
     redirect_back fallback_location: @event
+  end
+
+  def link_receipt_modal
+    @receipts = Receipt.where(user: current_user, receiptable: nil)
+
+    @hcb_code = HcbCode.find(params[:id])
+
+    authorize @hcb_code
+
+    render :link_receipt, layout: false
+  end
+
+  def link_receipt
+    @hcb_code = HcbCode.find(params[:id])
+    @receipt = Receipt.find(params[:receipt_id])
+
+    authorize @hcb_code
+
+    @receipt.receiptable = @hcb_code
+    @receipt.save!
+
+    flash[:success] = "Receipt added!"
+    redirect_back fallback_location: @hcb_code
   end
 
 end

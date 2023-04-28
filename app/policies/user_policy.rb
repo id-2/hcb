@@ -9,6 +9,18 @@ class UserPolicy < ApplicationPolicy
     user.admin? || record == user
   end
 
+  def edit_featurepreviews?
+    user.admin? || record == user
+  end
+
+  def edit_security?
+    user.admin? || record == user
+  end
+
+  def edit_admin?
+    user.admin? || (record == user && user.admin_override_pretend?)
+  end
+
   def update?
     user.admin? || record == user
   end
@@ -34,6 +46,10 @@ class UserPolicy < ApplicationPolicy
   end
 
   def disable_feature?
+    user.admin? || record == user
+  end
+
+  def wrapped?
     user.admin? || record == user
   end
 

@@ -3,14 +3,15 @@
 require "cgi"
 
 module EventsHelper
-  def dock_item(name, tooltip, icon, url, lg = false, async_badge = nil)
-    link_to url,
-            class: "dock__item #{lg && 'dock__item--lg'} tooltipped tooltipped--e",
-            'aria-label': tooltip do
+  def dock_item(name, url = nil, icon:, tooltip: nil, async_badge: nil, disabled: false, selected: false, **options)
+    link_to (url unless disabled), options.merge(
+      class: "dock__item #{"dock__item--selected" if selected} tooltipped tooltipped--e #{"disabled" if disabled}",
+      'aria-label': tooltip
+    ) do
       (content_tag :div, class: "line-height-0 relative" do
         if async_badge
           inline_icon(icon, size: 32, class: "primary") +
-          content_tag(:div, nil, 'data-src': async_badge, 'data-behavior': :async_frame, as: :div)
+          turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" })
         else
           inline_icon(icon, size: 32, class: "primary")
         end
@@ -18,11 +19,27 @@ module EventsHelper
     end
   end
 
+  def show_mock_data?(event = @event)
+    event&.demo_mode? && session[mock_data_session_key]
+  end
+
+  def set_mock_data!(bool = true, event = @event)
+    session[mock_data_session_key] = bool
+  end
+
+  def mock_data_session_key(event = @event)
+    "show_mock_data_#{event.id}".to_sym
+  end
+
+  def can_request_activation?(event = @event)
+    event.demo_mode? && event.demo_mode_request_meeting_at.nil? && organizer_signed_in?
+  end
+
   def paypal_transfers_airtable_form_url(embed: false, event: nil, user: nil)
     # The airtable form is located within the Bank Promotions base
-    form_id = "shrH9fMs5hof2HRup"
-    embed_url = "https://airtable.com/embed/#{form_id}"
-    url = "https://airtable.com/#{form_id}"
+    form_id = "4j6xJB5hoRus"
+    embed_url = "https://forms.hackclub.com/t/#{form_id}"
+    url = "https://forms.hackclub.com/t/#{form_id}"
 
     prefill = []
     prefill << "prefill_Event/Project+Name=#{CGI.escape(event.name)}" if event

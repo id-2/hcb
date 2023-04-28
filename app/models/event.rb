@@ -8,10 +8,13 @@
 #  aasm_state                      :string
 #  address                         :text
 #  beta_features_enabled           :boolean
-#  can_front_balance               :boolean          default(FALSE), not null
+#  can_front_balance               :boolean          default(TRUE), not null
 #  category                        :integer
 #  country                         :integer
 #  custom_css_url                  :string
+#  deleted_at                      :datetime
+#  demo_mode                       :boolean          default(FALSE), not null
+#  demo_mode_request_meeting_at    :datetime
 #  donation_page_currency          :text             default("USD")
 #  donation_page_enabled           :boolean          default(TRUE)
 #  donation_page_message           :text
@@ -20,7 +23,8 @@
 #  has_fiscal_sponsorship_document :boolean
 #  hidden_at                       :datetime
 #  holiday_features                :boolean          default(TRUE), not null
-#  is_public                       :boolean          default(FALSE)
+#  is_indexable                    :boolean          default(TRUE)
+#  is_public                       :boolean          default(TRUE)
 #  last_fee_processed_at           :datetime
 #  name                            :text
 #  omit_stats                      :boolean          default(FALSE)
@@ -69,6 +73,8 @@ class Event < ApplicationRecord
   has_country_enum :country
 
   has_paper_trail
+  acts_as_paranoid
+  validates_as_paranoid
 
   include AASM
   include PgSearch::Model
@@ -81,6 +87,7 @@ class Event < ApplicationRecord
   scope :pending_or_unapproved, -> { where(aasm_state: [:pending, :unapproved]) }
   scope :transparent, -> { where(is_public: true) }
   scope :not_transparent, -> { where(is_public: false) }
+  scope :indexable, -> { where(is_public: true, is_indexable: true, demo_mode: false) }
   scope :omitted, -> { where(omit_stats: true) }
   scope :not_omitted, -> { where(omit_stats: false) }
   scope :hidden, -> { where("hidden_at is not null") }
@@ -177,6 +184,45 @@ class Event < ApplicationRecord
     where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", 5.days.ago, self.event_ids_with_pending_fees_greater_than_0_v2.to_a.map { |a| a["event_id"] })
   end
 
+  scope :demo_mode, -> { where(demo_mode: true) }
+  scope :not_demo_mode, -> { where(demo_mode: false) }
+  scope :filter_demo_mode, ->(demo_mode) { demo_mode.nil? || demo_mode.blank? ? all : where(demo_mode: demo_mode) }
+
+  BADGES = {
+    # Qualifier must be a method on Event. If the method returns true, the badge
+    # will be displayed for the event.
+    omit_stats: {
+      qualifier: :omit_stats?,
+      emoji: "🏦",
+      description: "Omitted from stats"
+    },
+    transparent: {
+      qualifier: :is_public?,
+      emoji: "📈",
+      description: "Transparency mode enabled"
+    },
+    hidden: {
+      qualifier: :hidden_at?,
+      emoji: "🕵️‍♂️",
+      description: "Hidden"
+    },
+    organized_by_hack_clubbers: {
+      qualifier: :organized_by_hack_clubbers?,
+      emoji: "🦕",
+      description: "Organized by Hack Clubbers"
+    },
+    demo_mode: {
+      qualifier: :demo_mode?,
+      emoji: "🧪",
+      description: "Demo Account"
+    },
+    winter_hardware_grant: {
+      qualifier: :hardware_grant?,
+      emoji: "❄️",
+      description: "Winter hardware grant"
+    }
+  }.freeze
+
   aasm do
     # All events should be approved prior to creation
     state :approved, initial: true # Full fiscal sponsorship
@@ -205,10 +251,10 @@ class Event < ApplicationRecord
   belongs_to :point_of_contact, class_name: "User", optional: true
 
   # Used for tracking slug history
-  has_many :slugs, -> { order(id: :desc) }, class_name: "FriendlyId::Slug", as: :sluggable
+  has_many :slugs, -> { order(id: :desc) }, class_name: "FriendlyId::Slug", as: :sluggable, dependent: :destroy
 
-  has_many :organizer_position_invites
-  has_many :organizer_positions
+  has_many :organizer_position_invites, dependent: :destroy
+  has_many :organizer_positions, dependent: :destroy
   has_many :users, through: :organizer_positions
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
@@ -230,9 +276,11 @@ class Event < ApplicationRecord
   has_many :outgoing_disbursements, class_name: "Disbursement", foreign_key: :source_event_id
   has_many :donations
   has_many :donation_payouts, through: :donations, source: :payout
+  has_many :recurring_donations
 
   has_many :lob_addresses
   has_many :checks, through: :lob_addresses
+  has_many :increase_checks
 
   has_many :sponsors
   has_many :invoices, through: :sponsors
@@ -255,13 +303,22 @@ class Event < ApplicationRecord
   has_one :partnered_signup, required: false
   has_many :partner_donations
 
+  has_one :stripe_ach_payment_source
+  has_one :increase_account_number
+
   has_one_attached :donation_header_image
   has_one_attached :logo
 
   validate :point_of_contact_is_admin
 
+  include ::UserService::CanOpenDemoMode
+  attr_accessor :demo_mode_limit_email
+
+  validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
+
   validates :name, :sponsorship_fee, :organization_identifier, presence: true
-  validates :slug, uniqueness: true, presence: true, format: { without: /\s/ }
+  validates :slug, presence: true, format: { without: /\s/ }
+  validates_uniqueness_of_without_deleted :slug
 
   after_save :update_slug_history
 
@@ -280,7 +337,9 @@ class Event < ApplicationRecord
     nonprofit: 2,
     event: 3,
     'high school hackathon': 4,
-    'robotics team': 5
+    'robotics team': 5,
+    'hardware grant': 6,
+    'hack club hq': 7
   }
 
   def country_us?
@@ -297,7 +356,12 @@ class Event < ApplicationRecord
   end
 
   def admin_dropdown_description
-    "#{name} - #{id}"
+    desc = "#{name} - #{id}"
+
+    badges = BADGES.map { |_, badge| send(badge[:qualifier]) ? badge[:emoji] : nil }.compact
+    desc += " [#{badges.join(' ')}]" if badges.any?
+
+    desc
   end
 
   def disbursement_dropdown_description
@@ -331,8 +395,7 @@ class Event < ApplicationRecord
   def balance_v2_cents(start_date: nil, end_date: nil)
     @balance_v2_cents ||=
       begin
-        sum = 0
-        sum += settled_balance_cents(start_date: start_date, end_date: end_date)
+        sum = settled_balance_cents(start_date: start_date, end_date: end_date)
         sum += pending_outgoing_balance_v2_cents(start_date: start_date, end_date: end_date)
         sum += fronted_incoming_balance_v2_cents(start_date: start_date, end_date: end_date) if can_front_balance?
         sum
@@ -378,10 +441,19 @@ class Event < ApplicationRecord
       begin
         pts = canonical_pending_transactions.incoming.fronted.not_declined
 
-        pts = pts.where("date >= ?", start_date) if start_date
-        pts = pts.where("date <= ?", end_date) if end_date
+        pts = pts.where("date >= ?", @start_date) if @start_date
+        pts = pts.where("date <= ?", @end_date) if @end_date
 
-        pts.sum(&:fronted_amount)
+        pt_sum_by_hcb_code = pts.group(:hcb_code).sum(:amount_cents)
+        hcb_codes = pt_sum_by_hcb_code.keys
+
+        ct_sum_by_hcb_code = canonical_transactions.where(hcb_code: hcb_codes)
+                                                   .group(:hcb_code)
+                                                   .sum(:amount_cents)
+
+        pt_sum_by_hcb_code.reduce 0 do |sum, (hcb_code, pt_sum)|
+          sum + [pt_sum - (ct_sum_by_hcb_code[hcb_code] || 0), 0].max
+        end
       end
   end
 
@@ -451,8 +523,10 @@ class Event < ApplicationRecord
     feed_fronted_balance = canonical_pending_transactions
                            .incoming
                            .fronted
+                           .not_waived
                            .not_declined
                            .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
+                           .includes(:event, local_hcb_code: { canonical_transactions: :canonical_event_mapping })
                            .sum(&:fronted_amount)
 
     # TODO: make sure this has the same rounding error has the rest of the codebase
@@ -528,6 +602,14 @@ class Event < ApplicationRecord
     @total_fess_v2_cents ||= fees.sum(:amount_cents_as_decimal).ceil
   end
 
+  def account_number
+    (increase_account_number || create_increase_account_number)&.account_number || "••••••••••"
+  end
+
+  def routing_number
+    (increase_account_number || create_increase_account_number)&.routing_number || "•••••••••"
+  end
+
   private
 
   def min_waiting_time_between_fees
@@ -551,7 +633,9 @@ class Event < ApplicationRecord
   end
 
   def total_fee_payments_v2_cents
-    @total_fee_payments_v2_cents ||= -canonical_transactions.where(id: canonical_transaction_ids_from_hack_club_fees).sum(:amount_cents)
+    @total_fee_payments_v2_cents ||=
+      canonical_transactions.where(id: canonical_transaction_ids_from_hack_club_fees).sum(:amount_cents).abs +
+      canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
   end
 
   def canonical_event_mapping_ids_from_hack_club_fees
@@ -566,6 +650,12 @@ class Event < ApplicationRecord
     if slug_previously_changed?
       slugs.create(slug: slug)
     end
+  end
+
+  def demo_mode_limit
+    return if can_open_demo_mode? demo_mode_limit_email
+
+    errors.add(:demo_mode, "limit reached for user")
   end
 
 end

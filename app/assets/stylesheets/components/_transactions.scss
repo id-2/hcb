@@ -12,6 +12,47 @@
   background-attachment: fixed;
   color: $black;
 }
+.transaction--icy {
+  background-image: repeating-linear-gradient(
+    to bottom right,
+    #33d6a6 0px,
+    #338eda 50px,
+    #33d6a6 100px
+  );
+  background-attachment: fixed;
+  font-weight: bold;
+  color: $white;
+}
+.transaction--frc {
+  font-weight: 600;
+  color: $black;
+  td {
+    position: relative;
+    &:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.1;
+      background-image: #{image-url('frc-background.png')};
+      background-size: 24em;
+      background-position: center;
+      background-attachment: fixed;
+    }
+  }
+}
+
+html[data-dark='true'] {
+  .transaction--frc {
+    color: $white;
+    &::after {
+      opacity: 0.15;
+      filter: invert(100%);
+    }
+  }
+}
 
 .transaction__memo {
   max-width: 400px;
@@ -21,12 +62,10 @@
     align-items: center;
   }
 
-  a:first-child,
   span:first-child {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 44ch;
 
     @media screen and (max-width: 32em) {
       max-width: 32ch; // reduce character count on mobile
@@ -64,6 +103,9 @@
     fill: map-get($palette, muted);
     .transaction--fancy & {
       fill: $black;
+    }
+    .transaction--icy & {
+      fill: $white;
     }
     margin: 0;
   }

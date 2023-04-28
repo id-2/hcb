@@ -5,10 +5,13 @@
 # Table name: disbursements
 #
 #  id              :bigint           not null, primary key
+#  aasm_state      :string
 #  amount          :integer
+#  deposited_at    :datetime
 #  errored_at      :datetime
-#  fulfilled_at    :datetime
+#  in_transit_at   :datetime
 #  name            :string
+#  pending_at      :datetime
 #  rejected_at     :datetime
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
@@ -35,6 +38,7 @@ class Disbursement < ApplicationRecord
   include PgSearch::Model
   pg_search_scope :search_name, against: [:name]
 
+  include AASM
   include Commentable
 
   has_paper_trail
@@ -45,8 +49,8 @@ class Disbursement < ApplicationRecord
   belongs_to :fulfilled_by, class_name: "User", optional: true
   belongs_to :requested_by, class_name: "User", optional: true
 
-  belongs_to :destination_event, foreign_key: 'event_id', class_name: "Event", inverse_of: 'incoming_disbursements'
-  belongs_to :source_event, class_name: "Event", inverse_of: 'outgoing_disbursements'
+  belongs_to :destination_event, foreign_key: "event_id", class_name: "Event", inverse_of: "incoming_disbursements"
+  belongs_to :source_event, class_name: "Event", inverse_of: "outgoing_disbursements"
   belongs_to :event
 
   has_one :raw_pending_incoming_disbursement_transaction
@@ -61,25 +65,86 @@ class Disbursement < ApplicationRecord
 
   validates :amount, numericality: { greater_than: 0 }
   validate :events_are_different
+  validate :events_are_not_demos
 
-  # Disbursement goes through 5 stages:
-  # 1. Reviewing (before human review)
-  # 2. Pending (before automated job tries to process the transfer)
-  # 3. Processing
-  # 4. Fulfilled
-  # or, if not accepted...
-  # 5. Rejected
-  scope :reviewing, -> { where(fulfilled_at: nil, errored_at: nil, rejected_at: nil, fulfilled_by_id: nil).where.not(requested_by_id: nil) }
-  scope :pending, -> {   where(fulfilled_at: nil, errored_at: nil, rejected_at: nil).where.not(fulfilled_by_id: nil) }
-  scope :processing, -> { where.not(fulfilled_at: nil).reject { |d| d.fulfilled? } }
-  scope :fulfilled, -> { where.not(fulfilled_at: nil).select { |d| d.fulfilled? } }
-  scope :rejected, -> { where.not(rejected_at: nil) }
-  scope :errored, -> { where.not(errored_at: nil) }
+  scope :processing, -> { in_transit }
+  scope :fulfilled, -> { deposited }
+  scope :reviewing_or_processing, -> { where(aasm_state: [:reviewing, :pending, :in_transit]) }
 
-  scope :reviewing_or_processing, -> { where(fulfilled_at: nil, rejected_at: nil, errored_at: nil).where.not(fulfilled_by_id: nil) }
+  SPECIAL_APPEARANCES = {
+    hackathon_grant: {
+      title: "Hackathon grant",
+      memo: "💰 Grant from Hack Club and FIRST®",
+      css_class: "transaction--fancy",
+      icon: "purse",
+      qualifier: ->(d) { d.source_event_id == EventMappingEngine::EventIds::HACKATHON_GRANT_FUND }
+    },
+    winter_hardware_wonderland: {
+      title: "Winter Hardware Wonderland grant",
+      memo: "❄️ Winter Hardware Wonderland Grant",
+      css_class: "transaction--icy",
+      icon: "freeze",
+      qualifier: ->(d) { d.source_event_id == EventMappingEngine::EventIds::WINTER_HARDWARE_WONDERLAND_GRANT_FUND }
+    },
+    first_transparency_grant: {
+      title: "FIRST® Transparency grant",
+      memo: "🤖 FIRST® Transparency Grant",
+      css_class: "transaction--frc",
+      icon: "sam",
+      qualifier: ->(d) { d.source_event_id == EventMappingEngine::EventIds::FIRST_TRANSPARENCY_GRANT_FUND }
+    }
+  }.freeze
+
+  aasm timestamps: true do
+    state :reviewing, initial: true # Being reviewed by an admin
+    state :pending                  # Waiting to be processed by the TX engine
+    state :in_transit               # Transfer started on SVB
+    state :deposited                # Transfer completed!
+    state :rejected                 # Rejected by admin
+    state :errored                  # oh no! an error!
+
+    event :mark_approved do
+      after do |fulfilled_by|
+        update(fulfilled_by: fulfilled_by)
+        canonical_pending_transactions.update_all(fronted: true)
+      end
+      transitions from: :reviewing, to: :pending
+    end
+
+    event :mark_in_transit do
+      transitions from: :pending, to: :in_transit
+    end
+
+    event :mark_deposited do
+      transitions from: :in_transit, to: :deposited
+    end
+
+    event :mark_errored do
+      after do
+        canonical_pending_transactions.each { |cpt| cpt.decline! }
+      end
+      transitions from: [:pending, :in_transit], to: :errored
+    end
+
+    event :mark_rejected do
+      after do |fulfilled_by|
+        update(fulfilled_by: fulfilled_by)
+        canonical_pending_transactions.each { |cpt| cpt.decline! }
+      end
+      transitions from: [:reviewing, :pending], to: :rejected
+    end
+  end
 
   # Eagerly create HcbCode object
   after_create :local_hcb_code
+
+  alias_attribute :approved_at, :pending_at
+
+  # Returns the perceived time of the transfer to an event with fronting enabled
+  def transferred_at
+    # `approved_at` isn't set on some old disbursements, so fall back to `in_transit_at`.
+    approved_at || in_transit_at
+  end
 
   def hcb_code
     "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::DISBURSEMENT_CODE}-#{id}"
@@ -97,30 +162,12 @@ class Disbursement < ApplicationRecord
     @canonical_pending_transactions ||= ::CanonicalPendingTransaction.where(hcb_code: hcb_code)
   end
 
-  def reviewing?
-    !requested_by.nil? && !processed? && !rejected? && !errored? && fulfilled_by.nil?
-  end
-
-  def pending?
-    !reviewing? && !processed? && !rejected? && !errored?
-  end
-
   def processed?
-    fulfilled_at.present?
+    in_transit? || deposited?
   end
 
   def fulfilled?
-    # two transactions, one coming out of source event and another
-    # going into destination event
-    canonical_transactions.size == 2
-  end
-
-  def rejected?
-    rejected_at.present?
-  end
-
-  def errored?
-    errored_at.present?
+    deposited?
   end
 
   def filter_data
@@ -132,10 +179,6 @@ class Disbursement < ApplicationRecord
       fulfilled: fulfilled?,
       rejected: rejected?,
     }
-  end
-
-  def status
-    state
   end
 
   def state
@@ -158,6 +201,8 @@ class Disbursement < ApplicationRecord
     end
   end
 
+  alias_method :status, :state
+
   def v3_api_state
     state_text.underscore
   end
@@ -171,6 +216,8 @@ class Disbursement < ApplicationRecord
       else
         "processing"
       end
+    elsif rejected? && approved_at.present? # Disbursements that were approved, then rejected
+      "canceled"
     elsif rejected?
       "rejected"
     elsif errored?
@@ -186,10 +233,6 @@ class Disbursement < ApplicationRecord
     "checkmark" if fulfilled? || processed? || (pending? && destination_event.can_front_balance?)
   end
 
-  def mark_fulfilled!
-    update(fulfilled_at: DateTime.now)
-  end
-
   def admin_dropdown_description
     "#{ApplicationController.helpers.render_money amount} for #{name} to #{event.name}"
   end
@@ -198,10 +241,35 @@ class Disbursement < ApplicationRecord
     "HCB DISBURSE #{id}"
   end
 
+  def special_appearance_name
+    SPECIAL_APPEARANCES.each do |key, value|
+      return key if value[:qualifier].call(self)
+    end
+
+    nil
+  end
+
+  def special_appearance
+    SPECIAL_APPEARANCES[special_appearance_name]
+  end
+
+  def special_appearance?
+    !special_appearance_name.nil?
+  end
+
+  def special_appearance_memo
+    special_appearance&.[](:memo)
+  end
+
   private
 
   def events_are_different
     self.errors.add(:event, "must be different than source event") if event_id == source_event_id
+  end
+
+  def events_are_not_demos
+    self.errors.add(:event, "cannot be a demo event") if event.demo_mode?
+    self.errors.add(:source_event, "cannot be a demo event") if source_event.demo_mode?
   end
 
 end

@@ -3,13 +3,11 @@
 require "rails_helper"
 
 RSpec.describe InvoiceService::Create, type: :model do
-  fixtures "users", "events", "organizer_positions"
-
-  let(:user) { users(:user1) }
-  let(:event) { events(:event1) }
+  let(:user) { create(:user) }
+  let(:event) { create(:event) }
 
   let(:event_id) { event.id }
-  let(:due_date) { "2022-12-12" }
+  let(:due_date) { (Date.current + 14).to_s }
   let(:item_description) { "Invoice Description" }
   let(:item_amount) { "100.00" }
   let(:current_user) { user }

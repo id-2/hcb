@@ -114,7 +114,7 @@ class AdminController < ApplicationController
     end
 
     admin_contract_signing = Partners::Docusign::AdminContractSigning.new(@partnered_signup)
-    redirect_to admin_contract_signing.admin_signing_link
+    redirect_to admin_contract_signing.admin_signing_link, allow_other_host: true
   end
 
   def partnered_signups
@@ -183,7 +183,7 @@ class AdminController < ApplicationController
       flash[:success] = "Partner signup rejected"
       redirect_to partnered_signups_admin_index_path
     else
-      render "edit"
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -226,19 +226,30 @@ class AdminController < ApplicationController
     attrs = {
       name: params[:name],
       emails: emails,
+      is_signee: params[:is_signee].to_i == 1,
       country: params[:country],
       category: params[:category],
       point_of_contact_id: params[:point_of_contact_id],
       approved: params[:approved].to_i == 1,
+      is_public: params[:is_public].to_i == 1,
       sponsorship_fee: params[:sponsorship_fee],
       organized_by_hack_clubbers: params[:organized_by_hack_clubbers].to_i == 1,
-      omit_stats: params[:omit_stats].to_i == 1
+      omit_stats: params[:omit_stats].to_i == 1,
+      demo_mode: params[:demo_mode].to_i == 1
     }
     ::EventService::Create.new(attrs).run
 
     redirect_to events_admin_index_path, flash: { success: "Successfully created #{params[:name]}" }
   rescue => e
     redirect_to event_new_admin_index_path, flash: { error: e.message }
+  end
+
+  def event_balance
+    @event = Event.find(params[:id])
+    @balance = Rails.cache.fetch("admin_event_balance_#{@event.id}", expires_in: 5.minutes) do
+      @event.balance.to_i
+    end
+    render :event_balance, layout: false
   end
 
   def event_toggle_approved
@@ -371,7 +382,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
     @q = params[:q].present? ? params[:q] : nil
-    @unmapped = params[:unmapped] == "1" ? true : nil
+    @unmapped = params[:unmapped] != "0"
     @exclude_top_ups = params[:exclude_top_ups] == "1" ? true : nil
     @mapped_by_human = params[:mapped_by_human] == "1" ? true : nil
     @event_id = params[:event_id].present? ? params[:event_id] : nil
@@ -511,8 +522,7 @@ class AdminController < ApplicationController
   def ach_approve
     attrs = {
       ach_transfer_id: params[:id],
-      scheduled_arrival_date: params[:scheduled_arrival_date],
-      confirmation_number: params[:confirmation_number]
+      processor: current_user
     }
     ach_transfer = AchTransferService::Approve.new(attrs).run
 
@@ -539,11 +549,9 @@ class AdminController < ApplicationController
   end
 
   def disbursement_approve
-    attrs = {
-      disbursement_id: params[:id],
-      fulfilled_by_id: current_user.id
-    }
-    disbursement = DisbursementService::Approve.new(attrs).run
+    disbursement = Disbursement.find(params[:id])
+
+    disbursement.mark_approved!(current_user)
 
     redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
   rescue => e
@@ -552,11 +560,9 @@ class AdminController < ApplicationController
   end
 
   def disbursement_reject
-    attrs = {
-      disbursement_id: params[:id],
-      fulfilled_by_id: current_user.id
-    }
-    disbursement = DisbursementService::Reject.new(attrs).run
+    disbursement = Disbursement.find(params[:id])
+
+    disbursement.mark_rejected!(current_user)
 
     redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
   rescue => e
@@ -645,6 +651,20 @@ class AdminController < ApplicationController
     redirect_to check_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
+  def increase_checks
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @checks = IncreaseCheck.page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
+  def increase_check_process
+    @check = IncreaseCheck.find(params[:id])
+
+    render layout: "admin"
+  end
+
   def partner_donations
     @page = params[:page] || 1
     @per = params[:per] || 20
@@ -725,6 +745,24 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
+  def recurring_donations
+    @active = params[:active] == "1" ? true : nil
+    @canceled = params[:canceled] == "1" ? true : nil
+
+    @event_id = params[:event_id].present? ? params[:event_id] : nil
+
+    relation = RecurringDonation.includes(:event).where.not(stripe_status: [:incomplete, :incomplete_expired])
+
+    relation = relation.active if @active
+    relation = relation.canceled if @canceled
+
+    relation = relation.where(event_id: @event_id) if @event_id
+
+    @donations = relation.page(params[:page]).per(20).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
   def disbursements
     @page = params[:page] || 1
     @per = params[:per] || 20
@@ -755,7 +793,7 @@ class AdminController < ApplicationController
 
     relation = relation.pending if @pending
     relation = relation.reviewing if @reviewing
-    # relation = relation.processing if @processing # TODO: remove ruby logic from scope
+    relation = relation.processing if @processing
 
     @count = relation.count
     @disbursements = relation.page(@page).per(@per).order("created_at desc")
@@ -935,28 +973,6 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
-  def selenium_sessions
-    @page = params[:page] || 1
-    @per = params[:per] || 20
-
-    relation = SeleniumSession
-
-    @count = relation.count
-    @selenium_sessions = relation.page(@page).per(@per).order("created_at desc")
-
-    render layout: "admin"
-  end
-
-  def selenium_sessions_new
-    render layout: "admin"
-  end
-
-  def selenium_sessions_create
-    selenium_session = ::SeleniumService::Create.new(file: params[:file]).run
-
-    redirect_to selenium_sessions_admin_index_path, flash: { success: "Selenium session created" }
-  end
-
   def transaction_csvs
     @page = params[:page] || 1
     @per = params[:per] || 20
@@ -1099,6 +1115,7 @@ class AdminController < ApplicationController
 
   def filtered_events(events: Event.all)
     @q = params[:q].present? ? params[:q] : nil
+    @demo_mode = params[:demo_mode].present? ? params[:demo_mode] : "full" # full accounts only by default
     @pending = params[:pending] == "0" ? nil : true # checked by default
     @unapproved = params[:unapproved] == "0" ? nil : true # checked by default
     @approved = params[:approved] == "0" ? nil : true # checked by default
@@ -1119,6 +1136,7 @@ class AdminController < ApplicationController
     else
       @country = params[:country].present? ? params[:country] : "all"
     end
+    @activity_since_date = params[:activity_since]
 
     relation = events.not_partner
 
@@ -1133,6 +1151,9 @@ class AdminController < ApplicationController
     relation = relation.not_funded if @funded == "not_funded"
     relation = relation.organized_by_hack_clubbers if @organized_by_hack_clubbers == "organized_by_hack_clubbers"
     relation = relation.not_organized_by_hack_clubbers if @organized_by_hack_clubbers == "not_organized_by_hack_clubbers"
+    relation = relation.demo_mode if @demo_mode == "demo"
+    relation = relation.not_demo_mode if @demo_mode == "full"
+    relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date).group("events.id") if @activity_since_date.present?
     if @category == "none"
       relation = relation.where(category: nil)
     elsif @category != "all"

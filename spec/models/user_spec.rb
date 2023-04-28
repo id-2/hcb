@@ -118,6 +118,38 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "#locked?" do
+    context "when locked" do
+      it "returns" do
+        user = create(:user, locked_at: Time.now)
+        expect(user).to be_locked
+      end
+    end
+
+    context "when unlocked" do
+      it "returns" do
+        user = create(:user, locked_at: nil)
+        expect(user).not_to be_locked
+      end
+    end
+  end
+
+  describe "#lock!" do
+    it "locks" do
+      user = create(:user, locked_at: nil)
+      user.lock!
+      expect(user).to be_locked
+    end
+  end
+
+  describe "#unlock!" do
+    it "unlocks" do
+      user = create(:user, locked_at: Time.now)
+      user.unlock!
+      expect(user).not_to be_locked
+    end
+  end
+
   describe "#private" do
     describe "#namae" do
       context "when brackets in name" do
@@ -162,19 +194,6 @@ RSpec.describe User, type: :model do
           expect(result.given).to eql("5512700050241863")
           expect(result.family).to eql(nil)
         end
-      end
-    end
-  end
-
-  describe "#api_access_token" do
-    context "duplicate api tokens are created" do
-      it "fails because of unique index violation" do
-        token = "token"
-        _existing_user = create(:user, api_access_token: token)
-
-        expect do
-          create(:user, api_access_token: token)
-        end.to raise_error(ActiveRecord::RecordNotUnique, /index_users_on_api_access_token_bidx\b/)
       end
     end
   end

@@ -19,7 +19,7 @@ class PartneredSignupsController < ApplicationController
     # contract has yet to be signed
 
     # Pass through to `redirect_url` if the form has already been signed
-    redirect_to @partnered_signup.redirect_url if @partnered_signup.applicant_signed?
+    redirect_to @partnered_signup.redirect_url, allow_other_host: true if @partnered_signup.applicant_signed?
   end
 
   # PATCH /partnered_signups/:public_id
@@ -31,13 +31,13 @@ class PartneredSignupsController < ApplicationController
 
     return unless signed_contract?
 
-    redirect_to @partnered_signup.redirect_url
+    redirect_to @partnered_signup.redirect_url, allow_other_host: true
 
     # Send webhook to let Partner know that the Connect from has been submitted
     ::PartneredSignupJob::DeliverWebhook.perform_later(@partnered_signup.id)
   rescue => e
     Airbrake.notify(e)
-    render "edit"
+    render :edit, status: :unprocessable_entity
   end
 
   private
@@ -63,17 +63,17 @@ class PartneredSignupsController < ApplicationController
       data = service.create
       @partnered_signup.docusign_envelope_id = data[:envelope].envelope_id
       if @partnered_signup.save
-        redirect_to data[:signing_url]
+        redirect_to data[:signing_url], allow_other_host: true
       else
-        flash[:error] = "Something went wrong, please contact bank@hackclub.com for help"
-        render "edit"
+        flash.now[:error] = "Something went wrong, please contact bank@hackclub.com for help"
+        render :edit, status: :unprocessable_entity
       end
       return false
     end
 
     # if the user didn't sign the contract yet, show it to them again
     unless @partnered_signup.signed_contract
-      redirect_to service.get_signing_url(@partnered_signup.docusign_envelope_id)
+      redirect_to service.get_signing_url(@partnered_signup.docusign_envelope_id), allow_other_host: true
     end
     false
   end

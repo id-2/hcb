@@ -2,8 +2,8 @@
   <section class="card p0 mt3 mb3">
     <h2 class="heading h2 line-height-3 mt0 ml0 pt1 pb1 pl2 pr2">
       Charges missing receipts
-      <%= link_to my_inbox_path, class: 'btn' do %>
-        <%= inline_icon 'view' %>
+      <%= link_to my_inbox_path, class: "btn" do %>
+        <%= inline_icon "view" %>
         See all
       <% end %>
     </h2>
@@ -26,12 +26,12 @@
           <% @missing.each do |hcb_code| %>
             <% if hcb_code.canonical_transactions.any? %>
               <% hcb_code.canonical_transactions.each do |ct| %>
-                <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: hcb_code, force_display_details: true, authorless: true, receipt_upload_button: true  } %>
+                <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: ct, force_display_details: true, authorless: true, receipt_upload_button: true } %>
               <% end %>
             <% else %>
               <% hcb_code.canonical_pending_transactions.each do |pt| %>
                 <% next if pt.declined? %>
-                <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt: pt, force_display_details: true, authorless: true, receipt_upload_button: true  } %>
+                <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt: pt, force_display_details: true, authorless: true, receipt_upload_button: true } %>
               <% end %>
             <% end %>
           <% end %>

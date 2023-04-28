@@ -14,7 +14,10 @@ class StripeCardsController < ApplicationController
       @stripe_cards = @event.stripe_cards.physical_shipping
     else # my cards page
       # Only show shipping for phyiscal cards if the eta is in the future (or 1 week after)
-      @stripe_cards = current_user.stripe_cards.physical_shipping.reject { |sc| Time.at(sc.stripe_obj[:shipping][:eta]) < 1.week.ago }
+      @stripe_cards = current_user.stripe_cards.physical_shipping.reject do |sc|
+        eta = sc.stripe_obj[:shipping][:eta]
+        !eta || Time.at(eta) < 1.week.ago
+      end
       skip_authorization # do not force pundit
     end
     render :shipping, layout: false
@@ -28,7 +31,7 @@ class StripeCardsController < ApplicationController
       flash[:success] = "Card frozen"
       redirect_to @card
     else
-      render "show"
+      render :show, status: :unprocessable_entity
     end
   end
 
@@ -40,7 +43,7 @@ class StripeCardsController < ApplicationController
       flash[:success] = "Card defrosted"
       redirect_to @card
     else
-      render "show"
+      render :show, status: :unprocessable_entity
     end
   end
 
@@ -60,17 +63,27 @@ class StripeCardsController < ApplicationController
       confetti!
       redirect_to @card
     else
-      render "show"
+      render :show, status: :unprocessable_entity
     end
   end
 
   def show
     @card = StripeCard.includes(:event, :user).find(params[:id])
 
+
     authorize @card
 
+    if params[:show_details] == "true"
+      ahoy.track "Card details shown", stripe_card_id: @card.id
+    end
+
+    @show_card_details = params[:show_details] == "true"
     @event = @card.event
-    @hcb_codes = @card.hcb_codes.page(params[:page]).per(25)
+
+    @hcb_codes = @card.hcb_codes
+                      .includes(canonical_pending_transactions: [:raw_pending_stripe_transaction], canonical_transactions: { hashed_transactions: [:raw_stripe_transaction] })
+                      .page(params[:page]).per(25)
+
   end
 
   def new
@@ -85,10 +98,12 @@ class StripeCardsController < ApplicationController
 
     sc = params[:stripe_card]
 
+    return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Event is in Playground Mode" } if event.demo_mode?
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Invalid country" } unless %w(US CA).include? sc[:stripe_shipping_address_country]
 
     attrs = {
       current_user: current_user,
+      current_session: current_session,
       event_id: event.id,
       card_type: sc[:card_type],
       stripe_shipping_name: sc[:stripe_shipping_name],
@@ -106,6 +121,22 @@ class StripeCardsController < ApplicationController
     Airbrake.notify(e)
 
     redirect_to event_cards_new_path(event), flash: { error: e.message }
+  end
+
+  def edit
+    @card = StripeCard.find(params[:stripe_card_id])
+    @event = @card.event
+    authorize @card
+  end
+
+  def update_name
+    card = StripeCard.find(params[:stripe_card_id])
+    authorize card
+    name = params[:stripe_card][:name]
+    name = nil unless name.present?
+    updated = card.update(name: name)
+
+    redirect_to stripe_card_url(card), flash: updated ? { success: "Card's name has been successfully updated!" } : { error: "Card's name could not be updated" }
   end
 
   private

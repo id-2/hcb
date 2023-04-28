@@ -17,6 +17,9 @@ Airbrake.configure do |c|
   c.project_id = 288439
   c.project_key = Rails.application.credentials.dig(:airbrake, :project_key)
 
+  # https://docs.airbrake.io/docs/overview/apm/#monitoring-rails-apps
+  c.performance_stats = true
+
   # Configures the root directory of your project. Expects a String or a
   # Pathname, which represents the path to your project. Providing this option
   # helps us to filter out repetitive data from backtrace frames and link to
@@ -72,7 +75,7 @@ end
 # Rails.logger = Airbrake::AirbrakeLogger.new(Rails.logger)
 #
 
-noisy_errors = [ActionController::RoutingError, ActiveRecord::RecordNotFound]
+noisy_errors = [ActionController::RoutingError, ActiveRecord::RecordNotFound, Lob::InvalidRequestError]
 
 Airbrake.add_filter do |notice|
   next unless noisy_errors.include?(notice.stash[:exception].class)
@@ -81,10 +84,13 @@ Airbrake.add_filter do |notice|
   notice.ignore! if rand(1..10) <= 9
 end
 
-ignorable_errors = [SignalException, Sidekiq::Shutdown, Plaid::PlaidAPIError, ActiveRecord::ConnectionTimeoutError, ::BankApiService::UnauthorizedError]
 
-Airbrake.add_filter do |notice|
-  next unless ignorable_errors.include?(notice.stash[:exception].class)
+Rails.application.reloader.to_prepare do
+  ignorable_errors = [SignalException, Sidekiq::Shutdown, Plaid::PlaidAPIError, ActiveRecord::ConnectionTimeoutError]
 
-  notice.ignore!
+  Airbrake.add_filter do |notice|
+    next unless ignorable_errors.include?(notice.stash[:exception].class)
+
+    notice.ignore!
+  end
 end

@@ -21,8 +21,8 @@
   </script>
   <script defer>
     document.addEventListener('turbo:load', function() {
-      const stripe = Stripe('<%= StripeService.publishable_key %>')
-      const clientSecret = '<%= @donation.stripe_client_secret %>'
+      const stripe = Stripe(<%= StripeService.publishable_key.to_json.html_safe %>)
+      const clientSecret = <%= @donation.stripe_client_secret.to_json.html_safe %>
       const appearance = BK.isDark() ? {
         theme: "none",
         variables: {
@@ -99,11 +99,11 @@
   </script>
 <% end %>
 
-<% title 'Give to ' + @event.name %>
+<% title "Give to " + @event.name %>
 <% page_sm %>
 <% no_app_shell %>
 
-<%= render 'header' %>
+<%= render "header" %>
 
 <div class="card mb3">
   <p class="mt1">
@@ -147,4 +147,4 @@
   </div>
 </div>
 
-<%= render 'footer' %>
+<%= render "footer" %>

@@ -5,6 +5,10 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin? || present_in_events?
   end
 
+  def memo_frame?
+    user&.admin?
+  end
+
   def comment?
     user&.admin? || present_in_events?
   end
@@ -17,12 +21,25 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin? || present_in_events?
   end
 
+  def send_receipt_sms?
+    user&.admin?
+  end
+
   def dispute?
     user&.admin? || present_in_events?
   end
 
   def toggle_tag?
     user&.admin? || present_in_events?
+  end
+
+  def link_receipt_modal?
+    user&.admin? || present_in_events?
+  end
+
+  def link_receipt?
+    user&.admin? || (present_in_events? && record.receipt.user_id == user.id)
+
   end
 
   private

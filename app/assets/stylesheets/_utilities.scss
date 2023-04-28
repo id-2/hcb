@@ -139,7 +139,7 @@ $shades: (
 }
 
 .bg-transparent {
-  background-color: transparent;
+  background-color: transparent !important;
 }
 
 .secondary {
@@ -233,4 +233,8 @@ $shades: (
   flex-basis: 0;
   flex-grow: 1;
   flex-shrink: 0;
+}
+
+.mono {
+  font-family: 'Space Mono', 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
 }

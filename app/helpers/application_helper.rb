@@ -120,18 +120,10 @@ module ApplicationHelper
     pop_icon_to "view-close", "#close_modal", class: "modal__close muted", rel: "modal:close", tabindex: 0
   end
 
-  def modal_header(text)
+  def modal_header(text, level: "h0")
     content_tag :header, class: "pb2" do
       modal_close +
-        content_tag(:h2, text.html_safe, class: "h0 mt0 mb0 pb0 border-none")
-    end
-  end
-
-  # jQuery plugins are buggy when navigating between pages with Turbo.
-  # This forces the page to reload when Turbo navigates to it
-  def include_modals
-    content_for :head do
-      tag(:meta, name: "turbo-visit-control", content: "reload")
+        content_tag(:h2, text.html_safe, class: "#{level} mt0 mb0 pb0 border-none")
     end
   end
 
@@ -318,5 +310,17 @@ module ApplicationHelper
     end
 
     "https://airtable.com/#{id}?#{URI.encode_www_form(query)}"
+  end
+
+  def fillout_form(id, params = {}, hide = [])
+    query = {}
+    params.each do |key, value|
+      query["prefill_#{key}"] = value
+    end
+    hide.each do |field|
+      query["hide_#{field}"] = "true"
+    end
+
+    "https://forms.hackclub.com/t/#{id}?#{URI.encode_www_form(query)}"
   end
 end

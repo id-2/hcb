@@ -5,14 +5,13 @@
 <%= paginate @events %>
 
 <%= form_with local: true, url: events_admin_index_path, method: :get do |form| %>
-  <%= form.text_field :q, value: params[:q], style: 'vertical-align: top;', placeholder: 'Search' %>
+  <%= form.text_field :q, value: params[:q], style: "vertical-align: top;", placeholder: "Search" %>
   <div class="inline-block">
     <%= render partial: "events_filter", locals: { form: form } %>
   </div>
 <% end %>
 
-
-<%= page_entries_info @events, entry_name: 'organizations' %>
+<%= page_entries_info @events, entry_name: "organizations" %>
 
 <table>
   <thead>
@@ -29,7 +28,7 @@
   </thead>
   <tbody>
     <% @events.each do |event| %>
-      <tr class="<%= "admin-bg-pending" if event.pending? || event.unapproved? %> <%= "admin-bg-orange" if event.omit_stats? %>">
+      <tr class="<%= "admin-bg-pending" if event.pending? || event.unapproved? || event.demo_mode? %> <%= "admin-bg-orange" if event.omit_stats? %>">
         <td><%= event.id %></td>
         <td><%= event.created_at.strftime("%Y-%m-%d") %></td>
         <td>
@@ -37,8 +36,10 @@
             <%= event.name.upcase %>
           <% end %>
         </td>
-        <td style="<%= 'color: lightgray;' if event.balance === 0 %>">
-          <%= render_money event.balance %>
+        <td>
+          <%= async_frame_to event_balance_admin_path(event) do %>
+            <em>$ –</em>
+          <% end %>
         </td>
         <td>
           <%= render_percentage event.sponsorship_fee %>
@@ -47,22 +48,16 @@
           <%= event.country %>
         </td>
         <td>
-          <% if event.omit_stats? %>
-            <span title="🏦 Omitted from stats">🏦</span>
-          <% end %>
-          <% if event.is_public? %>
-            <span title="📈 Transparency mode enabled">📈</span>
-          <% end %>
-          <% if event.hidden_at? %>
-            <span title="🕵️‍♂️ Hidden">🕵️‍♂️</span>
-          <% end %>
-          <% if event.organized_by_hack_clubbers? %>
-            <span title="🦕 Organized by Hack Clubbers">🦕</span>
+          <% Event::BADGES.each do |_key, badge| %>
+            <% if event.send(badge[:qualifier]) %>
+              <span title="<%= badge[:emoji] %> <%= badge[:description] %>"><%= badge[:emoji] %></span>
+            <% end %>
           <% end %>
         </td>
         <td>
           <%= link_to "Process", event_process_admin_path(event) if event.pending? || event.unapproved? %>
-          <%= link_to "View", event_process_admin_path(event) unless event.pending? || event.unapproved? %>
+          <%= link_to "Edit", edit_event_path(event, anchor: :admin_settings) unless event.pending? || event.unapproved? %>
+          <%= link_to "Review", event_process_admin_path(event) unless event.pending? || event.unapproved? %>
         </td>
       </tr>
     <% end %>

@@ -15,8 +15,10 @@ module TransactionEngine
           return likely_check if outgoing_check?
           return likely_clearing_check if clearing_check?
           return likely_dda_check if dda_check?
+          return likely_increase_check if increase_check?
 
           return likely_ach if outgoing_ach?
+          return likely_increase_ach if increase_ach?
 
           return likely_invoice if incoming_invoice?
 
@@ -58,13 +60,28 @@ module TransactionEngine
         event.canonical_transactions.likely_checks.where(amount_cents: -@canonical_transaction.amount_cents, date: @canonical_transaction.date).first.try(:check)
       end
 
+      def likely_increase_check
+        increase_check_transfer_id = @canonical_transaction.raw_increase_transaction.increase_transaction.dig("source", "check_transfer_intention", "transfer_id")
+
+        IncreaseCheck.find_by(increase_id: increase_check_transfer_id)
+      end
+
       def likely_ach
         return nil unless event
 
-        safe_likely_name = ActiveRecord::Base.connection.quote_string likely_outgoing_ach_name
-        possible_achs = event.ach_transfers.where("recipient_name ilike '%#{safe_likely_name}%' and amount = #{-amount_cents}")
+        confirmation_number = @canonical_transaction.likely_ach_confirmation_number
+        return nil unless confirmation_number
 
-        possible_achs.find { |possible_ach| possible_ach.canonical_transactions.blank? || possible_ach.canonical_transactions.where(id: @canonical_transaction.id).exists? }
+        event.ach_transfers.find_by(confirmation_number: confirmation_number)
+      end
+
+      def likely_increase_ach
+        increase_ach_transfer_id = @canonical_transaction.raw_increase_transaction.increase_transaction.dig("source", "ach_transfer_intention", "transfer_id")
+
+        ach_transfer = AchTransfer.find_by(increase_id: increase_ach_transfer_id)
+        return unless ach_transfer
+
+        return ach_transfer
       end
 
       def likely_invoice

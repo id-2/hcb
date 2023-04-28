@@ -1,9 +1,10 @@
 <div id="flash-container">
-  <% flash.filter {|key, value| key != "confetti"}.each do |key, value| %>
+  <% flash.filter { |key, value| key != "confetti" }.each do |key, value| %>
     <article
       role="alertdialog"
       class="flash flex items-center mt3 mb2 mx-auto shrink-none <%= key %>"
-      data-behavior="flash">
+      data-behavior="flash"
+      data-turbo-cache="false">
       <span class="flex-auto flex justify-between items-center">
         <% if value.is_a? Hash %>
           <%= value["text"] %>
@@ -12,7 +13,7 @@
           <%= value %>
         <% end %>
       </span>
-      <%= inline_icon 'view-close', size: 32, class: 'pointer' %>
+      <%= inline_icon "view-close", size: 32, class: "pointer" %>
     </article>
   <% end %>
 </div>

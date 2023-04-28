@@ -2,14 +2,8 @@
 
 module BankFeeService
   class ProcessSingle
-    include ::Shared::Selenium::LoginToSvb
-    include ::Shared::Selenium::TransferFromFsMainToFsOperating
-    include ::Shared::Selenium::TransferFromFsOperatingToFsMain
-
-    def initialize(bank_fee_id:, driver: nil)
+    def initialize(bank_fee_id:)
       @bank_fee_id = bank_fee_id
-      @driver = driver
-      @already_logged_in = @driver.present?
     end
 
     def run
@@ -18,20 +12,13 @@ module BankFeeService
       ActiveRecord::Base.transaction do
         bank_fee.mark_in_transit!
 
-        # 1. begin by navigating
-        login_to_svb! unless @already_logged_in
-
-        # Make the transfer on remote bank
-        transfer_from_fs_main_to_fs_operating!(amount_cents: amount_cents, memo: memo)
-
-        sleep 5 # helps simulate real clicking
-
-        transfer_from_fs_operating_to_fs_main!(amount_cents: amount_cents, memo: incoming_memo)
+        Increase::AccountTransfers.create(
+          account_id: IncreaseService::AccountIds::FS_MAIN,
+          destination_account_id: IncreaseService::AccountIds::FS_OPERATING,
+          amount: amount_cents,
+          description: memo
+        )
       end
-
-      sleep 5
-
-      driver.quit unless @already_logged_in
 
       true
     end
@@ -44,11 +31,6 @@ module BankFeeService
 
     def memo
       "HCB-#{local_hcb_code.short_code}"
-    end
-
-    def incoming_memo
-      hcb_code = HcbCode.find_or_create_by(hcb_code: "HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::INCOMING_BANK_FEE_CODE}-#{bank_fee.id}")
-      "HCB-#{hcb_code.short_code}"
     end
 
     def local_hcb_code

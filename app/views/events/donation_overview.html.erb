@@ -26,7 +26,7 @@
             data: { behavior: "modal_trigger", modal: "embed_code" } do %>
             Embed code
           <% end %>
-          <%= link_to '#',
+          <%= link_to "#",
             data: { behavior: "modal_trigger", modal: "prefilled_link" } do %>
             Prefilled amount
           <% end %>
@@ -39,7 +39,7 @@
 <% if @event.donation_page_enabled %>
   <section class="modal" data-behavior="modal" role="dialog" id="qr_code">
     <%= modal_header "Donations QR code" %>
-    <img alt="QR code" src="<%= qr_code_donations_path @event %>" />
+    <img alt="QR code" src="<%= qr_code_donations_path @event %>">
   </section>
 
   <section class="modal" data-behavior="modal" role="dialog" id="embed_code">
@@ -52,7 +52,7 @@
 
   <section class="modal" data-behavior="modal" role="dialog" id="prefilled_link">
     <%= modal_header "Prefilled Amount" %>
-    <%= react_component 'donation_overview/PreviewLink', path: start_donation_donations_url(@event) %>
+    <%= react_component "donation_overview/PreviewLink", path: start_donation_donations_url(@event) %>
   </section>
 <% else %>
   <p>You can start accepting donations once you enable it in your project's <%= link_to "settings", edit_event_path(@event, anchor: "donations") %>.</p>
@@ -72,25 +72,64 @@
     <span class="stat__value"><%= render_money_amount @stats[:refunded] %></span>
   </div>
   <div>
-  <% if organizer_signed_in? && @event.canonical_transactions.exists? %>
-    <button
-      type="button"
-      <%= organizer_signed_in? ? 'data-behavior=menu_toggle aria-expanded=false tabindex=0' : 'disabled=disabled' %>
-      class="btn bg-info menu__toggle overflow-visible right h5 z1" style="padding: 0.25rem 1rem;">
-        <%= inline_icon 'download', size: 16 %>
-        Export
-        <% if organizer_signed_in? %>
-          <div class="menu__content h5" data-behavior="menu_content">
-          <%= link_to 'Export donations (CSV)', export_donations_path(event: @event, format: :csv), target: :_blank %>
-          <%= link_to 'Export donations (JSON)', export_donations_path(event: @event, format: :json), target: :_blank %>
-          </div>
-        <% end %>
-    </button>
+  <% unless show_mock_data? %>
+    <% if organizer_signed_in? && @donations.not_pending.any? %>
+      <button
+        type="button"
+        <%= organizer_signed_in? ? "data-behavior=menu_toggle aria-expanded=false tabindex=0" : "disabled=disabled" %>
+        class="btn bg-info menu__toggle overflow-visible right h5 z1" style="padding: 0.25rem 1rem;">
+          <%= inline_icon "download", size: 16 %>
+          Export
+          <% if organizer_signed_in? %>
+            <div class="menu__content h5" data-behavior="menu_content">
+            <%= link_to "Export donations (CSV)", export_donations_path(event: @event, format: :csv), target: :_blank %>
+            <%= link_to "Export donations (JSON)", export_donations_path(event: @event, format: :json), target: :_blank %>
+            </div>
+          <% end %>
+      </button>
+    <% end %>
   <% end %>
   </div>
 </div>
 
-<hr/>
+<hr>
+
+<% if @recurring_donations.size > 0 %>
+  <h2>Recurring donors</h2>
+  <div class="table-container mb3">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Started on</th>
+          <th>Name</th>
+          <th>Amount</th>
+          <th>Total donated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @recurring_donations.each do |recurring_donation| %>
+          <tr>
+            <td style="width: 1%"><span class="ml0 mr1 badge bg-success"><%= recurring_donation.stripe_status.humanize %></span></td>
+            <td><%= format_date recurring_donation.created_at %></td>
+            <td class="line-height-3">
+              <%= recurring_donation.name %><br>
+              <% if organizer_signed_in? %>
+                <span class="muted h5"><%= recurring_donation.email %></span>
+              <% end %>
+            </td>
+            <td>
+              <%= render_money recurring_donation.amount %><span class="muted">/month</span>
+            </td>
+            <td>
+              <strong><%= render_money recurring_donation.total_donated %></strong>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
 
 <div style="text-align: center;">
   <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["deposited", "in_transit", "refunded"].include?(params[:filter]), role: "tab" %>
@@ -130,8 +169,11 @@
           <td>
             <%= format_date d.created_at %>
           </td>
-          <td>
+          <td class="flex items-center">
             <%= d.name %>
+            <% if d.recurring? %>
+              <div class="line-height-0 ml1 tooltipped tooltipped--n" aria-label="Monthly donor"><%= inline_icon "transactions", size: 24, class: "muted" %></div>
+            <% end %>
           </td>
           <td style="text-align: right;">
             <%= render_money(d.amount) %>
@@ -147,5 +189,5 @@
 </article>
 
 <% else %>
-  <%= blankslate 'No donations yet' %>
+  <%= blankslate "No donations yet" %>
 <% end %>

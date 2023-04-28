@@ -1,13 +1,13 @@
-<% title 'Give to ' + @event.name %>
+<% title "Give to " + @event.name %>
 <% page_sm %>
 <% no_app_shell %>
 
 <% content_for :head do %>
   <% img = "https://workshop-cards.hackclub.com/Donate%20to%20#{url_encode(@event.name)}.png?theme=light&fontSize=225px&brand=Bank" %>
   <meta name="twitter:card" content="summary_large_image">
-  <meta property="og:image" content="<%= img %>"/>
+  <meta property="og:image" content="<%= img %>">
   <meta name="twitter:image" content="<%= img %>">
-  <meta property="og:site_name" content="Hack Club Bank" />
+  <meta property="og:site_name" content="Hack Club Bank">
   <meta property="og:url" content="<%= start_donation_donations_url @event %>">
   <meta property="og:title" content="Donate to <%= @event.name %>">
   <meta name="twitter:title" content="Donate to <%= @event.name %>">
@@ -17,7 +17,7 @@
   <meta name="description" content="<%= description %>">
 <% end %>
 
-<%= render 'header' %>
+<%= render "donations/header" %>
 
 <% if @event.donation_page_message.present? %>
   <div class="container container--sm">
@@ -27,6 +27,16 @@
   </div>
 <% end %>
 
-<%= render 'donation_form', donation: @donation, exchange_rate: @exchange_rate %>
+<%= render 'donations/donation_form', donation: @donation, exchange_rate: @exchange_rate %>
 
-<%= render 'footer' %>
+<% if @event.demo_mode? %>
+  <div class="container container--sm">
+    <div class="card border b--info mt3 mb3 pb0 pt0 public-message">
+      <p>
+        Your account is in Playground Mode. If you want to try out a live donation page, you can see <%= link_to "our own donation page", start_donation_donations_url(@example_event) %>.
+      </p>
+    </div>
+  </div>
+<% end %>
+
+<%= render "donations/footer" %>
