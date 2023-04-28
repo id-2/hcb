@@ -114,7 +114,6 @@ class DonationsController < ApplicationController
     # We don't use set_event here to prevent a UI vulnerability where a user could create a donation on one org and make it look like another org by changing the slug
     # https://github.com/hackclub/bank/issues/3197
     @event = @donation.event
-    
     if @donation.status == "succeeded"
       flash[:info] = "You tried to access the payment page for a donation that’s already been sent."
       redirect_to start_donation_donations_path(@event)
