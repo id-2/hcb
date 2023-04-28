@@ -66,7 +66,7 @@ class DonationsController < ApplicationController
 
     d_params = donation_params
 
-    d_params[:amount] = Monetize.parse(public_donation_params[:amount].to_f / @exchange_rate).cents
+    d_params[:amount] = Monetize.parse(donation_params[:amount].to_f / @exchange_rate).cents
 
     if @event.demo_mode?
       @example_event = Event.find(183)
