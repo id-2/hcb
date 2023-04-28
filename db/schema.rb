@@ -589,7 +589,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_18_100004) do
     t.boolean "organized_by_hack_clubbers"
     t.string "custom_css_url"
     t.integer "category"
-    t.boolean "can_front_balance", default: false, null: false
     t.text "donation_page_currency", default: "USD"
     t.boolean "can_front_balance", default: true, null: false
     t.boolean "demo_mode", default: false, null: false
