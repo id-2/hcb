@@ -41,12 +41,10 @@ Clone the repository or create a new Codespaces instance.
 git clone https://github.com/hackclub/bank.git && cd bank
 ```
 
-Create a `config/master.key` file and ask a team member (ping `@creds` in Slack) for the contents.
+Copy the development key file to `config/master.key`
 
 ```bash
-touch config/master.key
-# copy the key to your clipboard
-pbpaste > config/master.key
+cp config/credentials/development.key config/master.key
 ```
 
 Install and run [Docker](https://docs.docker.com/get-docker/).
@@ -68,6 +66,11 @@ Start the development server with the [docker_start.sh](./docker_start.sh) scrip
 ```
 
 Visit [localhost:3000](http://localhost:3000) to see the result.
+
+To populate the DB with an organization, open the web interface & create an account, then:
+```bash
+docker exec -d $(docker ps -qf "name=bank_web") ruby bin/rails runner db/seeds.rb
+```
 
 **What's Solargraph?** [Solargraph](https://solargraph.org/) is a Ruby language server that provides better Intellisense and code completion. It's completely optional to use Solargraph but highly recommended. You may also need to install the [Solargraph extension](https://github.com/castwide/solargraph#using-solargraph) for your IDE.
 
