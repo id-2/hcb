@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ReceiptUploadsMailbox < ApplicationMailbox
+class ReceiptHcbUploadsMailbox < ApplicationMailbox
   # mail --> Mail object, this actual email
   # inbound_email => ActionMailbox::InboundEmail record  --> the active storage record
 

@@ -5,6 +5,6 @@ class ApplicationMailbox < ActionMailbox::Base
 
   # Routing all the incoming emails to the ReceiptUpload Mailbox
   # ie. "receipts+hcb-123abc@bank.hackclub.com"
-  routing /^receipts\+/i => :receipt_uploads
+  routing /^receipts\+/i => :receipt_hcb_uploads
 
 end
