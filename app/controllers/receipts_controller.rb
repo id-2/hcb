@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "uri"
+require "timeout"
+
 class ReceiptsController < ApplicationController
   skip_after_action :verify_authorized, only: :upload # do not force pundit
   skip_before_action :signed_in_user, only: :upload
@@ -38,11 +41,29 @@ class ReceiptsController < ApplicationController
       flash[:success] = "Receipt added!"
     end
 
-    redirect_back fallback_location: @receiptable.try(:hcb_code) || @receiptable
+    if params[:redirect_url]
+      redirect_to params[:redirect_url]
+    else
+      redirect_back fallback_location: @receiptable.try(:hcb_code) || @receiptable
+    end
   end
 
   def link_modal
-    @receipts = Receipt.where(user: current_user, receiptable: nil)
+    @receipts = Receipt.where(user: current_user, receiptable: nil).to_a
+    @pairings = {}
+
+    @receipts.each_with_index do |receipt, index|
+      suggested_pairing = index > 3
+
+      @pairings[receipt.id] = suggested_pairing
+      if suggested_pairing
+        @receipts = @receipts.insert(0, @receipts.delete_at(index))
+      end
+    end
+
+    # if @pairings[receipt.id] === true, then bring the receipt to the top of the list
+
+
 
     authorize @receiptable, policy_class: ReceiptablePolicy
 
@@ -64,14 +85,32 @@ class ReceiptsController < ApplicationController
       raise unless @has_valid_secret
     end
 
+    pairing_receipt = nil
+    pairing_hcb_code = nil
+
     if params[:file] # Ignore if no files were uploaded
-      params[:file].each do |file|
+      receipts = params[:file].map do |file|
         ::ReceiptService::Create.new(
           receiptable: @receiptable,
           uploader: current_user,
           attachments: [file],
           upload_method: params[:upload_method]
-        ).run!
+        ).run!.to_a.first
+      end
+
+      if receipts.length == 1
+        begin
+          Timeout::timeout(3) do
+            hcb_code = ::ReceiptService::Suggest.new(receipt: receipts.first).run!
+    
+            if !hcb_code.nil?
+              pairing_receipt = receipts.first.id
+              pairing_hcb_code = hcb_code[:txn].hashid
+            end
+          end
+        rescue Timeout::Error
+          
+        end
       end
 
       if params[:show_link]
@@ -83,12 +122,22 @@ class ReceiptsController < ApplicationController
   rescue => e
     notify_airbrake(e)
 
+    puts e.inspect
+
     flash[:error] = e.message
   ensure
     if params[:redirect_url]
-      redirect_to params[:redirect_url]
+      uri = URI.parse(params[:redirect_url])
+      params = {
+        pairing_receipt: pairing_receipt,
+        pairing_hcb_code: pairing_hcb_code
+      }
+
+      uri.query = URI.encode_www_form(params)
+
+      redirect_to uri.to_s
     else
-      redirect_back fallback_location: @receiptable&.try(:url) || @receiptable || my_inbox_path
+      redirect_back fallback_location: @receiptable&.try(:url) || @receiptable || my_inbox_path, params: { pairing_receipt: pairing_receipt, pairing_hcb_code: pairing_hcb_code }
     end
   end
 

@@ -98,6 +98,10 @@ class Receipt < ApplicationRecord
     end
   end
 
+  def extract_features
+    textual_content
+  end
+
   private
 
   def pdf_text

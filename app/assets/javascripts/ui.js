@@ -14,12 +14,17 @@ $(document).on('click', '[data-behavior~=flash]', function () {
 })
 
 $(document).on('click', '[data-behavior~=modal_trigger]', function (e) {
+  console.log("Checkpoint")
   if ($(this).attr('href') || $(e.target).attr('href')) e.preventDefault()
+  console.log("Checkpoint")
+  const el = $("#" + $(this).data('modal'));
+  console.log("Checkpoint", el)
   BK.s('modal', '#' + $(this).data('modal')).modal({
     modalClass: $(this).parents('turbo-frame').length
       ? 'turbo-frame-modal'
       : undefined
   })
+  console.log("Checkpoint")
   return this.blur()
 })
 

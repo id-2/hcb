@@ -35,14 +35,20 @@
   z-index: 2;
   text-align: left;
 
+  &.modal--wide {
+    width: 40rem;
+    max-width: 95vw;
+  }
+
   @media (min-width: 32rem) {
     padding: 2rem;
     width: 36rem;
     max-width: 95vw;
     max-height: 85vh;
 
-    .modal--wide {
+    &.modal--wide {
       width: 48rem;
+      max-width: 95vw;
     }
   }
 

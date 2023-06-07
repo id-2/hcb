@@ -4,8 +4,9 @@
   <% if @receipts.size == 0 %>
     <%= blankslate "Receipt Bin is empty." %>
   <% else %>
-    <input placeholder="Search" style="max-width: none;" class="mb3" type="text" id="q">
-
+  <div class="receipt__search mb3 m0 p0">
+    <input data-receipt-select-target="search" data-action="keyup->receipt-select#search" placeholder="Search" style="max-width: none;" type="text" id="q">
+</div>
     <span data-receipt-select-target="select" style="display: none;">
       <%= form.select :receipt_id, @receipts.map { |receipt| [receipt.id, receipt.id] }, include_blank: true %>
     </span>
@@ -13,13 +14,15 @@
     <%= form.hidden_field :receiptable_id, value: @receiptable.id %>
     <%= form.hidden_field :receiptable_type, value: @receiptable.class %>
 
-    <ul class="grid grid--narrow left-align w-100 mt0 grid--spacious">
+    <ul class="grid grid--narrow left-align w-100 grid--spacious mt0">
       <% @receipts.each do |receipt| %>
         <li class="flex grid flex-column justify-between h-100 mx4">
-          <%= render partial: "receipts/receipt", locals: { receipt: receipt, select_target: true } %>
+          <%= render partial: "receipts/receipt", locals: { receipt: receipt, selectable: true, textual_content: true, pairing: @pairings[receipt.id] } %>
         </li>
       <% end %>
     </ul>
+
+    <%= blankslate "No receipts found.", class: "mt3 mb5", data: { "receipt-select-target": "noResults" }, style: "display: none;" %>
   <% end %>
 
   <footer class="modal__action-row flex justify-end">

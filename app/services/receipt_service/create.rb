@@ -20,6 +20,7 @@ module ReceiptService
           receipt_ids << Receipt.create!(attrs(attachment))
         end
       end
+      
       Receipt.where(id: receipt_ids)
     end
 
