@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_05_26_160912) do
+ActiveRecord::Schema[7.0].define(version: 2023_06_08_220419) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1436,6 +1436,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_05_26_160912) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_subledgers_on_event_id"
+  end
+
+  create_table "suggested_pairings", id: false, force: :cascade do |t|
+    t.bigint "receipt_id", null: false
+    t.bigint "hcb_code_id", null: false
+    t.float "distance"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "tags", force: :cascade do |t|

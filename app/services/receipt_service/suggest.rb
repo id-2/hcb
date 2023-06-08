@@ -9,10 +9,10 @@ module ReceiptService
     def run!
       if @receipt.textual_content.nil?
         @receipt.extract_textual_content!
-      end
 
-      if @receipt.textual_content.nil?
-        return nil
+        if @receipt.textual_content.nil?
+          return nil
+        end
       end
 
       @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
@@ -54,6 +54,7 @@ module ReceiptService
         merchant_name: 5
       }
 
+      # TODO - Have order in amount_cents array matter in the distance formula
       amount_cents = best_distance(txn.amount_cents, @extracted[:amount_cents])
       date = best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map { |date| safe_date(*date) }.reject { |date| date.nil? }.map{ |date| date.to_time.to_i / 86400})
       card_last_four = @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1
@@ -69,7 +70,7 @@ module ReceiptService
       # Math.sqrt(amount_cents**2 + date**2 + card_last_four**2)
 
       # manhattan distance
-      # amount_cents + date + card_last_four
+      # (amount_cents**1 + date**1 + card_last_four**1)**(1/1)
 
       # chebyshev distance
       # [amount_cents, date, card_last_four].max

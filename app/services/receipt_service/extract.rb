@@ -56,6 +56,7 @@ module ReceiptService
 
       amounts.each_with_index do |amount, index|
         if amount[:before_fragment].downcase.include?("total")
+          # TODO - Exclude "sub"total
           amounts = [amount] + amounts[0...index] + amounts[index + 1..-1]
         end
       end
@@ -69,17 +70,20 @@ module ReceiptService
       text_regex = /(?:(?:ending ?(?:in|with)?|visa|card|digits|account|credit|debit|number) ?[-–—]? ?:? ?(?:\\n)?)(?:\(?(?<last4>\d{4})\)?)(?:\s|\\n|[^\d]|$)/i
       x_regex = /[*x•·]{1,12}? ?(?:-|—)? ?(?<last4>\d{4})(?:\s|\\n|\)|$)/i
 
-      puts textual_content.scan(text_regex).inspect
-
-      [*match_regex(text_regex, textual_content) { |match| match.first }, *match_regex(x_regex, textual_content) { |match| match.first }].map { |match| match[:match] }
+      [
+        *match_regex(text_regex, textual_content) { |match| match.first },
+        *match_regex(x_regex, textual_content) { |match| match.first }
+      ].pluck(:match)
     end
 
     def date
+      # TODO - Match written dates
+
       slash_regex = /(?:(?<month>\d{1,2})\/(?<day>\d{1,2})\/(?<year>\d{2,4}))/i
       dash_regex = /(?:(?<month>\d{1,2})-(?<day>\d{1,2})-(?<year>\d{2,4}))/i
 
       dates = [*match_regex(slash_regex, textual_content), *match_regex(dash_regex, textual_content)].map do |match|
-        integer_values = match[:match].map { |value| value.to_i }
+        integer_values = match[:match].map(&:to_i)
         
         month, day, year = integer_values
 
