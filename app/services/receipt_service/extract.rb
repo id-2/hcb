@@ -24,6 +24,8 @@ module ReceiptService
     def match_regex(regex, text, &block)
       matches = if block_given?
         text.scan(regex).map do |match|
+          block.call(match)
+        end
       else
         text.scan(regex)
       end
