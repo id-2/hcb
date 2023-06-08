@@ -56,12 +56,12 @@ module ReceiptService
 
       # TODO - Have order in amount_cents array matter in the distance formula
       amount_cents = best_distance(txn.amount_cents, @extracted[:amount_cents])
-      date = best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map { |date| safe_date(*date) }.reject { |date| date.nil? }.map{ |date| date.to_time.to_i / 86400})
+      date = best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map { |d| safe_date(*d) }.reject { |d| d.nil? }.map{ |d| d.to_time.to_i / 86400 })
       card_last_four = @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1
 
       merchant_zip_code = @receipt.textual_content.include?(txn.stripe_merchant["postal_code"]) ? 0 : 1
       merchant_city = @receipt.textual_content.downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1
-      merchant_phone = (txn.stripe_merchant["city"].gsub(/\D/, '').length > 6 && @receipt.textual_content.include?(txn.stripe_merchant["city"].gsub(/\D/, ''))) ? 0 : 1
+      merchant_phone = txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @receipt.textual_content.include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1
       merchant_name = @receipt.textual_content.downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
 
       # distance formula options
@@ -79,12 +79,12 @@ module ReceiptService
       # (amount_cents**3 + date**3 + card_last_four**3)**(1.0/3.0)
 
       Math.sqrt(
-        (amount_cents * weights[:amount_cents])**2 + 
-        (date * weights[:date])**2 + 
-        (card_last_four * weights[:card_last_four])**2 + 
-        (merchant_zip_code * weights[:merchant_zip_code])**2 + 
-        (merchant_city * weights[:merchant_city])**2 + 
-        (merchant_phone * weights[:merchant_phone])**2 + 
+        (amount_cents * weights[:amount_cents])**2 +
+        (date * weights[:date])**2 +
+        (card_last_four * weights[:card_last_four])**2 +
+        (merchant_zip_code * weights[:merchant_zip_code])**2 +
+        (merchant_city * weights[:merchant_city])**2 +
+        (merchant_phone * weights[:merchant_phone])**2 +
         (merchant_name * weights[:merchant_name])**2
       )
     end

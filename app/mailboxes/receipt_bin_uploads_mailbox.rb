@@ -8,8 +8,6 @@ class ReceiptBinUploadsMailbox < ApplicationMailbox
     return unless ensure_user?
     return unless ensure_attachment?
 
-    byebug
-
     # # All good, now let's create the receipts
     # result = ::ReceiptService::Create.new(
     #   receiptable: hcb,

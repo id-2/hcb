@@ -57,7 +57,7 @@ class ReceiptsController < ApplicationController
 
       @pairings[receipt.id] = suggested_pairing
       if suggested_pairing
-        @receipts = @receipts.insert(0, @receipts.delete_at(index))
+        @receipts.insert(0, @receipts.delete_at(index))
       end
     end
 
@@ -100,7 +100,7 @@ class ReceiptsController < ApplicationController
 
       if receipts.length == 1
         begin
-          Timeout::timeout(3) do
+          Timeout.timeout(3) do
             hcb_code = ::ReceiptService::Suggest.new(receipt: receipts.first).run!
     
             if !hcb_code.nil?

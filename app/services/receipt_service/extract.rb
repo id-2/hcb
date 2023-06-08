@@ -22,9 +22,11 @@ module ReceiptService
     private
 
     def match_regex(regex, text, &block)
-      matches = block_given? ? text.scan(regex).map do |match|
-        block.call(match)
-      end : text.scan(regex)
+      matches = if block_given?
+        text.scan(regex).map do |match|
+      else
+        text.scan(regex)
+      end
 
       positions = text.enum_for(:scan, regex).map { Regexp.last_match.begin(0) }
 
