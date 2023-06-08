@@ -1,5 +1,5 @@
 <% file_path = Rails.application.routes.url_helpers.rails_blob_path(receipt.file, only_path: true) %>
-<div class="receipt flex flex-column mb1<%= " receipt--pairing" if defined?(pairing) && pairing %>" <% if defined?(textual_content) %>data-textual-content="<%= j receipt.textual_content %>"<% end %> data-receipt-id="<%= receipt.id %>" style="max-width: 256px;<% if defined?(selectable) %> cursor: pointer;" data-receipt-select-target="receipt" data-action="click->receipt-select#select<% end %>">
+<div class="receipt flex flex-column mb1 <%= "receipt--pairing" if defined?(pairing) && pairing %>" <% if defined?(textual_content) %>data-textual-content="<%= j receipt.textual_content %>"<% end %> data-receipt-id="<%= receipt.id %>" style="max-width: 256px;<% if defined?(selectable) %> cursor: pointer;" data-receipt-select-target="receipt" data-action="click->receipt-select#select<% end %>">
   <% if defined?(link_to_file) %>
     <%= link_to file_path, class: "link-reset mb1", target: "_blank" do %>
       <span class="muted">
@@ -32,7 +32,7 @@
       <span style="display: inline-grid; border-radius: 0.5rem;">
         <div class="receipt__icon--check">✓</div>
         <div class="receipt__icon--star tooltipped tooltipped--w" aria-label="Suggested receipt">
-          <%= inline_icon "rep", size: '36', style: 'margin: -5px;' %>
+          <%= inline_icon "rep", size: "36", style: "margin: -5px;" %>
         </div>
         <%= image_tag receipt.preview, width: 256, height: 256, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 256px; user-drag: none; -webkit-user-drag: none; user-select: none; -moz-user-select: none;", data: {
               "receipt-id" => receipt.id
