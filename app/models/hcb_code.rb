@@ -31,7 +31,7 @@ class HcbCode < ApplicationRecord
   has_and_belongs_to_many :tags
 
   has_many :suggested_pairings
-  has_many :suggested_receipts, class: Receipt, through: :suggested_pairings
+  has_many :suggested_receipts, class_name: "Receipt", through: :suggested_pairings
 
   before_create :generate_and_set_short_code
 
