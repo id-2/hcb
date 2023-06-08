@@ -91,7 +91,7 @@ module ReceiptService
     def best_distance(one_point, multiple_values)
       multiple_values.map do |value|
         (one_point - value).abs
-      end.min
+      end.min || 100
     end
 
     def user

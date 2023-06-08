@@ -122,8 +122,6 @@ class ReceiptsController < ApplicationController
   rescue => e
     notify_airbrake(e)
 
-    puts e.inspect
-
     flash[:error] = e.message
   ensure
     if params[:redirect_url]
