@@ -134,6 +134,8 @@ class ReceiptsController < ApplicationController
       uri.query = URI.encode_www_form(params)
 
       redirect_to uri.to_s
+    elsif @receiptable.is_a?(HcbCode) && @receiptable.stripe_card&.card_grant.present?
+      redirect_to @receiptable.stripe_card.card_grant
     else
       redirect_back fallback_location: @receiptable&.try(:url) || @receiptable || my_inbox_path, params: { pairing_receipt: pairing_receipt, pairing_hcb_code: pairing_hcb_code }
     end

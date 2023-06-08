@@ -169,7 +169,7 @@ GEM
     comma (4.7.0)
       activesupport (>= 4.2.0)
     concurrent-ruby (1.2.2)
-    connection_pool (2.4.0)
+    connection_pool (2.4.1)
     cose (1.2.0)
       cbor (~> 0.5.9)
       openssl-signature_algorithm (~> 1.0)
@@ -362,7 +362,7 @@ GEM
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
     httpclient (2.8.3)
-    i18n (1.13.0)
+    i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     image_processing (1.12.2)
       mini_magick (>= 4.9.5, < 5)
@@ -505,7 +505,7 @@ GEM
     pg_search (2.3.6)
       activerecord (>= 5.2)
       activesupport (>= 5.2)
-    phonelib (0.8.1)
+    phonelib (0.8.2)
     pkg-config (1.5.1)
     plaid (6.3.1)
       faraday
@@ -593,7 +593,7 @@ GEM
       tilt
     red-colors (0.3.0)
       matrix
-    redcarpet (3.5.1)
+    redcarpet (3.6.0)
     redis (5.0.6)
       redis-client (>= 0.9.0)
     redis-client (0.14.1)
@@ -674,7 +674,7 @@ GEM
       connection_pool (>= 2.2.2)
       rack (~> 2.0)
       redis (>= 4.5.0)
-    sidekiq-cron (1.10.0)
+    sidekiq-cron (1.10.1)
       fugit (~> 1.8)
       globalid (>= 1.0.1)
       sidekiq (>= 6)
@@ -715,14 +715,14 @@ GEM
     sshkit (1.21.4)
       net-scp (>= 1.1.2)
       net-ssh (>= 2.8.0)
-    stackprof (0.2.22)
+    stackprof (0.2.25)
     statsd-ruby (1.5.0)
     stripe (8.2.0)
     strong_migrations (1.0.0)
       activerecord (>= 5.2)
     swagger-blocks (3.0.0)
     table_print (1.5.7)
-    terser (1.1.12)
+    terser (1.1.16)
       execjs (>= 0.3.0, < 3)
     thor (1.2.2)
     tilt (2.1.0)
@@ -872,7 +872,7 @@ DEPENDENCIES
   sassc-rails
   scientist
   sidekiq (~> 6.5.5)
-  sidekiq-cron (~> 1.1)
+  sidekiq-cron (~> 1.10)
   skylight
   solargraph
   solargraph-rails (~> 0.2.0)
@@ -893,7 +893,7 @@ DEPENDENCIES
   xxhash
 
 RUBY VERSION
-   ruby 2.7.7p221
+   ruby 3.0.6p216
 
 BUNDLED WITH
-   2.1.4
+   2.4.12
