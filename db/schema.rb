@@ -47,6 +47,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_06_08_220419) do
     t.text "account_number_ciphertext"
     t.bigint "processor_id"
     t.text "increase_id"
+    t.date "scheduled_on"
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
     t.index ["increase_id"], name: "index_ach_transfers_on_increase_id", unique: true
