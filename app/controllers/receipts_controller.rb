@@ -62,7 +62,7 @@ class ReceiptsController < ApplicationController
         }
       end.sort_by { |receipt| receipt[:distance] }
 
-      @receipts = receipt_distances.map { |receipt| receipt[:receipt] }
+      @receipts = receipt_distances.pluck(:receipt)
       @suggested_receipt_ids = receipt_distances.select { |receipt| receipt[:distance] < 40 }.map { |receipt| receipt[:receipt].id }
     end
 
