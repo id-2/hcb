@@ -7,12 +7,8 @@ module ReceiptService
     end
 
     def run!
-      if @receipt.textual_content.nil?
-        @receipt.extract_textual_content!
-
-        if @receipt.textual_content.nil?
+      if @receipt.textual_content.nil? && @receipt.extract_textual_content!.nil?
           return nil
-        end
       end
 
       {
