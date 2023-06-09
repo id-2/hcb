@@ -21,13 +21,14 @@ module ReceiptService
           pairings = ::ReceiptService::Suggest.new(receipt: receipt).run!
 
           unless pairings.nil?
-            pairings.each do |pairing|
-              SuggestedPairing.create!(
+            pairs = pairings.map do |pairing|
+              {
                 receipt: receipt,
                 hcb_code: pairing[:hcb_code],
                 distance: pairing[:distance]
-              )
+              }
             end
+            SuggestedPairing.insert_all(pairs)
           end
 
           receipt
