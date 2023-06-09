@@ -49,6 +49,10 @@ class HcbCode < ApplicationRecord
     "/hcb/#{hashid}"
   end
 
+  def popover_url
+    "/hcb/#{hashid}?frame=true"
+  end
+
   def receipt_upload_email
     if Rails.env.development?
       "receipts+hcb-#{hashid}@bank-parse-dev.hackclub.com"

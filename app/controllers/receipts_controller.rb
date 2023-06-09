@@ -119,9 +119,11 @@ class ReceiptsController < ApplicationController
     else
       referrer_url = URI.parse(request.referrer) rescue URI.parse(@receiptable&.try(:url) || url_for(@receiptable) || my_inbox_path)
 
-      referrer_url.query = Rack::Utils.parse_nested_query(referrer_url.query)
-        .merge({ "uploaded_receipts[]": receipts.pluck(:id) })
-        .to_query
+      if receipts
+        referrer_url.query = Rack::Utils.parse_nested_query(referrer_url.query)
+          .merge({ "uploaded_receipts[]": receipts.pluck(:id) })
+          .to_query
+      end
 
       redirect_to referrer_url.to_s
     end

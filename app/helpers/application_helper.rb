@@ -48,7 +48,8 @@ module ApplicationHelper
                 block_given? ? capture(&block) : nil,
                 data: {
                   src: url,
-                  behavior: "async_frame"
+                  behavior: "async_frame",
+                  loading: options[:lazy] ? "lazy" : nil
                 },
                 **options
   end

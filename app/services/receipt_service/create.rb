@@ -23,8 +23,8 @@ module ReceiptService
           unless pairings.nil?
             pairs = pairings.map do |pairing|
               {
-                receipt: receipt,
-                hcb_code: pairing[:hcb_code],
+                receipt_id: receipt.id,
+                hcb_code_id: pairing[:hcb_code].id,
                 distance: pairing[:distance]
               }
             end

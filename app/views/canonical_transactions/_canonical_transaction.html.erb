@@ -171,7 +171,7 @@
     <td><%= number_to_currency ct.running_balance %></td>
   <% end %>
   <td>
-    <%= link_to "Details", ct.local_hcb_code.url, data: { turbo_frame: "_top" } if organizer_signed_in? || defined?(force_display_details) %>
+    <%= link_to "Details", ct.local_hcb_code.url, data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{ct.local_hcb_code.hashid}" } if organizer_signed_in? || defined?(force_display_details) %>
   </td>
   <% if defined?(receipt_upload_button) %>
     <td style="width: 1%">
@@ -212,3 +212,88 @@
     <% end %>
   <% end %>
 </tr>
+
+<section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= ct.local_hcb_code.hashid %>">
+  <%= modal_header ({
+    unknown: "Transaction in #{ct.local_hcb_code.event.name}",
+    invoice: "Invoice in #{ct.local_hcb_code.event.name}",
+    donation: "Donation to #{ct.local_hcb_code.event.name}",
+    partner_donation: "Partner donation to #{ct.local_hcb_code.event.name}",
+    ach: "ACH in #{ct.local_hcb_code.event.name}",
+    check: "Check in #{ct.local_hcb_code.event.name}",
+    disbursement: "Disbursement #{ct.local_hcb_code.event.name}",
+    card_charge: "Card charge in #{ct.local_hcb_code.event.name}",
+    bank_fee: "Bank Fee in #{ct.local_hcb_code.event.name}"
+  })[ct.local_hcb_code.type], level: "h1" %>
+  <%= async_frame_to ct.local_hcb_code.popover_url, as: :span, lazy: true do %>
+    <div class="shimmer mb1 mt3">
+      <div class="shimmer__border"></div>
+      <div class="shimmer__main">
+        <article class="card pb0 h-100">
+          <h2 class="h2 mt0 mx0 border-none flex items-center justify-between">
+            <span class="flex-auto">
+              <%= pop_icon_to "edit",
+                  my_inbox_path,
+                  class: "mr2 align-middle", "aria-label": "Rename transaction",
+                  data: { turbo: true } if organizer_signed_in? %>
+              <span class="align-middle"
+                    data-controller="navigation"
+                    data-action="dblclick->navigation#navigate"
+                    data-navigation-location-param="<%= my_inbox_path %>"
+                    data-navigation-frame-param="2">
+                <%= ({
+                      unknown: "Transaction",
+                      invoice: "Invoice",
+                      donation: "Donation",
+                      partner_donation: "Partner donation",
+                      ach: "ACH",
+                      check: "Check",
+                      disbursement: "Disbursememt",
+                      card_charge: "Card charge",
+                      bank_fee: "Bank Fee"
+                    })[ct.local_hcb_code.type] %>
+                <span class="regular muted">for $-</span>
+              </span>
+            </span>
+          </h2>
+
+          <section class="card__banner card__darker details-horiz border-top border-bottom">
+            <p>
+              <strong>Card</strong> -
+            </p>
+            <p>
+              <strong>Spender</strong> -
+            </p>
+            <p>
+              <strong>Spent</strong> -
+            </p>
+            <p>
+              <strong>Settled after</strong> -
+            </p>
+          </section>
+
+          <section class="details details--wide pt2 pb2 details--tall">
+            <p>
+              <strong>Merchant</strong>
+              <action data-behavior="modal_trigger" data-modal="merchant_details" class="pointer" tabindex="0">
+                <span class="inline-flex">
+                  -
+                  <%= inline_icon "external", size: 24, class: "muted", 'aria-label': "Icon indicating click for more" %>
+                </span>
+              </action>
+            </p>
+            <p>
+              <strong>Charge method</strong>
+              <action data-behavior="modal_trigger" data-modal="verification_details" class="pointer" tabindex="0">
+                <span>
+                  -
+                  <%= inline_icon "external", size: 24, class: "muted", 'aria-label': "Icon indicating click for more" %>
+                </span>
+              </action>
+            </p>
+          </section>
+        </article>
+      </div>
+    </div>
+  <% end %>
+</section>
