@@ -58,7 +58,7 @@ class ReceiptsController < ApplicationController
       receipt_distances = @receipts.map do |receipt|
         {
           receipt: receipt,
-          distance: SuggestedPairing.find_by(receipt: receipt, hcb_code: @receiptable).distance
+          distance: SuggestedPairing.find_by(receipt: receipt, hcb_code: @receiptable)&.distance || Float::INFINITY
         }
       end.sort_by { |receipt| receipt[:distance] }
 
