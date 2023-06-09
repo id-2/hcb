@@ -133,7 +133,7 @@ class StaticPagesController < ApplicationController
             hcb_code: pairing.hcb_code,
             receipt: receipt
           }
-        end
+        end.compact
       end
     end
   end
