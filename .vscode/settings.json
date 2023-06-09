@@ -29,10 +29,5 @@
   "[ruby][gemfile][erb]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true
-  },
-  "workbench.colorCustomizations": {
-    "activityBar.background": "#312E18",
-    "titleBar.activeBackground": "#454022",
-    "titleBar.activeForeground": "#FBFBF7"
   }
 }
