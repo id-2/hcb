@@ -104,17 +104,37 @@ class StaticPagesController < ApplicationController
     # supported yet: https://github.com/rails/globalid/pull/139
 
     if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
-      if params[:pairing_receipt] && params[:pairing_hcb_code]
-        begin
-          @pairing = {
-            receipt: Receipt.find(params[:pairing_receipt]),
-            hcb_code: HcbCode.find(params[:pairing_hcb_code])
-          }
-        rescue ActiveRecord::RecordNotFound => e
-        end
-      end
+      # if params[:pairing_receipt] && params[:pairing_hcb_code]
+      #   begin
+      #     @pairing = {
+      #       receipt: Receipt.find(params[:pairing_receipt]),
+      #       hcb_code: HcbCode.find(params[:pairing_hcb_code])
+      #     }
+      #   rescue ActiveRecord::RecordNotFound => e
+      #   end
+      # end
+
+      current_user
 
       @receipts = Receipt.where(user: current_user, receiptable: nil)
+
+      recent_receipt = @receipts.order(created_at: :desc).first      
+
+      if params[:uploaded_receipts]
+        receipts_by_id = @receipts.map { |receipt| [receipt.id, receipt] }.to_h
+        @pairings = params[:uploaded_receipts].map do |receipt_id|
+          receipt = receipts_by_id[receipt_id.first.to_i]
+          next unless receipt
+
+
+          pairing = receipt.suggested_pairings.order(distance: :asc).first
+
+          {
+            hcb_code: pairing.hcb_code,
+            receipt: receipt
+          }
+        end
+      end
     end
   end
 

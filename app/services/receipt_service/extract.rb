@@ -7,6 +7,14 @@ module ReceiptService
     end
 
     def run!
+      if @receipt.textual_content.nil?
+        @receipt.extract_textual_content!
+
+        if @receipt.textual_content.nil?
+          return nil
+        end
+      end
+
       {
         amount_cents: amount_cents,
         card_last_four: card_last_four,
@@ -23,10 +31,10 @@ module ReceiptService
 
     def match_regex(regex, text, &block)
       matches = if block_given?
-        text.scan(regex).map { |match| block.call(match) }
-      else
-        text.scan(regex)
-      end
+                  text.scan(regex).map { |match| block.call(match) }
+                else
+                  text.scan(regex)
+                end
 
       positions = text.enum_for(:scan, regex).map { Regexp.last_match.begin(0) }
 

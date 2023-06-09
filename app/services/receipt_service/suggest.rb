@@ -7,32 +7,30 @@ module ReceiptService
     end
 
     def run!
-      if @receipt.textual_content.nil?
-        @receipt.extract_textual_content!
-
-        if @receipt.textual_content.nil?
-          return nil
-        end
-      end
-
       @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
 
-      best_match
+      return nil if @extracted.nil?
+
+      transaction_distances
+    end
+
+    def sorted_transactions
+      transaction_distances.sort_by { |match| match[:distance] }
+    end
+
+    def best_match
+      sorted_transactions.first
     end
 
     private
 
-    def sorted_txns
+    def transaction_distances
       potential_txns.map do |txn|
         {
-          txn: txn,
+          hcb_code: txn,
           distance: distance(txn)
         }
-      end.sort_by { |match| match[:distance] }
-    end
-
-    def best_match
-      sorted_txns.first
+      end
     end
 
     def safe_date(month, day, year)
@@ -59,10 +57,10 @@ module ReceiptService
       date = best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map { |d| safe_date(*d) }.reject { |d| d.nil? }.map{ |d| d.to_time.to_i / 86400 })
       card_last_four = @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1
 
-      merchant_zip_code = @receipt.textual_content.include?(txn.stripe_merchant["postal_code"]) ? 0 : 1
-      merchant_city = @receipt.textual_content.downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1
-      merchant_phone = txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @receipt.textual_content.include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1
-      merchant_name = @receipt.textual_content.downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
+      merchant_zip_code = @extracted[:textual_content].include?(txn.stripe_merchant["postal_code"]) ? 0 : 1
+      merchant_city = @extracted[:textual_content].downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1
+      merchant_phone = txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @extracted[:textual_content].include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1
+      merchant_name = @extracted[:textual_content].downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
 
       # distance formula options
 
@@ -100,7 +98,8 @@ module ReceiptService
     end
 
     def potential_txns
-      user.stripe_cards.map { |card| card.hcb_codes }.flatten.reject { |hcb_code| hcb_code.receipts.length > 0 || !hcb_code.marked_no_or_lost_receipt_at.nil? }
+      # TODO: Filter out declined transactions and transactions with $0 amount
+      user.stripe_cards.map(&:hcb_codes).flatten.reject { |hcb_code| hcb_code.receipts.length > 0 || !hcb_code.marked_no_or_lost_receipt_at.nil? }
     end
 
   end

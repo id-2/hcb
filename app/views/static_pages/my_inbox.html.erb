@@ -10,80 +10,82 @@
 
 <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
 
-  <% if @pairing %>
-    <div class="card">
-      <div style="background-color: #ec375044; margin: -16px; padding: 16px; margin-bottom: 0px;">
-      <span tabindex="0" onclick="this.parentElement.parentElement.remove();" class="pointer">
-        <%= inline_icon "view-close", size: 28, class: "pop modal__close muted  m0" %>
-      </span>
-      <h2 class="h2 mt0 mb0 pb0 border-none"><%= inline_icon "rep", size: 36, style: "margin: -8px; margin-right: 0px;" %> Suggested pairing</h2>
-    </div>
-    <p>Bank thinks that the receipt you just uploaded, <strong><%= @pairing[:receipt].file.blob.filename %></strong>, belongs to a transaction in <strong><%= @pairing[:hcb_code].event.name %></strong>.</p>
-    <div class="flex p1 justify-center">
-      <div class="xs-hide sm-hide">
-        <%= link_to Rails.application.routes.url_helpers.rails_blob_path(@pairing[:receipt].file, only_path: true), target: "_blank" do %>
-          <span style="display: inline-grid; border-radius: 0.5rem;">
-            <%= image_tag @pairing[:receipt].preview, width: 200, height: 200, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 200px;" %>
-          </span>
-        <% end %>
+  <% if @pairings %>
+    <% @pairings.each do |pairing| %>
+      <div class="card">
+        <div style="background-color: #ec375044; margin: -16px; padding: 16px; margin-bottom: 0px;">
+        <span tabindex="0" onclick="this.parentElement.parentElement.remove();" class="pointer">
+          <%= inline_icon "view-close", size: 28, class: "pop modal__close muted  m0" %>
+        </span>
+        <h2 class="h2 mt0 mb0 pb0 border-none"><%= inline_icon "rep", size: 36, style: "margin: -8px; margin-right: 0px;" %> Suggested pairing</h2>
       </div>
-      <div class="flex flex-column justify-center xs-hide sm-hide" style="margin-left: 32px; margin-right: 32px; flex-grow: 0.5;">
-        <%= image_tag asset_path("link-arrow.svg"), width: 200, height: 100, style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 100px;" %>
-      </div>
-      <div class="flex flex-column justify-center" style="max-width: 100%;">
+      <p>Bank thinks that the receipt you just uploaded, <strong><%= pairing[:receipt].file.blob.filename %></strong>, belongs to a transaction in <strong><%= pairing[:hcb_code].event.name %></strong>.</p>
+      <div class="flex p1 justify-center">
+        <div class="xs-hide sm-hide">
+          <%= link_to Rails.application.routes.url_helpers.rails_blob_path(pairing[:receipt].file, only_path: true), target: "_blank" do %>
+            <span style="display: inline-grid; border-radius: 0.5rem;">
+              <%= image_tag pairing[:receipt].preview, width: 200, height: 200, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 200px;" %>
+            </span>
+          <% end %>
+        </div>
+        <div class="flex flex-column justify-center xs-hide sm-hide" style="margin-left: 32px; margin-right: 32px; flex-grow: 0.5;">
+          <%= image_tag asset_path("link-arrow.svg"), width: 200, height: 100, style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 100px;" %>
+        </div>
+        <div class="flex flex-column justify-center" style="max-width: 100%;">
 
-        <div class="card p0">
-          <h2 class="heading line-height-4 p1 pl2 mt0 ml0 flex justify-between items-center">
-            <%= @pairing[:hcb_code].stripe_card.event.name %>
+          <div class="card p0">
+            <h2 class="heading line-height-4 p1 pl2 mt0 ml0 flex justify-between items-center">
+              <%= pairing[:hcb_code].stripe_card.event.name %>
 
-            <%= link_to @pairing[:hcb_code].stripe_card, class: "regular h3 mention flex items-center" do %>
-              <%= inline_icon "card", class: "mr1", size: 25 %>
-              <%= @pairing[:hcb_code].stripe_card.last_four %>
-            <% end %>
-          </h2>
+              <%= link_to pairing[:hcb_code].stripe_card, class: "regular h3 mention flex items-center" do %>
+                <%= inline_icon "card", class: "mr1", size: 25 %>
+                <%= pairing[:hcb_code].stripe_card.last_four %>
+              <% end %>
+            </h2>
 
-          <div class="table-container">
-            <table>
-              <tbody data-behavior="transactions">
-                <% if @pairing[:hcb_code].canonical_transactions.any? %>
-                  <% @pairing[:hcb_code].canonical_transactions.each do |ct| %>
-                    <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: ct, force_display_details: true, hide_tags: true } %>
+            <div class="table-container">
+              <table>
+                <tbody data-behavior="transactions">
+                  <% if pairing[:hcb_code].canonical_transactions.any? %>
+                    <% pairing[:hcb_code].canonical_transactions.each do |ct| %>
+                      <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: ct, force_display_details: true, hide_tags: true } %>
+                    <% end %>
+                  <% else %>
+                    <% pairing[:hcb_code].canonical_pending_transactions.each do |pt| %>
+                      <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt: pt, force_display_details: true, hide_tags: true } %>
+                    <% end %>
                   <% end %>
-                <% else %>
-                  <% @pairing[:hcb_code].canonical_pending_transactions.each do |pt| %>
-                    <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt: pt, force_display_details: true, hide_tags: true } %>
-                  <% end %>
-                <% end %>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="lg-hide m3"></div>
+      <div class="lg-hide m3"></div>
 
-    <div class="flex flex-row justify-end" style="margin-top: -16px;">
-      <button class="btn" onclick="this.parentElement.parentElement.remove();">Ignore suggestion</button>
-        
-        <%= form_with url: link_receipts_path, method: :post, data: {
-              controller: "receipt-select"
-            } do |form| %>
-          <span data-receipt-select-target="select" style="display: none;">
-            <%= form.select :receipt_id, options_for_select([@pairing[:receipt].id, @pairing[:receipt].id], @pairing[:receipt].id), include_blank: false %>
-          </span>
+      <div class="flex flex-row justify-end" style="margin-top: -16px;">
+        <button class="btn" onclick="this.parentElement.parentElement.remove();">Ignore suggestion</button>
+          
+          <%= form_with url: link_receipts_path, method: :post, data: {
+                controller: "receipt-select"
+              } do |form| %>
+            <span data-receipt-select-target="select" style="display: none;">
+              <%= form.select :receipt_id, options_for_select([pairing[:receipt].id, pairing[:receipt].id], pairing[:receipt].id), include_blank: false %>
+            </span>
 
-          <%= form.hidden_field :receiptable_id, value: @pairing[:hcb_code].id %>
-          <%= form.hidden_field :receiptable_type, value: @pairing[:hcb_code].class %>
-          <%= form.hidden_field :redirect_url, value: my_inbox_path %>
-          <%= form.hidden_field :show_link, value: true %>
+            <%= form.hidden_field :receiptable_id, value: pairing[:hcb_code].id %>
+            <%= form.hidden_field :receiptable_type, value: pairing[:hcb_code].class %>
+            <%= form.hidden_field :redirect_url, value: my_inbox_path %>
+            <%= form.hidden_field :show_link, value: true %>
 
-          <%= form.submit "Accept suggestion", class: "btn bg-success ml1" %>
-        <% end %>
+            <%= form.submit "Accept suggestion", class: "btn bg-success ml1" %>
+          <% end %>
 
+        </div>
       </div>
-    </div>
 
+    <% end %>
   <% end %>
 
   <h2>

@@ -49,23 +49,22 @@ class ReceiptsController < ApplicationController
   end
 
   def link_modal
-    @receipts = Receipt.where(user: current_user, receiptable: nil).to_a
-    @pairings = {}
-
-    @receipts.each_with_index do |receipt, index|
-      suggested_pairing = index > 3
-
-      @pairings[receipt.id] = suggested_pairing
-      if suggested_pairing
-        @receipts.insert(0, @receipts.delete_at(index))
-      end
-    end
-
-    # if @pairings[receipt.id] === true, then bring the receipt to the top of the list
-
-
-
     authorize @receiptable, policy_class: ReceiptablePolicy
+
+    @receipts = Receipt.where(user: current_user, receiptable: nil)
+    @suggested_receipt_ids = []
+
+    if @receiptable.instance_of?(HcbCode)
+      receipt_distances = @receipts.map do |receipt|
+        {
+          receipt: receipt,
+          distance: SuggestedPairing.find_by(receipt: receipt, hcb_code: @receiptable).distance
+        }
+      end.sort_by { |receipt| receipt[:distance] }
+
+      @receipts = receipt_distances.map { |receipt| receipt[:receipt] }
+      @suggested_receipt_ids = receipt_distances.select { |receipt| receipt[:distance] < 40 }.map { |receipt| receipt[:receipt].id }
+    end
 
     render :link_modal, layout: false
   end
@@ -85,9 +84,6 @@ class ReceiptsController < ApplicationController
       raise unless @has_valid_secret
     end
 
-    pairing_receipt = nil
-    pairing_hcb_code = nil
-
     if params[:file] # Ignore if no files were uploaded
       receipts = params[:file].map do |file|
         ::ReceiptService::Create.new(
@@ -96,21 +92,6 @@ class ReceiptsController < ApplicationController
           attachments: [file],
           upload_method: params[:upload_method]
         ).run!.to_a.first
-      end
-
-      if receipts.length == 1
-        begin
-          Timeout.timeout(3) do
-            hcb_code = ::ReceiptService::Suggest.new(receipt: receipts.first).run!
-    
-            if !hcb_code.nil?
-              pairing_receipt = receipts.first.id
-              pairing_hcb_code = hcb_code[:txn].hashid
-            end
-          end
-        rescue Timeout::Error
-          
-        end
       end
 
       if params[:show_link]
@@ -124,20 +105,25 @@ class ReceiptsController < ApplicationController
 
     flash[:error] = e.message
   ensure
-    if params[:redirect_url]
-      uri = URI.parse(params[:redirect_url])
-      params = {
-        pairing_receipt: pairing_receipt,
-        pairing_hcb_code: pairing_hcb_code
-      }
+    if params[:redirect_url] && receipts&.any?
 
-      uri.query = URI.encode_www_form(params)
+      uri = URI.parse(params[:redirect_url])
+
+      uri.query = URI.encode_www_form("uploaded_receipts[]": receipts.pluck(:id))
 
       redirect_to uri.to_s
+    elsif params[:redirect_url]
+      redirect_to params[:redirect_url]
     elsif @receiptable.is_a?(HcbCode) && @receiptable.stripe_card&.card_grant.present?
       redirect_to @receiptable.stripe_card.card_grant
     else
-      redirect_back fallback_location: @receiptable&.try(:url) || @receiptable || my_inbox_path, params: { pairing_receipt: pairing_receipt, pairing_hcb_code: pairing_hcb_code }
+      referrer_url = URI.parse(request.referrer) rescue URI.parse(@receiptable&.try(:url) || url_for(@receiptable) || my_inbox_path)
+
+      referrer_url.query = Rack::Utils.parse_nested_query(referrer_url.query)
+        .merge({ "uploaded_receipts[]": receipts.pluck(:id) })
+        .to_query
+
+      redirect_to referrer_url.to_s
     end
   end
 
