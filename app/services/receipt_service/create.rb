@@ -14,25 +14,24 @@ module ReceiptService
         @receiptable&.update(marked_no_or_lost_receipt_at: nil)
       end
 
-      ActiveRecord::Base.transaction do
-        @attachments.map do |attachment|
-          receipt = Receipt.create!(attrs(attachment))
+      @attachments.map do |attachment|
+        receipt = Receipt.create!(attrs(attachment))
 
-          pairings = ::ReceiptService::Suggest.new(receipt: receipt).run!
+        pairings = ::ReceiptService::Suggest.new(receipt: receipt).run!
 
-          unless pairings.nil?
-            pairs = pairings.map do |pairing|
-              {
-                receipt_id: receipt.id,
-                hcb_code_id: pairing[:hcb_code].id,
-                distance: pairing[:distance]
-              }
-            end
-            SuggestedPairing.insert_all(pairs)
+        unless pairings.nil?
+          pairs = pairings.map do |pairing|
+            {
+              receipt_id: receipt.id,
+              hcb_code_id: pairing[:hcb_code].id,
+              distance: pairing[:distance]
+            }
           end
 
-          receipt
+          SuggestedPairing.insert_all(pairs)
         end
+
+        receipt
       end
     end
 

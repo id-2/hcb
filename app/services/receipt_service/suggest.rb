@@ -14,6 +14,14 @@ module ReceiptService
       transaction_distances
     end
 
+    def run_with_details!
+      @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
+
+      return nil if @extracted.nil?
+
+      transaction_distances_with_details
+    end
+
     def sorted_transactions
       transaction_distances.sort_by { |match| match[:distance] }
     end
@@ -33,6 +41,16 @@ module ReceiptService
       end
     end
 
+    def transaction_distances_with_details
+      potential_txns.map do |txn|
+        {
+          hcb_code: txn,
+          distance: distance(txn),
+          details: distances_hash(txn)
+        }
+      end
+    end
+
     def safe_date(month, day, year)
       begin
         Date.new(year, month, day)
@@ -41,9 +59,30 @@ module ReceiptService
       end
     end
 
+    def distances_hash(txn)
+      # TODO - Have order in amount_cents array matter in the distance formula
+
+      puts txn.memo
+      puts "transaction memo"
+
+      ap @extracted
+      puts "extracted"
+
+      {
+        amount_cents: best_distance(txn.amount_cents, @extracted[:amount_cents]) + rand(),
+        date: best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map { |d| safe_date(*d) }.reject { |d| d.nil? }.map{ |d| d.to_time.to_i / 86400 }),
+        card_last_four: @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1,
+
+        merchant_zip_code: @extracted[:textual_content].include?(txn.stripe_merchant["postal_code"]) ? 0 : 1,
+        merchant_city: @extracted[:textual_content].downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1,
+        merchant_phone: txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @extracted[:textual_content].include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1,
+        merchant_name: @extracted[:textual_content].downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1,
+      }
+    end
+
     def distance(txn)
       weights = {
-        amount_cents: 1,
+        amount_cents: 100,
         date: 100,
         card_last_four: 100,
         merchant_zip_code: 5,
@@ -52,15 +91,7 @@ module ReceiptService
         merchant_name: 5
       }
 
-      # TODO - Have order in amount_cents array matter in the distance formula
-      amount_cents = best_distance(txn.amount_cents, @extracted[:amount_cents])
-      date = best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map { |d| safe_date(*d) }.reject { |d| d.nil? }.map{ |d| d.to_time.to_i / 86400 })
-      card_last_four = @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1
-
-      merchant_zip_code = @extracted[:textual_content].include?(txn.stripe_merchant["postal_code"]) ? 0 : 1
-      merchant_city = @extracted[:textual_content].downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1
-      merchant_phone = txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @extracted[:textual_content].include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1
-      merchant_name = @extracted[:textual_content].downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
+      distances = distances_hash(txn)
 
       # distance formula options
 
@@ -76,15 +107,20 @@ module ReceiptService
       # minkowski distance
       # (amount_cents**3 + date**3 + card_last_four**3)**(1.0/3.0)
 
-      Math.sqrt(
-        (amount_cents * weights[:amount_cents])**2 +
-        (date * weights[:date])**2 +
-        (card_last_four * weights[:card_last_four])**2 +
-        (merchant_zip_code * weights[:merchant_zip_code])**2 +
-        (merchant_city * weights[:merchant_city])**2 +
-        (merchant_phone * weights[:merchant_phone])**2 +
-        (merchant_name * weights[:merchant_name])**2
+      sqrt = Math.sqrt(
+        (distances[:amount_cents] * weights[:amount_cents])**2 +
+        (distances[:date] * weights[:date])**2 +
+        (distances[:card_last_four] * weights[:card_last_four])**2 +
+        (distances[:merchant_zip_code] * weights[:merchant_zip_code])**2 +
+        (distances[:merchant_city] * weights[:merchant_city])**2 +
+        (distances[:merchant_phone] * weights[:merchant_phone])**2 +
+        (distances[:merchant_name] * weights[:merchant_name])**2
       )
+
+      puts sqrt
+      puts "suggest:sqrt"
+
+      sqrt
     end
 
     def best_distance(one_point, multiple_values)
@@ -99,7 +135,7 @@ module ReceiptService
 
     def potential_txns
       # TODO: Filter out declined transactions and transactions with $0 amount
-      user.stripe_cards.map(&:hcb_codes).flatten.reject { |hcb_code| hcb_code.receipts.length > 0 || !hcb_code.marked_no_or_lost_receipt_at.nil? }
+      user.stripe_cards.flat_map(&:hcb_codes).select { |hcb_code| hcb_code.needs_receipt? }
     end
 
   end

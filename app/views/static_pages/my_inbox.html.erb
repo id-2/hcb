@@ -62,6 +62,13 @@
         </div>
       </div>
 
+      <% admin_tools do %>
+      <%# get all pairings %>
+      <pre><% pairing[:receipt].suggested_pairings.map do |suggested_pairing| %>
+<%= suggested_pairing.hcb_code.hashid %>: <%= suggested_pairing.receipt.id %> - <%= suggested_pairing.distance %>
+      <% end %></pre>
+      <% end %>
+
       <div class="lg-hide m3"></div>
 
       <div class="flex flex-row justify-end" style="margin-top: -16px;">

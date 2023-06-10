@@ -4,16 +4,16 @@
     height: 300px;
     position: relative;
     overflow: hidden;
-    border-radius: calc(0.5rem + 2px);
+    border-radius: calc(0.5rem + 4px);
 }
 
 .shimmer__main {
     position: absolute;
-    top: 1%;
-    left: 0.75%;
+    top: 4px;
+    left: 4px;
     display: block;
-    height: 98%;
-    width: 98.5%;
+    height: calc(100% - 8px);
+    width: calc(100% - 8px);
     margin: auto;
     align-self: center;
     z-index: 1;

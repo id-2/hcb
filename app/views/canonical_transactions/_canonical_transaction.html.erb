@@ -1,3 +1,4 @@
+<% instance = (0...16).map { ("a".."z").to_a.concat(("A".."Z").to_a).concat((0..9).to_a).sample }.join %>
 <tr
   class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
   id="<%= ct.local_hcb_code.hashid %>"
@@ -171,7 +172,7 @@
     <td><%= number_to_currency ct.running_balance %></td>
   <% end %>
   <td>
-    <%= link_to "Details", ct.local_hcb_code.url, data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{ct.local_hcb_code.hashid}" } if organizer_signed_in? || defined?(force_display_details) %>
+    <%= link_to "Details", ct.local_hcb_code.url, data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{ct.local_hcb_code.hashid}_#{instance}" } if organizer_signed_in? || defined?(force_display_details) %>
   </td>
   <% if defined?(receipt_upload_button) %>
     <td style="width: 1%">
@@ -213,7 +214,7 @@
   <% end %>
 </tr>
 
-<section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= ct.local_hcb_code.hashid %>">
+<section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= ct.local_hcb_code.hashid %>_<%= instance %>">
   <%= modal_header ({
     unknown: "Transaction in #{ct.local_hcb_code.event.name}",
     invoice: "Invoice in #{ct.local_hcb_code.event.name}",

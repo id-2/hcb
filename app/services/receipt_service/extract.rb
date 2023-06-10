@@ -3,7 +3,7 @@
 module ReceiptService
   class Extract
     def initialize(receipt:)
-      @receipt = receipt
+      @receipt = receipt.reload
     end
 
     def run!

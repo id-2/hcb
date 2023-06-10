@@ -10,8 +10,8 @@
 <% end %>
 
 <%= render "receipts/list_v2" %>
-<% admin_tools if: !@hcb_code.receipt_required? do %>
-  <% unless @frame %>
+<% unless false %>
+  <% admin_tools if: !@hcb_code.receipt_required? do %>
     <%= render partial: "receipts/form_v3", locals: {
           receiptable: @hcb_code,
           enable_linking: true,
