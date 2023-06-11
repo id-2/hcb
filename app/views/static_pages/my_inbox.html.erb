@@ -21,13 +21,19 @@
       </div>
       <p>Bank thinks that the receipt you just uploaded, <strong><%= pairing[:receipt].file.blob.filename %></strong>, belongs to a transaction in <strong><%= pairing[:hcb_code].event.name %></strong>.</p>
       <div class="flex p1 justify-center">
+
+
+
         <div class="xs-hide sm-hide">
-          <%= link_to Rails.application.routes.url_helpers.rails_blob_path(pairing[:receipt].file, only_path: true), target: "_blank" do %>
+          <%= render partial: "receipts/receipt", locals: { receipt: pairing[:receipt], show_delete_button: true, link_to_file: true, hide_info: true, size: 200 } %> 
+          <!-- <%= link_to Rails.application.routes.url_helpers.rails_blob_path(pairing[:receipt].file, only_path: true), target: "_blank" do %>
             <span style="display: inline-grid; border-radius: 0.5rem;">
               <%= image_tag pairing[:receipt].preview, width: 200, height: 200, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 200px;" %>
             </span>
-          <% end %>
+          <% end %> -->
         </div>
+
+
         <div class="flex flex-column justify-center xs-hide sm-hide" style="margin-left: 32px; margin-right: 32px; flex-grow: 0.5;">
           <%= image_tag asset_path("link-arrow.svg"), width: 200, height: 100, style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 100px;" %>
         </div>

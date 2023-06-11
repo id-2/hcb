@@ -1,22 +1,24 @@
 <% file_path = Rails.application.routes.url_helpers.rails_blob_path(receipt.file, only_path: true) %>
 
 
-<% instance = receipt.__id__ %>
+<% instance = local_assigns.__id__ %>
 
 <div class="receipt flex flex-column mb1 <%= "receipt--pairing" if defined?(pairing) && pairing %>" <% if defined?(textual_content) %>data-textual-content="<%= j receipt.textual_content %>"<% end %> data-receipt-id="<%= receipt.id %>" style="max-width: 256px;<% if defined?(selectable) %> cursor: pointer;" data-receipt-select-target="receipt" data-action="click->receipt-select#select<% end %>" data-behavior="<%= "modal_trigger" unless defined?(select_target) || receipt.preview.nil? %>" data-modal="<%= "preview_receipt_#{instance}" unless defined?(select_target) || receipt.preview.nil? %>">
 
-    <span class="<%= "muted " unless defined?(selectable) %>mb1">
-      <strong>
-        <% if defined?(link_to_file) && !defined?(select_target) %>
-          <%= link_to file_path, target: "_blank", style: "text-decoration: none;" do %>
-            <%= receipt.file.blob.filename %>
-          <% end %>
-        <% else %>
+<% unless defined?(hide_info) %>
+  <span class="<%= "muted " unless defined?(selectable) %>mb1">
+    <strong>
+      <% if defined?(link_to_file) && !defined?(select_target) %>
+        <%= link_to file_path, target: "_blank", style: "text-decoration: none;" do %>
+          <%= receipt.file.blob.filename %>
+        <% end %>
+      <% else %>
         <%= receipt.file.blob.filename %>
       <% end %>
     </strong>
     (<%= number_to_human_size receipt.file.blob.byte_size %>)
   </span>
+<% end %>
   
   <% if defined?(selectable) %>
     <span>
@@ -26,7 +28,7 @@
         <div class="receipt__icon--star tooltipped tooltipped--w" aria-label="Suggested receipt">
           <%= inline_icon "rep", size: "36", style: "margin: -5px;" %>
         </div>
-        <%= image_tag receipt.preview, width: 256, height: 256, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 256px; user-drag: none; -webkit-user-drag: none; user-select: none; -moz-user-select: none;", data: {
+        <%= image_tag receipt.preview, width: defined?(size) ? size : 256, height: defined?(size) ? size : 256, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: #{defined?(size) ? size : 256}px; user-drag: none; -webkit-user-drag: none; user-select: none; -moz-user-select: none;", data: {
               "receipt-id" => receipt.id
             } if receipt.preview %>
       </span>
@@ -34,39 +36,29 @@
   <% else %>
     <% if receipt.preview %>
       <span style="display: inline-grid; border-radius: 0.5rem;" class="pointer">
-        <%= image_tag receipt.preview, width: 256, height: 256, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 256px; user-drag: none; -webkit-user-drag: none; user-select: none; -moz-user-select: none;", data: {
+        <%= image_tag receipt.preview, width: defined?(size) ? size : 256, height: defined?(size) ? size : 256, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: #{defined?(size) ? size : 256}px; user-drag: none; -webkit-user-drag: none; user-select: none; -moz-user-select: none;", data: {
               "receipt-id" => receipt.id
             } if receipt.preview %>
       </span>
     <% end %>
   <% end %>
 
-  <footer class="flex items-center flex-row" style="border-top: none;">
-    <%= relative_timestamp receipt.created_at, prefix: "added ", class: defined?(selectable) ? "h5" : "h5 muted" %>
-    
-    <span style="flex-grow: 1;"></span>
+  <% unless defined?(hide_info) %>
+    <footer class="flex items-center flex-row" style="border-top: none;">
+      <%= relative_timestamp receipt.created_at, prefix: "added ", class: defined?(selectable) ? "h5" : "h5 muted" %>
+      
+      <span style="flex-grow: 1;"></span>
 
-    <% if defined?(show_delete_button) %>
-      <%= pop_icon_to "view-close",
-          { controller: :receipts, action: :destroy, id: receipt.id },
-          method: :delete,
-          size: 24,
-          class: "error tooltipped tooltipped--w",
-          'aria-label': "Delete this receipt" %>
-    <% end %>
-  </footer>
-  
-    <span style="flex-grow: 1;"></span>
-
-    <% if defined?(show_delete_button) %>
-      <%= pop_icon_to "view-close",
-          { controller: :receipts, action: :destroy, id: receipt.id },
-          method: :delete,
-          size: 24,
-          class: "error tooltipped tooltipped--w",
-          'aria-label': "Delete this receipt" %>
-    <% end %>
-  </footer>
+      <% if defined?(show_delete_button) %>
+        <%= pop_icon_to "view-close",
+            { controller: :receipts, action: :destroy, id: receipt.id },
+            method: :delete,
+            size: 24,
+            class: "error tooltipped tooltipped--w",
+            'aria-label': "Delete this receipt" %>
+      <% end %>
+    </footer>
+  <% end %>
 </div>
 
 <% unless defined?(select_target) || receipt.preview.nil? %>
