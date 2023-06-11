@@ -1,4 +1,4 @@
-<% instance = (0...16).map { ("a".."z").to_a.concat(("A".."Z").to_a).concat((0..9).to_a).sample }.join %>
+<% instance = ct.__id__ %>
 <tr
   class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
   id="<%= ct.local_hcb_code.hashid %>"
@@ -172,7 +172,7 @@
     <td><%= number_to_currency ct.running_balance %></td>
   <% end %>
   <td>
-    <%= link_to "Details", ct.local_hcb_code.url, data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{ct.local_hcb_code.hashid}_#{instance}" } if organizer_signed_in? || defined?(force_display_details) %>
+    <%= link_to "Details", ct.local_hcb_code.url, data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{instance}" } if organizer_signed_in? || defined?(force_display_details) %>
   </td>
   <% if defined?(receipt_upload_button) %>
     <td style="width: 1%">
@@ -193,7 +193,7 @@
             <% end %>
 
             <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
-              <%= link_to my_receipts_upload_path, class: "btn bg-primary", style: "font-size: 0.875rem; font-weight: 600; padding: 0.25rem 1rem;", data: { behavior: "modal_trigger", modal: "link_receipt_#{ct.local_hcb_code.id}" } do %>
+              <%= link_to my_receipts_upload_path, class: "btn bg-primary", style: "font-size: 0.875rem; font-weight: 600; padding: 0.25rem 1rem;", data: { behavior: "modal_trigger", modal: "link_receipt_#{instance}" } do %>
                 <%= inline_icon "payment-docs" %>
                 <span>Select</span>
               <% end %>
@@ -204,7 +204,7 @@
     </td>
 
     <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
-      <section class="modal modal--wide modal--scroll bg-snow" data-behavior="modal" role="dialog" id="link_receipt_<%= ct.local_hcb_code.id %>">
+      <section class="modal modal--wide modal--scroll bg-snow" data-behavior="modal" role="dialog" id="link_receipt_<%= instance %>">
         <%= modal_header "Select receipt" %>
         <%= async_frame_to link_modal_receipts_path(receiptable_type: "HcbCode", receiptable_id: ct.local_hcb_code.id), as: :span do %>
           <strong>Loading...</strong>
