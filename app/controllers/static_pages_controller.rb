@@ -129,6 +129,7 @@ class StaticPagesController < ApplicationController
 
           pairing = receipt.suggested_pairings.order(distance: :asc).first
           next if pairing.nil?
+          next if pairing.nil?
 
           {
             hcb_code: pairing.hcb_code,
