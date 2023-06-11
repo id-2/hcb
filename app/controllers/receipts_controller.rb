@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "uri"
-require "timeout"
-
 class ReceiptsController < ApplicationController
   skip_after_action :verify_authorized, only: :upload # do not force pundit
   skip_before_action :signed_in_user, only: :upload
