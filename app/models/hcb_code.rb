@@ -180,7 +180,7 @@ class HcbCode < ApplicationRecord
                     disbursement: "Disbursement to",
                     card_charge: "Card charge in",
                     bank_fee: "Bank Fee in"
-                  }[type  || :unknown]
+    }[type || :unknown]
     
     event ? "#{pretty_type} #{event.name}" : pretty_type[0..-4]
   end
