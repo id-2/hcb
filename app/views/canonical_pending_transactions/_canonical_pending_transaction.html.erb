@@ -168,7 +168,7 @@
           <%= form.hidden_field :receiptable_type, value: pt.local_hcb_code.class %>
           <%= form.hidden_field :receiptable_id, value: pt.local_hcb_code.id %>
           <%= form.hidden_field :upload_method, value: "receipts_page", data: { "file-drop-target" => "uploadMethod" } %>
-          <div class="<%= "btn-group" if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>">
+          <div class="<%= "btn-group btn-group--no-wrap" if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>">
             <%= form.label "file_#{pt.local_hcb_code.hashid}", class: "btn", style: "font-size: 0.875rem; font-weight: 600; padding: 0.25rem 1rem;" do %>
               <%= inline_icon "share" %>
               Upload receipt
@@ -186,7 +186,7 @@
     </td>
 
     <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
-      <section class="modal modal--wide modal--scroll bg-snow" data-behavior="modal" role="dialog" id="link_receipt_<%= instance %>">
+      <section class="modal modal--huge modal--scroll bg-snow" data-behavior="modal" role="dialog" id="link_receipt_<%= instance %>">
         <%= modal_header "Select receipt" %>
         <%= async_frame_to link_modal_receipts_path(receiptable_type: "HcbCode", receiptable_id: pt.local_hcb_code.id), as: :span do %>
           <strong>Loading...</strong>
@@ -207,7 +207,7 @@
     disbursement: "Disbursement #{pt.local_hcb_code.event.name}",
     card_charge: "Card charge in #{pt.local_hcb_code.event.name}",
     bank_fee: "Bank Fee in #{pt.local_hcb_code.event.name}"
-  })[pt.local_hcb_code.type], level: "h1" %>
+  })[pt.local_hcb_code.type], level: "h1", external_link: pt.local_hcb_code.url %>
   <%= async_frame_to pt.local_hcb_code.popover_url, as: :span, lazy: true do %>
     <div class="shimmer mb1 mt3">
       <div class="shimmer__border"></div>

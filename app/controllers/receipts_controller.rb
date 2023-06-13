@@ -11,6 +11,8 @@ class ReceiptsController < ApplicationController
     @receiptable = @receipt.receiptable
     authorize @receipt
 
+    @receipt.suggested_pairings.destroy_all
+
     if @receipt.delete
       flash[:success] = "Deleted receipt"
       redirect_to @receiptable || my_inbox_path
@@ -48,7 +50,8 @@ class ReceiptsController < ApplicationController
   def link_modal
     authorize @receiptable, policy_class: ReceiptablePolicy
 
-    @receipts = Receipt.where(user: current_user, receiptable: nil)
+    @receipts = Receipt.where(user: current_user, receiptable: nil).order(created_at: :desc)
+    @show_link = params[:show_link]
     @suggested_receipt_ids = []
 
     if @receiptable.instance_of?(HcbCode)
@@ -60,7 +63,7 @@ class ReceiptsController < ApplicationController
       end.sort_by { |receipt| receipt[:distance] }
 
       @receipts = receipt_distances.pluck(:receipt)
-      @suggested_receipt_ids = receipt_distances.select { |receipt| receipt[:distance] < 40 }.map { |receipt| receipt[:receipt].id }
+      @suggested_receipt_ids = @receiptable.suggested_receipts(limit: 3, threshold: 1000).pluck(:id)
     end
 
     render :link_modal, layout: false

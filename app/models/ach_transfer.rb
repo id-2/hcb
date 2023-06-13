@@ -17,6 +17,7 @@
 #  rejected_at               :datetime
 #  routing_number            :string
 #  scheduled_arrival_date    :datetime
+#  scheduled_on              :date
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #  creator_id                :bigint

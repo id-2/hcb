@@ -1,7 +1,42 @@
+.receipt {
+  max-width: var(--receipt-size);
+
+  .receipt--image {
+    max-height: calc(var(--receipt-size) * 1.5);
+    object-fit: contain;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+  }
+
+  @media (max-width: 32em) {
+    .modal ul & {
+      justify-content: center;
+    }
+
+    .modal & {
+      width: 100%;
+      max-width: calc(var(--receipt-size) * 1.25);
+
+      .receipt--image {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(var(--receipt-size) * 1.75);
+      }
+    }
+  }
+}
+
 .receipt--pairing, .receipt--selected {
   margin: -10px;
   padding: 10px;
   border-radius: 8px;
+  box-sizing: content-box;
+  margin-bottom: -2px;
 
   background-color: rgba($red, 0.2);
   
@@ -15,7 +50,6 @@
 
   &.receipt--selected {
     background-color: rgba(#2790e7, 0.4);
-    margin-bottom: -2px;
   }
 
   .receipt__icon--star, .receipt__icon--check {

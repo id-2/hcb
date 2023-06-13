@@ -29,7 +29,7 @@ html[data-dark='true'] {
         display: block;
         height: 400%;
         width: 200%;
-        transform: rotate(-135deg);
+        transform: rotate(-135deg) translate(200px, 50px);
         overflow: hidden;
         background: linear-gradient(to right, #ffffff00 20%, #ffffff00 40%, $muted 50%, $muted 55%, #ffffff00 70%, #ffffff00 100%);
         background-size: 200% auto;
@@ -46,7 +46,7 @@ html[data-dark='true'] {
     display: block;
     height: 400%;
     width: 200%;
-    transform: rotate(-135deg);
+    transform: rotate(-135deg) translate(200px, 50px);
     overflow: hidden;
     background: linear-gradient(to right, #ffffff00 20%, #ffffff00 40%, $smoke 50%, $smoke 55%, #ffffff00 70%, #ffffff00 100%);
     background-size: 200% auto;
@@ -54,8 +54,36 @@ html[data-dark='true'] {
     animation: shine 3s linear infinite;
 }
 
+html[data-dark='true'] .shimmer--error .shimmer__border, .shimmer--error .shimmer__border {
+    position: absolute;
+    display: block;
+    top: -50%;
+    left: -50%;
+    z-index: -9;
+    display: block;
+    height: 400%;
+    width: 200%;
+    transform: rotate(-135deg) translate(200px, 50px);
+    overflow: hidden;
+    background: rgba($red, 0.4);
+    background-size: 200% auto;
+    animation: flash 2s ease-in-out infinite;
+}
+
 @keyframes shine {
     to {
         background-position: 200% center;
+    }
+}
+
+@keyframes flash {
+    0% {
+        background: rgba($red, 0.4);
+    }
+    50% {
+        background: rgba($red, 0.9);
+    }
+    100% {
+        background: rgba($red, 0.4);
     }
 }

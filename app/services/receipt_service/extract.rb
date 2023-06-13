@@ -7,20 +7,19 @@ module ReceiptService
     end
 
     def run!
-      if @receipt.textual_content.nil? && @receipt.extract_textual_content!.nil?
-          return nil
+      if @receipt.textual_content.nil?
+        @textual_content = @receipt.extract_textual_content!
+        return nil if @textual_content.nil?
+      else
+        @textual_content = @receipt.textual_content
       end
 
       {
         amount_cents: amount_cents,
         card_last_four: card_last_four,
         date: date,
-        textual_content: textual_content
+        textual_content: @textual_content
       }
-    end
-
-    def textual_content
-      @receipt.textual_content
     end
 
     private
@@ -51,7 +50,7 @@ module ReceiptService
     def amount_cents
       amount_cents_regex = /\$( ?[\d.,]+)(\s|\n|\\n)/
 
-      amounts = match_regex(amount_cents_regex, textual_content) { |match| match.first }
+      amounts = match_regex(amount_cents_regex, @textual_content) { |match| match.first }
       amounts = amounts.map do |match|
         match[:amount] = (match[:match].to_f * 100).to_i
 
@@ -77,8 +76,8 @@ module ReceiptService
       x_regex = /[*x•·]{1,12}? ?(?:-|—)? ?(?<last4>\d{4})(?:\s|\\n|\)|$)/i
 
       [
-        *match_regex(text_regex, textual_content) { |match| match.first },
-        *match_regex(x_regex, textual_content) { |match| match.first }
+        *match_regex(text_regex, @textual_content) { |match| match.first },
+        *match_regex(x_regex, @textual_content) { |match| match.first }
       ].pluck(:match)
     end
 
@@ -88,7 +87,7 @@ module ReceiptService
       slash_regex = /(?:(?<month>\d{1,2})\/(?<day>\d{1,2})\/(?<year>\d{2,4}))/i
       dash_regex = /(?:(?<month>\d{1,2})-(?<day>\d{1,2})-(?<year>\d{2,4}))/i
 
-      dates = [*match_regex(slash_regex, textual_content), *match_regex(dash_regex, textual_content)].map do |match|
+      dates = [*match_regex(slash_regex, @textual_content), *match_regex(dash_regex, @textual_content)].map do |match|
         integer_values = match[:match].map(&:to_i)
         
         month, day, year = integer_values

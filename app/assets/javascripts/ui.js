@@ -157,6 +157,8 @@ $(document).on('turbo:load', function () {
     const loadFrame = () => {
       $.get($(frame).data('src'), data => {
         $(frame).replaceWith(data)
+      }).fail(() => {
+        $(frame).children('.shimmer').first().addClass('shimmer--error')
       })
     }
     

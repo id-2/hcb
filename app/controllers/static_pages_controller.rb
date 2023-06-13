@@ -81,7 +81,10 @@ class StaticPagesController < ApplicationController
         end
       end
 
-      count
+      count >= 300 ? "🤡" :
+        count >= 200 ? "💀" :
+        count >= 100 ? "😱" :
+        count
     end
 
     render :my_missing_receipts_icon, layout: false
@@ -114,28 +117,18 @@ class StaticPagesController < ApplicationController
       #   end
       # end
 
-      current_user
-
       @receipts = Receipt.where(user: current_user, receiptable: nil)
 
-      recent_receipt = @receipts.order(created_at: :desc).first      
+      @pairings = @receipts.map do |receipt|
+        pairings = receipt.suggested_pairings.order(distance: :asc)
+        next if pairings.ignored.count > 2
 
-      if params[:uploaded_receipts]
-        receipts_by_id = @receipts.map { |receipt| [receipt.id, receipt] }.to_h
-        @pairings = params[:uploaded_receipts].map do |receipt_id|
-          receipt = receipts_by_id[receipt_id.first.to_i]
-          next unless receipt
+        pairing = pairings.unreviewed.first
+        next if pairing.nil?
+        next if pairing.distance > 3000
 
-
-          pairing = receipt.suggested_pairings.order(distance: :asc).first
-          next if pairing.nil?
-
-          {
-            hcb_code: pairing.hcb_code,
-            receipt: receipt
-          }
-        end.compact
-      end
+        pairing
+      end.compact
     end
   end
 

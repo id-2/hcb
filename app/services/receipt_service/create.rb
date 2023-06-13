@@ -24,7 +24,8 @@ module ReceiptService
             {
               receipt_id: receipt.id,
               hcb_code_id: pairing[:hcb_code].id,
-              distance: pairing[:distance]
+              distance: pairing[:distance],
+              aasm_state: "unreviewed"
             }
           end
 

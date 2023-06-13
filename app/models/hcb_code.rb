@@ -61,6 +61,16 @@ class HcbCode < ApplicationRecord
     end
   end
 
+  def suggested_receipts(limit: nil, threshold: nil, only_unreviewed: false)
+    pairings = (only_unreviewed ? suggested_pairings.unreviewed : suggested_pairings).order(distance: :asc).limit(limit)
+
+    if threshold
+      pairings = pairings.select { |p| p.distance <= threshold }
+    end
+
+    pairings.map(&:receipt).compact
+  end
+
   def date
     @date ||= ct.try(:date) || pt.try(:date)
   end

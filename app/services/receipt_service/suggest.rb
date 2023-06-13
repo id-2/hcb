@@ -11,15 +11,7 @@ module ReceiptService
 
       return nil if @extracted.nil?
 
-      dist = transaction_distances(include_details)
-
-      ap (dist.map do |d|
-        d[:memo] = d[:hcb_code].memo
-        d
-      end)
-      puts "distances!!!"
-
-      dist
+      transaction_distances(include_details)
     end
 
     def self.weights
@@ -62,13 +54,13 @@ module ReceiptService
       end
     end
 
-    def distances_hash(txn)
+    def distances_hash(txn)      
       distances = {
         card_last_four: @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1,
-        merchant_zip_code: @extracted[:textual_content].include?(txn.stripe_merchant["postal_code"]) ? 0 : 1,
-        merchant_city: @extracted[:textual_content].downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1,
-        merchant_phone: txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @extracted[:textual_content].include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1,
-        merchant_name: @extracted[:textual_content].downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
+        merchant_zip_code: txn.stripe_merchant["postal_code"].nil? ? nil : (@extracted[:textual_content].include?(txn.stripe_merchant["postal_code"]) ? 0 : 1),
+        merchant_city: txn.stripe_merchant["city"].nil? ? nil : (@extracted[:textual_content].downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1),
+        merchant_phone: txn.stripe_merchant["city"].nil? ? nil : (txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @extracted[:textual_content].include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1),
+        merchant_name: txn.stripe_merchant["name"].nil? ? nil : @extracted[:textual_content].downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
       }
 
       if (@extracted[:amount_cents].include?(txn.amount_cents))
