@@ -85,13 +85,13 @@ class ReceiptsController < ApplicationController
     end
 
     if params[:file] # Ignore if no files were uploaded
-      receipts = params[:file].map do |file|
+      params[:file].map do |file|
         ::ReceiptService::Create.new(
           receiptable: @receiptable,
           uploader: current_user,
           attachments: [file],
           upload_method: params[:upload_method]
-        ).run!.to_a.first
+        ).run!
       end
 
       if params[:show_link]
@@ -108,27 +108,12 @@ class ReceiptsController < ApplicationController
 
     flash[:error] = e.message
   ensure
-    if params[:redirect_url] && receipts&.any?
-
-      uri = URI.parse(params[:redirect_url])
-
-      uri.query = URI.encode_www_form("uploaded_receipts[]": receipts.pluck(:id))
-
-      redirect_to uri.to_s
-    elsif params[:redirect_url]
+    if params[:redirect_url]
       redirect_to params[:redirect_url]
     elsif @receiptable.is_a?(HcbCode) && @receiptable.stripe_card&.card_grant.present?
       redirect_to @receiptable.stripe_card.card_grant
     else
-      referrer_url = URI.parse(request.referrer) rescue URI.parse(@receiptable&.try(:url) || url_for(@receiptable) || my_inbox_path)
-
-      if receipts
-        referrer_url.query = Rack::Utils.parse_nested_query(referrer_url.query)
-                                        .merge({ "uploaded_receipts[]": receipts.pluck(:id) })
-                                        .to_query
-      end
-
-      redirect_to referrer_url.to_s
+      redirect_back fallback_location: URI.parse(@receiptable&.try(:url) || url_for(@receiptable) || my_inbox_path)
     end
   end
 
