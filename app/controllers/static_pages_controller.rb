@@ -81,10 +81,11 @@ class StaticPagesController < ApplicationController
         end
       end
 
-      count >= 300 ? "🤡" :
-        count >= 200 ? "💀" :
-        count >= 100 ? "😱" :
-        count
+      next "🤡" if count >= 300
+      next "💀" if count >= 200
+      next "😱" if count >= 100
+
+      count
     end
 
     render :my_missing_receipts_icon, layout: false

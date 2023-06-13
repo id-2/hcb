@@ -124,8 +124,8 @@ class ReceiptsController < ApplicationController
 
       if receipts
         referrer_url.query = Rack::Utils.parse_nested_query(referrer_url.query)
-          .merge({ "uploaded_receipts[]": receipts.pluck(:id) })
-          .to_query
+                                        .merge({ "uploaded_receipts[]": receipts.pluck(:id) })
+                                        .to_query
       end
 
       redirect_to referrer_url.to_s

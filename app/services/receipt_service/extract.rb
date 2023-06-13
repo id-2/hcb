@@ -36,7 +36,7 @@ module ReceiptService
       matches.map.with_index do |match, index|
         position = positions[index]
         before_fragment = index == 0 ? text[0..(position - 1)] : text[(positions[index - 1] + matches[index - 1].to_s.length)..(position - 1)]
-        after_fragment = index == matches.length - 1 ? text[(position + match.to_s.length)..-1] : text[(position + match.to_s.length)..(positions[index + 1] - 1)]
+        after_fragment = index == matches.length - 1 ? text[(position + match.to_s.length)..] : text[(position + match.to_s.length)..(positions[index + 1] - 1)]
 
         {
           before_fragment: before_fragment,
@@ -62,7 +62,7 @@ module ReceiptService
       amounts.each_with_index do |amount, index|
         if amount[:before_fragment].downcase.include?("total")
           # TODO - Exclude "sub"total
-          amounts = [amount] + amounts[0...index] + amounts[index + 1..-1]
+          amounts = [amount] + amounts[0...index] + amounts[index + 1..]
         end
       end
 
@@ -89,7 +89,7 @@ module ReceiptService
 
       dates = [*match_regex(slash_regex, @textual_content), *match_regex(dash_regex, @textual_content)].map do |match|
         integer_values = match[:match].map(&:to_i)
-        
+
         month, day, year = integer_values
 
         [

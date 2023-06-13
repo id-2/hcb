@@ -144,7 +144,7 @@ module ApplicationHelper
               block.call(item, index)
             end
           end).join.html_safe
-        end) + 
+        end) +
         (content_tag :button, class: "carousel__button carousel__button--right", data: { "carousel-target": "right" } do
           inline_icon "view-back", size: 40
         end)

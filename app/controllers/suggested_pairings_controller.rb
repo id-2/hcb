@@ -20,4 +20,5 @@ class SuggestedPairingsController < ApplicationController
     flash[:success] = { text: "Receipt linked!", link: hcb_code_path(@pairing.hcb_code), link_text: "View" }
     redirect_back fallback_location: my_inbox_path
   end
+
 end

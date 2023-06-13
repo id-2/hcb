@@ -51,4 +51,5 @@ class SuggestedPairing < ApplicationRecord
   def accepted?
     !!accepted_at
   end
+
 end
