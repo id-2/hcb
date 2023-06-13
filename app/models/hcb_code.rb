@@ -168,7 +168,7 @@ class HcbCode < ApplicationRecord
         Event.where(id: ids)
       end
   end
-  
+
   def pretty_title
     pretty_type = {
       unknown: "Transaction in",
