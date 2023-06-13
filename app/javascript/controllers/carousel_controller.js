@@ -31,12 +31,10 @@ export default class extends Controller {
     }
 
     setActiveSlide (slideNumber) {
-        $(this.carouselTarget).find(".carousel__item").removeClass('carousel__item--active');
-        $(this.carouselTarget).find(".carousel__item").eq(slideNumber).addClass('carousel__item--active');
-        $(this.carouselTarget).closest(".carousel__wrapper").get(0).querySelector(".carousel__number").innerText = slideNumber + 1;
-    }
-
-    cache(e) {
-        localStorage.setItem(`cached_frame:${this.element.id}`, e.target.innerHTML)
+        const carouselItems = this.carouselTarget.querySelectorAll(".carousel__item");
+        carouselItems.forEach((item) => item.classList.remove('carousel__item--active'));
+        carouselItems[slideNumber].classList.add('carousel__item--active');
+        const carouselWrapper = this.carouselTarget.closest(".carousel__wrapper");
+        carouselWrapper.querySelector(".carousel__number").innerText = slideNumber + 1;
     }
 }

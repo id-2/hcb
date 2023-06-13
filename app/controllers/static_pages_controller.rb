@@ -81,7 +81,12 @@ class StaticPagesController < ApplicationController
         end
       end
 
-      count >= 300 ? "🤡" : count >= 100 ? "😱" : count
+      emojis = {
+        "🤡": 300,
+        "💀": 200,
+        "😱": 100,
+      }
+      emojis.find { |emoji, value| count >= value }&.first || count
     end
 
     render :my_missing_receipts_icon, layout: false

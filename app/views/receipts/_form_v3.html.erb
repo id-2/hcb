@@ -1,4 +1,4 @@
-<% instance = local_assigns.__id__.to_json %>
+<% instance = local_assigns.__id__ %>
 <div class="<%= "mb3" if defined?(include_spacing) %>">
   <%= form_with model: nil, url: upload_receipts_path, method: :post, class: "flex flex-column justify-center#{" my-inbox-dropzone" if defined?(restricted_dropzone)}", data: {
         controller: "file-drop form",
@@ -73,7 +73,7 @@
     <% if defined?(enable_linking) && defined?(receiptable) && defined?(inline_linking) %>
       <section class="card pt0 mt2" id="link_receipt_<%= instance %>_select" style="display: none;">
         <header class="pb2" style="z-index: 1000;">
-          <%= pop_icon_to "view-close", nil, class: "modal__close muted m1", tabindex: 0, onclick: "event.preventDefault(); $('#link_receipt_#{instance}_select').hide(); $('#link_receipt_#{instance}_form').show();" %>
+          <%= pop_icon_to "view-close", nil, class: "modal__close muted m1", tabindex: 0, onclick: "event.preventDefault(); $('#link_receipt_#{instance.to_json}_select').hide(); $('#link_receipt_#{instance.to_json}_form').show();" %>
           <h2 class="h1 mt0 mb0 pb0 border-none">Select receipt</h2>
         </header>
         <%= async_frame_to link_modal_receipts_path(receiptable_type: receiptable.class, receiptable_id: receiptable.id), as: :span do %>

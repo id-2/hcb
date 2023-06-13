@@ -41,7 +41,7 @@ export default class extends Controller {
     this.#render();
   }
 
-  search(e) {
+  search() {
     this.#render();
   }
 
