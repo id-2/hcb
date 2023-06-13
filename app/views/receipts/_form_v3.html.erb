@@ -1,4 +1,4 @@
-<% instance = local_assigns.__id__ %>
+<% instance = local_assigns.__id__.to_json %>
 <div class="<%= "mb3" if defined?(include_spacing) %>">
   <%= form_with model: nil, url: upload_receipts_path, method: :post, class: "flex flex-column justify-center#{" my-inbox-dropzone" if defined?(restricted_dropzone)}", data: {
         controller: "file-drop form",
@@ -77,7 +77,7 @@
           <h2 class="h1 mt0 mb0 pb0 border-none">Select receipt</h2>
         </header>
         <%= async_frame_to link_modal_receipts_path(receiptable_type: receiptable.class, receiptable_id: receiptable.id), as: :span do %>
-          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" onload="let e = this.parentElement; $.get($(e).data('src'), data => $(e).replaceWith(data));" />  <!-- This inline JS is needed to load an async frame that enters the DOM after the initial page load. -->
+          <img style="display: none;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" onload="let e = this.parentElement; $.get($(e).data('src'), data => $(e).replaceWith(data));">  <!-- This inline JS is needed to load an async frame that enters the DOM after the initial page load. -->
           <strong>Loading...</strong>
         <% end %>
       </section>
