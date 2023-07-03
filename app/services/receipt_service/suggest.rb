@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'fuzzystringmatch'
+require "fuzzystringmatch"
 
 module ReceiptService
   class Suggest
