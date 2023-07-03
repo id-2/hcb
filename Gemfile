@@ -197,3 +197,5 @@ group :development do
 
   gem "foreman"
 end
+
+gem "fuzzystringmatch", "~> 1.0"

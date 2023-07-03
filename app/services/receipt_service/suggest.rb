@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
+require 'fuzzystringmatch'
+
 module ReceiptService
   class Suggest
     def initialize(receipt:)
       @receipt = receipt
+      @jarow = FuzzyStringMatch::JaroWinkler.create( :pure )
     end
 
     def run!(include_details: false)
@@ -19,10 +22,11 @@ module ReceiptService
         amount_cents: 1,
         date: 1000,
         card_last_four: 1000,
-        merchant_zip_code: 500,
-        merchant_city: 500,
-        merchant_phone: 500,
-        merchant_name: 500
+        merchant_zip_code: 300,
+        merchant_city: 300,
+        merchant_phone: 300,
+        merchant_name: 300,
+        fuzzy_memo: 1000
       }
     end
 
@@ -76,7 +80,8 @@ module ReceiptService
                          nil
                        else
                          @extracted[:textual_content].downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
-                       end
+                       end,
+        fuzzy_memo: 1 - @jarow.getDistance(txn.memo.downcase, @extracted[:textual_content].downcase)
       }
 
       if @extracted[:amount_cents].include?(txn.amount_cents)

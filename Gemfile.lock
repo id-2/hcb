@@ -1,6 +1,9 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    RubyInline (3.14.0)
+      ZenTest (~> 4.3)
+    ZenTest (4.12.1)
     aasm (5.5.0)
       concurrent-ruby (~> 1.0)
     actioncable (7.0.4.3)
@@ -296,6 +299,9 @@ GEM
     fugit (1.8.1)
       et-orbi (~> 1, >= 1.2.7)
       raabro (~> 1.4)
+    fuzzy-string-match (1.0.1)
+      RubyInline (>= 3.8.6)
+    fuzzy_match (2.1.0)
     geo_pattern (1.5.0)
       color (~> 1.5)
     geocoder (1.8.0)
@@ -812,6 +818,8 @@ DEPENDENCIES
   flipper-ui
   foreman
   friendly_id (~> 5.2.0)
+  fuzzy-string-match (~> 1.0)
+  fuzzy_match (~> 2.1)
   geo_pattern
   geocoder
   google-apis-admin_directory_v1 (~> 0.43.0)
@@ -893,4 +901,4 @@ RUBY VERSION
    ruby 3.1.4p223
 
 BUNDLED WITH
-   2.4.12
+   2.4.13
