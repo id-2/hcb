@@ -132,6 +132,8 @@ gem "rinku", require: "rails_rinku" # auto-linking URLs in text
 
 gem "geocoder" # lookup lat/lng for Stripe Cards shipment tracking
 
+gem "fuzzy-string-match" # receipt pairing
+
 gem "rqrcode" # QR code generation
 
 gem "brakeman" # static security vulnerability scanner
@@ -197,5 +199,3 @@ group :development do
 
   gem "foreman"
 end
-
-gem "fuzzystringmatch", "~> 1.0"

@@ -301,7 +301,6 @@ GEM
       raabro (~> 1.4)
     fuzzy-string-match (1.0.1)
       RubyInline (>= 3.8.6)
-    fuzzy_match (2.1.0)
     geo_pattern (1.5.0)
       color (~> 1.5)
     geocoder (1.8.0)
@@ -818,8 +817,7 @@ DEPENDENCIES
   flipper-ui
   foreman
   friendly_id (~> 5.2.0)
-  fuzzy-string-match (~> 1.0)
-  fuzzy_match (~> 2.1)
+  fuzzy-string-match
   geo_pattern
   geocoder
   google-apis-admin_directory_v1 (~> 0.43.0)
