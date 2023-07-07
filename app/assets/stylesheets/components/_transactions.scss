@@ -119,3 +119,47 @@ html[data-dark='true'] {
     background-color: none;
   }
 }
+
+@keyframes spinner {
+  to {transform: rotate(360deg);}
+}
+ 
+
+
+
+.transaction__memo.transaction__memo--loading {
+  position: relative;
+
+  &::before {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: -16px;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    border-radius: 50%;
+    border: 2px solid $red;
+    border-top-color: transparent;
+    animation: spinner .6s linear infinite;
+    z-index: 11;
+  }
+  &::after {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: -16px;
+    width: 40px;
+    height: 40px;
+    backdrop-filter: blur(1.6px);
+    margin-top: -20px;
+    margin-left: -20px;
+    border-radius: 50%;
+    border-top-color: transparent;
+    background-color: transparent;
+    z-index: 10;
+  }
+}

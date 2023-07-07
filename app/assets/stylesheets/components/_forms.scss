@@ -40,6 +40,48 @@ textarea {
     color: map-get($palette, slate);
   }
 }
+.input-sizer {
+  &, *, *::before, &::before, *::after, &::after {
+    box-sizing: border-box;
+  }
+}
+.input-sizer {
+  display: inline-grid;
+  vertical-align: middle;
+  align-items: start;
+  justify-content: center;
+  position: relative;
+  height: 26px;
+}
+.input-sizer::after, .input-sizer input, .input-sizer textarea {
+  width: auto;
+  min-width: 1em;
+  grid-area: 0.5;
+  font: inherit;
+  margin: 0;
+  resize: none;
+  background: none;
+  appearance: none;
+  border: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.input-sizer::after {
+  content: attr(data-value) ' ';
+  visibility: hidden;
+  white-space: pre-wrap;
+}
+.input-sizer:focus-within textarea:focus, .input-sizer:focus-within input:focus {
+  outline: none;
+}
+.input-sizer > span {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+/* ---------------------------------- */
+
 
 select {
   min-height: 0;
