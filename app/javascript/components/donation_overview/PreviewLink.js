@@ -36,12 +36,13 @@ class PreviewLink extends React.Component {
       this.setState({[field]: null})
     } else {
       switch (field) {
-        case 'amount':
+        case 'amount': {
           let amount = parseFloat(e.target.value) * 100
           if (Number.isFinite(amount) && amount > 0) {
             this.setState({amount})
           }
           break
+        }
         case 'message':
           this.setState({message: e.target.value})
           break
