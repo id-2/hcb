@@ -19,13 +19,13 @@
 
     <div class="field mb2">
       <%= form.label :name, "Your name" %>
-      <%= form.text_field :name, placeholder: "Fiona Hackworth", required: true, autofocus: true, value: params[:name] %>
+      <%= form.text_field :name, placeholder: "Fiona Hackworth", required: true, autofocus: true %>
     </div>
 
     <div class="field mb2">
       <%= form.label :email, "Your email" %>
       <span class="muted block h5">We’ll send <%= @monthly ? "receipts" : "a receipt" %> here for your tax records.</span>
-      <%= form.email_field :email, placeholder: "fionah@gmail.com", required: true, value: params[:email] %>
+      <%= form.email_field :email, placeholder: "fionah@gmail.com", required: true %>
       <% donation.errors.messages_for(:email).each do |message| %>
         <div class="primary"><%= message %></div>
       <% end %>
@@ -35,7 +35,7 @@
       <div class="field mb2">
         <%= form.label :message, "Message" %>
         <span class="muted block h5">Optionally include a note.</span>
-        <%= form.text_field :message, placeholder: "Keep up the good work!", required: false, value: params[:message] %>
+        <%= form.text_field :message, placeholder: "Keep up the good work!", required: false %>
       </div>
     <% end %>
 
