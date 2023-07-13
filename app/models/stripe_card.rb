@@ -65,6 +65,14 @@ class StripeCard < ApplicationRecord
 
   scope :on_main_ledger, -> { where(subledger_id: nil) }
 
+  scope :expiring_in, ->(duration) {
+    # weird sql written by caleb
+    active.where("
+      make_date(stripe_exp_year, stripe_exp_month, 1) + interval '1 month' - interval '1 second' >= ? AND
+      make_date(stripe_exp_year, stripe_exp_month, 1) + interval '1 month' - interval '1 second' <= ?
+    ", duration.from_now - 12.hours, duration.from_now + 12.hours)
+  }
+
   belongs_to :event
   belongs_to :subledger, optional: true
   belongs_to :stripe_cardholder
@@ -111,6 +119,10 @@ class StripeCard < ApplicationRecord
     secret_details[:cvc]
   end
 
+  def expiration
+    Time.new(stripe_exp_year, stripe_exp_month).end_of_month
+  end
+
   def formatted_card_number
     return "•••• •••• •••• #{last4}" unless virtual?
 
@@ -138,6 +150,7 @@ class StripeCard < ApplicationRecord
   end
 
   def status_text
+    return "Expired" if Time.now > expiration
     return "Inactive" if !activated?
     return "Frozen" if stripe_status == "inactive"
 
