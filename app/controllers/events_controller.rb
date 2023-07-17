@@ -259,6 +259,12 @@ class EventsController < ApplicationController
 
   end
 
+  def expiring_cards_badge
+    authorize @event
+
+    @count = @event.stripe_cards.expiring_in(..1.month.from_now).count
+  end
+
   def documentation
     @event_name = @event.name
 

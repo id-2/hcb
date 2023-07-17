@@ -1,0 +1,7 @@
+<%= turbo_frame_tag expiring_cards_badge_event_path(@event) do %>
+  <% if @count != 0 %>
+    <div class="dock__item--badge">
+      <%= @count %>
+    </div>
+  <% end %>
+<% end %>

@@ -563,6 +563,7 @@ Rails.application.routes.draw do
       post "enable_feature"
       post "test_ach_payment"
       get "account-number", to: "events#account_number"
+      get "expiring_cards_badge"
     end
   end
 

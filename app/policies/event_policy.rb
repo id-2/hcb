@@ -141,6 +141,12 @@ class EventPolicy < ApplicationPolicy
     is_public || user_or_admin
   end
 
+  def expiring_cards_badge?
+    user_or_admin
+  end
+
+  private
+
   def user_or_admin
     user&.admin? || record.users.include?(user)
   end

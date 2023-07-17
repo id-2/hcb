@@ -65,6 +65,7 @@
         event_cards_overview_path(event_id: @event.slug),
         tooltip: "Manage team debit cards",
         icon: "card",
+        async_badge: expiring_cards_badge_event_path(@event),
         data: { tour_step: "cards" },
         selected: local_assigns[:selected] == :cards unless !@event.approved? %>
       <%= dock_item "Transfers",
