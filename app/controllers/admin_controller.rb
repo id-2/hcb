@@ -373,11 +373,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
-        @q = Monetize.parse(@q).cents
-
-        relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
-      else
+      if @q.to_f.zero?
         case @q.delete(" ")
         when ">0", ">=0"
           relation = relation.where("amount_cents >= 0")
@@ -386,6 +382,10 @@ class AdminController < ApplicationController
         else
           relation = relation.search_memo(@q)
         end
+      else
+        @q = Monetize.parse(@q).cents
+
+        relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
       end
     end
 
@@ -423,11 +423,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
-        @q = (@q.to_f * 100).to_i
-
-        relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
-      else
+      if @q.to_f.zero?
         case @q.delete(" ")
         when ">0", ">=0"
           relation = relation.where("amount_cents >= 0")
@@ -436,6 +432,10 @@ class AdminController < ApplicationController
         else
           relation = relation.search_memo(@q)
         end
+      else
+        @q = (@q.to_f * 100).to_i
+
+        relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
       end
     end
 
@@ -465,11 +465,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
-        @q = (@q.to_f * 100).to_i
-
-        relation = relation.where("amount = ? or amount = ?", @q, -@q)
-      else
+      if @q.to_f.zero?
         case @q.delete(" ")
         when ">0", ">=0"
           relation = relation.where("amount >= 0")
@@ -478,6 +474,10 @@ class AdminController < ApplicationController
         else
           relation = relation.search_recipient(@q)
         end
+      else
+        @q = (@q.to_f * 100).to_i
+
+        relation = relation.where("amount = ? or amount = ?", @q, -@q)
       end
     end
 
@@ -558,11 +558,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
-        @q = (@q.to_f * 100).to_i
-
-        relation = relation.where("amount = ? or amount = ?", @q, -@q)
-      else
+      if @q.to_f.zero?
         case @q.delete(" ")
         when ">0", ">=0"
           relation = relation.where("amount >= 0")
@@ -571,6 +567,10 @@ class AdminController < ApplicationController
         else
           relation = relation.search_recipient(@q)
         end
+      else
+        @q = (@q.to_f * 100).to_i
+
+        relation = relation.where("amount = ? or amount = ?", @q, -@q)
       end
     end
 
@@ -653,11 +653,11 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.zero?
+        relation = relation.search_name(@q)
+      else
         @q = (@q.to_f * 100).to_i
         relation = relation.where("payout_amount_cents = ? or payout_amount_cents = ?", @q, -@q)
-      else
-        relation = relation.search_name(@q)
       end
     end
 
@@ -693,12 +693,12 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.zero?
+        relation = relation.search_name(@q)
+      else
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
-      else
-        relation = relation.search_name(@q)
       end
     end
 
@@ -751,12 +751,12 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.zero?
+        relation = relation.search_name(@q)
+      else
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
-      else
-        relation = relation.search_name(@q)
       end
     end
 
@@ -844,12 +844,12 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.zero?
+        relation = relation.search_description(@q)
+      else
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount_due = ? or amount_due = ?", @q, -@q)
-      else
-        relation = relation.search_description(@q)
       end
     end
 

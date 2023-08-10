@@ -142,3 +142,16 @@ Bundler/OrderedGems:
 
 Naming/AccessorMethodName:
   Enabled: false
+
+Style/HashLikeCase:
+  Enabled: false
+
+Style/ClassAndModuleChildren: # Could possibly be changed to `EnforcedStyle: compact`
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/FormatStringToken:
+  AllowedMethods:
+    - redirect

@@ -7,7 +7,7 @@ default: &default
 
 development:
   <<: *default
-  database: bank_development
+  database: bank_dev
 
 test:
   <<: *default
