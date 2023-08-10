@@ -6,19 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Offense count: 1
-# Configuration parameters: AllowedMethods.
-# AllowedMethods: enums
-Lint/ConstantDefinitionInBlock:
-  Exclude:
-    - 'config/initializers/cors.rb'
-
-# Offense count: 2
-Lint/IneffectiveAccessModifier:
-  Exclude:
-    - 'app/models/partner.rb'
-    - 'lib/emburse_client.rb'
-
 # Offense count: 4
 Lint/ShadowingOuterLocalVariable:
   Exclude:
@@ -62,21 +49,3 @@ Style/OptionalBooleanParameter:
     - 'app/helpers/partner_donations_helper.rb'
     - 'app/helpers/sessions_helper.rb'
     - 'app/models/g_suite_account.rb'
-
-# Offense count: 19
-# This cop supports unsafe auto-correction (--auto-correct-all).
-# Configuration parameters: Mode.
-Style/StringConcatenation:
-  Exclude:
-    - 'app/controllers/api_controller.rb'
-    - 'app/controllers/hcb_codes_controller.rb'
-    - 'app/controllers/stripe_controller.rb'
-    - 'app/helpers/application_helper.rb'
-    - 'app/helpers/events_helper.rb'
-    - 'app/helpers/hcb_code_helper.rb'
-    - 'app/models/bank_account.rb'
-    - 'app/models/emburse_card_request.rb'
-    - 'app/models/stripe_card.rb'
-    - 'app/models/transaction.rb'
-    - 'app/services/partners/docusign/api.rb'
-    - 'app/services/partners/docusign/signing_completion_redirect.rb'

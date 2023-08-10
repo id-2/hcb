@@ -155,3 +155,6 @@ Naming/VariableNumber:
 Style/FormatStringToken:
   AllowedMethods:
     - redirect
+
+Style/StringConcatenation:
+  Enabled: false
