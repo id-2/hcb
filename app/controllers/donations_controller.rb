@@ -86,11 +86,10 @@ class DonationsController < ApplicationController
     if d_params[:name] == "aser ras"
       redirect_to root_url and return
     end
-    
+
     @donation = Donation.new(d_params)
     @donation.event = @event
     @donation.currency = @event.donation_page_currency
-    
     @symbol = Money::Currency.new(@donation.currency).symbol
 
     authorize @donation
