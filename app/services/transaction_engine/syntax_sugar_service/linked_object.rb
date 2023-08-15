@@ -16,6 +16,7 @@ module TransactionEngine
           return likely_clearing_check if clearing_check?
           return likely_dda_check if dda_check?
           return likely_increase_check if increase_check?
+          return likely_check_deposit if check_deposit?
 
           return likely_ach if outgoing_ach?
           return likely_increase_ach if increase_ach?
@@ -66,13 +67,19 @@ module TransactionEngine
         IncreaseCheck.find_by(increase_id: increase_check_transfer_id)
       end
 
+      def likely_check_deposit
+        increase_check_deposit_id = @canonical_transaction.raw_increase_transaction.increase_transaction.dig("source", "check_deposit_acceptance", "check_deposit_id")
+
+        CheckDeposit.find_by(increase_id: increase_check_deposit_id)
+      end
+
       def likely_ach
         return nil unless event
 
         confirmation_number = @canonical_transaction.likely_ach_confirmation_number
         return nil unless confirmation_number
 
-        event.ach_transfers.find_by(confirmation_number: confirmation_number)
+        event.ach_transfers.find_by(confirmation_number:)
       end
 
       def likely_increase_ach

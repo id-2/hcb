@@ -1,0 +1,59 @@
+<% title "Deposit a check to #{@event.name}" %>
+<% page_md %>
+<%= render "events/nav", selected: :deposit_check %>
+
+<h1 class="heading">Deposit a check</h1>
+
+<div class="flex justify-center" style="flex-wrap: wrap-reverse; gap: 48px">
+  <div class="flex-auto" style="flex-basis: calc(50% - 40px);">
+    <%= render "new" %>
+  </div>
+  <div>
+    <div class="card border b--info pb0 mb2 max-width-1 mt2">
+      <div class="flex items-center info">
+        <%= inline_icon "info", size: 32, class: "mr1" %>
+        <p class="bold mt0 mb0">Important info about depositing checks:</p>
+      </div>
+      <ul class="mt1 mb2">
+        <li>The check must be made out to "<strong class="primary nowrap">Hack Club</strong>" or "<strong class="primary nowrap">The Hack Foundation</strong>".</li>
+        <li>Take clear photos of the entire front & back of the check.</li>
+        <li>You don't need to sign the back of the check.</li>
+        <li>Make sure the amount you enter here matches the amount on the check.</li>
+      </ul>
+      <div class="border-top card__banner card__darker secondary">
+        <strong>Questions?</strong>
+          <%= help_message %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if @check_deposits.count > 0 %>
+  <hr>
+
+  <h3 class="mt3 center">Deposit history</h3>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <th></th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Amount</th>
+        <th></th>
+      </thead>
+
+      <tbody>
+        <% @check_deposits.each do |check_deposit| %>
+          <tr>
+            <td style="width: 0%"><%= image_tag check_deposit.front.representation(resize_to_limit: [64, 64]), class: "rounded mr1", width: 40 %></td>
+            <td><span class="badge bg-<%= check_deposit.state %> m0"><%= check_deposit.state_text %></span></td>
+            <td><%= format_date check_deposit.created_at %></td>
+            <td><%= render_money check_deposit.amount_cents %></td>
+            <td><%= link_to "Details", check_deposit.local_hcb_code.url %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

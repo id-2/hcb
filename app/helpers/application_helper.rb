@@ -10,14 +10,14 @@ module ApplicationHelper
     num = BigDecimal(amount || 0) / 100
     if trunc
       if num >= 1_000_000
-        number_to_currency(num / 1_000_000, precision: 1, unit: unit) + "m"
+        number_to_currency(num / 1_000_000, precision: 1, unit:) + "m"
       elsif num >= 1_000
-        number_to_currency(num / 1_000, precision: 1, unit: unit) + "k"
+        number_to_currency(num / 1_000, precision: 1, unit:) + "k"
       else
-        number_to_currency(num, unit: unit)
+        number_to_currency(num, unit:)
       end
     else
-      number_to_currency(num, unit: unit)
+      number_to_currency(num, unit:)
     end
   end
 
@@ -32,7 +32,7 @@ module ApplicationHelper
 
   def render_percentage(decimal, params = {})
     precision = params[:precision] || 2
-    number_to_percentage(decimal * 100, precision: precision)
+    number_to_percentage(decimal * 100, precision:)
   end
 
   def render_address(obj)
@@ -48,7 +48,8 @@ module ApplicationHelper
                 block_given? ? capture(&block) : nil,
                 data: {
                   src: url,
-                  behavior: "async_frame"
+                  behavior: "async_frame",
+                  loading: options[:lazy] ? "lazy" : nil
                 },
                 **options
   end
@@ -120,10 +121,33 @@ module ApplicationHelper
     pop_icon_to "view-close", "#close_modal", class: "modal__close muted", rel: "modal:close", tabindex: 0
   end
 
-  def modal_header(text, level: "h0")
+  def modal_external_link(external_link)
+    pop_icon_to "external", external_link, target: "_blank", size: 14, class: "modal__external muted", onload: "window.navigator.standalone ? this.setAttribute('target', '_top') : null"
+  end
+
+  def modal_header(text, level: "h0", external_link: nil)
     content_tag :header, class: "pb2" do
       modal_close +
+        (external_link ? modal_external_link(external_link) : "") +
         content_tag(:h2, text.html_safe, class: "#{level} mt0 mb0 pb0 border-none")
+    end
+  end
+
+  def carousel(content, &block)
+    content_tag :div, class: "carousel", data: { "controller": "carousel", "carousel-target": "carousel", "carousel-slide-value": "0", "carousel-length-value": content.length.to_s } do
+      (content_tag :button, class: "carousel__button carousel__button--left", data: { "carousel-target": "left" } do
+        inline_icon "view-back", size: 40
+      end) +
+        (content_tag :div, class: "carousel__items" do
+          (content.map.with_index do |item, index|
+            content_tag :div, class: "carousel__item #{index == 0 ? 'carousel__item--active' : ''}" do
+              block.call(item, index)
+            end
+          end).join.html_safe
+        end) +
+        (content_tag :button, class: "carousel__button carousel__button--right", data: { "carousel-target": "right" } do
+          inline_icon "view-back", size: 40
+        end)
     end
   end
 
@@ -312,15 +336,9 @@ module ApplicationHelper
     "https://airtable.com/#{id}?#{URI.encode_www_form(query)}"
   end
 
-  def fillout_form(id, params = {}, hide = [])
-    query = {}
-    params.each do |key, value|
-      query["prefill_#{key}"] = value
-    end
-    hide.each do |field|
-      query["hide_#{field}"] = "true"
-    end
-
+  def fillout_form(id, params = {}, prefix: "")
+    query = params.transform_keys { |k| prefix + k }
     "https://forms.hackclub.com/t/#{id}?#{URI.encode_www_form(query)}"
   end
+
 end

@@ -16,20 +16,19 @@ class GSuiteAccountsController < ApplicationController
 
     authorize @g_suite, policy_class: GSuiteAccountPolicy
 
-    attrs = {
-      g_suite: @g_suite,
-      current_user: current_user,
-      backup_email: g_suite_account_params[:backup_email],
-      address: g_suite_account_params[:address],
-      first_name: g_suite_account_params[:first_name],
-      last_name: g_suite_account_params[:last_name]
-    }
     begin
-      GSuiteAccountService::Create.new(attrs).run
+      GSuiteAccountService::Create.new(
+        g_suite: @g_suite,
+        current_user:,
+        backup_email: g_suite_account_params[:backup_email],
+        address: g_suite_account_params[:address],
+        first_name: g_suite_account_params[:first_name],
+        last_name: g_suite_account_params[:last_name]
+      ).run
 
       flash[:success] = "Google Workspace account created."
     rescue => e
-      Airbrake.notify(e)
+      notify_airbrake(e)
 
       flash[:error] = e.message
     end
@@ -66,7 +65,7 @@ class GSuiteAccountsController < ApplicationController
     if @g_suite_account.destroy
       flash[:success] = "Google Workspace account deleted successfully."
     else
-      flash[:error] = `Error while trying to delete Google Workspace account. Please check Google Workspace dashboard for more information.`
+      flash[:error] = "Error while trying to delete Google Workspace account. Please check Google Workspace dashboard for more information."
     end
 
     redirect_to event_g_suite_overview_path(event_id: @event.slug)

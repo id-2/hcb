@@ -1,4 +1,5 @@
 @import 'variables';
+@import 'guidelines';
 
 $font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   'Fira Sans', Oxygen, Ubuntu, 'Helvetica Neue', sans-serif;
@@ -225,6 +226,9 @@ summary {
 @import 'components/tabs';
 @import 'components/tour';
 @import 'components/receipts';
+@import 'components/shimmer';
+@import 'components/carousel';
+@import 'components/callout';
 
 .turbo-progress-bar {
   height: 0.125rem;
@@ -385,6 +389,8 @@ summary {
     word-wrap: break-word;
   }
 }
+
+[x-cloak] { display: none !important; }
 
 @import 'basscss';
 @import 'space';

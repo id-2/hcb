@@ -16,9 +16,9 @@ module StripeCardholderService
 
         remote_cardholder = ::StripeService::Issuing::Cardholder.create(remote_attrs)
 
-        stripe_cardholder.update_column(:stripe_id, remote_cardholder.id)
+        stripe_cardholder.update!(stripe_id: remote_cardholder.id)
 
-        stripe_cardholder.reload
+        stripe_cardholder
       end
     end
 
@@ -31,7 +31,7 @@ module StripeCardholderService
         stripe_email: email,
         stripe_phone_number: phone_number,
         stripe_billing_address_line1: line1,
-        # stripe_billing_address_line2: line2,
+        stripe_billing_address_line2: line2,
         stripe_billing_address_city: city,
         stripe_billing_address_state: state,
         stripe_billing_address_postal_code: postal_code,
@@ -41,24 +41,24 @@ module StripeCardholderService
 
     def remote_attrs
       {
-        name: name,
-        email: email,
-        phone_number: phone_number,
+        name:,
+        email:,
+        phone_number:,
         type: cardholder_type,
         billing: {
           address: {
-            line1: line1,
-            # line2: line2,
-            city: city,
-            state: state,
-            postal_code: postal_code,
-            country: country
+            line1:,
+            # line2:,
+            city:,
+            state:,
+            postal_code:,
+            country:
           }
         },
         individual: {
-          first_name: @current_user.first_name,
-          last_name: @current_user.last_name,
-          dob: dob,
+          first_name:,
+          last_name:,
+          dob:,
           card_issuing: {
             user_terms_acceptance: {
               date: DateTime.now.to_i,
@@ -69,11 +69,34 @@ module StripeCardholderService
       }
     end
 
+    def first_name
+      clean_name(@current_user.first_name(legal: true))
+    end
+
+    def last_name
+      clean_name(@current_user.last_name(legal: true))
+    end
+
+    def clean_name(name)
+      name = ActiveSupport::Inflector.transliterate(name || "")
+
+      # Remove invalid characters
+      requirements = <<~REQ.squish
+        First and Last names must contain at least 1 letter, and may not
+        contain any numbers, non-latin letters, or special characters except
+        periods, commas, hyphens, spaces, and apostrophes.
+      REQ
+      name = name.gsub(/[^a-zA-Z.,\-\s']/, "").strip
+      raise ArgumentError, requirements if name.gsub(/[^a-z]/i, "").blank?
+
+      name
+    end
+
     def dob
       return nil unless @current_user.birthday
       # We don't want to share the dob for users under 13
       # https://github.com/hackclub/bank/pull/3071#issuecomment-1268880804
-      return nil unless @current_user.birthday > 13.years.ago
+      return nil if @current_user.birthday > 13.years.ago
 
       {
         day: @current_user.birthday.day,

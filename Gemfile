@@ -5,6 +5,8 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby File.read(File.join(File.dirname(__FILE__), ".ruby-version")).strip
 
+gem "dotenv-rails", groups: [:development, :test]
+
 gem "rails", "~> 7.0.4"
 
 gem "puma", "~> 4.3" # app server
@@ -12,13 +14,13 @@ gem "puma", "~> 4.3" # app server
 gem "pg", ">= 0.18", "< 2.0" # database
 gem "redis", "~> 5.0" # for caching, jobs, etc.
 gem "sidekiq", "~> 6.5.5" # background jobs
-gem "sidekiq-cron", "~> 1.1" # run Sidekiq jobs at scheduled intervals
+gem "sidekiq-cron", "~> 1.10" # run Sidekiq jobs at scheduled intervals
 
 gem "image_processing", "~> 1.2"
 gem "mini_magick"
 
 
-gem "jsbundling-rails", "~> 1.0"
+gem "jsbundling-rails", "~> 1.1"
 gem "terser", "~> 1.1" # JS compressor
 gem "sassc-rails"
 gem "jquery-rails"
@@ -27,14 +29,15 @@ gem "turbo-rails", "~> 1.4"
 
 gem "invisible_captcha"
 gem "local_time" # client-side timestamp converter for cache-safe rendering
+gem "countries"
 gem "country_select", "~> 8.0"
 
 
 gem "httparty" # web requests
-gem "faraday" # wen requests
+gem "faraday" # web requests
 
 gem "increase", "~> 0.3.1"
-gem "stripe", "8.2.0"
+gem "stripe", "8.5.0"
 gem "plaid", "~> 6.0"
 
 gem "aws-sdk-s3", require: false
@@ -45,17 +48,9 @@ gem "twilio-ruby" # SMS notifications
 
 gem "lob"
 
-gem "docusign_esign", "~> 3.13" # DocuSign API
+gem "docusign_esign", "~> 3.24" # DocuSign API
 
-gem "google-apis-admin_directory_v1", "~> 0.23.0" # GSuite
-
-# net-http is required in top level Gemfile to avoid these warnings
-# /usr/local/lib/ruby/2.7.0/net/protocol.rb:66: warning: already initialized constant Net::ProtocRetryError
-# /bundle/ruby/2.7.0/gems/net-protocol-0.1.3/lib/net/protocol.rb:68: warning: previous definition of ProtocRetryError was here
-# https://github.com/ruby/net-imap/issues/16
-gem "net-http"
-gem "uri", "0.10.0" # lock to default version of uri from Ruby 2.7
-
+gem "google-apis-admin_directory_v1", "~> 0.43.0" # GSuite
 
 gem "pg_search" # full-text search
 
@@ -70,7 +65,7 @@ gem "acts_as_paranoid", "~> 0.8.1" # enables soft deletions
 gem "friendly_id", "~> 5.2.0" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
 
-gem "active_storage_validations" # file validations
+gem "active_storage_validations", "1.0.4" # file validations
 gem "validates_email_format_of" # email address validations
 gem "phonelib" # phone number validations
 
@@ -83,6 +78,8 @@ gem "eu_central_bank"
 
 gem "business_time"
 
+
+gem "poppler" # PDF parsing
 gem "wicked_pdf" # HTML to PDF conversion
 
 
@@ -124,14 +121,14 @@ gem "strong_migrations" # protects against risky migrations
 gem "swagger-blocks"
 gem "xxhash" # fast hashing
 
-gem "webauthn", "~> 2.5"
+gem "webauthn", "~> 3.0"
 
 gem "ahoy_matey" # analytics
 gem "airbrake" # exception tracking
 gem "blazer" # business intelligence tool/dashboard
 
 gem "geo_pattern" # create procedurally generated patterns for Cards
-gem "comma", "~> 4.6" # CSV generation
+gem "comma", "~> 4.7" # CSV generation
 gem "faker" # Create mock data
 
 gem "chronic" # time/date parsing
@@ -170,7 +167,7 @@ group :development, :test do
   gem "rubocop"
   gem "relaxed-rubocop"
 
-  gem "rspec-rails", "~> 5.0.0"
+  gem "rspec-rails", "~> 6.0.3"
 
   # Lets you set a breakpoint with a REPL using binding.pry
   gem "pry-byebug", require: ENV["EXCLUDE_PRY"] != "true"
@@ -180,7 +177,7 @@ end
 group :development, :staging do
   gem "query_count"
 
-  gem "rack-mini-profiler", "~> 3.0"
+  gem "rack-mini-profiler", "~> 3.1"
   gem "stackprof" # used by `rack-mini-profiler` to provide flamegraphs
 end
 
@@ -203,3 +200,5 @@ group :development do
 
   gem "foreman"
 end
+
+gem "jbuilder", "~> 2.11"

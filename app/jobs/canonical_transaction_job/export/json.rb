@@ -12,16 +12,15 @@ module CanonicalTransactionJob
                 .gsub(/[^0-9a-z_]/i, "-").gsub(" ", "_")
         title += ".json"
 
-        json = CanonicalTransactionService::Export::Json.new(event_id: event_id).run
+        json = CanonicalTransactionService::Export::Json.new(event_id:).run
 
-        params = {
+        CanonicalTransactionMailer.export_ready(
           event: @event,
           user: @user,
           mime_type: "application/json",
-          title: title,
+          title:,
           content: json.to_s
-        }
-        CanonicalTransactionMailer.export_ready(params).deliver_later
+        ).deliver_later
       end
 
     end

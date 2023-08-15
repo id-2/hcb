@@ -30,6 +30,14 @@ class HcbCodesController < ApplicationController
     hcb_id = @hcb_code.hashid
 
     authorize @hcb_code
+
+    if params[:frame]
+      @frame = true
+      render :show, layout: false
+    else
+      @frame = false
+      render :show
+    end
   rescue Pundit::NotAuthorizedError => e
     raise unless @event.is_public?
 
@@ -38,7 +46,7 @@ class HcbCodesController < ApplicationController
       pos = txs.index { |tx| tx.hcb_code == hcb } + 1
       page = (pos.to_f / 100).ceil
 
-      redirect_to event_path(@event, page: page, anchor: hcb_id)
+      redirect_to event_path(@event, page:, anchor: hcb_id)
     else
       redirect_to event_path(@event, anchor: hcb_id)
     end
@@ -53,19 +61,41 @@ class HcbCodesController < ApplicationController
     end
   end
 
+  def edit
+    @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
+    @event = @hcb_code.event
+
+    authorize @hcb_code
+
+    @frame = turbo_frame_request?
+    @suggested_memos = [::HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run].compact + ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
+  end
+
+  def update
+    @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
+
+    authorize @hcb_code
+    hcb_code_params = params.require(:hcb_code).permit(:memo)
+    hcb_code_params[:memo] = hcb_code_params[:memo].presence
+
+    @hcb_code.canonical_transactions.update_all(custom_memo: hcb_code_params[:memo])
+    @hcb_code.canonical_pending_transactions.update_all(custom_memo: hcb_code_params[:memo])
+
+    redirect_to @hcb_code
+  end
+
   def comment
     @hcb_code = HcbCode.find(params[:id])
 
     authorize @hcb_code
 
-    attrs = {
+    ::HcbCodeService::Comment::Create.new(
       hcb_code_id: @hcb_code.id,
       content: params[:content],
       file: params[:file],
       admin_only: params[:admin_only],
-      current_user: current_user
-    }
-    ::HcbCodeService::Comment::Create.new(attrs).run
+      current_user:
+    ).run
 
     redirect_to params[:redirect_url]
   rescue => e
@@ -74,57 +104,18 @@ class HcbCodesController < ApplicationController
 
   include HcbCodeHelper # for disputed_transactions_airtable_form_url and attach_receipt_url
 
-  def receipt
-    @hcb_code = HcbCode.find(params[:id])
-    begin
-      authorize @hcb_code
-    rescue Pundit::NotAuthorizedError
-      @has_valid_secret = HcbCodeService::Receipt::SigningEndpoint.new.valid_url?(@hcb_code.hashid, params[:s])
-
-      raise unless @has_valid_secret
-    end
-
-    if params[:file] # Ignore if no files were uploaded
-      params[:file].each do |file|
-        ::ReceiptService::Create.new(
-          receiptable: @hcb_code,
-          uploader: current_user,
-          attachments: [file],
-          upload_method: params[:upload_method]
-        ).run!
-      end
-
-      if params[:show_link]
-        flash[:success] = { text: "Receipt".pluralize(params[:file].length) + " added!", link: hcb_code_path(@hcb_code), link_text: "View" }
-      else
-        flash[:success] = "Receipt".pluralize(params[:file].length) + " added!"
-      end
-    end
-
-    return redirect_to params[:redirect_url] if params[:redirect_url]
-
-    redirect_back fallback_location: @hcb_code.url
-
-  rescue => e
-    Airbrake.notify(e)
-
-    flash[:error] = e.message
-    return redirect_to params[:redirect_url] if params[:redirect_url]
-
-    redirect_back fallback_location: @hcb_code.url
-  end
-
   def attach_receipt
     @hcb_code = HcbCode.find(params[:id])
     @event = @hcb_code.event
+    @secret = params[:s]
 
     authorize @hcb_code
 
   rescue Pundit::NotAuthorizedError
-    unless HcbCodeService::Receipt::SigningEndpoint.new.valid_url?(@hcb_code.hashid, params[:s])
-      raise
-    end
-
+    raise unless (
+      HcbCodeService::Receipt::SigningEndpoint.new.valid_url?(@hcb_code.hashid, @secret) ||
+      HcbCode.find_signed(@secret, purpose: :receipt_upload) == @hcb_code
+    )
   end
 
   def send_receipt_sms
@@ -170,29 +161,6 @@ class HcbCodesController < ApplicationController
     end
 
     redirect_back fallback_location: @event
-  end
-
-  def link_receipt_modal
-    @receipts = Receipt.where(user: current_user, receiptable: nil)
-
-    @hcb_code = HcbCode.find(params[:id])
-
-    authorize @hcb_code
-
-    render :link_receipt, layout: false
-  end
-
-  def link_receipt
-    @hcb_code = HcbCode.find(params[:id])
-    @receipt = Receipt.find(params[:receipt_id])
-
-    authorize @hcb_code
-
-    @receipt.receiptable = @hcb_code
-    @receipt.save!
-
-    flash[:success] = "Receipt added!"
-    redirect_back fallback_location: @hcb_code
   end
 
 end

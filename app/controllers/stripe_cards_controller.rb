@@ -73,6 +73,10 @@ class StripeCardsController < ApplicationController
 
     authorize @card
 
+    if @card.card_grant.present? && !current_user&.admin?
+      redirect_to @card.card_grant
+    end
+
     if params[:show_details] == "true"
       ahoy.track "Card details shown", stripe_card_id: @card.id
     end
@@ -81,9 +85,13 @@ class StripeCardsController < ApplicationController
     @event = @card.event
 
     @hcb_codes = @card.hcb_codes
-                      .includes(canonical_pending_transactions: [:raw_pending_stripe_transaction], canonical_transactions: { hashed_transactions: [:raw_stripe_transaction] })
+                      .includes(canonical_pending_transactions: [:raw_pending_stripe_transaction], canonical_transactions: :transaction_source)
                       .page(params[:page]).per(25)
 
+    if flash[:popover]
+      @popover = flash[:popover]
+      flash.delete(:popover)
+    end
   end
 
   def new
@@ -101,9 +109,9 @@ class StripeCardsController < ApplicationController
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Event is in Playground Mode" } if event.demo_mode?
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Invalid country" } unless %w(US CA).include? sc[:stripe_shipping_address_country]
 
-    attrs = {
-      current_user: current_user,
-      current_session: current_session,
+    ::StripeCardService::Create.new(
+      current_user:,
+      current_session:,
       event_id: event.id,
       card_type: sc[:card_type],
       stripe_shipping_name: sc[:stripe_shipping_name],
@@ -113,12 +121,11 @@ class StripeCardsController < ApplicationController
       stripe_shipping_address_line2: sc[:stripe_shipping_address_line2],
       stripe_shipping_address_postal_code: sc[:stripe_shipping_address_postal_code],
       stripe_shipping_address_country: sc[:stripe_shipping_address_country],
-    }
-    ::StripeCardService::Create.new(attrs).run
+    ).run
 
     redirect_to event_cards_overview_path(event), flash: { success: "Card was successfully created." }
   rescue => e
-    Airbrake.notify(e)
+    notify_airbrake(e)
 
     redirect_to event_cards_new_path(event), flash: { error: e.message }
   end
@@ -134,7 +141,7 @@ class StripeCardsController < ApplicationController
     authorize card
     name = params[:stripe_card][:name]
     name = nil unless name.present?
-    updated = card.update(name: name)
+    updated = card.update(name:)
 
     redirect_to stripe_card_url(card), flash: updated ? { success: "Card's name has been successfully updated!" } : { error: "Card's name could not be updated" }
   end

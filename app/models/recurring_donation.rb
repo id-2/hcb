@@ -115,7 +115,11 @@ class RecurringDonation < ApplicationRecord
   end
 
   def total_donated
-    donations.sum(:amount)
+    if donations.loaded?
+      donations.records.sum(&:amount)
+    else
+      donations.sum(:amount)
+    end
   end
 
   private
@@ -124,14 +128,14 @@ class RecurringDonation < ApplicationRecord
     if Rails.env.development?
       test_clock = StripeService::TestHelpers::TestClock.create(frozen_time: Time.now.to_i)
       customer = StripeService::Customer.create(
-        email: email,
-        name: name,
+        email:,
+        name:,
         test_clock: test_clock.id
       )
     else
       customer = StripeService::Customer.create(
-        email: email,
-        name: name,
+        email:,
+        name:,
       )
     end
 

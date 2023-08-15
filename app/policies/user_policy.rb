@@ -1,11 +1,19 @@
 # frozen_string_literal: true
 
 class UserPolicy < ApplicationPolicy
+  def show?
+    user == record
+  end
+
   def impersonate?
     user.admin?
   end
 
   def edit?
+    user.admin? || record == user
+  end
+
+  def edit_address?
     user.admin? || record == user
   end
 
@@ -38,6 +46,10 @@ class UserPolicy < ApplicationPolicy
   end
 
   def complete_sms_auth_verification?
+    user.admin? || record == user
+  end
+
+  def receipt_report?
     user.admin? || record == user
   end
 

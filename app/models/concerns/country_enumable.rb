@@ -5,9 +5,7 @@ module CountryEnumable
 
   module ClassMethods
     def has_country_enum(enum_name = :country)
-      hash = {}
-      hash[enum_name] = self.country_enum_list
-      enum hash
+      enum enum_name, self.country_enum_list
     end
 
     private

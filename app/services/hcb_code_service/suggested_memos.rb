@@ -14,6 +14,8 @@ module HcbCodeService
     end
 
     def run
+      return [] unless @event
+
       ranked_similar_transactions.pluck(:transaction).pluck(:custom_memo).uniq
     end
 
@@ -33,10 +35,10 @@ module HcbCodeService
           transaction: t,
           ranking: rank_transaction(
             t,
-            hcb_amount: hcb_amount,
-            hcb_type: hcb_type,
-            hcb_amount_sign: hcb_amount_sign,
-            hcb_linked_obj: hcb_linked_obj
+            hcb_amount:,
+            hcb_type:,
+            hcb_amount_sign:,
+            hcb_linked_obj:
           )
         }
       end.select { |tr| tr[:ranking] >= @confidence }.sort_by { |tr| tr[:ranking] }.reverse!
@@ -221,9 +223,11 @@ module HcbCodeService
                 .where.not(hcb_code: @hcb_code.hcb_code)
                 .where.not("custom_memo = memo")
                 .pg_text_search(joined_memos,
-                                against: against_cols,
-                                using: {
-                                  tsearch: { prefix: true, dictionary: "english", any_word: true }
+                                {
+                                  against: against_cols,
+                                  using: {
+                                    tsearch: { prefix: true, dictionary: "english", any_word: true }
+                                  }
                                 })
                 .with_pg_search_rank
                 .limit(10)

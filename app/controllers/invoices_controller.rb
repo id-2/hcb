@@ -107,12 +107,12 @@ class InvoicesController < ApplicationController
                           filtered_params["due_date(2i)"].to_i,
                           filtered_params["due_date(3i)"].to_i)
 
-    attrs = {
+    @invoice = ::InvoiceService::Create.new(
       event_id: params[:event_id],
-      due_date: due_date,
+      due_date:,
       item_description: filtered_params[:item_description],
       item_amount: filtered_params[:item_amount],
-      current_user: current_user,
+      current_user:,
 
       sponsor_id: sponsor_attrs[:id],
       sponsor_name: sponsor_attrs[:name],
@@ -122,14 +122,13 @@ class InvoicesController < ApplicationController
       sponsor_address_city: sponsor_attrs[:address_city],
       sponsor_address_state: sponsor_attrs[:address_state],
       sponsor_address_postal_code: sponsor_attrs[:address_postal_code]
-    }
-    @invoice = ::InvoiceService::Create.new(attrs).run
+    ).run
 
     flash[:success] = "Invoice successfully created and emailed to #{@invoice.sponsor.contact_email}."
 
     redirect_to @invoice
   rescue => e
-    Airbrake.notify(e)
+    notify_airbrake(e)
 
     @event = Event.friendly.find(params[:event_id])
     @sponsor = Sponsor.new(event: @event)
@@ -176,6 +175,28 @@ class InvoicesController < ApplicationController
       flash[:error] = "Something went wrong while trying to archive this invoice!"
       redirect_to @invoice
     end
+  end
+
+  def hosted
+    @invoice = Invoice.find(params[:invoice_id])
+
+    authorize @invoice
+
+    @invoice.sync_remote!
+    @invoice.reload
+
+    redirect_to @invoice.hosted_invoice_url, allow_other_host: true
+  end
+
+  def pdf
+    @invoice = Invoice.find(params[:invoice_id])
+
+    authorize @invoice
+
+    @invoice.sync_remote!
+    @invoice.reload
+
+    redirect_to @invoice.invoice_pdf, allow_other_host: true
   end
 
   private

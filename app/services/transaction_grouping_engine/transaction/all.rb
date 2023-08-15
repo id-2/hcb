@@ -28,7 +28,8 @@ module TransactionGroupingEngine
           amount_cents: ctg["amount_cents"],
           raw_canonical_transaction_ids: ctg["canonical_transaction_ids"],
           raw_canonical_pending_transaction_ids: ctg["canonical_pending_transaction_ids"],
-          event: event
+          event:,
+          subledger: nil,
         }
         CanonicalTransactionGrouped.new(attrs)
       end
@@ -89,6 +90,7 @@ module TransactionGroupingEngine
                 canonical_pending_event_mappings cpem
               where
                 cpem.event_id = #{event.id}
+                and cpem.subledger_id is null
                 #{search_modifier_for :pt}
               except ( -- hide pending transactions that have either settled or been declined.
                 select
@@ -130,6 +132,7 @@ module TransactionGroupingEngine
                 canonical_event_mappings cem
               where
                 cem.event_id = #{event.id}
+                and cem.subledger_id is null
                 #{search_modifier_for :ct}
             )
           group by

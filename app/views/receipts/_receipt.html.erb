@@ -1,47 +1,79 @@
 <% file_path = Rails.application.routes.url_helpers.rails_blob_path(receipt.file, only_path: true) %>
-<div class="flex flex-column mb1" data-receipt-id="<%= receipt.id %>" style="max-width: 256px;<% if defined?(select_target) %> cursor: pointer;" data-receipt-select-target="receipt" data-action="click->receipt-select#select<% end %>">
-  <% if defined?(link_to_file) %>
-    <%= link_to file_path, class: "link-reset mb1", target: "_blank" do %>
-      <span class="muted">
-        <strong>
+
+<% instance = local_assigns.__id__.to_s + receipt.id.to_s %>
+
+<div class="receipt flex flex-column mb1 <%= "receipt--pairing" if defined?(pairing) && pairing %>" <% if defined?(textual_content) %> data-textual-content="<%= j receipt.textual_content %>"<% end %> data-receipt-id="<%= receipt.id %>" style="--receipt-size: <%= defined?(size) ? size : 256 %>px;<% if defined?(selectable) %> cursor: pointer;" data-receipt-select-target="receipt" data-action="click->receipt-select#select<% end %>">
+
+<% unless defined?(hide_info) %>
+  <span class="<%= "muted " unless defined?(selectable) %>mb1">
+    <strong>
+      <% if defined?(link_to_file) && !defined?(selectable) %>
+        <%= link_to file_path, target: "_blank", style: "text-decoration: none;" do %>
           <%= receipt.file.blob.filename %>
-        </strong>
-        (<%= number_to_human_size receipt.file.blob.byte_size %>)
-      </span>
-    <% end %>
-  <% else %>
-    <span class="muted mb1">
-      <strong>
+        <% end %>
+      <% else %>
         <%= receipt.file.blob.filename %>
-      </strong>
+      <% end %>
+    </strong>
+    <% unless defined?(selectable) %>
       (<%= number_to_human_size receipt.file.blob.byte_size %>)
-    </span>
-  <% end %>
-
-  <% if defined?(link_to_file) %>
-    <%= link_to file_path, target: "_blank" do %>
-      <span style="display: inline-grid; border-radius: 0.5rem;">
-        <%= image_tag receipt.preview, width: 256, height: 256, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 256px;" if receipt.preview %>
-      </span>
     <% end %>
-  <% else %>
+  </span>
+<% end %>
+
+  <% if defined?(selectable) %>
     <span>
+      <div class="receipt__icon"></div>
       <span style="display: inline-grid; border-radius: 0.5rem;">
-        <%= image_tag receipt.preview, width: 256, height: 256, class: "card p0", style: "object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 256px; user-drag: none; -webkit-user-drag: none; user-select: none; -moz-user-select: none;" if receipt.preview %>
+        <div class="receipt__icon--check">✓</div>
+        <div class="receipt__icon--star tooltipped tooltipped--n" aria-label="Suggested receipt">
+          <%= inline_icon "rep", size: "36", style: "margin: -5px;" %>
+        </div>
+        <%= image_tag receipt.preview, class: "card p0 receipt--image", data: {
+              "receipt-id" => receipt.id
+            } if receipt.preview %>
       </span>
     </span>
-  <% end %>
-  <footer class="flex items-center flex-row">
-    <%= relative_timestamp receipt.created_at, prefix: "added ", class: "h5 muted" %>
-    <span style="flex-grow: 1;"></span>
-
-    <% if defined?(show_delete_button) %>
-      <%= pop_icon_to "view-close",
-          { controller: :receipts, action: :destroy, id: receipt.id },
-          method: :delete,
-          size: 24,
-          class: "error tooltipped tooltipped--w",
-          'aria-label': "Delete this receipt" %>
+  <% else %>
+    <% if receipt.preview %>
+      <span style="display: inline-grid; border-radius: 0.5rem;" class="pointer">
+        <%= image_tag receipt.preview, class: "card p0 receipt--image", data: {
+              "receipt-id" => receipt.id,
+              "behavior"   => defined?(selectable) || receipt.preview.nil? ? nil : "modal_trigger",
+              "modal"      => defined?(selectable) || receipt.preview.nil? ? nil : "preview_receipt_#{instance}"
+            } if receipt.preview %>
+      </span>
     <% end %>
-  </footer>
+  <% end %>
+
+  <% unless defined?(hide_info) %>
+    <footer class="flex items-center flex-row" style="border-top: none;">
+      <%= relative_timestamp receipt.created_at, prefix: "added ", class: defined?(selectable) ? "h5" : "h5 muted" %>
+
+      <span style="flex-grow: 1;"></span>
+
+      <% if defined?(show_delete_button) %>
+        <%= pop_icon_to "view-close",
+            { controller: :receipts, action: :destroy, id: receipt.id, popover: local_assigns[:popover] },
+            method: :delete,
+            data: { behavior: "modal_ignore" },
+            size: 24,
+            class: "error tooltipped tooltipped--w",
+            'aria-label': "Delete this receipt" %>
+      <% end %>
+    </footer>
+  <% end %>
 </div>
+
+<% unless defined?(selectable) || receipt.preview.nil? %>
+  <section style="overflow: initial; line-height: 0px;" class="modal modal--scroll bg-snow modal--huge <%= "modal--flexible" unless receipt.file.blob.content_type == "application/pdf" %> p0" data-behavior="modal" role="dialog" id="<%= "preview_receipt_#{instance}" %>">
+    <a href="#close_modal" tabindex="0" class="pop modal__close muted absolute" rel="modal:close" style="top: 0px; right: -24px; transform: translateY(50%); background: #11111199;">
+      <%= inline_icon "view-close", size: 28, class: "pop modal__close muted  m0" %>
+    </a>
+    <% if receipt.file.blob.content_type == "application/pdf" %>
+      <iframe src="<%= file_path %>" style="width: 100%; height: 100vh; max-height: 100%; border: none; border-radius: 0.75rem; overflow: hidden;"></iframe>
+    <% else %>
+      <%= image_tag receipt.preview, class: "card p0", style: "image-rendering: crisp-edges; object-fit: contain; width: auto; height: auto; max-width: 100%; max-height: 100%; height: 100vh;", onload: "this.style.maxWidth = `${this.naturalWidth}px`; this.style.maxHeight = `${this.naturalHeight}px`; this.style.minWidth = '300px'; this.style.minHeight = '300px'; this.parentElement.style.maxHeight = `${this.naturalHeight}px`;" %>
+    <% end %>
+  </section>
+<% end %>

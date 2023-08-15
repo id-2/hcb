@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 class AchTransfersController < ApplicationController
-  before_action :set_ach_transfer, except: [:new, :create, :index]
+  before_action :set_ach_transfer, except: [:new, :create, :index, :validate_routing_number]
   before_action :set_event, only: [:new, :create]
-  skip_before_action :signed_in_user
+  skip_before_action :signed_in_user, except: [:validate_routing_number]
+  skip_after_action :verify_authorized, only: [:validate_routing_number]
 
   # GET /ach_transfers/1
   def show
     authorize @ach_transfer
 
-    # Comments
-    @hcb_code = HcbCode.find_or_create_by(hcb_code: @ach_transfer.hcb_code)
+    redirect_to @ach_transfer.local_hcb_code
   end
 
   def transfer_confirmation_letter
@@ -45,28 +45,36 @@ class AchTransfersController < ApplicationController
 
   # POST /ach_transfers
   def create
-    authorize @event, policy_class: AchTransferPolicy
+    @ach_transfer = @event.ach_transfers.build(ach_transfer_params.merge(creator: current_user))
 
-    attrs = {
-      event_id: @event.id,
-      routing_number: ach_transfer_params[:routing_number],
-      account_number: ach_transfer_params[:account_number],
-      bank_name: ach_transfer_params[:bank_name],
-      recipient_name: ach_transfer_params[:recipient_name],
-      recipient_tel: ach_transfer_params[:recipient_tel],
-      amount_cents: (ach_transfer_params[:amount].to_f * 100).to_i,
-      payment_for: ach_transfer_params[:payment_for],
-      current_user: current_user
+    authorize @ach_transfer
+
+    if @ach_transfer.save
+      redirect_to event_transfers_path(@event), flash: { success: "ACH transfer successfully submitted." }
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def cancel
+    authorize @ach_transfer
+
+    @ach_transfer.mark_rejected!
+
+    redirect_to @ach_transfer.local_hcb_code
+  end
+
+  def validate_routing_number
+    return render json: { valid: false, hint: "Bank not found for this routing number." } unless params[:value].size == 9
+
+    banks = Increase::RoutingNumbers.list(routing_number: params[:value])
+
+    valid = banks.size > 0
+
+    render json: {
+      valid:,
+      hint: valid ? banks.first&.dig("name") : "Bank not found for this routing number.",
     }
-    ach_transfer = AchTransferService::Create.new(attrs).run
-
-    flash[:success] = "ACH Transfer successfully submitted."
-
-    redirect_to event_transfers_path(@event)
-  rescue ArgumentError, ActiveRecord::RecordInvalid => e
-    flash[:error] = e.message
-
-    redirect_to new_event_ach_transfer_path(@event)
   end
 
   private
@@ -81,7 +89,7 @@ class AchTransfersController < ApplicationController
   end
 
   def ach_transfer_params
-    params.require(:ach_transfer).permit(:routing_number, :account_number, :bank_name, :recipient_name, :recipient_tel, :amount, :payment_for)
+    params.require(:ach_transfer).permit(:routing_number, :account_number, :bank_name, :recipient_name, :recipient_tel, :amount_money, :payment_for, :scheduled_on)
   end
 
 end

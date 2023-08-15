@@ -1,3 +1,27 @@
+const whenViewed = (element, callback) => new IntersectionObserver(([entry]) => entry.isIntersecting && callback(), { threshold: 1 }).observe(element);
+const loadModals = element => {
+   $(element).on('click', '[data-behavior~=modal_trigger]', function (e) {
+    const controlOrCommandClick = e.ctrlKey || e.metaKey;
+    if ($(this).attr('href') || $(e.target).attr('href')) {
+      if (controlOrCommandClick) return;
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    BK.s('modal', '#' + $(this).data('modal')).modal({
+      modalClass: $(this).parents('turbo-frame').length
+        ? 'turbo-frame-modal'
+        : undefined,
+      closeExisting: false
+    })
+    return this.blur()
+  })
+
+  $(element).on('click', '[data-behavior~=modal_trigger] [data-behavior~=modal_ignore]', function(e) {
+    e.stopPropagation();
+    e.preventDefault()
+  });
+}
+
 // restore previous theme setting
 $(document).ready(function () {
   if (
@@ -13,15 +37,21 @@ $(document).on('click', '[data-behavior~=flash]', function () {
   $(this).fadeOut('medium')
 })
 
-$(document).on('click', '[data-behavior~=modal_trigger]', function (e) {
-  if ($(this).attr('href') || $(e.target).attr('href')) e.preventDefault()
-  BK.s('modal', '#' + $(this).data('modal')).modal({
-    modalClass: $(this).parents('turbo-frame').length
+loadModals(document);
+(() => {
+  let autoModals = $('[data-modal-auto-open~=true]')
+
+  if (autoModals.length < 1) return;
+
+  let element = autoModals.first();
+
+  BK.s('modal', '#' + $(element).data('modal')).modal({
+    modalClass: $(element).parents('turbo-frame').length
       ? 'turbo-frame-modal'
-      : undefined
+      : undefined,
+    closeExisting: false
   })
-  return this.blur()
-})
+})();
 
 $(document).on('keyup', 'action', function (e) {
   if (e.keyCode === 13) {
@@ -152,9 +182,19 @@ $(document).on('turbo:load', function () {
   BK.s('autohide').hide()
 
   $.each(BK.s('async_frame'), (i, frame) => {
-    $.get($(frame).data('src'), data => {
-      $(frame).replaceWith(data)
-    })
+    const loadFrame = () => {
+      $.get($(frame).data('src'), data => {
+        const parent = $(frame).parent()
+        $(frame).replaceWith(data)
+        loadModals(parent)
+      }).fail(() => {
+        $(frame).children('.shimmer').first().addClass('shimmer--error')
+      })
+    }
+    
+    if ($(frame).data('loading') == "lazy") {
+      whenViewed(frame, loadFrame);
+    } else loadFrame();
   })
 
   if (BK.thereIs('login')) {
@@ -320,6 +360,9 @@ $(document).on('turbo:load', function () {
     const transparencyToggle = $('#event_is_public')
     $(transparencyToggle).on('change', e => {
       if (e.target.checked) {
+        // When transparency mode is enabled, also enable indexing by default
+        $('#event_is_indexable').prop('checked', true)
+
         additionalTransparencySettings.slideDown()
       } else {
         additionalTransparencySettings.slideUp()

@@ -6,6 +6,7 @@
 #
 #  id                              :bigint           not null, primary key
 #  aasm_state                      :string
+#  activated_at                    :datetime
 #  address                         :text
 #  beta_features_enabled           :boolean
 #  can_front_balance               :boolean          default(TRUE), not null
@@ -15,6 +16,7 @@
 #  deleted_at                      :datetime
 #  demo_mode                       :boolean          default(FALSE), not null
 #  demo_mode_request_meeting_at    :datetime
+#  description                     :text
 #  donation_page_currency          :text             default("USD")
 #  donation_page_enabled           :boolean          default(TRUE)
 #  donation_page_message           :text
@@ -29,13 +31,12 @@
 #  name                            :text
 #  omit_stats                      :boolean          default(FALSE)
 #  organization_identifier         :string           not null
-#  organized_by_hack_clubbers      :boolean
 #  owner_address                   :string
 #  owner_birthdate                 :date
 #  owner_email                     :string
 #  owner_name                      :string
 #  owner_phone                     :string
-#  pending_transaction_engine_at   :datetime         default(Sat, 13 Feb 2021 22:49:40.981965000 UTC +00:00)
+#  pending_transaction_engine_at   :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
 #  public_message                  :text
 #  redirect_url                    :string
 #  slug                            :text
@@ -43,10 +44,12 @@
 #  start                           :datetime
 #  transaction_engine_v2_at        :datetime
 #  webhook_url                     :string
+#  website                         :string
 #  created_at                      :datetime         not null
 #  updated_at                      :datetime         not null
 #  club_airtable_id                :text
 #  emburse_department_id           :string
+#  increase_account_id             :string           not null
 #  partner_id                      :bigint           not null
 #  point_of_contact_id             :bigint
 #
@@ -103,8 +106,10 @@ class Event < ApplicationRecord
       .references(:canonical_transaction)
   }
   scope :not_funded, -> { where.not(id: funded) }
-  scope :organized_by_hack_clubbers, -> { where(organized_by_hack_clubbers: true) }
-  scope :not_organized_by_hack_clubbers, -> { where.not(organized_by_hack_clubbers: true) }
+  scope :organized_by_hack_clubbers, -> { includes(:event_tags).where(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }) }
+  scope :not_organized_by_hack_clubbers, -> { includes(:event_tags).where.not(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }).or(where(event_tags: { name: nil })) }
+  scope :organized_by_teenagers, -> { includes(:event_tags).where(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }) }
+  scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(where(event_tags: { name: nil })) }
   scope :event_ids_with_pending_fees_greater_than_100, -> do
     query = <<~SQL
       ;select event_id, fee_balance from (
@@ -186,7 +191,7 @@ class Event < ApplicationRecord
 
   scope :demo_mode, -> { where(demo_mode: true) }
   scope :not_demo_mode, -> { where(demo_mode: false) }
-  scope :filter_demo_mode, ->(demo_mode) { demo_mode.nil? || demo_mode.blank? ? all : where(demo_mode: demo_mode) }
+  scope :filter_demo_mode, ->(demo_mode) { demo_mode.nil? || demo_mode.blank? ? all : where(demo_mode:) }
 
   BADGES = {
     # Qualifier must be a method on Event. If the method returns true, the badge
@@ -262,7 +267,7 @@ class Event < ApplicationRecord
   has_many :fee_relationships
   has_many :transactions, through: :fee_relationships, source: :t_transaction
 
-  has_many :stripe_cards
+  has_many :stripe_cards, -> { on_main_ledger }
   has_many :stripe_authorizations, through: :stripe_cards
 
   has_many :emburse_cards
@@ -288,25 +293,34 @@ class Event < ApplicationRecord
 
   has_many :documents
 
-  has_many :canonical_pending_event_mappings
+  has_many :canonical_pending_event_mappings, -> { on_main_ledger }
   has_many :canonical_pending_transactions, through: :canonical_pending_event_mappings
 
-  has_many :canonical_event_mappings
+  has_many :canonical_event_mappings, -> { on_main_ledger }
   has_many :canonical_transactions, through: :canonical_event_mappings
 
   has_many :fees, through: :canonical_event_mappings
   has_many :bank_fees
 
   has_many :tags, -> { includes(:hcb_codes) }
+  has_and_belongs_to_many :event_tags
 
-  belongs_to :partner
+  has_many :check_deposits
+
+  belongs_to :partner, optional: true
   has_one :partnered_signup, required: false
   has_many :partner_donations
+
+  has_many :subledgers
+  has_many :card_grants
 
   has_one :stripe_ach_payment_source
   has_one :increase_account_number
 
+  has_many :grants
+
   has_one_attached :donation_header_image
+  has_one_attached :background_image
   has_one_attached :logo
 
   validate :point_of_contact_is_admin
@@ -317,10 +331,26 @@ class Event < ApplicationRecord
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
   validates :name, :sponsorship_fee, :organization_identifier, presence: true
+  validates :description, length: { maximum: 250 }
   validates :slug, presence: true, format: { without: /\s/ }
   validates_uniqueness_of_without_deleted :slug
 
   after_save :update_slug_history
+
+  validates :website, format: URI::DEFAULT_PARSER.make_regexp(%w[http https]), if: -> { website.present? }
+
+  before_create { self.increase_account_id ||= IncreaseService::AccountIds::FS_MAIN }
+
+  before_update if: -> { demo_mode_changed?(to: false) } do
+    self.activated_at = Time.now
+  end
+
+  before_validation(if: :outernet_guild?, on: :create) { self.donation_page_enabled = false }
+  validate do
+    if outernet_guild? && donation_page_enabled?
+      errors.add(:donation_page_enabled, "donation page can't be enabled for Outernet guilds")
+    end
+  end
 
   CUSTOM_SORT = Arel.sql(
     "CASE WHEN id = 183 THEN '1'"\
@@ -338,8 +368,11 @@ class Event < ApplicationRecord
     event: 3,
     'high school hackathon': 4,
     'robotics team': 5,
-    'hardware grant': 6,
-    'hack club hq': 7
+    'hardware grant': 6, # winter event 2022
+    'hack club hq': 7,
+    'outernet guild': 8, # summer event 2023
+    'grant recipient': 9,
+    salary: 10, # e.g. Sam's Shillings
   }
 
   def country_us?
@@ -356,12 +389,14 @@ class Event < ApplicationRecord
   end
 
   def admin_dropdown_description
-    desc = "#{name} - #{id}"
+    "#{name} - #{id}"
 
-    badges = BADGES.map { |_, badge| send(badge[:qualifier]) ? badge[:emoji] : nil }.compact
-    desc += " [#{badges.join(' ')}]" if badges.any?
+    # Causing n+1 queries on admin pages with an event dropdown
 
-    desc
+    # badges = BADGES.map { |_, badge| send(badge[:qualifier]) ? badge[:emoji] : nil }.compact
+    # desc += " [#{badges.join(' ')}]" if badges.any?
+
+    # desc
   end
 
   def disbursement_dropdown_description
@@ -392,12 +427,16 @@ class Event < ApplicationRecord
     completed_t + pending_t
   end
 
+  def total_raised
+    settled_incoming_balance_cents
+  end
+
   def balance_v2_cents(start_date: nil, end_date: nil)
     @balance_v2_cents ||=
       begin
-        sum = settled_balance_cents(start_date: start_date, end_date: end_date)
-        sum += pending_outgoing_balance_v2_cents(start_date: start_date, end_date: end_date)
-        sum += fronted_incoming_balance_v2_cents(start_date: start_date, end_date: end_date) if can_front_balance?
+        sum = settled_balance_cents(start_date:, end_date:)
+        sum += pending_outgoing_balance_v2_cents(start_date:, end_date:)
+        sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
         sum
       end
   end
@@ -406,8 +445,8 @@ class Event < ApplicationRecord
   # @return [Integer] Balance in cents (v2 transaction engine)
   def settled_balance_cents(start_date: nil, end_date: nil)
     @balance_settled ||=
-      settled_incoming_balance_cents(start_date: start_date, end_date: end_date) +
-      settled_outgoing_balance_cents(start_date: start_date, end_date: end_date)
+      settled_incoming_balance_cents(start_date:, end_date:) +
+      settled_outgoing_balance_cents(start_date:, end_date:)
   end
 
   # v2 cents (v2 transaction engine)
@@ -459,8 +498,8 @@ class Event < ApplicationRecord
 
   def pending_balance_v2_cents(start_date: nil, end_date: nil)
     @pending_balance_v2_cents ||=
-      pending_incoming_balance_v2_cents(start_date: start_date, end_date: end_date) +
-      pending_outgoing_balance_v2_cents(start_date: start_date, end_date: end_date)
+      pending_incoming_balance_v2_cents(start_date:, end_date:) +
+      pending_outgoing_balance_v2_cents(start_date:, end_date:)
   end
 
   def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil)
@@ -530,7 +569,7 @@ class Event < ApplicationRecord
                            .sum(&:fronted_amount)
 
     # TODO: make sure this has the same rounding error has the rest of the codebase
-    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee)
+    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee).ceil
   end
 
   # This intentionally does not include fees on fronted transactions to make sure they aren't actually charged
@@ -610,6 +649,14 @@ class Event < ApplicationRecord
     (increase_account_number || create_increase_account_number)&.routing_number || "•••••••••"
   end
 
+  def organized_by_hack_clubbers?
+    event_tags.where(name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS).exists?
+  end
+
+  def organized_by_teenagers?
+    event_tags.where(name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS]).exists?
+  end
+
   private
 
   def min_waiting_time_between_fees
@@ -648,7 +695,7 @@ class Event < ApplicationRecord
 
   def update_slug_history
     if slug_previously_changed?
-      slugs.create(slug: slug)
+      slugs.create(slug:)
     end
   end
 

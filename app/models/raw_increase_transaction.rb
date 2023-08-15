@@ -22,6 +22,7 @@
 #
 class RawIncreaseTransaction < ApplicationRecord
   has_many :hashed_transactions
+  has_one :canonical_transaction, as: :transaction_source
 
   belongs_to :increase_account_number,
              foreign_key: "increase_route_id",
@@ -41,6 +42,10 @@ class RawIncreaseTransaction < ApplicationRecord
 
   def category
     increase_transaction.dig("source", "category")
+  end
+
+  def unique_bank_identifier
+    "INCREASE-#{increase_account_id.upcase}"
   end
 
 end

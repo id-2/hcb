@@ -67,7 +67,7 @@ module UsersHelper
     alt ||= user&.initials
     alt ||= "Brown dog grinning and gazing off into the distance"
 
-    image_tag(src, options.merge(loading: "lazy", alt: alt, width: size, height: size, class: klass))
+    image_tag(src, options.merge(loading: "lazy", alt:, width: size, height: size, class: klass))
   end
 
   def user_mention(user, options = {}, default_name = "No User")
@@ -85,7 +85,7 @@ module UsersHelper
            elsif user.id == current_user&.id
              current_user_flavor_text.sample
            elsif user.admin?
-             "#{user.name.split(' ').first} is an admin"
+             "#{user.name} is an admin"
            end
 
     content = if user&.admin?
@@ -98,12 +98,16 @@ module UsersHelper
     content_tag :span, content, class: klass, 'aria-label': aria
   end
 
-  def admin_tools(class_name = "", element = "div", override_pretend: false, &block)
-    return unless current_user&.admin? || (override_pretend && current_user&.admin_override_pretend?)
+  def admin_tools(class_name = "", element = "div", override_pretend: false, **options, &block)
+    if options[:if] == false
+      yield
+    else
+      return unless current_user&.admin? || (override_pretend && current_user&.admin_override_pretend?)
 
-    concat("<#{element} class='admin-tools #{class_name}'>".html_safe)
-    yield
-    concat("</#{element}>".html_safe)
+      concat("<#{element} class='admin-tools #{class_name}'>".html_safe)
+      yield
+      concat("</#{element}>".html_safe)
+    end
   end
 
   def creator_bar(object, options = {})

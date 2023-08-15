@@ -10,7 +10,7 @@ class IncreaseController < ApplicationController
     sig_header = request.headers["Increase-Webhook-Signature"]
 
     Increase::Webhook::Signature.verify(
-      payload: payload,
+      payload:,
       signature_header: sig_header,
       secret: signing_secret
     )
@@ -24,7 +24,7 @@ class IncreaseController < ApplicationController
     end
 
   rescue Increase::WebhookSignatureVerificationError => e
-    Airbrake.notify(e)
+    notify_airbrake(e)
 
     render json: { error: "Webhook signature verification failed" }, status: :bad_request
   end
@@ -38,6 +38,14 @@ class IncreaseController < ApplicationController
   def handle_check_transfer_updated(event)
     increase_check = Increase::CheckTransfers.retrieve event["associated_object_id"]
     IncreaseCheck.find_by(increase_id: increase_check["id"])&.update(increase_status: increase_check["status"])
+  end
+
+  def handle_check_deposit_updated(event)
+    check_deposit = Increase::CheckDeposits.retrieve event["associated_object_id"]
+    CheckDeposit.find_by(increase_id: check_deposit["id"])&.update(
+      increase_status: check_deposit["status"],
+      rejection_reason: check_deposit.dig("deposit_rejection", "reason")
+    )
   end
 
   def signing_secret

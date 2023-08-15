@@ -41,12 +41,18 @@ class StripeCardholder < ApplicationRecord
 
   validates_uniqueness_of :stripe_id
 
+  validates :stripe_billing_address_line1, presence: true, on: :update
+  validates :stripe_billing_address_city, presence: true, on: :update
+  validates :stripe_billing_address_country, presence: true, on: :update
+
   alias_attribute :address_line1, :stripe_billing_address_line1
   alias_attribute :address_line2, :stripe_billing_address_line2
   alias_attribute :address_city, :stripe_billing_address_city
   alias_attribute :address_state, :stripe_billing_address_state
   alias_attribute :address_country, :stripe_billing_address_country
   alias_attribute :address_postal_code, :stripe_billing_address_postal_code
+
+  after_validation :update_cardholder_in_stripe, on: :update, if: -> { errors.none? }
 
   def stripe_dashboard_url
     "https://dashboard.stripe.com/issuing/cardholders/#{self.stripe_id}"
@@ -85,6 +91,32 @@ class StripeCardholder < ApplicationRecord
   end
 
   private
+
+  def update_cardholder_in_stripe
+    StripeService::Issuing::Cardholder.update(
+      stripe_id,
+      {
+        email: stripe_email,
+        phone_number: stripe_phone_number,
+        billing: {
+          address: {
+            line1: address_line1,
+            line2: address_line2,
+            city: address_city,
+            state: address_state,
+            postal_code: address_postal_code,
+            country: address_country
+          }.compact_blank
+        }
+      }.compact_blank # Stripe doesn't like blank values
+    )
+  rescue Stripe::StripeError => error
+    if error.message.downcase.include?("address") || error.message.downcase.include?("country") || error.message.downcase.include?("state")
+      errors.add(:base, error.message)
+    else
+      raise if Rails.env.production? # update fails without proper keys
+    end
+  end
 
   def stripe_obj
     @stripe_obj ||= StripeService::Issuing::Cardholder.retrieve(stripe_id)

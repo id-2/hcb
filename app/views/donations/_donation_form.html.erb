@@ -30,21 +30,19 @@
         <div class="primary"><%= message %></div>
       <% end %>
     </div>
+    <% if params[:message] %>
+      <div class="field mb2">
+        <%= form.label :message, "Message" %>
+        <span class="muted block h5">Optionally include a note.</span>
+        <%= form.text_field :message, placeholder: "Keep up the good work!", required: false %>
+      </div>
+    <% end %>
 
-    <div class="field">
-      <%= form.label :amount, "Donation amount
-        #{@event.donation_page_currency != "USD" ? "(#{@event.donation_page_currency})" : ""}" %>
-      <div class="flex items-center">
-        <span class="bold muted shrink-none" style="width: 1rem;"><%= @symbol %></span>
-        <%= form.number_field :amount,
-                              value: (donation.amount.nil? ? nil : (donation.amount.to_f / 100)),
-                              placeholder: (sprintf "%.2f", ("%.1g" % (20.00 * exchange_rate.to_f))), # Converts placeholder $20 to selected currency, sets 1 significant figure (so $2888.00 becomes $3000.00) and then adds two floating decimal places.
-                              step: 0.01,
-                              min: (exchange_rate.to_f).round(2), # Limitations placed by Stripe
-                              max: (exchange_rate.to_f * 999_999.99).round(2), # Limitations placed by Stripe
-                              required: true, class: "fit w-100" %>
-        <% if @monthly %>
-          <span class="muted nowrap ml1">/ month</span>
+      <div class="field">
+        <% if !@event.country_us? %>
+          <%= form.label :amount, "Donation amount (USD)" %>
+        <% else %>
+          <%= form.label :amount, "Donation amount" %>
         <% end %>
       </div>
     </div>

@@ -15,11 +15,11 @@ class StripeController < ApplicationController
       self.send method, event
     rescue JSON::ParserError => e
       head 400
-      Airbrake.notify(e)
+      notify_airbrake(e)
       return
     rescue NoMethodError => e
       puts e
-      Airbrake.notify(e)
+      notify_airbrake(e)
       head 200 # success so that stripe doesn't retry (method is unsupported by Bank)
       return
     rescue Stripe::SignatureVerificationError
@@ -36,7 +36,7 @@ class StripeController < ApplicationController
     response.set_header "Stripe-Version", "2022-08-01"
 
     render json: {
-      approved: approved
+      approved:
     }
   end
 
@@ -104,7 +104,7 @@ class StripeController < ApplicationController
 
     unless invoice.manually_marked_as_paid?
       # Import to the ledger
-      rpit = ::PendingTransactionEngine::RawPendingInvoiceTransactionService::Invoice::ImportSingle.new(invoice: invoice).run
+      rpit = ::PendingTransactionEngine::RawPendingInvoiceTransactionService::Invoice::ImportSingle.new(invoice:).run
       cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Invoice.new(raw_pending_invoice_transaction: rpit).run
       ::PendingEventMappingEngine::Map::Single::Invoice.new(canonical_pending_transaction: cpt).run
     end
@@ -132,7 +132,7 @@ class StripeController < ApplicationController
       recurring_donation.sync_with_stripe_subscription!
       recurring_donation.save!
 
-      RecurringDonationMailer.with(recurring_donation: recurring_donation).payment_method_changed.deliver_later
+      RecurringDonationMailer.with(recurring_donation:).payment_method_changed.deliver_later
     end
   end
 
@@ -150,7 +150,7 @@ class StripeController < ApplicationController
 
       donation = Donation.find_by(stripe_payment_intent_id: dispute[:payment_intent])
 
-      return Airbrake.notify("Received charge dispute on nonexistent donation") if donation.nil?
+      return notify_airbrake("Received charge dispute on nonexistent donation") if donation.nil?
 
       # Let's un-front the transaction.
       donation.canonical_pending_transactions.update_all(fronted: false)
@@ -159,7 +159,7 @@ class StripeController < ApplicationController
 
       invoice = Invoice.find_by(stripe_charge_id: dispute[:charge])
 
-      return Airbrake.notify("Received charge dispute on nonexistent invoice") if invoice.nil?
+      return notify_airbrake("Received charge dispute on nonexistent invoice") if invoice.nil?
 
       invoice.canonical_pending_transactions.update_all(fronted: false)
     end
@@ -202,7 +202,7 @@ class StripeController < ApplicationController
     donation.send_receipt!
 
     # Import the donation onto the ledger
-    rpdt = ::PendingTransactionEngine::RawPendingDonationTransactionService::Donation::ImportSingle.new(donation: donation).run
+    rpdt = ::PendingTransactionEngine::RawPendingDonationTransactionService::Donation::ImportSingle.new(donation:).run
     cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Donation.new(raw_pending_donation_transaction: rpdt).run
     ::PendingEventMappingEngine::Map::Single::Donation.new(canonical_pending_transaction: cpt).run
   end
@@ -228,7 +228,7 @@ class StripeController < ApplicationController
       event: source.event,
       amount_cents: stripe_source_transaction.amount,
       memo: "Bank transfer",
-      ach_payment: ach_payment
+      ach_payment:
     )
   end
 

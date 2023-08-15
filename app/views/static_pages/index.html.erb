@@ -1,7 +1,7 @@
 <% title "Home" %>
 <% page_md %>
 
-<%= render "users/nav" if signed_in? %>
+<%= render "users/nav", selected: :home if signed_in? %>
 
 <h1 class="heading items-center md-items-baseline justify-center md-justify-between center md-left-align w-auto">
   <div>
@@ -17,6 +17,25 @@
   </div>
   <span class="badge ml0 h5 caps <%= Rails.env.development? ? "bg-success" : by_season("", fall: "bg-warning") %>" id="flavor-text" data-turbo-permanent><%= flavor_text %></span>
 </h1>
+
+<% if current_user.card_grants.not_activated.size > 0 %>
+  <% current_user.card_grants.not_activated.each do |grant| %>
+    <div class="card border b--info container--sm mx-auto mb4 center">
+      <p class="mt0 h3">You have a grant invitation from <strong><%= grant.event.name %></strong>!</p>
+      <%= link_to "Activate your grant", grant, class: "btn" %>
+    </div>
+  <% end %>
+<% end %>
+
+<% if current_user.card_grants.activated.size > 0 %>
+  <h2 class="heading h2 line-height-4 mt0 ml0 pt1 pb1 pl2 pr2 border-none">Grants</h2>
+
+  <div class="grid grid--wide mb4">
+    <% current_user.card_grants.includes(:stripe_card).activated.each do |grant| %>
+      <%= render grant.stripe_card, headless: true, href: card_grant_path(grant) %>
+    <% end %>
+  </div>
+<% end %>
 
 <main class="flex flex-column items-center center pb3">
   <% if signed_in? %>
@@ -36,7 +55,7 @@
         data-action="sortable:stop->event-sort#sort">
         <% @events.not_hidden.each do |event| %>
           <%= link_to event, style: "max-width: 90vw", class: "draggable text-decoration-none" do %>
-            <li class="card card--hover flex flex-column justify-between h-100 mx-auto">
+            <li class="card card--hover flex flex-column justify-between h-100 mx-auto <%= "card--background-image" if event.background_image.attached? %>" style="<%= "--bg-image: url(#{url_for(event.background_image).dump})" if event.background_image.attached? %>">
               <div id="event-<%= event.id %>-title" class="flex mb2">
                 <strong class="brand-sans h3 line-height-2 display-inline">
                   <% if event.logo.attached? %>
@@ -69,17 +88,15 @@
           <% end %>
         <% end %>
 
-        <% if @show_event_form %>
-          <a href="https://hackclub.com/bank/apply/?userEmail=<%= current_user.email %>&firstName=<%= current_user.first_name %>&lastName=<%= current_user.last_name %>&returningUser=Yes,%20I%20have%20used%20Hack%20Club%20Bank%20before&userPhone=<%= current_user.phone_number %>">
-            <li class="card card--hover bold brand-sans flex items-center justify-center align-center h-100" style="max-width: 90vw">
-              <div class="center">
-                <div class="pop success mx-auto" style="display: flex; margin-bottom: 4px;">
-                  <%= inline_icon "plus", size: 28 %>
-                </div>
-                New Project
+        <%= link_to "https://hackclub.com/bank/apply/?#{URI.encode_www_form(userEmail: current_user.email, firstName: current_user.first_name, lastName: current_user.last_name, returningUser: "Yes, I have used Hack Club Bank before", userPhone: current_user.phone_number)}" do %>
+          <li class="card card--hover bold brand-sans flex items-center justify-center align-center h-100" style="max-width: 90vw">
+            <div class="center">
+              <div class="pop success mx-auto" style="display: flex; margin-bottom: 4px;">
+                <%= inline_icon "plus", size: 28 %>
               </div>
-            </li>
-          </a>
+              New Project
+            </div>
+          </li>
         <% end %>
       </ul>
 
@@ -135,10 +152,11 @@
     <h2>Tasks & Perks</h2>
     <ul class="grid left-align w-100 mt0">
       <%= react_component "admin_task/Card", human_name: "Applications", task_name: :pending_bank_applications_airtable, task_path: link_to_airtable_task(:bank_applications) %>
+      <%= react_component "admin_task/Card", human_name: "OnBoard ID", task_name: :pending_onboard_id_airtable, task_path: link_to_airtable_task(:onboard_id) %>
       <%= card_to "Ledger (#{CanonicalTransaction.not_stripe_top_up.unmapped.count})", ledger_admin_index_path %>
       <%= card_to "ACH (#{AchTransfer.pending.count})", ach_admin_index_path %>
       <%= card_to "Check (#{IncreaseCheck.pending.count})", increase_checks_admin_index_path %>
-      <%= card_to "Check (old) (#{Check.in_transit.count + Check.admin_count_offset})", check_admin_index_path %>
+      <%= card_to "Grants (#{Grant.pending.count})", grants_admin_index_path %>
       <%= react_component "admin_task/Card", human_name: "Wires", task_name: :pending_wire_transfers_airtable, task_path: link_to_airtable_task(:wire_transfers) %>
       <%= react_component "admin_task/Card", human_name: "PayPal", task_name: :pending_paypal_transfers_airtable, task_path: link_to_airtable_task(:paypal_transfers) %>
       <%= card_to "Disbursements (#{Disbursement.reviewing.count})", disbursements_admin_index_path %>
@@ -169,16 +187,15 @@
       <%= card_to "Sponsors", sponsors_admin_index_path %>
       <%= card_to "Bank Fees (#{BankFee.in_transit_or_pending.count})", bank_fees_admin_index_path %>
       <%= render partial: "static_pages/card", locals: { task_path: balances_admin_index_path, human_name: "Organization Balances" } %>
+      <%= card_to "Check deposits", check_deposits_admin_index_path %>
     </ul>
 
     <h2>Admin Tasks</h2>
     <ul class="grid left-align w-100 mt0">
       <%= card_to "Bank Accounts (#{BankAccount.failing.count})", bank_accounts_admin_index_path %>
       <%= card_to "Raw Transactions (#{RawCsvTransaction.unhashed.count})", raw_transactions_admin_index_path %>
-      <%= card_to "Hashed Transactions (#{HashedTransaction.uncanonized.count})", hashed_transactions_admin_index_path %>
       <%= card_to "HCB Codes", hcb_codes_admin_index_path %>
       <%= card_to "Transaction CSVs", transaction_csvs_admin_index_path %>
-      <%= card_to "Duplicated (WIP)", transaction_dedupe_path %>
     </ul>
 
     <!--

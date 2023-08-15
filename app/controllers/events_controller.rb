@@ -23,7 +23,11 @@ class EventsController < ApplicationController
   def show
     render_tour @organizer_position, :welcome
 
-    authorize @event
+    begin
+      authorize @event
+    rescue Pundit::NotAuthorizedError
+      return redirect_to root_path, flash: { error: "We couldn’t find that organization!" }
+    end
 
     # The search query name was historically `search`. It has since been renamed
     # to `q`. This following line retains backwards compatibility.
@@ -114,6 +118,11 @@ class EventsController < ApplicationController
       @transactions.sort_by!(&:date).reverse!
       @transactions = Kaminari.paginate_array(@transactions).page(params[:page]).per(params[:per] || 75)
       @mock_total = @transactions.reduce(0) { |sum, obj| sum + obj.amount * 100 }.to_i
+    end
+
+    if flash[:popover]
+      @popover = flash[:popover]
+      flash.delete(:popover)
     end
   end
 
@@ -297,17 +306,17 @@ class EventsController < ApplicationController
     authorize @event
 
     @g_suite = @event.g_suites.first
+    @waitlist_form_submitted = GWaitlistTable.all(filter: "{OrgID} = '#{@event.id}'").any? unless Flipper.enabled?(:google_workspace, @event)
   end
 
   def g_suite_create
     authorize @event
 
-    attrs = {
-      current_user: current_user,
+    GSuiteService::Create.new(
+      current_user:,
       event_id: @event.id,
       domain: params[:domain]
-    }
-    GSuiteService::Create.new(attrs).run
+    ).run
 
     redirect_to event_g_suite_overview_path(event_id: @event.slug)
   rescue => e
@@ -329,24 +338,23 @@ class EventsController < ApplicationController
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
 
-    relation = @event.donations.not_pending
+    relation = @event.donations.not_pending.includes(:recurring_donation)
 
     @stats = {
-      # Amount we already deposited + partial amount that was deposit for in transit transactions
-      deposited: relation.deposited.sum(:amount) + relation.in_transit.sum(&:amount_settled),
-      # Amount in transit minus the amount that is already settled
-      in_transit: relation.in_transit.sum(:amount) - relation.in_transit.sum(&:amount_settled),
-      refunded: relation.refunded.sum(:amount)
+      deposited: relation.where(aasm_state: [:in_transit, :deposited]).sum(:amount),
     }
 
-    relation = relation.in_transit if params[:filter] == "in_transit"
-    relation = relation.deposited if params[:filter] == "deposited"
-    relation = relation.refunded if params[:filter] == "refunded"
+    if params[:filter] == "refunded"
+      relation = relation.refunded
+    else
+      relation = relation.where(aasm_state: [:in_transit, :deposited])
+    end
+
     relation = relation.search_name(params[:q]) if params[:q].present?
 
     @donations = relation.order(created_at: :desc)
 
-    @recurring_donations = @event.recurring_donations.active.order(created_at: :desc)
+    @recurring_donations = @event.recurring_donations.includes(:donations).active.order(created_at: :desc)
 
     if helpers.show_mock_data?
       @donations = []
@@ -359,7 +367,7 @@ class EventsController < ApplicationController
         started_on = Faker::Date.backward(days: 365 * 2)
 
         donation = OpenStruct.new(
-          amount: amount,
+          amount:,
           total_donated: amount * rand(1..5),
           stripe_status: "active",
           state: refunded ? "warning" : "success",
@@ -368,7 +376,8 @@ class EventsController < ApplicationController
           created_at: started_on,
           name: Faker::Name.name,
           recurring: rand > 0.9,
-          local_hcb_code: OpenStruct.new(hashid: "")
+          local_hcb_code: OpenStruct.new(hashid: ""),
+          hcb_code: "",
         )
         @stats[:deposited] += amount unless refunded
         @stats[:refunded] += amount if refunded
@@ -531,6 +540,14 @@ class EventsController < ApplicationController
     redirect_back fallback_location: edit_event_path(@event)
   end
 
+  def remove_background_image
+    authorize @event
+
+    @event.background_image.purge_later
+
+    redirect_back fallback_location: edit_event_path(@event)
+  end
+
   def remove_logo
     authorize @event
 
@@ -561,12 +578,28 @@ class EventsController < ApplicationController
     redirect_to edit_event_path(@event)
   end
 
+  def toggle_event_tag
+    @event_tag = EventTag.find(params[:event_tag_id])
+
+    authorize @event
+    authorize @event_tag
+
+    if @event.event_tags.where(id: @event_tag.id).exists?
+      @event.event_tags.destroy(@event_tag)
+    else
+      @event.event_tags << @event_tag
+    end
+
+    redirect_back fallback_location: edit_event_path(@event, anchor: "admin_organization_tags")
+  end
+
   private
 
   # Only allow a trusted parameter "white list" through.
   def event_params
     result_params = params.require(:event).permit(
       :name,
+      :description,
       :start,
       :end,
       :address,
@@ -578,7 +611,6 @@ class EventsController < ApplicationController
       :emburse_department_id,
       :country,
       :category,
-      :organized_by_hack_clubbers,
       :club_airtable_id,
       :point_of_contact_id,
       :slug,
@@ -593,7 +625,9 @@ class EventsController < ApplicationController
       :public_message,
       :custom_css_url,
       :donation_header_image,
-      :logo
+      :logo,
+      :website,
+      :background_image
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend
@@ -606,6 +640,7 @@ class EventsController < ApplicationController
 
   def user_event_params
     result_params = params.require(:event).permit(
+      :description,
       :address,
       :slug,
       :hidden,
@@ -620,7 +655,9 @@ class EventsController < ApplicationController
       :public_message,
       :custom_css_url,
       :donation_header_image,
-      :logo
+      :logo,
+      :website,
+      :background_image
     )
 
     # convert whatever the user inputted into something that is a legal slug
@@ -634,7 +671,7 @@ class EventsController < ApplicationController
     return [] unless using_transaction_engine_v2? && using_pending_transaction_engine?
 
     pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
-    PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions: pending_transactions, event: @event).run!
+    PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions:, event: @event).run!
     pending_transactions
   end
 

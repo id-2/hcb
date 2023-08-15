@@ -30,6 +30,9 @@ class HcbCode < ApplicationRecord
 
   has_and_belongs_to_many :tags
 
+  has_many :suggested_pairings
+  has_many :suggested_receipts, source: :receipt, through: :suggested_pairings
+
   before_create :generate_and_set_short_code
 
   comma do
@@ -46,6 +49,10 @@ class HcbCode < ApplicationRecord
     "/hcb/#{hashid}"
   end
 
+  def popover_url
+    "/hcb/#{hashid}?frame=true"
+  end
+
   def receipt_upload_email
     if Rails.env.development?
       "receipts+hcb-#{hashid}@bank-parse-dev.hackclub.com"
@@ -54,11 +61,22 @@ class HcbCode < ApplicationRecord
     end
   end
 
+  def best_suggested_receipts(limit: nil, threshold: nil, only_unreviewed: false)
+    pairings = only_unreviewed ? suggested_pairings.unreviewed : suggested_pairings
+
+    if threshold
+      pairings = pairings.where("distance <= ?", threshold)
+    end
+
+    pairings.includes(:receipt).order(distance: :asc).limit(limit).map(&:receipt).compact
+  end
+
   def date
     @date ||= ct.try(:date) || pt.try(:date)
   end
 
   def memo
+    return card_grant_memo if card_grant?
     return disbursement_memo if disbursement?
     return invoice_memo if invoice?
     return donation_memo if donation?
@@ -66,6 +84,7 @@ class HcbCode < ApplicationRecord
     return ach_transfer_memo if ach_transfer?
     return check_memo if check?
     return increase_check_memo if increase_check?
+    return check_deposit_memo if check_deposit?
     return fee_revenue_memo if fee_revenue?
     return ach_payment_memo if ach_payment?
 
@@ -87,6 +106,9 @@ class HcbCode < ApplicationRecord
   end
 
   def humanized_type
+    return "ACH" if ach_transfer?
+    return "Bank Fee" if bank_fee?
+
     t = type || :transaction
     t = :transaction if unknown?
 
@@ -140,6 +162,7 @@ class HcbCode < ApplicationRecord
           check.try(:event).try(:id),
           increase_check.try(:event).try(:id),
           disbursement.try(:event).try(:id),
+          check_deposit.try(:event).try(:id),
         ].compact.uniq)
 
         ids << EventMappingEngine::EventIds::INCOMING_FEES if incoming_bank_fee?
@@ -147,6 +170,19 @@ class HcbCode < ApplicationRecord
 
         Event.where(id: ids)
       end
+  end
+
+  def pretty_title(show_event_name: true, show_amount: false)
+    event_preposition = [:unknown, :invoice, :ach, :check, :card_charge, :bank_fee].include?(type || :unknown) ? "in" : "to"
+    amount_preposition = [:transaction, :donation, :partner_donation, :disbursement, :card_charge, :bank_fee].include?(type || :unknown) ? "of" : "for"
+
+    amount_preposition = "refunded" if stripe_refund?
+
+    title = [humanized_type]
+    title << amount_preposition << ApplicationController.helpers.render_money(stripe_card? ? amount_cents.abs : amount_cents) if show_amount
+    title << event_preposition << event.name if show_event_name
+
+    title.join(" ")
   end
 
   def fee_payment?
@@ -237,6 +273,14 @@ class HcbCode < ApplicationRecord
     smartish_custom_memo || disbursement.special_appearance_memo || "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
   end
 
+  def card_grant?
+    disbursement? && disbursement.card_grant.present?
+  end
+
+  def card_grant_memo
+    smartish_custom_memo || "Grant to #{disbursement.card_grant.user.name}"
+  end
+
   def stripe_card?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::STRIPE_CARD_CODE
   end
@@ -290,7 +334,7 @@ class HcbCode < ApplicationRecord
   end
 
   def increase_check_memo
-    "Check to #{increase_check.recipient_name}".upcase
+    smartish_custom_memo || "Check to #{increase_check.recipient_name}".upcase
   end
 
   def disbursement
@@ -319,6 +363,18 @@ class HcbCode < ApplicationRecord
 
   def ach_payment_memo
     "Bank transfer"
+  end
+
+  def check_deposit?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::CHECK_DEPOSIT_CODE
+  end
+
+  def check_deposit
+    @check_deposit ||= CheckDeposit.find_by(id: hcb_i2) if check_deposit?
+  end
+
+  def check_deposit_memo
+    smartish_custom_memo || "CHECK DEPOSIT"
   end
 
   def unknown?
@@ -370,11 +426,15 @@ class HcbCode < ApplicationRecord
   end
 
   def receipt_required?
-    (type == :card_charge && !pt.declined?) || !!raw_emburse_transaction
+    (type == :card_charge && !pt.declined? && !event&.salary?) || !!raw_emburse_transaction
+  end
+
+  def needs_receipt?
+    receipt_required? && marked_no_or_lost_receipt_at.nil? && receipts.size == 0
   end
 
   def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code: hcb_code)
+    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 
   def generate_and_set_short_code

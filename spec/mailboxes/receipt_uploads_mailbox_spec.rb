@@ -5,10 +5,10 @@ require "rails_helper"
 RSpec.describe ReceiptUploadsMailbox, type: :mailbox do
   include ActionMailbox::TestHelper
 
-  let!(:user) { create(:user, admin_at: Time.now) }
+  let!(:user) { create(:user, access_level: :admin) }
   let!(:event) { create(:event) }
   let!(:canonical_transaction) { create(:canonical_transaction, hcb_code: "HCB-600-iauth_1234567890abcdefghijklmn") }
-  let!(:canonical_event_mapping) { create(:canonical_event_mapping, event: event, canonical_transaction: canonical_transaction) }
+  let!(:canonical_event_mapping) { create(:canonical_event_mapping, event:, canonical_transaction:) }
   let!(:receipt_filepath) { file_fixture("receipt.png") }
   let!(:hcb) { canonical_transaction.local_hcb_code }
 

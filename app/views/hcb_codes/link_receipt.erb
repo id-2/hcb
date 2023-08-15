@@ -1,6 +1,6 @@
-<%= form_with(local: true, data: {
+<%= form_with url: link_receipts_path, method: :post, data: {
       controller: "receipt-select"
-}) do |form| %>
+} do |form| %>
   <% if @receipts.size == 0 %>
     <%= blankslate "Receipt Bin is empty." %>
   <% else %>
@@ -9,6 +9,9 @@
     <span data-receipt-select-target="select" style="display: none;">
       <%= form.select :receipt_id, @receipts.map { |receipt| [receipt.id, receipt.id] }, include_blank: true %>
     </span>
+
+    <%= form.hidden_field :receiptable_id, value: @hcb_code.id %>
+    <%= form.hidden_field :receiptable_type, value: "HcbCode" %>
 
     <ul class="grid grid--narrow left-align w-100 mt0 grid--spacious">
       <% @receipts.each do |receipt| %>

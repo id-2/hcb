@@ -22,33 +22,34 @@ const tours = {
     }
 
     if (!options.demo) {
-      steps.push(
-        {
-          attachTo: isMobile ? 'spend' : 'cards',
-          text: 'Instantly issue a virtual debit card for yourself. Gotta spend that 💸!',
-          placement: isMobile ? 'top' : 'right',
-          strategy: 'fixed'
-        },
-        {
+      steps.push({
+        attachTo: isMobile ? 'spend' : 'cards',
+        text: 'Instantly issue a virtual debit card for yourself. Gotta spend that 💸!',
+        placement: isMobile ? 'top' : 'right',
+        strategy: 'fixed'
+      })
+
+      if (options.category != 'outernet guild') {
+        steps.push({
           attachTo: isMobile ? 'receive' : 'donations',
-          text: 'Share your donation form with others, and get it embedded on your website.',
+          text: 'Share your donation form with others and embed it on your website.',
           placement: isMobile ? 'top-end' : 'right',
           strategy: 'fixed'
-        }
-      )
-
-      if (!isMobile) {
-        steps.push({
-          attachTo: 'perks',
-          text: 'Get access to free tools for things like sending newsletters and managing team passwords. Stickers included.',
-          strategy: 'fixed'
         })
+
+        if (!isMobile) {
+          steps.push({
+            attachTo: 'perks',
+            text: 'Get access to free tools for things like sending newsletters and managing team passwords. Stickers included.',
+            strategy: 'fixed'
+          })
+        }
       }
     } else {
       steps.push({
         attachTo: 'activate_account',
         text: "You're in Playground Mode— click here to activate your account when you're ready.",
-        placement: isMobile ? 'top' : 'right'
+        placement: 'bottom'
       })
     }
 
@@ -61,17 +62,20 @@ function TourOverlay(props) {
 
   const tour = props.tour && tours[props.tour](props.options)
 
-  useEffect(async () => {
-    if (props.tour && currentStep < tour.length) {
-      await fetch(`/tours/${props.id}/set_step`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-Token': csrf(),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ step: currentStep })
-      })
-    }
+  useEffect(() => {
+    // eslint-disable-next-line no-extra-semi
+    ;(async () => {
+      if (props.tour && currentStep < tour.length) {
+        await fetch(`/tours/${props.id}/set_step`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': csrf(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ step: currentStep })
+        })
+      }
+    })()
   }, [currentStep])
 
   return (

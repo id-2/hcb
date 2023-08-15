@@ -12,7 +12,7 @@ services:
       - redis-data:/data
   web:
     env_file:
-      - .env.docker
+      - .env.development
     build: ./
     command: bash -c 'rm -f /usr/src/app/tmp/pids/server.pid; ./bin/dev'
     volumes:
@@ -26,8 +26,7 @@ services:
     environment:
       REDIS_URL: redis://redis:6379
     ports:
-      - ${PORT}:3000
-      # You may need to run `env $(cat .env.docker)` inline before docker-compose to set the right port
+      - 3000:3000
 
 volumes:
   pg-data:

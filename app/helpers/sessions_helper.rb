@@ -11,7 +11,7 @@ module SessionsHelper
   }.freeze
 
   def impersonate_user(user)
-    sign_in(user: user, impersonate: true)
+    sign_in(user:, impersonate: true)
   end
 
   # DEPRECATED - begin to start deprecating and ultimately replace with sign_in_and_set_cookie
@@ -20,14 +20,14 @@ module SessionsHelper
     expiration_at = Time.now + user.session_duration_seconds
     cookies.encrypted[:session_token] = { value: session_token, expires: expiration_at }
     user_session = user.user_sessions.create!(
-      session_token: session_token,
+      session_token:,
       fingerprint: fingerprint_info[:fingerprint],
       device_info: fingerprint_info[:device_info],
       os_info: fingerprint_info[:os_info],
       timezone: fingerprint_info[:timezone],
       ip: fingerprint_info[:ip],
-      webauthn_credential: webauthn_credential,
-      expiration_at: expiration_at
+      webauthn_credential:,
+      expiration_at:
     )
 
     if impersonate
@@ -48,6 +48,12 @@ module SessionsHelper
     signed_in? && current_user&.admin?
   end
 
+  def superadmin_signed_in?
+    signed_in? &&
+      current_user&.superadmin? &&
+      !current_session&.impersonated?
+  end
+
   def current_user=(user)
     @current_user = user
   end
@@ -59,15 +65,8 @@ module SessionsHelper
     @organizer_signed_in[event]
   end
 
-  # Ensure api authorized when fetching current user is removed
-  def current_user(_ensure_api_authorized = true)
-    if !@current_user && current_session
-      @current_user ||= current_session.user
-    end
-
-    return nil unless @current_user
-
-    @current_user
+  def current_user
+    @current_user ||= current_session&.user
   end
 
   def current_session
@@ -107,7 +106,7 @@ module SessionsHelper
   end
 
   def sign_out
-    current_user(false)
+    current_user
       &.user_sessions
       &.find_by(session_token: cookies.encrypted[:session_token])
       &.set_as_peacefully_expired
@@ -119,7 +118,7 @@ module SessionsHelper
 
   def sign_out_of_all_sessions
     # Destroy all the sessions except the current session
-    current_user(false)
+    current_user
       &.user_sessions
       &.where&.not(id: current_session.id)
       &.destroy_all

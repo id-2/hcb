@@ -50,8 +50,6 @@
       |
       <%= link_to "raw transactions (#{RawCsvTransaction.unhashed.count})", raw_transactions_admin_index_path %>
       |
-      <%= link_to "hashed transactions (#{HashedTransaction.uncanonized.count})", hashed_transactions_admin_index_path %>
-      |
       <%= link_to "ledger (#{CanonicalTransaction.not_stripe_top_up.unmapped.count})", ledger_admin_index_path %>
       |
       <%= link_to "pending ledger (#{CanonicalPendingTransaction.unsettled.count})", pending_ledger_admin_index_path %>
@@ -77,7 +75,8 @@
       <%= link_to "hcb codes", hcb_codes_admin_index_path %>
       |
       <%= link_to "transaction csvs", transaction_csvs_admin_index_path %>
-
+      |
+      <%= link_to "stripe cards", stripe_cards_admin_index_url %>
     </p>
 
     <hr>

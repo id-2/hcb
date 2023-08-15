@@ -17,7 +17,7 @@ class InvoicePolicy < ApplicationPolicy
   end
 
   def create?
-    !record.unapproved? && (user&.admin? || record.users.include?(user))
+    !record.unapproved? && !record.outernet_guild? && (user&.admin? || record.users.include?(user))
   end
 
   def show?
@@ -38,6 +38,14 @@ class InvoicePolicy < ApplicationPolicy
 
   def manually_mark_as_paid?
     user&.admin?
+  end
+
+  def hosted?
+    admin_or_user
+  end
+
+  def pdf?
+    admin_or_user
   end
 
   private

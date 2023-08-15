@@ -106,7 +106,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def promotions?
-    (is_public || user_or_admin) && !record.hardware_grant?
+    (is_public || user_or_admin) && !record.hardware_grant? && !record.outernet_guild?
   end
 
   def reimbursements?
@@ -125,6 +125,10 @@ class EventPolicy < ApplicationPolicy
     user_or_admin
   end
 
+  def remove_background_image?
+    user_or_admin
+  end
+
   def remove_logo?
     user_or_admin
   end
@@ -140,6 +144,12 @@ class EventPolicy < ApplicationPolicy
   def account_number?
     is_public || user_or_admin
   end
+
+  def toggle_event_tag?
+    user.admin?
+  end
+
+  private
 
   def user_or_admin
     user&.admin? || record.users.include?(user)

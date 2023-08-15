@@ -43,7 +43,7 @@ class ApplicationController < ActionController::Base
   # Fallback for bad redirects that do not have allow_other_host set to true
   # https://blog.saeloun.com/2022/02/08/rails-7-raise-unsafe-redirect-error.html#after
   rescue_from ActionController::Redirecting::UnsafeRedirectError do |exception|
-    Airbrake.notify(exception)
+    notify_airbrake(exception)
     redirect_to root_url
   end
 
@@ -85,8 +85,9 @@ class ApplicationController < ActionController::Base
     headers.delete("Content-Length")
   end
 
-  def confetti!
+  def confetti!(emojis: nil)
     flash[:confetti] = true
+    flash[:confetti_emojis] = emojis.join(",") if emojis
   end
 
 end

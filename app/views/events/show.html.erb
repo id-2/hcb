@@ -2,12 +2,13 @@
 
 <% if @event&.is_public %>
   <% content_for :head do %>
-    <% img = "https://workshop-cards.hackclub.com/#{url_encode(@event.name)}.png?theme=light&fontSize=225px&caption=Transparent%2520Finances&brand=Bank" %>
+    <% img = "https://bank-og.hackclub.com/api/embeds/#{@event.slug}" %>
+    <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="og:image" content="<%= img %>">
     <meta name="twitter:image" content="<%= img %>">
     <meta property="og:site_name" content="Hack Club Bank">
-    <meta property="og:url" content="<%= event_path(@event) %>">
+    <meta property="og:url" content="<%= event_url(@event) %>">
     <meta property="og:title" content="<%= @event.name %>">
     <meta name="twitter:title" content="<%= @event.name %>">
     <% description = "#{@event.name}'s finances have been made public on Hack Club Bank so you can see how their money is spent." %>
@@ -28,9 +29,19 @@
       </span>
     <% end %>
 
+    <% if @event.increase_account_id != IncreaseService::AccountIds::FS_MAIN %>
+      <% admin_tools("p0 badge", "span") do %>
+        <%= link_to "https://dashboard.increase.com/accounts/#{@event.increase_account_id}" do %>
+          <span class="m0 badge bg-muted">
+            <%= @event.increase_account_id %>
+          </span>
+        <% end %>
+      <% end %>
+    <% end %>
+
     <% admin_tools("p0 badge", "span") do %>
       <span class="m0 badge bg-muted">
-        <%= @event.partner.slug.capitalize %>
+        <%= @event&.partner&.slug&.capitalize || "Not partnered" %>
       </span>
     <% end %>
   <% end %>
@@ -63,7 +74,7 @@
           class: "info mr2" if admin_signed_in? %>
         <div class="flex items-center">
           <% @organizers.each do |position| %>
-            <div class="avatar-grow line-height-0 tooltipped tooltipped--s mr1" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.full_name %>">
+            <div class="avatar-grow line-height-0 tooltipped tooltipped--s mr1" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">
               <%= avatar_for position.user, 36 %>
             </div>
           <% end %>
@@ -170,9 +181,9 @@
           <tbody data-behavior="transactions">
             <%= render "pending_fee_transaction" if @event.fronted_fee_balance_v2_cents > 0 %>
 
-            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event } %>
+            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true } %>
 
-            <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event } %>
+            <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true } %>
         </tbody>
         </table>
     </div>

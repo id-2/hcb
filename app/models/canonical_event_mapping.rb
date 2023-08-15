@@ -9,12 +9,14 @@
 #  updated_at               :datetime         not null
 #  canonical_transaction_id :bigint           not null
 #  event_id                 :bigint           not null
+#  subledger_id             :bigint
 #  user_id                  :bigint
 #
 # Indexes
 #
 #  index_canonical_event_mappings_on_canonical_transaction_id  (canonical_transaction_id)
 #  index_canonical_event_mappings_on_event_id                  (event_id)
+#  index_canonical_event_mappings_on_subledger_id              (subledger_id)
 #  index_canonical_event_mappings_on_user_id                   (user_id)
 #  index_cem_event_id_canonical_transaction_id_uniqueness      (event_id,canonical_transaction_id) UNIQUE
 #
@@ -26,9 +28,12 @@
 class CanonicalEventMapping < ApplicationRecord
   belongs_to :canonical_transaction
   belongs_to :event
+  belongs_to :subledger, optional: true
   belongs_to :user, optional: true
 
   has_many :fees
+
+  scope :on_main_ledger, -> { where(subledger_id: nil) }
 
   after_create do
     FeeEngine::Create.new(canonical_event_mapping: self).run
@@ -36,5 +41,17 @@ class CanonicalEventMapping < ApplicationRecord
 
   scope :missing_fee, -> { includes(:fees).where(fees: { canonical_event_mapping_id: nil }) }
   scope :mapped_by_human, -> { where("user_id is not null") }
+
+  validate :transaction_belongs_to_correct_increase_account
+
+  private
+
+  def transaction_belongs_to_correct_increase_account
+    return if event.id == EventMappingEngine::EventIds::NOEVENT # hacky - allow all transactions to be mapped to 999 (NoEvent)
+
+    if canonical_transaction.transaction_source_type == RawIncreaseTransaction.name && canonical_transaction.raw_increase_transaction.increase_account_id != event.increase_account_id
+      errors.add(:base, "This transaction can't be mapped to \"#{event.name}\" because they belong to different Increase accounts.")
+    end
+  end
 
 end

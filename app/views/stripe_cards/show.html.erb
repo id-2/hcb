@@ -22,6 +22,11 @@
 
 <article class="check--form flex items-start justify-center mt2 mb3">
   <section class="center mt0 mx-auto" style="width: 400px; max-width: 100%;">
+    <% if @card.card_grant.present? %>
+      <% admin_tools do %>
+        This card is linked to a <%= link_to "#{@card.card_grant.amount.format} grant", @card.card_grant %> to <%= mail_to @card.card_grant.user.email %>.
+      <% end %>
+    <% end %>
     <%= render @card %>
     <% if !@card.activated? %>
       <% if @card.replacement_for %>
@@ -191,7 +196,7 @@
       <div class="stat tooltipped tooltipped--s" aria-label="This is your account balance">
         <strong class="stat__label">Spending limit</strong>
         <span class="stat__value">
-          <%= render_money_amount @event.balance_available_v2_cents %>
+          <%= render_money_amount @card.balance_available %>
         </span>
       </div>
       <div class="stat stat--small">
@@ -219,7 +224,7 @@
       <tbody data-behavior="transactions">
         <% @hcb_codes.order(created_at: :desc).each do |hcb_code| %>
           <% if hcb_code.canonical_transactions.any? %>
-            <%= render partial: "canonical_transactions/canonical_transaction", collection: hcb_code.canonical_transactions, as: :ct %>
+            <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: hcb_code, force_display_details: true } %>
           <% else %>
             <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: hcb_code.canonical_pending_transactions, as: :pt, locals: { force_display_details: true } %>
           <% end %>

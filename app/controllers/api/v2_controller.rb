@@ -22,11 +22,10 @@ module Api
       render json: json_error(contract), status: 400 and return unless contract.success?
 
       begin
-        attrs = {
+        service = AuthService::Token.new(
           token: contract[:login_token],
           ip: request.remote_ip
-        }
-        service = AuthService::Token.new(attrs)
+        )
         user = service.run
 
         if service.force_manual_login?
@@ -40,7 +39,7 @@ module Api
           # TODO: add more fingerprinting to be on par with normal login
         }
 
-        user = sign_in(user: user, fingerprint_info: fingerprint)
+        user = sign_in(user:, fingerprint_info: fingerprint)
 
         # Semi-jank way to get the session that was just created for this user
         session = user.user_sessions.last
@@ -52,7 +51,7 @@ module Api
         redirect_to root_path
 
       rescue => e
-        Airbrake.notify(e) unless e.is_a?(UnauthorizedError)
+        notify_airbrake(e) unless e.is_a?(UnauthorizedError)
         puts e
         redirect_to auth_users_url(email: contract[:user_email])
       end
@@ -67,18 +66,17 @@ module Api
       # Invite the user to the event
       ::EventService::PartnerInviteUser.new(
         partner: current_partner,
-        event: event,
+        event:,
         user_email: contract[:email]
       ).run
 
-      attrs = {
+      login_token = ApiService::V2::GenerateLoginToken.new(
         partner: current_partner,
         user_email: contract[:email],
         organization_public_id: contract[:public_id]
-      }
-      login_token = ApiService::V2::GenerateLoginToken.new(attrs).run
+      ).run
 
-      render json: Api::V2::GenerateLoginUrlSerializer.new(organization_public_id: contract[:public_id], login_token: login_token).run
+      render json: Api::V2::GenerateLoginUrlSerializer.new(organization_public_id: contract[:public_id], login_token:).run
     end
 
     def partnered_signups_new
@@ -113,69 +111,60 @@ module Api
       contract = Api::V2::PartneredSignupsContract.new.call(params.permit!.to_h)
       render json: json_error(contract), status: 400 and return unless contract.success?
 
-      attrs = {
-        partner_id: current_partner.id,
-      }
-      partnered_signups = ::ApiService::V2::FindPartneredSignups.new(attrs).run
+      partnered_signups = ::ApiService::V2::FindPartneredSignups.new(partner_id: current_partner.id).run
 
-      render json: Api::V2::PartneredSignupsSerializer.new(partnered_signups: partnered_signups).run
+      render json: Api::V2::PartneredSignupsSerializer.new(partnered_signups:).run
     end
 
     def partnered_signup
       contract = Api::V2::PartneredSignupContract.new.call(params.permit!.to_h)
       render json: json_error(contract), status: 400 and return unless contract.success?
 
-      attrs = {
+      partnered_signup = ::ApiService::V2::FindPartneredSignup.new(
         partner_id: current_partner.id,
         partnered_signup_public_id: contract[:public_id]
-      }
-      partnered_signup = ::ApiService::V2::FindPartneredSignup.new(attrs).run
+      ).run
 
       # if partnered_signup does not exist, throw not found error
       raise ActiveRecord::RecordNotFound and return unless partnered_signup
 
-      render json: Api::V2::PartneredSignupSerializer.new(partnered_signup: partnered_signup).run
+      render json: Api::V2::PartneredSignupSerializer.new(partnered_signup:).run
     end
 
     def donations_new
       contract = Api::V2::DonationsNewContract.new.call(params.permit!.to_h)
       render json: json_error(contract), status: 400 and return unless contract.success?
 
-      attrs = {
+      partner_donation = ::ApiService::V2::DonationsNew.new(
         partner_id: current_partner.id,
         organization_public_id: contract[:organization_id]
-      }
-      partner_donation = ::ApiService::V2::DonationsNew.new(attrs).run
+      ).run
 
-      render json: Api::V2::DonationsNewSerializer.new(partner_donation: partner_donation).run
+      render json: Api::V2::DonationsNewSerializer.new(partner_donation:).run
     end
 
     def organizations
       contract = Api::V2::OrganizationsContract.new.call(params.permit!.to_h)
       render json: json_error(contract), status: 400 and return unless contract.success?
 
-      attrs = {
-        partner_id: current_partner.id,
-      }
-      organizations = ::ApiService::V2::FindOrganizations.new(attrs).run
+      organizations = ::ApiService::V2::FindOrganizations.new(partner_id: current_partner.id).run
 
-      render json: Api::V2::OrganizationsSerializer.new(organizations: organizations).run
+      render json: Api::V2::OrganizationsSerializer.new(organizations:).run
     end
 
     def organization
       contract = Api::V2::OrganizationContract.new.call(params.permit!.to_h)
       render json: json_error(contract), status: 400 and return unless contract.success?
 
-      attrs = {
+      event = ::ApiService::V2::FindOrganization.new(
         partner_id: current_partner.id,
         organization_public_id: contract[:public_id]
-      }
-      event = ::ApiService::V2::FindOrganization.new(attrs).run
+      ).run
 
       # if event does not exist, throw not found error
       raise ActiveRecord::RecordNotFound and return unless event
 
-      render json: Api::V2::OrganizationSerializer.new(event: event).run
+      render json: Api::V2::OrganizationSerializer.new(event:).run
     end
 
   end

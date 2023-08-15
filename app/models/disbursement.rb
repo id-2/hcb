@@ -4,28 +4,30 @@
 #
 # Table name: disbursements
 #
-#  id              :bigint           not null, primary key
-#  aasm_state      :string
-#  amount          :integer
-#  deposited_at    :datetime
-#  errored_at      :datetime
-#  in_transit_at   :datetime
-#  name            :string
-#  pending_at      :datetime
-#  rejected_at     :datetime
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  event_id        :bigint
-#  fulfilled_by_id :bigint
-#  requested_by_id :bigint
-#  source_event_id :bigint
+#  id                       :bigint           not null, primary key
+#  aasm_state               :string
+#  amount                   :integer
+#  deposited_at             :datetime
+#  errored_at               :datetime
+#  in_transit_at            :datetime
+#  name                     :string
+#  pending_at               :datetime
+#  rejected_at              :datetime
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  destination_subledger_id :bigint
+#  event_id                 :bigint
+#  fulfilled_by_id          :bigint
+#  requested_by_id          :bigint
+#  source_event_id          :bigint
 #
 # Indexes
 #
-#  index_disbursements_on_event_id         (event_id)
-#  index_disbursements_on_fulfilled_by_id  (fulfilled_by_id)
-#  index_disbursements_on_requested_by_id  (requested_by_id)
-#  index_disbursements_on_source_event_id  (source_event_id)
+#  index_disbursements_on_destination_subledger_id  (destination_subledger_id)
+#  index_disbursements_on_event_id                  (event_id)
+#  index_disbursements_on_fulfilled_by_id           (fulfilled_by_id)
+#  index_disbursements_on_requested_by_id           (requested_by_id)
+#  index_disbursements_on_source_event_id           (source_event_id)
 #
 # Foreign Keys
 #
@@ -52,9 +54,12 @@ class Disbursement < ApplicationRecord
   belongs_to :destination_event, foreign_key: "event_id", class_name: "Event", inverse_of: "incoming_disbursements"
   belongs_to :source_event, class_name: "Event", inverse_of: "outgoing_disbursements"
   belongs_to :event
+  belongs_to :destination_subledger, class_name: "Subledger", optional: true
 
   has_one :raw_pending_incoming_disbursement_transaction
   has_one :raw_pending_outgoing_disbursement_transaction
+
+  has_one :card_grant, required: false
 
   has_many :t_transactions, class_name: "Transaction", inverse_of: :disbursement
 
@@ -65,7 +70,7 @@ class Disbursement < ApplicationRecord
 
   validates :amount, numericality: { greater_than: 0 }
   validate :events_are_different
-  validate :events_are_not_demos
+  validate :events_are_not_demos, on: :create
 
   scope :processing, -> { in_transit }
   scope :fulfilled, -> { deposited }
@@ -95,7 +100,7 @@ class Disbursement < ApplicationRecord
     }
   }.freeze
 
-  aasm timestamps: true do
+  aasm timestamps: true, whiny_persistence: true do
     state :reviewing, initial: true # Being reviewed by an admin
     state :pending                  # Waiting to be processed by the TX engine
     state :in_transit               # Transfer started on SVB
@@ -105,7 +110,7 @@ class Disbursement < ApplicationRecord
 
     event :mark_approved do
       after do |fulfilled_by|
-        update(fulfilled_by: fulfilled_by)
+        update(fulfilled_by:)
         canonical_pending_transactions.update_all(fronted: true)
       end
       transitions from: :reviewing, to: :pending
@@ -128,7 +133,7 @@ class Disbursement < ApplicationRecord
 
     event :mark_rejected do
       after do |fulfilled_by|
-        update(fulfilled_by: fulfilled_by)
+        update(fulfilled_by:)
         canonical_pending_transactions.each { |cpt| cpt.decline! }
       end
       transitions from: [:reviewing, :pending], to: :rejected
@@ -151,15 +156,15 @@ class Disbursement < ApplicationRecord
   end
 
   def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code: hcb_code)
+    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 
   def canonical_transactions
-    @canonical_transactions ||= CanonicalTransaction.where(hcb_code: hcb_code)
+    @canonical_transactions ||= CanonicalTransaction.where(hcb_code:)
   end
 
   def canonical_pending_transactions
-    @canonical_pending_transactions ||= ::CanonicalPendingTransaction.where(hcb_code: hcb_code)
+    @canonical_pending_transactions ||= ::CanonicalPendingTransaction.where(hcb_code:)
   end
 
   def processed?
@@ -264,7 +269,7 @@ class Disbursement < ApplicationRecord
   private
 
   def events_are_different
-    self.errors.add(:event, "must be different than source event") if event_id == source_event_id
+    self.errors.add(:event, "must be different than source event") if event_id == source_event_id && destination_subledger_id.nil?
   end
 
   def events_are_not_demos

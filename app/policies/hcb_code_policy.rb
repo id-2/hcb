@@ -9,16 +9,20 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin?
   end
 
+  def edit?
+    user&.admin? || present_in_events?
+  end
+
+  def update?
+    user&.admin? || present_in_events?
+  end
+
   def comment?
     user&.admin? || present_in_events?
   end
 
-  def receipt?
-    user&.admin? || present_in_events?
-  end
-
   def attach_receipt?
-    user&.admin? || present_in_events?
+    user&.admin? || present_in_events? || user_made_purchase?
   end
 
   def send_receipt_sms?
@@ -37,15 +41,14 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin? || present_in_events?
   end
 
-  def link_receipt?
-    user&.admin? || (present_in_events? && record.receipt.user_id == user.id)
-
-  end
-
   private
 
   def present_in_events?
     record.events.select { |e| e.try(:users).try(:include?, user) }.present?
+  end
+
+  def user_made_purchase?
+    record.stripe_card? && record.stripe_cardholder&.user == user
   end
 
 end

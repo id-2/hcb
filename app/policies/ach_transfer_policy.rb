@@ -10,11 +10,15 @@ class AchTransferPolicy < ApplicationPolicy
   end
 
   def create?
-    user&.admin? || record.users.include?(user) && !record.demo_mode # dirty implementation here. record is event (temporary)
+    admin_or_user && !record.event.demo_mode && !record.event.outernet_guild?
   end
 
   def show?
     is_public || admin_or_user
+  end
+
+  def cancel?
+    admin_or_user
   end
 
   def transfer_confirmation_letter?

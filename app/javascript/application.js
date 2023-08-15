@@ -12,10 +12,15 @@ ReactRailsUJS.handleEvent('turbo:frame-render', ReactRailsUJS.handleUnmount)
 // Remove modals triggered by <turbo-frames> when the frame is unloaded.
 // Bad stuff happens if you don't do this. Trust me. ~ @cjdenio
 document.addEventListener('turbo:frame-render', () => {
-  window.$('.jquery-modal [data-behavior~=modal].turbo-frame-modal').remove()
+  window.$('.jquery-modal [data-behavior~=modal].turbo-frame-modal:not(.modal--popover)').remove()
 })
 
 import './controllers'
 
 import { Turbo } from '@hotwired/turbo-rails'
 window.Turbo = Turbo
+
+import Alpine from "alpinejs"
+window.Alpine = Alpine
+
+Alpine.start()

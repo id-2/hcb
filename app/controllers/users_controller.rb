@@ -4,6 +4,7 @@ class UsersController < ApplicationController
   skip_before_action :signed_in_user, only: [:auth, :auth_submit, :choose_login_preference, :set_login_preference, :webauthn_options, :webauthn_auth, :login_code, :exchange_login_code]
   skip_before_action :redirect_to_onboarding, only: [:edit, :update, :logout]
   skip_after_action :verify_authorized, except: [:edit, :update]
+  before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
 
   def impersonate
     authorize current_user
@@ -58,7 +59,7 @@ class UsersController < ApplicationController
   # post to request login code
   def login_code
     @return_to = params[:return_to]
-    @email = params[:email].downcase
+    @email = params.require(:email)&.downcase
     @force_use_email = params[:force_use_email]
 
     initialize_sms_params
@@ -72,6 +73,10 @@ class UsersController < ApplicationController
     @user_id = resp[:id]
 
     @webauthn_available = User.find_by(email: @email)&.webauthn_credentials&.any?
+
+  rescue ActionController::ParameterMissing
+    flash[:error] = "Please enter an email address."
+    redirect_to auth_users_path
   end
 
   def webauthn_options
@@ -125,7 +130,7 @@ class UsersController < ApplicationController
 
       session[:login_preference] = "webauthn" if params[:remember] == "true"
 
-      sign_in(user: user, fingerprint_info: fingerprint_info, webauthn_credential: stored_credential)
+      sign_in(user:, fingerprint_info:, webauthn_credential: stored_credential)
 
       redirect_to(params[:return_to] || root_path)
 
@@ -152,7 +157,7 @@ class UsersController < ApplicationController
       sms: params[:sms]
     ).run
 
-    sign_in(user: user, fingerprint_info: fingerprint_info)
+    sign_in(user:, fingerprint_info:)
 
     # Clear the flash - this prevents the error message showing up after an unsuccessful -> successful login
     flash.clear
@@ -202,16 +207,30 @@ class UsersController < ApplicationController
     redirect_to root_path
   end
 
+  def receipt_report
+    ReceiptReportJob::Send.perform_later(current_user.id, force_send: true)
+    flash[:success] = "Receipt report generating. Check #{current_user.email}"
+    redirect_to settings_previews_path
+  end
+
+  FEATURE_CONFETTI_EMOJIS = {
+    receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
+    receipt_report_2023_04_19: %w[🧾 📧],
+    turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
+    sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
+  }.freeze
+
   def enable_feature
     @user = current_user
     @feature = params[:feature]
     authorize @user
     if Flipper.enable_actor(@feature, @user)
+      confetti!(emojis: FEATURE_CONFETTI_EMOJIS[@feature.to_sym])
       flash[:success] = "Opted into beta"
     else
       flash[:error] = "Error while opting into beta"
     end
-    redirect_to settings_previews_path
+    redirect_back fallback_location: settings_previews_path
   end
 
   def disable_feature
@@ -223,12 +242,21 @@ class UsersController < ApplicationController
     else
       flash[:error] = "Error while opting out of beta"
     end
-    redirect_to settings_previews_path
+    redirect_back fallback_location: settings_previews_path
   end
 
   def edit
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.onboarding?
+    show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
+    @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    authorize @user
+  end
+
+  def edit_address
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    redirect_to edit_user_path(@user) unless @user.stripe_cardholder
+    @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     authorize @user
@@ -290,12 +318,16 @@ class UsersController < ApplicationController
         redirect_to root_path
       else
         flash[:success] = @user == current_user ? "Updated your profile!" : "Updated #{@user.first_name}'s profile!"
-        redirect_to edit_user_path(@user)
+        redirect_back_or_to edit_user_path(@user)
       end
     else
       @onboarding = User.friendly.find(params[:id]).full_name.blank?
       show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
       @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+      if @user.stripe_cardholder&.errors&.any?
+        flash.now[:error] = @user.stripe_cardholder.errors.first.full_message
+        render :edit_address, status: :unprocessable_entity and return
+      end
       render :edit, status: :unprocessable_entity
     end
   end
@@ -352,17 +384,42 @@ class UsersController < ApplicationController
 
   private
 
+  def set_shown_private_feature_previews
+    @shown_private_feature_previews = params[:classified_top_secret]&.split(",") || []
+  end
+
   def user_params
-    params.require(:user).permit(
+    attributes = [
       :full_name,
+      :preferred_name,
       :phone_number,
       :profile_picture,
       :pretend_is_not_admin,
       :sessions_reported,
       :session_duration_seconds,
+      :receipt_report_option,
       :birthday,
       :seasonal_themes_enabled
-    )
+    ]
+
+    if @user.stripe_cardholder
+      attributes << {
+        stripe_cardholder_attributes: [
+          :stripe_billing_address_line1,
+          :stripe_billing_address_line2,
+          :stripe_billing_address_city,
+          :stripe_billing_address_state,
+          :stripe_billing_address_postal_code,
+          :stripe_billing_address_country
+        ]
+      }
+    end
+
+    if superadmin_signed_in?
+      attributes << :access_level
+    end
+
+    params.require(:user).permit(attributes)
   end
 
   def initialize_sms_params
