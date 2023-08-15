@@ -73,9 +73,6 @@ gem "money-rails"
 gem "monetize"
 gem "rounding"
 
-# Currency conversion for donation page
-gem "eu_central_bank"
-
 gem "business_time"
 
 

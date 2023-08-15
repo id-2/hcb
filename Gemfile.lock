@@ -242,9 +242,6 @@ GEM
       tzinfo
     ethon (0.16.0)
       ffi (>= 1.15.0)
-    eu_central_bank (1.7.0)
-      money (~> 6.13, >= 6.13.6)
-      nokogiri (~> 1.9)
     execjs (2.8.1)
     factory_bot (6.2.1)
       activesupport (>= 5.0.0)
@@ -815,7 +812,6 @@ DEPENDENCIES
   dotenv-rails
   dry-validation
   erb_lint
-  eu_central_bank
   factory_bot_rails
   faker
   faraday
