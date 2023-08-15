@@ -2,15 +2,6 @@
 
 require "csv"
 require "money"
-require "eu_central_bank"
-
-def fetch_exchange_rate(currency)
-  bank = EuCentralBank.new
-  bank.update_rates # if bank.last_updated.blank? || bank.last_updated < 1.day.ago
-  Money.default_bank = bank
-  return Money.from_amount(1, "USD").exchange_to(currency).to_f
-end
-
 
 class DonationsController < ApplicationController
   include SetEvent
@@ -74,15 +65,11 @@ class DonationsController < ApplicationController
   end
 
   def make_donation
-    @exchange_rate = 1.00
     @symbol = Money::Currency.new(@event.donation_page_currency).symbol
-    if @event.donation_page_currency != "USD"
-      @exchange_rate = fetch_exchange_rate(@event.donation_page_currency)
-    end
 
     d_params = donation_params
 
-    d_params[:amount] = Monetize.parse(donation_params[:amount].to_f / @exchange_rate).cents
+    d_params[:amount] = Monetize.parse(donation_params[:amount].to_f).cents
 
     if @event.demo_mode?
       @example_event = Event.find(183)
@@ -118,11 +105,7 @@ class DonationsController < ApplicationController
     @donation = Donation.find_by!(url_hash: params["donation"])
 
     @event = @donation.event
-    @exchange_rate = 1.00
     @symbol = Money::Currency.new(@event.donation_page_currency).symbol
-    if @event.donation_page_currency != "USD"
-      @exchange_rate = fetch_exchange_rate(@event.donation_page_currency)
-    end
 
     # We don't use set_event here to prevent a UI vulnerability where a user could create a donation on one org and make it look like another org by changing the slug
     # https://github.com/hackclub/bank/issues/3197
