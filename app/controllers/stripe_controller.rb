@@ -177,7 +177,7 @@ class StripeController < ApplicationController
 
     StripeService::Topup.create(
       amount: charge[:amount_refunded],
-      currency: "usd",
+      currency: donation.currency,
       description: "Refund for donation #{donation.id}",
       statement_descriptor: "HCB-#{donation.local_hcb_code.short_code}"
     )
