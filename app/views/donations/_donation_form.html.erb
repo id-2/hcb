@@ -40,13 +40,13 @@
     <% end %>
 
       <div class="field">
-        <% if !@event.country_us? %>
-          <%= form.label :amount, "Donation amount (USD)" %>
+        <% if !@event.country_us? || @event.donation_page_currency != "USD" %>
+          <%= form.label :amount, "Donation amount (#{@event.donation_page_currency})" %>
         <% else %>
           <%= form.label :amount, "Donation amount" %>
         <% end %>
         <div class="flex items-center">
-          <span class="bold muted shrink-none" style="width: 1rem;">$</span>
+          <span class="bold muted shrink-none" style="width: 1rem;"><%= @symbol %></span>
           <%= form.number_field :amount,
                                 value: (donation.amount.nil? ? nil : ("%.2f" % (donation.amount.to_f / 100))),
                                 placeholder: @placeholder_amount,

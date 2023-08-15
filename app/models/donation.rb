@@ -8,6 +8,7 @@
 #  aasm_state                           :string
 #  amount                               :integer
 #  amount_received                      :integer
+#  currency                             :text             default("USD")
 #  email                                :text
 #  hcb_code                             :text
 #  message                              :text
@@ -303,7 +304,7 @@ class Donation < ApplicationRecord
   def create_payment_intent_attrs
     {
       amount:,
-      currency: "usd",
+      currency: self.currency,
       statement_descriptor: "HACK CLUB BANK",
       statement_descriptor_suffix: StripeService::StatementDescriptor.format(event.name, as: :suffix),
       metadata: { 'donation': true, 'event_id': event.id }

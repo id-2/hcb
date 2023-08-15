@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_11_160940) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_11_560940) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -42,8 +40,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_11_160940) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "recipient_tel"
     t.datetime "rejected_at", precision: nil
-    t.text "payment_for"
     t.datetime "scheduled_arrival_date", precision: nil
+    t.text "payment_for"
     t.string "aasm_state"
     t.text "confirmation_number"
     t.text "account_number_ciphertext"
@@ -353,7 +351,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_11_160940) do
   end
 
   create_table "check_deposits", force: :cascade do |t|
-    t.string "aasm_state"
     t.bigint "event_id", null: false
     t.integer "amount_cents"
     t.datetime "created_at", null: false
@@ -503,6 +500,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_11_160940) do
     t.text "hcb_code"
     t.string "aasm_state"
     t.bigint "recurring_donation_id"
+    t.text "currency", default: "USD"
     t.index ["event_id"], name: "index_donations_on_event_id"
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
     t.index ["payout_id"], name: "index_donations_on_payout_id"
@@ -665,7 +663,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_11_160940) do
     t.boolean "holiday_features", default: true, null: false
     t.string "custom_css_url"
     t.integer "category"
-    t.text "donation_page_currency", default: "USD"
     t.boolean "can_front_balance", default: true, null: false
     t.boolean "demo_mode", default: false, null: false
     t.datetime "demo_mode_request_meeting_at", precision: nil
@@ -675,6 +672,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_11_160940) do
     t.string "increase_account_id", null: false
     t.string "website"
     t.text "description"
+    t.text "donation_page_currency", default: "USD"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"

@@ -49,6 +49,7 @@ class DonationsController < ApplicationController
       name: params[:name],
       email: params[:email],
       amount: params[:amount],
+      currency: @event.donation_page_currency,
       message: params[:message],
       event: @event
     )
@@ -62,11 +63,10 @@ class DonationsController < ApplicationController
     end
 
     @placeholder_amount = "%.2f" % (DonationService::SuggestedAmount.new(@event, monthly: @monthly).run / 100.0)
+    @symbol = Money::Currency.new(@donation.currency).symbol
   end
 
   def make_donation
-    @symbol = Money::Currency.new(@event.donation_page_currency).symbol
-
     d_params = donation_params
 
     d_params[:amount] = Monetize.parse(donation_params[:amount].to_f).cents
@@ -86,10 +86,12 @@ class DonationsController < ApplicationController
     if d_params[:name] == "aser ras"
       redirect_to root_url and return
     end
-
-
+    
     @donation = Donation.new(d_params)
     @donation.event = @event
+    @donation.currency = @event.donation_page_currency
+    
+    @symbol = Money::Currency.new(@donation.currency).symbol
 
     authorize @donation
 

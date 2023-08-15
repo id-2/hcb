@@ -27,7 +27,7 @@
   </div>
 <% end %>
 
-<%= render "donations/donation_form", donation: @donation %>
+<%= render "donations/donation_form", donation: @donation, symbol: @symbol %>
 
 <% if @event.demo_mode? %>
   <div class="container container--sm">
