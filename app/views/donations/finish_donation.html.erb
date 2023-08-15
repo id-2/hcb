@@ -112,7 +112,7 @@
 
   <p class="mb2">
     Please enter your payment information for your contribution of
-    <strong><%= render_money @exchange_rate.to_d * @donation.amount, { unit: @symbol } %></strong>.
+    <strong><%= render_money @donation.amount, { unit: @symbol } %></strong>.
   </p>
 
   <div class="hide-on-success">
@@ -133,7 +133,7 @@
       <div class="mt3">
         <button id="submit" class="btn w-100 donation-btn">
           Donate
-          <%= render_money @exchange_rate.to_d * @donation.amount, { unit: @symbol } %>
+          <%= render_money @donation.amount, { unit: @symbol } %>
         </button>
       </div>
     </div>
