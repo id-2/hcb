@@ -2,9 +2,10 @@
 
 module DonationService
   class Refund
-    def initialize(donation_id:, amount:)
+    def initialize(donation_id:, amount:, currency:)
       @donation_id = donation_id
       @amount = amount
+      @currency = currency
     end
 
     def run
@@ -16,7 +17,7 @@ module DonationService
         donation.canonical_pending_transactions.update_all(fronted: false)
 
         # 3. Process remotely
-        ::StripeService::Refund.create(payment_intent: payment_intent_id, amount: @amount)
+        ::StripeService::Refund.create(payment_intent: payment_intent_id, amount: @amount, currency: @currency)
 
         # 4. Create top-up on Stripe. Located in `StripeController#handle_charge_refunded`
       end
