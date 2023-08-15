@@ -112,7 +112,7 @@
 
   <p class="mb2">
     Please enter your payment information for your contribution of
-    <strong><%= render_money @donation.amount %></strong>.
+    <strong><%= @donation.amount_money.format %></strong>.
   </p>
 
   <div class="hide-on-success">

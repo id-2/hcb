@@ -65,7 +65,7 @@ class DonationsController < ApplicationController
 
   def make_donation
     d_params = donation_params
-    d_params[:amount] = Monetize.parse(donation_params[:amount]).cents
+    d_params[:amount] = Monetize.parse(donation_params[:amount], donation_params[:currency]).cents
 
     if d_params[:name] == "aser ras"
       redirect_to root_url and return
@@ -178,7 +178,7 @@ class DonationsController < ApplicationController
   end
 
   def donation_params
-    params.require(:donation).permit(:email, :name, :amount, :message)
+    params.require(:donation).permit(:email, :name, :amount, :message, :currency)
   end
 
   def redirect_to_404
