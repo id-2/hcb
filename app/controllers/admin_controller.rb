@@ -1176,13 +1176,13 @@ class AdminController < ApplicationController
     states << "approved" if @approved
     states << "rejected" if @rejected
     relation = relation.where("aasm_state in (?)", states)
-    
+
     if @inverse
       relation = Event.all.where.not(id: relation.pluck(:id))
     else
       relation
     end
-    
+
   end
 
   include StaticPagesHelper # for airtable_info
