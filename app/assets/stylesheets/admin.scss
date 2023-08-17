@@ -687,3 +687,23 @@ video {
   width: auto;
   min-width: 0;
 }
+
+.events-filter-select {
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, 300px); 
+  gap: 0px 16px;
+}
+
+.events-filter-select > label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.events-filter-select > label > select {
+  flex-grow: 1
+}
+
+.events-filter-select > label > input {
+  flex-grow: 1
+}

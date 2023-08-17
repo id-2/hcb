@@ -1122,6 +1122,7 @@ class AdminController < ApplicationController
     @unapproved = params[:unapproved] == "0" ? nil : true # checked by default
     @approved = params[:approved] == "0" ? nil : true # checked by default
     @rejected = params[:rejected] == "0" ? nil : true # checked by default
+    @inverse = params[:inverse] == "0" ? nil : true # not checked by default
     @transparent = params[:transparent].present? ? params[:transparent] : "both" # both by default
     @omitted = params[:omitted].present? ? params[:omitted] : "both" # both by default
     @funded = params[:funded].present? ? params[:funded] : "both" # both by default
@@ -1175,6 +1176,13 @@ class AdminController < ApplicationController
     states << "approved" if @approved
     states << "rejected" if @rejected
     relation = relation.where("aasm_state in (?)", states)
+    
+    if @inverse
+      relation = Event.all.where.not(id: relation.pluck(:id))
+    else
+      relation
+    end
+    
   end
 
   include StaticPagesHelper # for airtable_info
