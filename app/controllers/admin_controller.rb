@@ -1128,6 +1128,18 @@ class AdminController < ApplicationController
     @funded = params[:funded].present? ? params[:funded] : "both" # both by default
     @hidden = params[:hidden].present? ? params[:hidden] : "both" # both by default
     @organized_by = params[:organized_by].presence || "anyone"
+    @uncategorized = params[:uncategorized] == "0" ? nil : true # checked by default
+    @hackathon = params[:hackathon] == "0" ? nil : true # checked by default
+    @hack_club = params[:hack_club] == "0" ? nil : true # checked by default
+    @nonprofit = params[:nonprofit] == "0" ? nil : true # checked by default
+    @event = params[:event] == "0" ? nil : true # checked by default
+    @high_school_hackathon = params[:high_school_hackathon] == "0" ? nil : true # checked by default
+    @robotics_team = params[:robotics_team] == "0" ? nil : true # checked by default
+    @hardware_grant = params[:hardware_grant] == "0" ? nil : true # checked by default
+    @hack_club_hq = params[:hack_club_hq] == "0" ? nil : true # checked by default
+    @outernet_guild = params[:outernet_guild] == "0" ? nil : true # checked by default
+    @grant_recipient = params[:grant_recipient] == "0" ? nil : true # checked by default
+    @salary = params[:salary] == "0" ? nil : true # checked by default
     if params[:category] == "none"
       @category = "none"
     else
@@ -1158,11 +1170,23 @@ class AdminController < ApplicationController
     relation = relation.demo_mode if @demo_mode == "demo"
     relation = relation.not_demo_mode if @demo_mode == "full"
     relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date) if @activity_since_date.present?
-    if @category == "none"
-      relation = relation.where(category: nil)
-    elsif @category != "all"
-      relation = relation.where(category: @category)
+    
+    selected_categories = []
+    
+    available_categories = [
+      'uncategorized', 'hackathon', 'hack_club', 'nonprofit', 'event',
+      'high_school_hackathon', 'robotics_team', 'hardware_grant', 'hack_club_hq',
+      'outernet_guild', 'grant_recipient', 'salary'
+    ]
+    
+    available_categories.each do |var|
+      selected_categories << var if instance_variable_get("@#{var}")
     end
+    
+    if @uncategorized
+      selected_categories << nil
+    end
+    relation = relation.where(category: selected_categories)
     relation = relation.where(point_of_contact_id: @point_of_contact_id) if @point_of_contact_id != "all"
     if @country == 9999
       relation = relation.where.not(country: "US")
