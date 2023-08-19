@@ -53,6 +53,7 @@
     <%= render partial: "static_pages/card", locals: { task_path: flipper_path, human_name: "Flipper" } %>
     <%= card_to "Pending Ledger (#{CanonicalPendingTransaction.unsettled.count})", pending_ledger_admin_index_path %>
     <%= card_to "Recurring donations (#{RecurringDonation.active.count})", recurring_donations_admin_index_path %>
+    <%= card_to "Mass Renamer", mass_renamer_admin_index_path %>
   </ul>
   <details>
     <summary>Old cards</summary>

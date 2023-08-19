@@ -1,0 +1,24 @@
+<% title "The Mass Renamer" %>
+
+<h1>The Mass Renamer</h1>
+
+<% if @event == nil %>
+
+  To begin, select your event:
+  
+  <%= form_with(model: nil, local: true, url: mass_renamer_admin_index_path) do |form| %>
+    <p style="margin: 8px 0px">
+      <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, include_blank: "Select one…") %>
+    </p>
+    <p>
+      <%= form.submit "Open the CSV Template" %>
+    </p>
+  <% end %>
+
+<% else %>
+<%= form_with(model: nil, local: true, url: mass_renamer_admin_index_path) do |form| %>
+  <%= form.text_field :event_id, class: "w-100 fit", value: @event.id %>
+  <%= form.text_area :csv_input, rows: 15, class: "w-100 fit", value: @csv_data %>
+  <%= form.submit "Submit New Memos" %>
+<% end %>
+<% end %>

@@ -744,6 +744,51 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
+  def mass_renamer
+    @event = params[:event_id] ? Event.find(params[:event_id]) : nil
+    if @event
+      if params[:csv_input]
+        begin
+          CSV.parse(params[:csv_input], col_sep: ",", headers: true) do |row|
+            if row["status"] == "pending"
+              begin
+                ::CanonicalPendingTransactionService::SetCustomMemo.new(
+                  canonical_pending_transaction_id: row["id"],
+                  custom_memo: row["memo"]
+                ).run
+              rescue
+                flash[:error] = "Could not rename pending transaction with the ID: #{row["id"]}. Check that the ID is valid."
+              end
+            else
+              begin
+                ::CanonicalTransactionService::SetCustomMemo.new(
+                  canonical_transaction_id: row["id"],
+                  custom_memo: row["memo"]
+                ).run
+              rescue
+                flash[:error] = "Could not rename transaction with the ID: #{row["id"]}. Check that the ID is valid."
+              end
+            end
+          end
+        rescue
+          flash[:error] = "Could not parse your CSV input."
+        end
+      end
+      @canonical_transactions = @event.canonical_transactions.includes(:canonical_event_mapping)
+      @canonical_pending_transactions = @event.canonical_pending_transactions.includes(:canonical_pending_event_mapping)
+      @csv_data = "id,memo,amount,status\n"
+
+      @canonical_transactions.each do |ct|
+        @csv_data += "#{ct.id},#{ct.custom_memo || ct.memo},#{ct.amount},not_pending\n"
+      end
+
+      @canonical_pending_transactions.each do |ct|
+        @csv_data += "#{ct.id},#{ct.custom_memo || ct.memo},#{ct.amount},pending\n"
+      end
+    end
+    render layout: "admin"
+  end
+
   def disbursements
     @page = params[:page] || 1
     @per = params[:per] || 20

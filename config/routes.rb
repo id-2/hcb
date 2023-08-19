@@ -168,6 +168,8 @@ Rails.application.routes.draw do
       post "event_create", to: "admin#event_create"
       get "donations", to: "admin#donations"
       get "recurring_donations", to: "admin#recurring_donations"
+      get "mass_renamer", to: "admin#mass_renamer"
+      post "mass_renamer", to: "admin#mass_renamer"
       get "partner_donations", to: "admin#partner_donations"
       get "disbursements", to: "admin#disbursements"
       get "disbursement_new", to: "admin#disbursement_new"
