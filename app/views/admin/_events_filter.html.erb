@@ -1,28 +1,6 @@
 <% submit_disable_with_false ||= false %>
 
 <div style='display: inline; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.2rem; margin-right: 0.5rem;'>
-  State: |
-  <%= form.label :pending do %>
-    <%= form.check_box :pending, checked: @pending %>
-    Pending
-  <% end %>
-  |
-  <%= form.label :unapproved do %>
-    <%= form.check_box :unapproved, checked: @unapproved %>
-    Unapproved
-  <% end %>
-  |
-  <%= form.label :approved do %>
-    <%= form.check_box :approved, checked: @approved %>
-    Approved
-  <% end %>
-  |
-  <%= form.label :rejected do %>
-    <%= form.check_box :rejected, checked: @rejected %>
-    Rejected
-  <% end %>
-</div>
-<div style='display: inline; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.2rem; margin-right: 0.5rem;'>
   <%= form.label :inverse do %>
     <%= form.check_box :inverse, checked: @inverse %>
     Inverse Query
@@ -79,7 +57,28 @@
   <% end %>
 </div>
 
-<div style='display: flex; flex-wrap: wrap; gap: 4px 16px; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.6rem; margin-right: 0.5rem; margin-top: 8px;'>
+<fieldset style='display: flex; flex-wrap: wrap; gap: 4px 16px; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.6rem; padding-top: 0.3rem; margin-right: 0.5rem; margin-top: 8px;'>
+  <legend style="padding: 0px 8px">State:</legend>
+  <%= form.label :pending do %>
+    <%= form.check_box :pending, checked: @pending %>
+    Pending
+  <% end %>
+  <%= form.label :unapproved do %>
+    <%= form.check_box :unapproved, checked: @unapproved %>
+    Unapproved
+  <% end %>
+  <%= form.label :approved do %>
+    <%= form.check_box :approved, checked: @approved %>
+    Approved
+  <% end %>
+  <%= form.label :rejected do %>
+    <%= form.check_box :rejected, checked: @rejected %>
+    Rejected
+  <% end %>
+</fieldset>
+
+<fieldset style='display: flex; flex-wrap: wrap; gap: 4px 16px; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.6rem; padding-top: 0.3rem; margin-right: 0.5rem; margin-top: 8px;'>
+  <legend style="padding: 0px 8px">Category:</legend>
   <%= form.label :uncategorized do %>
     <%= form.check_box :uncategorized, checked: @uncategorized %>
     uncategorized
@@ -128,4 +127,4 @@
     <%= form.check_box :salary, checked: @salary %>
     salary
   <% end %>
-</div>
+</fieldset>
