@@ -1170,19 +1170,19 @@ class AdminController < ApplicationController
     relation = relation.demo_mode if @demo_mode == "demo"
     relation = relation.not_demo_mode if @demo_mode == "full"
     relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date) if @activity_since_date.present?
-    
+
     selected_categories = []
-    
+
     available_categories = [
-      'uncategorized', 'hackathon', 'hack_club', 'nonprofit', 'event',
-      'high_school_hackathon', 'robotics_team', 'hardware_grant', 'hack_club_hq',
-      'outernet_guild', 'grant_recipient', 'salary'
+      "uncategorized", "hackathon", "hack_club", "nonprofit", "event",
+      "high_school_hackathon", "robotics_team", "hardware_grant", "hack_club_hq",
+      "outernet_guild", "grant_recipient", "salary"
     ]
-    
+
     available_categories.each do |var|
       selected_categories << var if instance_variable_get("@#{var}")
     end
-    
+
     if @uncategorized
       selected_categories << nil
     end
