@@ -1,12 +1,16 @@
 <% title "The Mass Renamer" %>
 
+<% content_for :body_attributes do %>
+  data-turbo="false"
+<% end %>
+
 <h1>The Mass Renamer</h1>
 
 <% if @event == nil %>
 
   To begin, select your event:
   
-  <%= form_with(model: nil, local: true, url: mass_renamer_admin_index_path) do |form| %>
+  <%= form_with(url: mass_renamer_admin_index_path, data: { turbo:false }) do |form| %>
     <p style="margin: 8px 0px">
       <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, include_blank: "Select one…") %>
     </p>
@@ -16,7 +20,7 @@
   <% end %>
 
 <% else %>
-<%= form_with(model: nil, local: true, url: mass_renamer_admin_index_path) do |form| %>
+<%= form_with(url: mass_renamer_admin_index_path, data: { turbo:false }) do |form| %>
   <%= form.text_field :event_id, class: "w-100 fit", value: @event.id %>
   <%= form.text_area :csv_input, rows: 15, class: "w-100 fit", value: @csv_data %>
   <%= form.submit "Submit New Memos" %>
