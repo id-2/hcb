@@ -25,7 +25,7 @@
       For tags, separate a list of IDs with a <code>/</code>. Here are the IDs: <br />
       <ul>
         <% (@event || ct.local_hcb_code.event).tags.each do |tag| %>
-          <li><%= tag.label %>: <code><%= tag.id %></code<</li>
+          <li><%= tag.label %>: <code><%= tag.id %></code></li>
         <% end %>
       </ul>
       Don't want to add or remove tags? Leave those columns as <code>none</code>.

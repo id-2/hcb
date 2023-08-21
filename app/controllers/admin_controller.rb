@@ -755,25 +755,23 @@ class AdminController < ApplicationController
                   canonical_pending_transaction_id: row["id"],
                   custom_memo: row["memo"]
                 ).run
-                tags = row["tags_to_add"].split('/') + row["tags_to_delete"].split('/')
+                tags = row["tags_to_add"].split("/") + row["tags_to_delete"].split("/")
                 tags.each do |tag|
                   next if tag == "none"
-                  hcb_code = HcbCode.find(params[:id])
+
+                  canonical_transaction = CanonicalTransaction.find(row["id"])
+                  hcb_code = canonical_transaction.local_hcb_code
                   tag = Tag.find(tag)
-                  
-                  authorize hcb_code
-                  authorize tag
-                  
-                  raise Pundit::NotAuthorizedError unless hcb_code.events.include?(tag.event)
-                  
+
                   if hcb_code.tags.exists?(tag.id)
                     hcb_code.tags.destroy(tag)
                   else
                     hcb_code.tags << tag
                   end
+
                 end
-              rescue
-                flash[:error] = "Could not rename pending transaction with the ID: #{row["id"]}. Check that the ID is valid."
+              rescue => e
+                flash[:error] = e.message
               end
             else
               begin
@@ -781,8 +779,23 @@ class AdminController < ApplicationController
                   canonical_transaction_id: row["id"],
                   custom_memo: row["memo"]
                 ).run
-              rescue
-                flash[:error] = "Could not rename transaction with the ID: #{row["id"]}. Check that the ID is valid."
+                tags = row["tags_to_add"].split("/") + row["tags_to_delete"].split("/")
+                tags.each do |tag|
+                  next if tag == "none"
+
+                  canonical_transaction = CanonicalTransaction.find(row["id"])
+                  hcb_code = canonical_transaction.local_hcb_code
+                  tag = Tag.find(tag)
+
+                  if hcb_code.tags.exists?(tag.id)
+                    hcb_code.tags.destroy(tag)
+                  else
+                    hcb_code.tags << tag
+                  end
+
+                end
+              rescue => e
+                flash[:error] = e.message
               end
             end
           end
