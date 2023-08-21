@@ -755,6 +755,23 @@ class AdminController < ApplicationController
                   canonical_pending_transaction_id: row["id"],
                   custom_memo: row["memo"]
                 ).run
+                tags = row["tags_to_add"].split('/') + row["tags_to_delete"].split('/')
+                tags.each do |tag|
+                  next if tag == "none"
+                  hcb_code = HcbCode.find(params[:id])
+                  tag = Tag.find(tag)
+                  
+                  authorize hcb_code
+                  authorize tag
+                  
+                  raise Pundit::NotAuthorizedError unless hcb_code.events.include?(tag.event)
+                  
+                  if hcb_code.tags.exists?(tag.id)
+                    hcb_code.tags.destroy(tag)
+                  else
+                    hcb_code.tags << tag
+                  end
+                end
               rescue
                 flash[:error] = "Could not rename pending transaction with the ID: #{row["id"]}. Check that the ID is valid."
               end
@@ -775,14 +792,14 @@ class AdminController < ApplicationController
       end
       @canonical_transactions = @event.canonical_transactions.includes(:canonical_event_mapping)
       @canonical_pending_transactions = @event.canonical_pending_transactions.includes(:canonical_pending_event_mapping)
-      @csv_data = "id,memo,amount,status\n"
+      @csv_data = "id,memo,amount,status,tags_to_add,tags_to_delete\n"
 
       @canonical_transactions.each do |ct|
-        @csv_data += "#{ct.id},#{ct.custom_memo || ct.memo},#{ct.amount},not_pending\n"
+        @csv_data += "#{ct.id},#{ct.custom_memo || ct.memo},#{ct.amount},not_pending,none,none\n"
       end
 
       @canonical_pending_transactions.each do |ct|
-        @csv_data += "#{ct.id},#{ct.custom_memo || ct.memo},#{ct.amount},pending\n"
+        @csv_data += "#{ct.id},#{ct.custom_memo || ct.memo},#{ct.amount},pending,none,none\n"
       end
     end
     render layout: "admin"

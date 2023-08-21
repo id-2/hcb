@@ -9,20 +9,31 @@
 <% if @event == nil %>
 
   To begin, select your event:
-  
+
   <%= form_with(url: mass_renamer_admin_index_path, data: { turbo:false }) do |form| %>
-    <p style="margin: 8px 0px">
-      <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, include_blank: "Select one…") %>
-    </p>
-    <p>
-      <%= form.submit "Open the CSV Template" %>
-    </p>
-  <% end %>
+  <p style="margin: 8px 0px">
+    <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, include_blank: "Select one…") %>
+  </p>
+  <p>
+    <%= form.submit "Open the CSV Template" %>
+  </p>
+<% end %>
 
 <% else %>
-<%= form_with(url: mass_renamer_admin_index_path, data: { turbo:false }) do |form| %>
-  <%= form.text_field :event_id, class: "w-100 fit", value: @event.id %>
-  <%= form.text_area :csv_input, rows: 15, class: "w-100 fit", value: @csv_data %>
-  <%= form.submit "Submit New Memos" %>
-<% end %>
+  <p>
+    <blockquote>
+      For tags, separate a list of IDs with a <code>/</code>. Here are the IDs: <br />
+      <ul>
+        <% (@event || ct.local_hcb_code.event).tags.each do |tag| %>
+          <li><%= tag.label %>: <code><%= tag.id %></code<</li>
+        <% end %>
+      </ul>
+      Don't want to add or remove tags? Leave those columns as <code>none</code>.
+    </blockquote>
+  </p>
+  <%= form_with(url: mass_renamer_admin_index_path, data: { turbo:false }) do |form| %>
+    <%= form.text_field :event_id, class: "w-100 fit", value: @event.id %>
+    <%= form.text_area :csv_input, rows: 15, class: "w-100 fit", value: @csv_data %>
+    <%= form.submit "Submit New Memos" %>
+  <% end %>
 <% end %>
