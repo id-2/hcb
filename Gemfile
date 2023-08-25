@@ -121,6 +121,7 @@ gem "webauthn", "~> 3.0"
 gem "ahoy_matey" # analytics
 gem "airbrake" # exception tracking
 gem "blazer" # business intelligence tool/dashboard
+gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # connect to telemetry.hackclub.com
 
 gem "geo_pattern" # create procedurally generated patterns for Cards
 gem "comma", "~> 4.7" # CSV generation
