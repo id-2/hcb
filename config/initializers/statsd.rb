@@ -6,4 +6,6 @@ Rails.application.config do
   ENV["STATSD_ADDR"] = "telemetry.hackclub.com:8125"
 
   StatsD::Instrument::Environment.setup
+
+  StatsD.increment('Startup')
 end
