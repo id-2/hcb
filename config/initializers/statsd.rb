@@ -7,5 +7,5 @@ Rails.application.config do
 
   StatsD::Instrument::Environment.setup
 
-  StatsD.increment('startup')
+  StatsD.increment("startup")
 end
