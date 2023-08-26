@@ -120,15 +120,15 @@ html[data-dark='true'] {
   }
 }
 
-.transaction__icon__when--selected {
+.transaction__icon--selected {
   display: none;
 }
 
-.transaction__icon__when--selected svg {
+.transaction__icon--selected svg {
   fill: black;
 }
 
-.selected__transaction > .transaction__icon__when--selected {
+.selected__transaction > .transaction__icon--selected {
   display: table-cell!important;
 }
 
