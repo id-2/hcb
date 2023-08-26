@@ -17,7 +17,7 @@ class TagsController < ApplicationController
                    else
                      []
                    end
-    
+
     hcb_code_ids.each do |hcb_code_id|
       hcb_code = HcbCode.find(hcb_code_id)
       authorize hcb_code, :toggle_tag?
