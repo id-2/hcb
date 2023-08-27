@@ -27,7 +27,7 @@ export default class extends Controller {
 	
 	updateFormFieldValue() {
 		this.formFieldTargets.map(formField => {
-			formField.value = this.selectedHCBCodes.join(",");
+			formField.value = this.selectedHCBCodes;
 		})
 	}
 }
