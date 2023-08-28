@@ -2,8 +2,10 @@
 <tr
   class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
   id="<%= ct.local_hcb_code.hashid %>"
-  data-action="click->transactions#trackClick"
-  data-transactions-target="transaction"
+  <% if defined?(multi_select) %>
+    data-action="click->transactions#trackClick"
+    data-transactions-target="transaction"
+  <% end %>
   <% if defined?(receipt_upload_button) %>
     data-controller="file-drop"
     data-file-drop-target="dropzone"
@@ -15,12 +17,16 @@
       drop->file-drop#drop
       dragenter->file-drop#dragenter
       dragleave->file-drop#dragleave
-      click->transactions#trackClick
+      <% if defined?(multi_select) %>
+        click->transactions#trackClick
+      <% end %>
     "
   <% end %>>
-    <td class="transaction__icon tooltipped tooltipped--e transaction__icon--selected">
-      <%= inline_icon "checkmark" %>
-    </td>
+    <% if defined?(multi_select) %>
+      <td class="transaction__icon tooltipped transaction__icon--selected">
+        <%= inline_icon "checkmark" %>
+      </td>
+    <% end %>
     <% if ct.fee_payment? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Hack Club Bank Fee payment">
         <%= inline_icon "minus-fill" %>
