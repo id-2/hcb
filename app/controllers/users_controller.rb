@@ -158,7 +158,7 @@ class UsersController < ApplicationController
       user_id: params[:user_id],
       login_code: params[:login_code],
       sms: params[:sms],
-      browser_token: cookies.encrypted[:browser_token]
+      browser_token: cookies.signed[:browser_token]
     ).run
 
     sign_in(user:, fingerprint_info:)
