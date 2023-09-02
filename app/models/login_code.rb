@@ -4,14 +4,16 @@
 #
 # Table name: login_codes
 #
-#  id         :bigint           not null, primary key
-#  code       :text
-#  ip_address :inet
-#  used_at    :datetime
-#  user_agent :text
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  user_id    :bigint
+#  id                       :bigint           not null, primary key
+#  browser_token_bidx       :string
+#  browser_token_ciphertext :string
+#  code                     :text
+#  ip_address               :inet
+#  used_at                  :datetime
+#  user_agent               :text
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  user_id                  :bigint
 #
 # Indexes
 #
@@ -23,6 +25,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class LoginCode < ApplicationRecord
+  has_encrypted :browser_token
+  blind_index :browser_token
   scope :active, -> { where(used_at: nil) }
 
   belongs_to :user

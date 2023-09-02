@@ -2,10 +2,11 @@
 
 module UserService
   class ExchangeLoginCodeForUser
-    def initialize(user_id:, login_code:, sms: false)
+    def initialize(user_id:, login_code:, sms: false, browser_token: "")
       @user_id = user_id
       @login_code = login_code
       @sms = sms
+      @browser_token = browser_token
     end
 
     def run
@@ -36,6 +37,7 @@ module UserService
 
       raise ::Errors::InvalidLoginCode if login_code.nil?
       raise ::Errors::InvalidLoginCode if login_code.created_at < (Time.current - 15.minutes)
+      raise ::Errors::BrowserMismatch if login_code.browser_token != @browser_token
 
       login_code.update(used_at: Time.current)
 

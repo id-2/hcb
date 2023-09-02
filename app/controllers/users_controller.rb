@@ -63,8 +63,11 @@ class UsersController < ApplicationController
     @force_use_email = params[:force_use_email]
 
     initialize_sms_params
+    
+    @browser_token = SecureRandom.urlsafe_base64
+    cookies.encrypted[:browser_token] = { value: @browser_token, expires: Time.current + 15.minutes }
 
-    resp = LoginCodeService::Request.new(email: @email, sms: @use_sms_auth, ip_address: request.ip, user_agent: request.user_agent).run
+    resp = LoginCodeService::Request.new(email: @email, sms: @use_sms_auth, ip_address: request.ip, user_agent: request.user_agent, browser_token: @browser_token).run
 
     if resp[:error].present?
       flash[:error] = resp[:error]
@@ -154,7 +157,8 @@ class UsersController < ApplicationController
     user = UserService::ExchangeLoginCodeForUser.new(
       user_id: params[:user_id],
       login_code: params[:login_code],
-      sms: params[:sms]
+      sms: params[:sms],
+      browser_token: cookies.encrypted[:browser_token]
     ).run
 
     sign_in(user:, fingerprint_info:)
@@ -169,6 +173,14 @@ class UsersController < ApplicationController
     end
   rescue Errors::InvalidLoginCode => e
     flash.now[:error] = "Invalid login code!"
+    # Propagate the to the login_code page on invalid code
+    @user_id = params[:user_id]
+    @email = params[:email]
+    @force_use_email = params[:force_use_email]
+    initialize_sms_params
+    return render :login_code, status: :unprocessable_entity
+  rescue Errors::BrowserMismatch => e
+    flash.now[:error] = "Looks like this isn't the browser that requested that code!"
     # Propagate the to the login_code page on invalid code
     @user_id = params[:user_id]
     @email = params[:email]

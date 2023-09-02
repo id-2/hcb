@@ -2,11 +2,12 @@
 
 module LoginCodeService
   class Request
-    def initialize(email:, ip_address:, user_agent:, sms: false)
+    def initialize(email:, ip_address:, user_agent:, sms: false, browser_token:)
       @email = email.downcase
       @sms = sms
       @ip_address = ip_address
       @user_agent = user_agent
+      @browser_token = browser_token
     end
 
     def run
@@ -34,7 +35,8 @@ module LoginCodeService
     def send_login_code_by_email(user)
       login_code = user.login_codes.new(
         ip_address: @ip_address,
-        user_agent: @user_agent
+        user_agent: @user_agent,
+        browser_token: @browser_token
       )
 
       resp = {}
