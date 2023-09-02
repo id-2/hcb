@@ -65,7 +65,7 @@ class UsersController < ApplicationController
     initialize_sms_params
 
     @browser_token = SecureRandom.urlsafe_base64
-    cookies.encrypted[:browser_token] = { value: @browser_token, expires: Time.current + 15.minutes }
+    cookies.signed[:browser_token] = { value: @browser_token, expires: Time.current + 15.minutes }
 
     resp = LoginCodeService::Request.new(email: @email, sms: @use_sms_auth, ip_address: request.ip, user_agent: request.user_agent, browser_token: @browser_token).run
 
