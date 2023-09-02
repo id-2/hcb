@@ -2,7 +2,7 @@
 
 module LoginCodeService
   class Request
-    def initialize(email:, ip_address:, user_agent:, sms: false, browser_token:)
+    def initialize(email:, ip_address:, user_agent:, browser_token:, sms: false)
       @email = email.downcase
       @sms = sms
       @ip_address = ip_address

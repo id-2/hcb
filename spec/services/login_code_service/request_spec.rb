@@ -5,6 +5,7 @@ require "rails_helper"
 describe LoginCodeService::Request do
   let(:ip_address) { "127.0.0.1" }
   let(:user_agent) { "fake firefox" }
+  let(:browser_token) { "1234" }
 
   context "when a user with a given email does not exist" do
     it "creates that user with login code and emails" do
@@ -16,7 +17,8 @@ describe LoginCodeService::Request do
       expect do
         response = described_class.new(email: new_email,
                                        ip_address:,
-                                       user_agent:).run
+                                       user_agent:,
+                                       browser_token:).run
       end.to change { User.count }.by(1)
 
       user = User.find_by(email: new_email)
@@ -42,7 +44,8 @@ describe LoginCodeService::Request do
       expect do
         response = described_class.new(email: user.email,
                                        ip_address:,
-                                       user_agent:).run
+                                       user_agent:,
+                                       browser_token:).run
       end.to change { User.count }.by(0)
 
       expect(user.login_codes.count).to eq(1)
@@ -68,7 +71,8 @@ describe LoginCodeService::Request do
         expect do
           response = described_class.new(email: invalid_email,
                                          ip_address:,
-                                         user_agent:).run
+                                         user_agent:,
+                                         browser_token:).run
         end.to change { User.count }.by(0)
 
         expect(LoginCode.count).to eq(0)

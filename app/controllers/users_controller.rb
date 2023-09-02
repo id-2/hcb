@@ -63,7 +63,7 @@ class UsersController < ApplicationController
     @force_use_email = params[:force_use_email]
 
     initialize_sms_params
-    
+
     @browser_token = SecureRandom.urlsafe_base64
     cookies.encrypted[:browser_token] = { value: @browser_token, expires: Time.current + 15.minutes }
 
