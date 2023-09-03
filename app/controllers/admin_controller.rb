@@ -811,11 +811,11 @@ class AdminController < ApplicationController
       @canonical_pending_transactions.each do |pt|
         @csv_data += "#{pt.id},\"#{pt.local_hcb_code.memo || pt.custom_memo || pt.memo}\",#{pt.amount},pending,none,none\n"
       end
-      
+
       @canonical_transactions.each do |ct|
         @csv_data += "#{ct.id},\"#{ct.local_hcb_code.memo || ct.custom_memo || ct.memo}\",#{ct.amount},not_pending,none,none\n"
       end
-      
+
     end
     render layout: "admin"
   end
