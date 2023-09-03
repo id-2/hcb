@@ -11,13 +11,13 @@
   To begin, select your event:
 
   <%= form_with(url: mass_renamer_admin_index_path, data: { turbo:false }) do |form| %>
-  <p style="margin: 8px 0px">
-    <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, include_blank: "Select one…") %>
-  </p>
-  <p>
-    <%= form.submit "Open the CSV Template" %>
-  </p>
-<% end %>
+    <p style="margin: 8px 0px">
+      <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, include_blank: "Select one…") %>
+    </p>
+    <p>
+      <%= form.submit "Open the CSV Template" %>
+    </p>
+  <% end %>
 
 <% else %>
   <p>
