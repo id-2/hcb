@@ -812,7 +812,7 @@ class AdminController < ApplicationController
       end
 
       @canonical_pending_transactions.each do |ct|
-        @csv_data += "#{ct.id},#{ct.custom_memo || ct.memo},#{ct.amount},pending,none,none\n"
+        @csv_data += "#{ct.id},\"#{ct.custom_memo || ct.memo}\",#{ct.amount},pending,none,none\n"
       end
     end
     render layout: "admin"
