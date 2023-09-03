@@ -808,13 +808,14 @@ class AdminController < ApplicationController
       @canonical_pending_transactions = @canonical_pending_transactions.unsettled
       @csv_data = "id,memo,amount,status,tags_to_add,tags_to_delete\n"
 
-      @canonical_transactions.each do |ct|
-        @csv_data += "#{ct.id},\"#{ct.custom_memo || ct.memo}\",#{ct.amount},not_pending,none,none\n"
-      end
-
       @canonical_pending_transactions.each do |ct|
         @csv_data += "#{ct.id},\"#{ct.custom_memo || ct.memo}\",#{ct.amount},pending,none,none\n"
       end
+      
+      @canonical_transactions.each do |ct|
+        @csv_data += "#{ct.id},\"#{ct.custom_memo || ct.memo}\",#{ct.amount},not_pending,none,none\n"
+      end
+      
     end
     render layout: "admin"
   end
