@@ -805,7 +805,7 @@ class AdminController < ApplicationController
       end
       @canonical_transactions = @event.canonical_transactions.includes(:canonical_event_mapping)
       @canonical_pending_transactions = @event.canonical_pending_transactions.includes(:canonical_pending_event_mapping)
-      @canonical_pending_transactions = @canonical_pending_transactions.unsettled if @unsettled
+      @canonical_pending_transactions = @canonical_pending_transactions.unsettled
       @csv_data = "id,memo,amount,status,tags_to_add,tags_to_delete\n"
 
       @canonical_transactions.each do |ct|
