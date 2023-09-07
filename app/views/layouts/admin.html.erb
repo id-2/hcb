@@ -30,53 +30,158 @@
 
     <p>
       <a class="skip-to-main" href="#main">Skip to main content</a>
-      <%= link_to "admin", root_path %>
-      |
-      <%= link_to "bank accounts (#{BankAccount.failing.count})", bank_accounts_admin_index_path %>
-      |
-      <%= link_to "partners (#{Partner.count})", partners_admin_index_path %>
-      |
-      <%= link_to "partnered signups (#{PartneredSignup.applicant_signed.count})", partnered_signups_admin_index_path %>
-      |
-      <%= link_to "partner organizations (#{Event.partner.count})", partner_organizations_admin_index_path %>
-      |
-      <%= link_to "organizations (#{Event.approved.count})", events_admin_index_path %>
-      |
-      <%= link_to "organization balances", balances_admin_index_path %>
-      |
-      <%= link_to "bank fees (#{BankFee.in_transit_or_pending.count})", bank_fees_admin_index_path %>
-      |
-      <%= link_to "users", users_admin_index_path %>
-      |
-      <%= link_to "raw transactions (#{RawCsvTransaction.unhashed.count})", raw_transactions_admin_index_path %>
-      |
-      <%= link_to "ledger (#{CanonicalTransaction.not_stripe_top_up.unmapped.count})", ledger_admin_index_path %>
-      |
-      <%= link_to "pending ledger (#{CanonicalPendingTransaction.unsettled.count})", pending_ledger_admin_index_path %>
-      |
-      <%= link_to "achs (#{AchTransfer.pending.count})", ach_admin_index_path %>
-      |
-      <%= link_to "checks (#{IncreaseCheck.pending.count})", increase_checks_admin_index_path %>
-      |
-      <%= link_to "Partner donations", partner_donations_admin_index_path %>
-      |
-      <%= link_to "donations", donations_admin_index_path %>
-      |
-      <%= link_to "Recurring donations", recurring_donations_admin_index_path %>
-      |
-      <%= link_to "disbursements (#{Disbursement.reviewing.count})", disbursements_admin_index_path %>
-      |
-      <%= link_to "invoices", invoices_admin_index_path %>
-      |
-      <%= link_to "sponsors", sponsors_admin_index_path %>
-      |
-      <%= link_to "google workspaces (#{GSuite.needs_ops_review.count})", google_workspaces_admin_index_path %>
-      |
-      <%= link_to "hcb codes", hcb_codes_admin_index_path %>
-      |
-      <%= link_to "transaction csvs", transaction_csvs_admin_index_path %>
-      |
-      <%= link_to "stripe cards", stripe_cards_admin_index_url %>
+      
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <%= link_to root_path, class: "nav-item role-badge text-decoration-none badge-#{current_user.access_level}" do %>
+          <%= inline_icon "bank-account", size: 24 %>
+          <b><%= current_user.access_level %></b>
+        <% end %>
+        <details open class="details">
+          <summary class="nav-item">
+            Transfers
+            <span class="badge pr2 bg-success h-fit-content">
+              <%= AchTransfer.pending.count + IncreaseCheck.pending.count + Disbursement.reviewing.count %>
+            </span>
+          </summary>
+          <div class="dropdown">
+            <div class="sub-items">
+              <%= link_to ach_admin_index_path do %>
+                ACHs
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= AchTransfer.pending.count %>
+                </span>
+              <% end %>
+              <%= link_to increase_checks_admin_index_path do %>
+                Checks
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= IncreaseCheck.pending.count %>
+                </span>
+              <% end %>
+              <%= link_to disbursements_admin_index_path do %>
+                Disbursements
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= Disbursement.reviewing.count %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        </details>
+        <details open class="details">
+          <summary class="nav-item">
+            Ledger
+            <span class="badge pr2 bg-success h-fit-content">
+              <%= CanonicalTransaction.not_stripe_top_up.unmapped.count + CanonicalPendingTransaction.unsettled.count + RawCsvTransaction.unhashed.count %>
+            </span>
+          </summary>
+          <div class="dropdown">
+            <div class="sub-items">
+              <%= link_to ledger_admin_index_path do %>
+                Ledger
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= CanonicalTransaction.not_stripe_top_up.unmapped.count %>
+                </span>
+              <% end %>
+              <%= link_to pending_ledger_admin_index_path do %>
+                Pending Ledger
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= CanonicalPendingTransaction.unsettled.count %>
+                </span>
+              <% end %>
+              <%= link_to raw_transactions_admin_index_path do %>
+                Raw Transactions
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= RawCsvTransaction.unhashed.count %>
+                </span>
+              <% end %>
+              <%= link_to "Transaction CSVs", transaction_csvs_admin_index_path %>
+              <%= link_to "HCB codes", hcb_codes_admin_index_path %>
+            </div>
+          </div>
+        </details>
+        <details open class="details">
+          <summary class="nav-item">Incoming Money</summary>
+          <div class="dropdown">
+            <div class="sub-items">
+              <%= link_to "donations", donations_admin_index_path %>
+              <%= link_to "recurring donations", recurring_donations_admin_index_path %>
+              <%= link_to "invoices", invoices_admin_index_path %>
+              <%= link_to "sponsors", sponsors_admin_index_path %>
+            </div>
+          </div>
+        </details>
+        <details open class="details">
+          <summary class="nav-item">Partners</summary>
+          <div class="dropdown">
+            <div class="sub-items">
+              <%= link_to partners_admin_index_path do %>
+                Partners
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= Partner.count %>
+                </span>
+              <% end %>
+              <%= link_to partnered_signups_admin_index_path do %>
+                Partnered Signups 
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= PartneredSignup.applicant_signed.count %>
+                </span>
+              <% end %>
+              <%= link_to partner_organizations_admin_index_path do %>
+                Partner Organizations 
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= Event.partner.count %>
+                </span>
+              <% end %>
+              <%= link_to "partner donations", partner_donations_admin_index_path %>
+            </div>
+          </div>
+        </details>
+        <details open class="details">
+          <summary class="nav-item">
+            Perks
+            <span class="badge pr2 bg-success h-fit-content">
+              <%= GSuite.needs_ops_review.count %>
+            </span>
+          </summary>
+          <div class="dropdown">
+            <div class="sub-items">
+              <%= link_to google_workspaces_admin_index_path do %>
+                Google Workspaces
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= GSuite.needs_ops_review.count %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        </details>
+        <details open class="details">
+          <summary class="nav-item">Misc. Information</summary>
+          <div class="dropdown">
+            <div class="sub-items">
+              <%= link_to bank_accounts_admin_index_path do %>
+                Bank Accounts
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= BankAccount.failing.count %>
+                </span>
+              <% end %>
+              <%= link_to bank_fees_admin_index_path do %>
+                Bank Fees
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= BankFee.in_transit_or_pending.count %>
+                </span>
+              <% end %>
+              <%= link_to events_admin_index_path do %>
+                Organizations
+                <span class="badge pr2 bg-accent h-fit-content">
+                  <%= Event.approved.count %>
+                </span>
+              <% end %>
+              <%= link_to "organization balances", balances_admin_index_path %>
+              <%= link_to "users", users_admin_index_path %>
+              <%= link_to "stripe cards", stripe_cards_admin_index_url %>
+            </div>
+          </div>
+        </details>
+      </div>
     </p>
 
     <hr>
