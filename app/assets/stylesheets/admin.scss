@@ -696,6 +696,20 @@ video {
   min-width: 0;
 }
 
+.pagination {
+  margin-bottom: 0rem!important;
+  gap: 4px;
+}
+
+.pagination > li {
+  margin-top: 0rem!important;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+
 /* The navigation bar used for admin pages */
 
 .nav-item {
@@ -715,6 +729,9 @@ video {
 .role-badge {
   margin-left: -8px;
   padding-right: 12px;
+}
+
+.role-badge > b {
   text-transform: uppercase;
 }
 

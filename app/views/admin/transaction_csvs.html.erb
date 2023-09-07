@@ -1,10 +1,10 @@
-<% title "TRANSACTION CSV UPLOAD" %>
-
-<h1>TRANSACTION CSV UPLOAD</h1>
-
 <%= form_with(model: nil, local: true, url: upload_admin_index_path) do |form| %>
   <fieldset>
-    <legend>Silicon Valley Bank CSV</legend>
+    <legend>
+      <b>
+        Upload a Silicon Valley Bank CSV
+      </b>
+    </legend>
     <p>
       <%= form.label :file, "CSV" %>
       <br>

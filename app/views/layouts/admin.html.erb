@@ -34,7 +34,7 @@
       <div style="display: flex; align-items: center; gap: 8px;">
         <%= link_to root_path, class: "nav-item role-badge text-decoration-none badge-#{current_user.access_level}" do %>
           <%= inline_icon "bank-account", size: 24 %>
-          <b><%= current_user.access_level %></b>
+          <b><%= current_user.access_level %>:</b> Checks
         <% end %>
         <details open class="details">
           <summary class="nav-item">
@@ -183,9 +183,7 @@
         </details>
       </div>
     </p>
-
-    <hr>
-
+    
     <div id="main" class="overflow-x-auto overflow-y-auto">
       <%= yield %>
     </div>
