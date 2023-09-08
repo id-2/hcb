@@ -123,9 +123,11 @@
   <% else %>
     <%= form.submit "Search" %>
   <% end %>
-  <%= link_to event_new_admin_index_path do %>
-    <button class="bg-primary">
-      New Organization 
-    </button>
+  <% if show_new %>
+    <%= link_to event_new_admin_index_path do %>
+      <button class="bg-primary">
+        New Organization 
+      </button>
+    <% end %>
   <% end %>
 </div>
