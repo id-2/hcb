@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      <%= yield(:title).concat(" –") if content_for?(:title) %>
+      <%= "#{@title} –" if !@title.nil? %>
       HCB Admin
     </title>
 
@@ -30,14 +30,14 @@
 
     <p>
       <a class="skip-to-main" href="#main">Skip to main content</a>
-      
+
       <nav>
         <%= link_to root_path, class: "nav-item role-badge text-decoration-none badge-#{current_user.access_level}" do %>
           <%= inline_icon "bank-account", size: 24 %>
           <b>
-            <%= current_user.access_level %><%= ":" if @title != nil %>
-          </b> 
-          <%= @title if @title != nil %>
+            <%= current_user.access_level %><%= ":" if !@title.nil? %>
+          </b>
+          <%= @title if !@title.nil? %>
         <% end %>
         <details open class="details">
           <summary class="nav-item">
@@ -123,13 +123,13 @@
                 </span>
               <% end %>
               <%= link_to partnered_signups_admin_index_path do %>
-                Partnered Signups 
+                Partnered Signups
                 <span class="badge pr2 bg-accent h-fit-content">
                   <%= PartneredSignup.applicant_signed.count %>
                 </span>
               <% end %>
               <%= link_to partner_organizations_admin_index_path do %>
-                Partner Organizations 
+                Partner Organizations
                 <span class="badge pr2 bg-accent h-fit-content">
                   <%= Event.partner.count %>
                 </span>
@@ -186,7 +186,7 @@
         </details>
       </nav>
     </p>
-    
+
     <div id="main" class="overflow-x-auto overflow-y-auto">
       <%= yield %>
     </div>

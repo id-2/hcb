@@ -56,43 +56,43 @@ class AdminController < ApplicationController
 
     @result = users.flatten.compact
   end
-  
+
   def get_page_titles
     titles = {
-      "transaction_csvs" => "Transaction CSVs",
-      "bank_accounts" => "Bank Accounts",
-      "hcb_codes" => "HCB Codes",
-      "bank_fees" => "Bank Fees",
-      "users" => "Users",
-      "partners" => "Partners",
-      "partner/:id" => "Partner",
-      "partnered_signups" => "Partnered Signups",
-      "raw_transactions" => "Raw Transactions",
-      "raw_transaction_new" => "Create a Raw Transaction",
-      "ledger" => "Ledger",
-      "stripe_cards" => "Stripe Cards",
-      "pending_ledger" => "Pending Ledger",
-      "ach" => "ACHs",
-      "check" => "Checks",
-      "increase_checks" => "Checks",
+      "transaction_csvs"      => "Transaction CSVs",
+      "bank_accounts"         => "Bank Accounts",
+      "hcb_codes"             => "HCB Codes",
+      "bank_fees"             => "Bank Fees",
+      "users"                 => "Users",
+      "partners"              => "Partners",
+      "partner/:id"           => "Partner",
+      "partnered_signups"     => "Partnered Signups",
+      "raw_transactions"      => "Raw Transactions",
+      "raw_transaction_new"   => "Create a Raw Transaction",
+      "ledger"                => "Ledger",
+      "stripe_cards"          => "Stripe Cards",
+      "pending_ledger"        => "Pending Ledger",
+      "ach"                   => "ACHs",
+      "check"                 => "Checks",
+      "increase_checks"       => "Checks",
       "partner_organizations" => "Partner Organizations",
-      "events" => "Events",
-      "event_new" => "New Event",
-      "donations" => "Donations",
-      "recurring_donations" => "Recurring Donations",
-      "partner_donations" => "Partner Donations",
-      "disbursements" => "Disbursements",
-      "disbursement_new" => "New Disbursement",
-      "invoices" => "Invoices",
-      "sponsors" => "Sponsors",
-      "google_workspaces" => "Google Workspace Requests",
-      "balances" => "Balances",
-      "grants" => "Grants",
-      "check_deposits" => "Check Deposits"
+      "events"                => "Events",
+      "event_new"             => "New Event",
+      "donations"             => "Donations",
+      "recurring_donations"   => "Recurring Donations",
+      "partner_donations"     => "Partner Donations",
+      "disbursements"         => "Disbursements",
+      "disbursement_new"      => "New Disbursement",
+      "invoices"              => "Invoices",
+      "sponsors"              => "Sponsors",
+      "google_workspaces"     => "Google Workspace Requests",
+      "balances"              => "Balances",
+      "grants"                => "Grants",
+      "check_deposits"        => "Check Deposits"
     }
     current_route_name = Rails.application.routes.recognize_path(request.original_fullpath)[:action]
     @title = titles[current_route_name] || nil
-  end  
+  end
 
   def negative_events
     @negative_events = Event.negatives
