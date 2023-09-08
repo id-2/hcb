@@ -1,3 +1,5 @@
+<% title "Bank Fees" %>
+
 <%= form_with local: true, url: bank_fees_admin_index_path, method: :get do |form| %>
   <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { selected: @event_id, include_blank: "Select An Event" }, { width: 250, style: "max-width: 250px" } ) %>
   <%= form.submit "Search", class: "ml1" %>
