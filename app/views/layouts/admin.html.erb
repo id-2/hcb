@@ -35,9 +35,9 @@
         <%= link_to root_path, class: "nav-item role-badge text-decoration-none badge-#{current_user.access_level}" do %>
           <%= inline_icon "bank-account", size: 24 %>
           <b>
-            <%= current_user.access_level %><%= ":" if !@title.nil? %>
+            <%= current_user.access_level %><%= ":" if content_for?(:title) %>
           </b>
-          <%= @title if !@title.nil? %>
+          <%= yield(:title) if content_for?(:title) %>
         <% end %>
         <details open class="details">
           <summary class="nav-item">
