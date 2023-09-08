@@ -712,70 +712,48 @@ video {
 
 /* The navigation bar used for admin pages */
 
-.nav-item {
-  background: rgba(51, 142, 218, 0.4);
-  padding: 4px 12px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  color: white;
-  gap: 4px;
-}
-
-.nav-item:hover {
-  color: white;
-}
-
-.role-badge {
-  margin-left: -8px;
-  padding-right: 12px;
-}
-
-.role-badge > b {
-  text-transform: uppercase;
-}
-
-.badge-admin {
-  background: rgba(236, 55, 80, 0.4);
-}
-
-.h-38 {
-  height: 38px;
-}
-
-.details {
-  position: relative;
-}
-
-.details {
-  /* Make the <details> look more "clickable" */
-  padding: 0!important;
-  background: none!important;
-  border: none!important;
-  border-radius: none!important;
-}
-
-summary {
-  /* Makes the <summary> look more like a "clickable" link with the pointer cursor */
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.details[open] {
-  /* Adjust the <details> padding while open */
-  padding-bottom: 0rem;
-  margin-bottom: 0!important;
-}
-
-.details[open] summary {
-  /* Adjust the <details> padding while open */
-  margin-bottom: 0px!important;
-}
-
-.dropdown {
-  position: absolute;
-  top: 32px;
-  padding-top: 4px;
+@media screen and (min-width: 480px) {
+  nav {
+    display: flex; 
+    align-items: center; 
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .details[open] {
+    /* Adjust the <details> padding while open */
+    padding-bottom: 0rem;
+    margin-bottom: 0!important;
+  }
+  
+  .details[open] summary {
+    /* Adjust the <details> padding while open */
+    margin-bottom: 0px!important;
+  }
+  
+  .dropdown {
+    position: absolute;
+    top: 32px;
+    padding-top: 4px;
+  }
+  
+  summary:hover + detail, detail:hover {
+    display: block;
+  }
+  detail {
+    display: none;
+  }
+  
+  .dropdown {
+    display: none;
+  }
+  
+  details:hover > .dropdown {
+    display: block;
+  }
+  
+  .role-badge {
+    margin-bottom: 0px!important;
+  }
 }
 
 .sub-items {
@@ -813,19 +791,53 @@ summary {
   background-image: linear-gradient(rgba(map-get($palette, info), 0.4), rgba(map-get($palette, info), 0.4));
 }
 
-summary:hover + detail, detail:hover {
-  display: block;
-}
-detail {
-  display: none;
+.nav-item {
+  background: rgba(51, 142, 218, 0.4);
+  padding: 4px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  color: white;
+  gap: 4px;
 }
 
-.dropdown {
-  display: none;
+.nav-item:hover {
+  color: white;
 }
 
-details:hover > .dropdown {
-  display: block;
+.role-badge {
+  padding-right: 12px;
+  margin-bottom: 16px;
+}
+
+.role-badge > b {
+  text-transform: uppercase;
+}
+
+.badge-admin {
+  background: rgba(236, 55, 80, 0.4);
+}
+
+.h-38 {
+  height: 38px;
+}
+
+.details {
+  position: relative;
+}
+
+.details {
+  /* Make the <details> look more "clickable" */
+  padding: 0!important;
+  background: none!important;
+  border: none!important;
+  border-radius: none!important;
+}
+
+summary {
+  /* Makes the <summary> look more like a "clickable" link with the pointer cursor */
+  cursor: pointer;
+  font-weight: bold;
 }
 
 .events-filter-select {
