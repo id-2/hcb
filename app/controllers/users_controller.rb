@@ -312,8 +312,11 @@ class UsersController < ApplicationController
 
     if @user.update(user_params)
       confetti! if !@user.seasonal_themes_enabled_before_last_save && @user.seasonal_themes_enabled? # confetti if the user enables seasonal themes
-
-      if @user.full_name_before_last_save.blank?
+      
+      if (user_params[:phone_number] =~ /\A\+[1-9]\d{1,14}\z/) == nil:
+        flash[:error] = "Invalid phone number."
+        redirect_back_or_to edit_user_path(@user)
+      elsif @user.full_name_before_last_save.blank?
         flash[:success] = "Profile created!"
         redirect_to root_path
       else
