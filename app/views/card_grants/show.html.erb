@@ -26,12 +26,12 @@
                   <%= form.label question["name"], question["label"] %>
                   <%= form.select question["name"], options_for_select(question["options"]), include_blank: !question["other_option"] %>
                   <% if question["other_option"] %>
-                    <%= form.text_field "#{question["name"]}_other", placeholder: 'Other (please specify)' %>
+                    <%= form.text_field "#{question["name"]}_other", placeholder: "Other (please specify)" %>
                   <% end %>
                 <% when 'checkbox' %>
                   <%= form.label question["name"], question["label"] %>
                   <% question["options"].each do |option| %>
-                    <%= form.check_box "#{question["name"]}_#{option}", {}, '1', '0' %> <%= option %><br>
+                    <%= form.check_box "#{question["name"]}_#{option}", {}, "1", "0" %> <%= option %><br>
                   <% end %>
                 <% end %>
               </div>
@@ -72,7 +72,7 @@
           </p>
         </section>
       </div>
-      
+
     </div>
   <% else %>
     <div class="container--xs">
