@@ -10,6 +10,36 @@
     </div>
 
     <div>
+      <% if @card_grant.event.post_grant_survey_schema.present? && @hcb_codes.present? %>
+        <div class="card container--sm mb2 bold">
+          <%== MarkdownService.instance.renderer.render @card_grant.event.post_grant_survey_schema.prompt %>
+        </div>
+        <section class="modal" data-behavior="modal" role="dialog" id="post_grant_survey">
+          <%= modal_header @card_grant.event.post_grant_survey_schema.header %>
+          <%= form_for @card_grant, url: respond_to_post_grant_survey_card_grant_path(@card_grant) do |form| %>
+            <% @card_grant.event.post_grant_survey_schema["questions"].each_with_index do |question, index| %>
+              <div class="question">
+                <% case question["type"] %>
+                <% when 'text' %>
+                  <%= form.text_field question["name"], placeholder: question["label"] %>
+                <% when 'select' %>
+                  <%= form.label question["name"], question["label"] %>
+                  <%= form.select question["name"], options_for_select(question["options"]), include_blank: !question["other_option"] %>
+                  <% if question["other_option"] %>
+                    <%= form.text_field "#{question["name"]}_other", placeholder: 'Other (please specify)' %>
+                  <% end %>
+                <% when 'checkbox' %>
+                  <%= form.label question["name"], question["label"] %>
+                  <% question["options"].each do |option| %>
+                    <%= form.check_box "#{question["name"]}_#{option}", {}, '1', '0' %> <%= option %><br>
+                  <% end %>
+                <% end %>
+              </div>
+            <% end %>
+            <%= form.submit "Submit" %>
+          <% end %>
+        </section>
+      <% end %>
       <div class="card container--sm">
         <h3 class="regular mt0 mb0 info">How do I make purchases on this card?</h3>
         <p class="mt1">Here's all the info you might need:</p>
@@ -42,6 +72,7 @@
           </p>
         </section>
       </div>
+      
     </div>
   <% else %>
     <div class="container--xs">

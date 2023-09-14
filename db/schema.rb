@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_13_143642) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_14_185353) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -351,6 +351,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_13_143642) do
     t.string "email", null: false
     t.string "merchant_lock"
     t.string "category_lock"
+    t.jsonb "post_grant_survey_answers"
     t.index ["disbursement_id"], name: "index_card_grants_on_disbursement_id"
     t.index ["event_id"], name: "index_card_grants_on_event_id"
     t.index ["sent_by_id"], name: "index_card_grants_on_sent_by_id"
@@ -683,6 +684,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_13_143642) do
     t.string "increase_account_id", null: false
     t.string "website"
     t.text "description"
+    t.jsonb "post_grant_survey_schema"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
