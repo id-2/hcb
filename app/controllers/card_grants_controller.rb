@@ -64,4 +64,36 @@ class CardGrantsController < ApplicationController
     redirect_to @card_grant
   end
 
+  def respond_to_post_grant_survey
+    @card_grant = CardGrant.find_by_hashid(params[:id])
+    authorize @card_grant
+
+    answers = {}
+
+    @card_grant.event.post_grant_survey_schema["questions"].each do |question|
+      case question["type"]
+      when "text"
+        answers[question["name"]] = params[question["name"]]
+      when "select"
+        selected_option = params[question["name"]]
+        if question["other_option"] && params["#{question["name"]}_other"].present?
+          answers[question["name"]] = params["#{question["name"]}_other"]
+        else
+          answers[question["name"]] = selected_option
+        end
+      when "checkbox"
+        selected_options = params.select { |key, value| key.start_with?("#{question["name"]}_") && value == "1" }.keys.map { |key| key.sub("#{question["name"]}_", "") }
+        answers[question["name"]] = selected_options
+      end
+    end
+
+    @card_grant.post_grant_survey_answers = answers.to_json
+
+    @card_grant.save!
+
+    flash[:success] = "Thank you!"
+
+    redirect_to @card_grant
+  end
+
 end
