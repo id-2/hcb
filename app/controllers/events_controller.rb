@@ -630,6 +630,7 @@ class EventsController < ApplicationController
       :is_indexable,
       :holiday_features,
       :public_message,
+      :post_grant_survey_schema,
       :custom_css_url,
       :donation_header_image,
       :logo,
@@ -641,6 +642,8 @@ class EventsController < ApplicationController
     result_params[:expected_budget] = result_params[:expected_budget].to_f * 100 if result_params[:expected_budget]
     # convert whatever the user inputted into something that is a legal slug
     result_params[:slug] = ActiveSupport::Inflector.parameterize(user_event_params[:slug]) if result_params[:slug]
+    
+    result_params[:post_grant_survey_schema] = JSON.parse(result_params[:post_grant_survey_schema])
 
     result_params
   end

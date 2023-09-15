@@ -75,12 +75,7 @@ class CardGrantsController < ApplicationController
       when "text"
         answers[question["name"]] = params[question["name"]]
       when "select"
-        selected_option = params[question["name"]]
-        if question["other_option"] && params["#{question["name"]}_other"].present?
-          answers[question["name"]] = params["#{question["name"]}_other"]
-        else
-          answers[question["name"]] = selected_option
-        end
+        answers[question["name"]] = params[question["name"]]
       when "checkbox"
         selected_options = params.select { |key, value| key.start_with?("#{question["name"]}_") && value == "1" }.keys.map { |key| key.sub("#{question["name"]}_", "") }
         answers[question["name"]] = selected_options

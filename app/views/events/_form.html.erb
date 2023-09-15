@@ -158,6 +158,12 @@
     </div>
     <%= form.submit "Update" %>
   </div>
+  
+  <div class="field">
+    <%= form.label :post_grant_survey_schema, "Post Grant Survey Schema" %>
+    <%= form.text_area :post_grant_survey_schema, class: "w-100 fit" %>
+    <%= form.submit "Update" %>
+  </div>
 
   <h3 class="mb1">Danger Zone</h3>
   <div class="card border b--warning mb3">
