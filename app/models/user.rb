@@ -114,7 +114,7 @@ class User < ApplicationRecord
 
   validates :email, uniqueness: true, presence: true
   validates_email_format_of :email
-  validates :phone_number, phone: { allow_blank: true }
+  validates :phone_number, phone: { allow_blank: true }, format: { with: /\A\+[1-9]\d{1,14}\z/i }
 
   validates :preferred_name, length: { maximum: 30 }
 
