@@ -12,7 +12,7 @@ class CardGrantPolicy < ApplicationPolicy
   def show?
     user&.admin? || record.user == user
   end
-  
+
   def respond_to_post_grant_survey?
     user&.admin? || record.user == user
   end

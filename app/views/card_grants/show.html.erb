@@ -11,13 +11,13 @@
 
     <div>
       <% if @card_grant.event.post_grant_survey_schema.present? && @hcb_codes.present? %>
-        
+
         <%= link_to "#", data: { behavior: "modal_trigger", modal: "post_grant_survey" } do %>
           <div class="card container--sm mb2">
             <%== MarkdownService.instance.renderer.render @card_grant.event.post_grant_survey_schema["prompt"] %>
           </div>
         <% end %>
-       
+
         <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="post_grant_survey">
           <%= modal_header @card_grant.event.post_grant_survey_schema["header"] %>
           <%= form_with url: respond_to_post_grant_survey_card_grant_path(@card_grant) do |form| %>
@@ -25,13 +25,13 @@
               <div class="mb2">
                 <% case question["type"] %>
                 <% when 'text' %>
-                  <%= form.label question["name"], question["label"], class: 'bold' %>
+                  <%= form.label question["name"], question["label"], class: "bold" %>
                   <%= form.text_field question["name"] %>
                 <% when 'select' %>
-                  <%= form.label question["name"], question["label"], class: 'bold' %>
+                  <%= form.label question["name"], question["label"], class: "bold" %>
                   <%= form.select question["name"], options_for_select(question["options"]) %>
                 <% when 'checkbox' %>
-                  <%= form.label question["name"], question["label"], class: 'bold' %>
+                  <%= form.label question["name"], question["label"], class: "bold" %>
                   <% question["options"].each do |option| %>
                     <%= form.check_box "#{question["name"]}_#{option}", {}, "1", "0" %> <%= option %><br>
                   <% end %>
