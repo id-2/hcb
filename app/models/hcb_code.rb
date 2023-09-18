@@ -75,9 +75,9 @@ class HcbCode < ApplicationRecord
     @date ||= ct.try(:date) || pt.try(:date)
   end
 
-  def memo
+  def memo(event: nil)
     return card_grant_memo if card_grant?
-    return disbursement_memo if disbursement?
+    return disbursement_memo(event:) if disbursement?
     return invoice_memo if invoice?
     return donation_memo if donation?
     return partner_donation_memo if partner_donation?
@@ -87,6 +87,7 @@ class HcbCode < ApplicationRecord
     return check_deposit_memo if check_deposit?
     return fee_revenue_memo if fee_revenue?
     return ach_payment_memo if ach_payment?
+    return grant_memo if grant?
 
     custom_memo || ct.try(:smart_memo) || pt.try(:smart_memo) || ""
   end
@@ -269,8 +270,18 @@ class HcbCode < ApplicationRecord
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::DISBURSEMENT_CODE
   end
 
-  def disbursement_memo
-    smartish_custom_memo || disbursement.special_appearance_memo || "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
+  def disbursement_memo(event: nil)
+    return smartish_custom_memo if smartish_custom_memo
+    return disbursement.special_appearance_memo if disbursement.special_appearance_memo
+
+    if event == disbursement.source_event
+      "Transfer to #{disbursement.destination_event.name}".strip.upcase
+    elsif event == disbursement.destination_event
+      "Transfer from #{disbursement.source_event.name}".strip.upcase
+    else
+      "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
+    end
+
   end
 
   def card_grant?
@@ -279,6 +290,14 @@ class HcbCode < ApplicationRecord
 
   def card_grant_memo
     smartish_custom_memo || "Grant to #{disbursement.card_grant.user.name}"
+  end
+
+  def grant?
+    canonical_pending_transactions.first&.grant.present?
+  end
+
+  def grant_memo
+    smartish_custom_memo || "Grant to #{canonical_pending_transactions.first.grant.recipient_organization}"
   end
 
   def stripe_card?

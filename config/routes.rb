@@ -183,6 +183,7 @@ Rails.application.routes.draw do
         post "approve"
         post "additional_info_needed"
         post "reject"
+        post "mark_fulfilled"
       end
     end
 
@@ -467,7 +468,11 @@ Rails.application.routes.draw do
           end
         end
 
-        resources :stripe_cards, path: "cards", only: [:show]
+        resources :stripe_cards, path: "cards", only: [:show, :update] do
+          member do
+            get "transactions"
+          end
+        end
 
         match "*path" => "application#not_found", via: [:get, :post]
       end
