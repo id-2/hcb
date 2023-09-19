@@ -20,14 +20,14 @@ class CanonicalPendingTransactionMailer < ApplicationMailer
 
     mail to:, subject:, reply_to:
   end
-  
+
   def send_survey
     @cpt = CanonicalPendingTransaction.find(params[:canonical_pending_transaction_id])
     @user = @cpt.stripe_card.user
     @schema = @cpt.stripe_card.card_grant.event.post_grant_survey_schema
     to = @cpt.stripe_card.user.email
     subject = @schema["email_title"]
-  
+
     mail to:, subject:
   end
 

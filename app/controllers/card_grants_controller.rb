@@ -41,9 +41,9 @@ class CardGrantsController < ApplicationController
 
   def show
     @card_grant = CardGrant.find_by_hashid!(params[:id])
-    
+
     @answers = JSON.parse(@card_grant.post_grant_survey_answers)
-    
+
     puts @answers
 
     if !signed_in?
