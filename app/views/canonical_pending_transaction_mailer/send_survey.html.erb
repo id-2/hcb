@@ -1,0 +1,22 @@
+<%== MarkdownService.instance.renderer.render @schema["email_copy"] %>
+
+<%= form_with url: respond_to_post_grant_survey_card_grant_path(@cpt.stripe_card.card_grant) do |form| %>
+  <% @schema["questions"].each_with_index do |question, index| %>
+    <div class="mb2">
+      <% case question["type"] %>
+      <% when 'text' %>
+        <%= form.label question["name"], question["label"], class: "bold" %>
+        <%= form.text_field question["name"] %>
+      <% when 'select' %>
+        <%= form.label question["name"], question["label"], class: "bold" %>
+        <%= form.select question["name"], options_for_select(question["options"]) %>
+      <% when 'checkbox' %>
+        <%= form.label question["name"], question["label"], class: "bold" %>
+        <% question["options"].each do |option| %>
+          <%= form.check_box "#{question["name"]}_#{option}", {}, "1", "0" %> <%= option %><br>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+  <%= form.submit "Submit" %>
+<% end %>

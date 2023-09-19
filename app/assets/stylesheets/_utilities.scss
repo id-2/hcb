@@ -242,3 +242,13 @@ $shades: (
 details[open] .flip-when-open {
   transform: rotate(180deg);
 }
+
+.grow {
+  transform: scale(1);
+  transition: transform 0.125s ease-in-out, box-shadow 0.25s ease-in-out;
+}
+
+.grow:hover, .grow:focus {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1875);
+  transform: scale(1.0625);
+}
