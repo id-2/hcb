@@ -7,20 +7,24 @@
   <nav class="dock mt2">
     <%= dock_item "Home",
       root_path,
-      tooltip: "See all your organizations.",
+      tooltip: "See all your organizations",
       icon: "home",
       selected: local_assigns[:selected] == :home %>
     <%= dock_item "Cards",
       my_cards_path,
-      tooltip: "See all your cards.",
+      tooltip: "See all your cards",
       icon: "card",
       selected: local_assigns[:selected] == :cards %>
     <%= dock_item "Receipts",
       my_inbox_path,
-      tooltip: "See transactions awaiting receipts.",
+      tooltip: "See transactions awaiting receipts",
       icon: "payment-docs",
       async_badge: my_missing_receipts_icon_path,
       selected: local_assigns[:selected] == :receipts %>
+    <%= dock_item "Approvals",
+        root_path,
+        tooltip: "See transactions awaiting approval",
+        icon: "flag" %>
     <%= dock_item "Settings",
       my_settings_path,
       tooltip: "Edit account settings.",

@@ -124,6 +124,20 @@ module UsersHelper
     end
   end
 
+  def creator_bar_new(object, options = {})
+    creator = if defined?(object.creator)
+                object.creator
+              elsif defined?(object.sender)
+                object.sender
+              else
+                object.user
+              end
+
+    content_tag :p, class: "muted m0 p0 #{options[:class]}", style: "#{options[:style]}" do
+      "#{options[:prefix]} by #{creator.initial_name} #{time_ago_in_words object.created_at} ago"
+    end
+  end
+
   def user_birthday?(user = current_user)
     user&.birthday?
   end

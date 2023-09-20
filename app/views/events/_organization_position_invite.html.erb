@@ -1,36 +1,36 @@
-<%= creator_bar position.organizer_position_invite, prefix: "invited " %>
-<article class="card pt0 pb0 mb2">
-  <section class='flex items-center'>
-    <%= avatar_for position.user, 48, class: "mr2" %>
-    <p class="flex-auto">
-      <strong class="h3 block"><%= position.user.name || "Unnamed" %></strong>
-      <%= organizer_signed_in? ? position.user.email : "Sign in to view email" %>
-    </p>
-    <% admin_tools("mr2 p0 circle") do %>
-      <%= pop_icon_to "controls", edit_user_path(position.user.slug), data: { turbo_frame: "_top" } if position.user == current_user || admin_signed_in? %>
-    <% end %>
-    <%= pop_icon_to "member-remove", new_organizer_remove_path(organizer_id: position.id), class: "error", data: { turbo_frame: "_top" }, disabled: !organizer_signed_in? unless position.user == current_user %>
-    <%= pop_icon_to "controls", edit_user_path(position.user.slug), class: "ml2", data: { turbo_frame: "_top" } if position.user == current_user && !admin_signed_in? %>
-  </section>
+<article class="card p2 relative flex g1 flex-column">
+  <div class='flex items-center justify-between'>
+    <%= avatar_for position.user, 48 %>
+    <div class='flex g2 items-center'>
+      <% admin_tools("p0 circle line-height-0") do %>
+        <%= pop_icon_to "controls", edit_user_path(position.user.slug), data: { turbo_frame: "_top" } if position.user == current_user || admin_signed_in? %>
+      <% end %>
+      <% admin_tools("p0 circle line-height-0") do %>
+        <%= pop_icon_to "spy", impersonate_users_path(user_id: position.user.id, return_to: request.url), data: { turbo_frame: "_top" } if position.user == current_user || admin_signed_in? %>
+      <% end %>
+      <%= pop_icon_to "member-remove", new_organizer_remove_path(organizer_id: position.id), class: "error", data: { turbo_frame: "_top" }, disabled: !organizer_signed_in? unless position.user == current_user %>
+    </div>
+  </div>
+
+  <div class="flex items-baseline g3 w-fit">
+    <p class="m0 p0" style="font-size: 1.8rem; font-weight: 800; line-height: 1"><%= position.user.full_name || "Unnamed" %></p>
+    <div class="info">Manager</div>
+  </div>
+
+  <div class="inline-flex items-baseline g2">
+    <span><%= organizer_signed_in? ? position.user.email : "Sign in to view email" %></span>
+    <p class="comment__name muted m0"><%= position.user.pretty_phone_number(international: true) %></p>
+  </div>
+
+  <%= creator_bar_new position.organizer_position_invite, prefix: "Invited", style: "m0" %>
+
   <% if current_user&.admin? %>
-    <section class='card__banner card__darker b--warning h5' style='border-style: dashed; border-width: 1px; border-radius: 0 0 0.5rem 0.5rem;'>
-      <div class='mb1'>
-        <%= inline_icon "message-simple-new", size: 20, style: "vertical-align: middle; margin: -0.2rem 0.5rem 0 0;" %>
-        <span><%= position.user.phone_number %></span>
-      </div>
-      <div class='mb1'>
-        <% if position.signee? %>
-          <%= inline_icon "docs-fill", size: 20, style: "vertical-align: middle; margin: -0.2rem 0.5rem 0 0;" %>
-          <span>Contract signee</span>
-        <% else %>
-          <%= inline_icon "docs", size: 20, style: "vertical-align: middle; margin: -0.2rem 0.5rem 0 0;" %>
-          <span>No contract signature</span>
-        <% end %>
-      </div>
-      <div>
-        <%= inline_icon "leader", size: 20, style: "vertical-align: middle; margin: -0.2rem 0.5rem 0 0;" %>
-        <%= link_to "Impersonate this user", impersonate_users_path(user_id: position.user.id, return_to: request.url) %>
-      </div>
-    </section>
+    <div class="absolute bottom-0 right-0 line-height-0 p2">
+      <% if position.signee? %>
+        <%= inline_icon "docs-positive", size: 24 %>
+      <% else %>
+        <%= inline_icon "docs-negative", size: 24 %>
+      <% end %>
+    </div>
   <% end %>
 </article>

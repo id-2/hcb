@@ -148,6 +148,10 @@ class User < ApplicationRecord
     @last_name ||= namae(legal:)&.family&.split(" ")&.last
   end
 
+  def full_name(legal: false)
+    "#{first_name} #{last_name}".strip
+  end
+
   def initial_name
     @initial_name ||= if name.strip.split(" ").count == 1
                         name
@@ -172,8 +176,9 @@ class User < ApplicationRecord
     words.any? ? words.map(&:first).join.upcase : name
   end
 
-  def pretty_phone_number
-    Phonelib.parse(self.phone_number).national
+  def pretty_phone_number(international: false)
+    parsed_number = Phonelib.parse(self.phone_number)
+    international ? parsed_number.international : parsed_number.national
   end
 
   def representative?

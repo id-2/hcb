@@ -9,7 +9,9 @@
 
 <% if @all_positions.any? %>
   <%= turbo_frame_tag "team_position" do %>
-    <%= render partial: "organization_position_invite", collection: @positions, as: :position %>
+    <div class="grid">
+      <%= render partial: "organization_position_invite", collection: @positions, as: :position %>
+    </div>
     <%= paginate @positions %>
   <% end %>
 <% else %>
