@@ -253,6 +253,11 @@ summary {
   transform: translateY(30px);
 }
 
+.admin {
+  color: map-get($palette, warning);
+  fill: map-get($palette, warning);
+}
+
 .admin-tools {
   padding: 0.5rem;
   border-radius: 0.5rem;

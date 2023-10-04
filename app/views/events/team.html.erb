@@ -2,9 +2,19 @@
 <% page_sm %>
 <%= render "nav" %>
 
-<h1 class="flex items-center">
+<h1 class="heading flex items-center">
   Team
   <%= badge_for @all_positions.size, class: "bg-muted" %>
+
+  <% if organizer_signed_in? %>
+    <a
+      href="mailto:<%= @positions.map(&:user).map(&:email).join(',') %>"
+      class="btn btn--icon bg-info"
+    >
+      <%= inline_icon "email" %>
+      Email everyone
+    </a>
+  <% end %>
 </h1>
 
 <% if @all_positions.any? %>

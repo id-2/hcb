@@ -43,6 +43,42 @@
     <%= render "stripe_cards/form", stripe_card: StripeCard.new %>
   </section>
 
+  <h4>Authorisation</h4>
+  <%# if current_user.rank.regular_joe %>
+  <% if true %>
+    <section class="flex flex-column items-center g2">
+      <div class="flex justify-center" style="flex-wrap: wrap-reverse; gap: 48px">
+        <div>
+          <div class="card border b--info pb0 mb2 mt2">
+            <div class="flex items-center info">
+              <%= inline_icon "info", size: 32, class: "mr1" %>
+              <p class="bold mt0 mb0">HCB Spending Controls are in place for <%= @event.name %>.</p>
+            </div>
+            <ul class="mt1 mb2">
+              <li>
+                You need to request authorisation from your manager (Melanie) before making purchases on <%= @event.name %>.
+              </li>
+              <li>They will receive a notification of your requested amount and the explanation you submit.</li>
+              <li>Once they approve it from the <%= link_to root_path do %>Authorisations<% end %> tab on the HCB home page, you have 24 hours to spend it!</li>
+              <li>If Melanie does not approve your request, <strong>your card will decline at the point of sale</strong>.</li>
+            </ul>
+            <div class="border-top card__banner card__darker secondary">
+              <strong>Questions?</strong>
+              <%= help_message %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% if organizer_signed_in? %>
+        <%= link_to event_cards_new_path(event_id: @event.slug), class: "btn bg-success", data: { behavior: "modal_trigger", modal: "order_card" } do %>
+          <%= inline_icon "card-add" %>
+            Request spending authorisation
+        <% end %>
+      <% end %>
+    </section>
+  <% end %>
+
   <% if organizer_signed_in? %>
     <h4>Your Cards</h4>
     <% if @session_user_stripe_cards.blank? %>
@@ -58,6 +94,16 @@
       <% end %>
 
     <% end %>
+  <% end %>
+
+  <h4>Organization Cards</h4>
+
+  <% if params[:view] == "list" %>
+    <%= render "event_cards_table", stripe_cards: @stripe_cards %>
+  <% else %>
+    <article class="mixed-grid grid--spacious">
+      <%= render @stripe_cards %>
+    </article>
   <% end %>
 
   <% if organizer_signed_in? || @event.used_emburse? %>
@@ -76,16 +122,6 @@
         <% end %>
       <% end %>
     </section>
-  <% end %>
-
-  <h4>Organization Cards</h4>
-
-  <% if params[:view] == "list" %>
-    <%= render "event_cards_table", stripe_cards: @stripe_cards %>
-  <% else %>
-    <article class="mixed-grid grid--spacious">
-      <%= render @stripe_cards %>
-    </article>
   <% end %>
 
 <% end %>
