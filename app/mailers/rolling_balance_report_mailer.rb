@@ -4,16 +4,12 @@ class RollingBalanceReportMailer < ApplicationMailer
   after_action :update_rolling_balance_report
 
   def success
-    attachments["report.csv"] = @rolling_balance_report.csv_file.blob.download_blob_to_tempfile
+    attachments["report.csv"] = @rolling_balance_report.csv_file.open
     mail subject: "Your rolling balance report is ready"
   end
 
   def failure
-    byebug
-    @rolling_balance_report.error_log.open do |file|
-      attachments["error.log"] = file
-    end
-    # attachments["error.log"] = @rolling_balance_report.error_log.blob.download_blob_to_tempfile
+    attachments["error.log"] = @rolling_balance_report.error_log.open
     mail subject: "Your rolling balance report has failed"
   end
 
