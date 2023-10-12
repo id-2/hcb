@@ -135,6 +135,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :rolling_balance_reports, only: [:create]
+
   resources :admin, only: [] do
     collection do
       get "twilio_messaging", to: "admin#twilio_messaging"
