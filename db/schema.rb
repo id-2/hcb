@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_11_112855) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_12_171608) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1434,6 +1434,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_11_112855) do
     t.index ["url_hash"], name: "index_recurring_donations_on_url_hash", unique: true
   end
 
+  create_table "rolling_balance_reports", force: :cascade do |t|
+    t.bigint "creator_id"
+    t.integer "job_runtime_seconds"
+    t.string "aasm_state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["creator_id"], name: "index_rolling_balance_reports_on_creator_id"
+  end
+
   create_table "sponsors", force: :cascade do |t|
     t.bigint "event_id"
     t.text "name"
@@ -1806,6 +1815,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_11_112855) do
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
   add_foreign_key "receipts", "users"
   add_foreign_key "recurring_donations", "events"
+  add_foreign_key "rolling_balance_reports", "users", column: "creator_id"
   add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_ach_payment_sources", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
