@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: rolling_balance_reports
@@ -18,45 +20,38 @@
 #  fk_rails_...  (creator_id => users.id)
 #
 class RollingBalanceReport < ApplicationRecord
-  has_one_attached :csv_file, dependent: :destroy
+  scope :pending, -> { where(aasm_state: "pending") }
+  scope :running, -> { where(aasm_state: "running") }
+  scope :succeeded, -> { where(aasm_state: "succeeded") }
+  scope :failure, -> { where(aasm_state: "failed") }
+  scope :sleeping, -> { where(aasm_state: "sleeping") }
+
+  has_many_attached :csv_files, dependent: :destroy
   has_one_attached :error_log, dependent: :destroy
 
-  belongs_to :creator, class_name: "User"
+  belongs_to :creator, class_name: "User", optional: true
 
-  include AASM
-  aasm whiny_transitions: true do
-    state :pending, initial: true
-    state :running
-    state :succeeded
-    state :failed
-    state :sleep
-
-    event :run do
-      transitions from: :pending, to: :running
-
-      after do
-        RollingBalanceReportJob.perform_later(self)
-      end
-    end
-
-    event :succeed do
-      transitions from: :running, to: :succeeded
-
-      after do
-        RollingBalanceReportMailer.with(rolling_balance_report: self).success.deliver_later
-      end
-    end
-
-    event :failure do
-      transitions from: [:running, :succeeded], to: :failed
-
-      after do
-        RollingBalanceReportMailer.with(rolling_balance_report: self).failure.deliver_later
-      end
-    end
-
-    event :sleep do
-      transitions from: [:succeeded, :failed], to: :sleep
-    end
+  def run!
+    self.aasm_state = "running"
+    self.save!
+    RollingBalanceReportJob.perform_later(self)
   end
+
+  def succeed!
+    self.aasm_state = "succeeded"
+    self.save!
+    RollingBalanceReportMailer.with(rolling_balance_report: self).success.deliver_later
+  end
+
+  def failure!
+    self.aasm_state = "failed"
+    self.save!
+    RollingBalanceReportMailer.with(rolling_balance_report: self).failure.deliver_later
+  end
+
+  def sleep!
+    self.aasm_state = "sleeping"
+    self.save!
+  end
+
 end

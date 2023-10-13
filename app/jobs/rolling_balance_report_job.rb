@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "csv"
 require "benchmark"
 
@@ -5,60 +7,58 @@ class RollingBalanceReportJob < ApplicationJob
   queue_as :low_priority
 
   def perform(rolling_balance_report)
-    @rolling_balance_report = rolling_balance_report
+    @rbr = rolling_balance_report
 
-    # time = Benchmark.measure do
-    #   generate_report
-    # end
-    # time.real
-    # @rolling_balance_report.job_runtime_seconds = time.real
-    # @rolling_balance_report.save!
+    time = Benchmark.measure do
+      @rbr.csv_files.attach(io: StringIO.new(generate_report(:balance)), filename: "rolling_balance_report.csv", content_type: "text/csv")
+      @rbr.csv_files.attach(io: StringIO.new(generate_report(:revenue)), filename: "rolling_fee_revenue_report.csv", content_type: "text/csv")
+      @rbr.csv_files.attach(io: StringIO.new(generate_report(:raised)), filename: "rolling_raised_report.csv", content_type: "text/csv")
+      @rbr.csv_files.attach(io: StringIO.new(generate_report(:expenses)), filename: "rolling_expenses_report.csv", content_type: "text/csv")
+    end
+    time.real
+    @rbr.job_runtime_seconds = time.real
+    @rbr.save!
 
-    @rolling_balance_report.csv_file.attach(
-      io: StringIO.new(example_csv),
-      filename: "rolling_balance_report.csv",
-      content_type: "text/csv"
-    )
+    @rbr.succeed!
 
-    @rolling_balance_report.succeed!
-  rescue StandardError => e
-    @rolling_balance_report.error_log.attach(
-      io: StringIO.new(e.message),
-      filename: "error.log",
-      content_type: "text/plain"
-    )
-    @rolling_balance_report.failure!
+  rescue => e
+    @rbr.error_log.attach(io: StringIO.new(e.message), filename: "error.log", content_type: "text/plain")
+
+    @rbr.failure!
   end
 
   private
 
-  def example_csv
-    csv_string = CSV.generate do |csv|
-      csv << ["row", "of", "CSV", "data"]
-      csv << ["another", "row"]
-    end
-  end
-
-  def generate_report
-    Event.all.map do |event|
-      list_of_months.map do |date|
-        {
-          event: event.name,
-          values: balance_for(event, date)
-        }
+  def generate_report(report_type)
+    CSV.generate do |csv|
+      csv << ["Event", "Event ID", list_of_months].flatten
+      Event.all.map do |event|
+        csv << [
+          event.name,
+          event.id,
+          list_of_months.map do |date|
+            balance_for(event, date)[report_type]
+          end
+        ].flatten
       end
     end
+
+
   end
 
   def balance_for(event, date)
     txs = event.canonical_transactions.where(date: ..date)
 
     return {
-      raised: txs.revenue.sum(:amount_cents),
-      expenses: txs.expense.sum(:amount_cents),
-      balance: txs.sum(:amount_cents),
-      revenue: txs.includes(:fees).sum("amount_cents_as_decimal").to_i,
+      raised: to_usd(txs.revenue.sum(:amount_cents)),
+      expenses: to_usd(txs.expense.sum(:amount_cents)),
+      balance: to_usd(txs.sum(:amount_cents)),
+      revenue: to_usd(txs.includes(:fees).sum("amount_cents_as_decimal").to_i),
     }
+  end
+
+  def to_usd(cents)
+    (cents / 100).to_money
   end
 
   def list_of_months
@@ -71,4 +71,5 @@ class RollingBalanceReportJob < ApplicationJob
 
     months
   end
+
 end
