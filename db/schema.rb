@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -351,6 +349,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
     t.string "email", null: false
     t.string "merchant_lock"
     t.string "category_lock"
+    t.jsonb "post_grant_survey_answers"
     t.integer "status", default: 0, null: false
     t.index ["disbursement_id"], name: "index_card_grants_on_disbursement_id"
     t.index ["event_id"], name: "index_card_grants_on_event_id"
@@ -685,6 +684,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
     t.string "increase_account_id", null: false
     t.string "website"
     t.text "description"
+    t.jsonb "post_grant_survey_schema"
     t.integer "stripe_card_shipping_type", default: 0, null: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
@@ -1451,7 +1451,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.text "slug"
-    t.text "address_country", default: "US"
+    t.text "address_country", default: "United States of America"
     t.index ["event_id"], name: "index_sponsors_on_event_id"
     t.index ["slug"], name: "index_sponsors_on_slug", unique: true
   end

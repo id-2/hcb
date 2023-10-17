@@ -181,6 +181,18 @@ class EventsController < ApplicationController
       fixed_event_params[:hidden_at] = nil
     end
     fixed_event_params.delete(:hidden)
+    
+    if fixed_event_params[:card_grants_approved_merchants].present?
+      @event.card_grants.update_all(merchant_lock: fixed_event_params[:card_grants_approved_merchants])
+    end
+    
+    fixed_event_params.delete(:card_grants_approved_merchants)
+    
+    if fixed_event_params[:card_grants_category_lock].present?
+      @event.card_grants.update_all(category_lock: fixed_event_params[:card_grants_category_lock])
+    end
+    
+    fixed_event_params.delete(:card_grants_category_lock)
 
     # processing hidden for users
     if fixed_user_event_params[:hidden] == "1" && !@event.hidden_at.present?
@@ -644,6 +656,8 @@ class EventsController < ApplicationController
       :website,
       :background_image,
       :stripe_card_shipping_type,
+      :card_grants_approved_merchants,
+      :card_grants_category_lock
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend

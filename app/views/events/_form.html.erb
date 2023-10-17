@@ -58,6 +58,25 @@
 
     <%= form.submit "Update" %>
   </div>
+  
+  <h3 class="mb1">Card Grants</h3>
+  
+  <div class="card">
+  
+    <div class="field">
+      <%= form.label :card_grants_approved_merchants, "Update Approved Merchants" %>
+      <%= form.text_field :card_grants_approved_merchants, placeholder: "123456789", class: "w-100 fit" %>
+      <p class="h5 muted mt0 mb1">Provide a comma-separated list of merchant network IDs to lock all card grants issued from this event to.</p>
+    </div>
+    
+    <div class="field">
+      <%= form.label :card_grants_category_lock, "Update Category Lock" %>
+      <%= form.text_field :card_grants_category_lock, placeholder: "fast_food_restaurants" %>
+      <p class="h5 muted mt0 mb1">Provide a comma-separated list of <a href="https://stripe.com/docs/issuing/categories">merchant categories</a> to lock all card grants issued from this event to.</p>
+    </div>
+  
+    <%= form.submit "Update" %>
+  </div>
 
   <% if !@event.unapproved? %>
     <% if params[:jank].present? || DateTime.now <= Time.new(2022, 4, 2, 9, 30, 00, "-04:00") %>
