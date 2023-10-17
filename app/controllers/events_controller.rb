@@ -181,17 +181,17 @@ class EventsController < ApplicationController
       fixed_event_params[:hidden_at] = nil
     end
     fixed_event_params.delete(:hidden)
-    
+
     if fixed_event_params[:card_grants_approved_merchants].present?
       @event.card_grants.update_all(merchant_lock: fixed_event_params[:card_grants_approved_merchants])
     end
-    
+
     fixed_event_params.delete(:card_grants_approved_merchants)
-    
+
     if fixed_event_params[:card_grants_category_lock].present?
       @event.card_grants.update_all(category_lock: fixed_event_params[:card_grants_category_lock])
     end
-    
+
     fixed_event_params.delete(:card_grants_category_lock)
 
     # processing hidden for users
