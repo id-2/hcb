@@ -495,6 +495,12 @@ Rails.application.routes.draw do
   post "api/v1/disbursements", to: "api#disbursement_new" # to be deprecated
   post "api/v1/events/create_demo", to: "api#create_demo_event"
 
+  # @malted: Egestion for hackclub/stats
+  get "api/egest/events", to: "api#egest_events"
+  get "api/egest/users", to: "api#egest_users"
+  get "api/egest/transactions", to: "api#egest_transactions"
+  get "api/egest/sessions", to: "api#egest_user_sessions"
+
   post "stripe/webhook", to: "stripe#webhook"
   post "increase/webhook", to: "increase#webhook"
   get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"

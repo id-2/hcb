@@ -2,10 +2,30 @@
 
 class ApiController < ApplicationController
   before_action :check_token
-  before_action :set_params
+  before_action :set_params, except: [:egest_events, :egest_users, :egest_transactions, :egest_user_sessions]
   skip_before_action :verify_authenticity_token # do not use CSRF token checking for API routes
   skip_after_action :verify_authorized # do not force pundit
   skip_before_action :signed_in_user
+
+  def egest_events
+    @events = Event.all
+    render json: @events
+  end
+
+  def egest_users
+      @users = User.all.order(id: :asc)
+      render json: @users
+  end
+
+  def egest_transactions
+    @canon_trans = CanonicalTransaction.all.order(id: :asc)
+    render json: @canon_trans
+  end
+
+  def egest_user_sessions
+    @sessions = UserSession.all
+    render json: @sessions
+  end
 
   # find an event by slug
   def event_find
@@ -120,5 +140,4 @@ class ApiController < ApplicationController
   rescue JSON::ParserError
     render json: { error: "Invalid JSON body" }, status: 401
   end
-
 end
