@@ -10,6 +10,7 @@
 #  initial               :boolean          default(FALSE)
 #  is_signee             :boolean
 #  rejected_at           :datetime
+#  role                  :integer          default(1), not null
 #  slug                  :string
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
@@ -71,6 +72,8 @@ class OrganizerPositionInvite < ApplicationRecord
   belongs_to :sender, class_name: "User"
 
   belongs_to :organizer_position, required: false
+
+  enum :role, OrganizerPosition::ROLES, default: :member
 
   validate :not_already_organizer
   validate :not_already_invited, on: :create

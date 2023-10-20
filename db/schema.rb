@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_20_212439) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "plpgsql"
@@ -1159,6 +1159,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
     t.string "slug"
     t.boolean "initial", default: false
     t.boolean "is_signee"
+    t.integer "role", default: 1, null: false
     t.index ["event_id"], name: "index_organizer_position_invites_on_event_id"
     t.index ["organizer_position_id"], name: "index_organizer_position_invites_on_organizer_position_id"
     t.index ["sender_id"], name: "index_organizer_position_invites_on_sender_id"
@@ -1175,6 +1176,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
     t.integer "sort_index"
     t.boolean "first_time", default: true
     t.boolean "is_signee"
+    t.integer "role", default: 1, null: false
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end

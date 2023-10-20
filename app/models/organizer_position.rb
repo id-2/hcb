@@ -8,6 +8,7 @@
 #  deleted_at :datetime
 #  first_time :boolean          default(TRUE)
 #  is_signee  :boolean
+#  role       :integer          default("member"), not null
 #  sort_index :integer
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -25,6 +26,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class OrganizerPosition < ApplicationRecord
+  ROLES = [:member, :manager].freeze
+
   acts_as_paranoid
   has_paper_trail
 
@@ -36,6 +39,27 @@ class OrganizerPosition < ApplicationRecord
   has_one :organizer_position_invite
   has_many :organizer_position_deletion_requests
   has_many :tours, as: :tourable
+
+  enum :role, ROLES, default: :member
+
+  def role_title
+    if user.admin?
+      "Admin"
+    else
+      role.humanize
+    end
+  end
+
+  def role_color
+    if user.admin?
+      "warning"
+    elsif manager?
+      "info"
+    else
+      "muted"
+    end
+
+  end
 
   validates :user, uniqueness: { scope: :event, conditions: -> { where(deleted_at: nil) } }
 
