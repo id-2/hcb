@@ -6,6 +6,8 @@ class UsersController < ApplicationController
   skip_after_action :verify_authorized, except: [:edit, :update]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
 
+  wrap_parameters format: :url_encoded_form
+
   def impersonate
     authorize current_user
 
@@ -297,17 +299,19 @@ class UsersController < ApplicationController
       end
     end
 
-    locked = params[:user][:locked] == "1"
-    if locked && @user == current_user
-      flash[:error] = "As much as you might desire to, you cannot lock yourself out."
-      return redirect_to admin_user_path(@user)
-    elsif locked && @user.admin?
-      flash[:error] = "Contact a engineer to lock out another admin."
-      return redirect_to admin_user_path(@user)
-    elsif locked
-      @user.lock!
-    else
-      @user.unlock!
+    if params[:user][:locked].present?
+      locked = params[:user][:locked] == "1"
+      if locked && @user == current_user
+        flash[:error] = "As much as you might desire to, you cannot lock yourself out."
+        return redirect_to admin_user_path(@user)
+      elsif locked && @user.admin?
+        flash[:error] = "Contact a engineer to lock out another admin."
+        return redirect_to admin_user_path(@user)
+      elsif locked
+        @user.lock!
+      else
+        @user.unlock!
+      end
     end
 
     if @user.update(user_params)
