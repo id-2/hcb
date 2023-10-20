@@ -100,7 +100,8 @@ class OrganizerPositionInvite < ApplicationRecord
     self.organizer_position = OrganizerPosition.new(
       event:,
       user:,
-      is_signee:
+      is_signee:,
+      role:,
     )
 
     self.accepted_at = Time.current

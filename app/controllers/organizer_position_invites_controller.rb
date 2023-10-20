@@ -18,9 +18,10 @@ class OrganizerPositionInvitesController < ApplicationController
 
   def create
     user_email = invite_params[:email]
+    role = invite_params[:role]
     is_signee = invite_params[:is_signee]
 
-    service = OrganizerPositionInviteService::Create.new(event: @event, sender: current_user, user_email:, is_signee:)
+    service = OrganizerPositionInviteService::Create.new(event: @event, sender: current_user, user_email:, is_signee:, role:)
 
     @invite = service.model
 
@@ -95,7 +96,7 @@ class OrganizerPositionInvitesController < ApplicationController
   end
 
   def invite_params
-    params.require(:organizer_position_invite).permit(:email, :is_signee)
+    params.require(:organizer_position_invite).permit(:email, :is_signee, :role)
   end
 
 end

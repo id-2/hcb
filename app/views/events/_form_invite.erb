@@ -8,7 +8,8 @@
 
     <div class="flex items-center">
       <%= form.email_field :email, class: "mr2" %>
-      <%= form.submit 'Send', disabled: !organizer_signed_in? %>
+      <%= form.select :role, OrganizerPosition.roles.keys.map { |role| [role.humanize, role] }, {}, class: "w-auto pr3 mr2" %>
+      <%= form.submit 'Send', disabled: !organizer_signed_in?, style: "flex-shrink: 0" %>
     </div>
     <% admin_tools('mt1') do %>
       <div class="field field--checkbox mb0">
