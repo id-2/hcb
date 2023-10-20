@@ -13,4 +13,11 @@ class OrganizerPositionPolicy < ApplicationPolicy
     record.user == user
   end
 
+  def update?
+    return false if record.user.admin?
+    return false if record.user == user
+
+    return user.admin? || user.position(record.event).manager?
+  end
+
 end

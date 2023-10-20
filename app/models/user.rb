@@ -220,6 +220,10 @@ class User < ApplicationRecord
     full_name.blank?
   end
 
+  def position(event)
+    organizer_positions.find_by(event:)
+  end
+
   private
 
   def namae(legal: false)
