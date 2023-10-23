@@ -1,62 +1,99 @@
-<article class="card p2 relative flex g2 flex-column">
-  <div class='flex items-center justify-between'>
-    <%= avatar_for position.user, 48 %>
-    <div class='flex g2 items-center'>
-      <div class="tooltipped tooltipped--w" aria-label="Edit <%= position.user.safe_name %>'s global settings">
-        <% admin_tools("p0 circle line-height-0") do %>
-          <%= pop_icon_to "controls", edit_user_path(position.user.slug), data: { turbo_frame: "_top" } if position.user == current_user || admin_signed_in? %>
-        <% end %>
-      </div>
-      <div class="tooltipped tooltipped--w" aria-label="Impersonate <%= position.user.safe_name %>">
-        <% admin_tools("p0 circle line-height-0") do %>
-          <%= pop_icon_to "spy", impersonate_users_path(user_id: position.user.id, return_to: request.url), data: { turbo_frame: "_top" } if position.user == current_user || admin_signed_in? %>
-        <% end %>
-      </div>
-      <% if organizer_signed_in? && position.user != current_user %>
-        <div class="tooltipped tooltipped--w" aria-label="Remove <%= position.user.safe_name %> from <%= @event.name %>">
+<div class="card flex flex-column overflow-visible">
+  <div class="flex justify-between">
+    <div class="avatar-container">
+      <%= inline_icon("admin-badge", size: 48, class: "pending") if position.user.admin? %>
+      <%= avatar_for position.user, 64 %>
+    </div>
+
+    <div class="flex g1 h-fit-content">
+      <% if current_user.admin? %>
+        <div class="tooltipped tooltipped--s" aria-label="Edit user's global settings">
+          <%= pop_icon_to "controls", edit_user_path(position.user.slug), data: { turbo_frame: "_top" }, class: "admin-tools circle" %>
+        </div>
+      <% end %>
+      <% if current_user.admin? %>
+        <div class="tooltipped tooltipped--s" aria-label="Impersonate user">
+          <%= pop_icon_to "spy", impersonate_users_path(user_id: position.user.id, return_to: request.url), data: { turbo_frame: "_top" }, class: "admin-tools circle" %>
+        </div>
+      <% end %>
+      <% if current_user.position(@event).manager? || current_user.admin? %>
+        <div class="tooltipped tooltipped--s" aria-label="Remove user from organization">
           <%= pop_icon_to "member-remove", new_organizer_remove_path(organizer_id: position.id), class: "error", data: { turbo_frame: "_top" } %>
         </div>
       <% end %>
     </div>
   </div>
 
-  <div class="flex items-center g3 w-fit">
-    <p class="m0 p0" style="font-size: 1.8rem; font-weight: 800; line-height: 1"><%= position.user.full_name || "Unnamed" %></p>
-
-    <% if organizer_signed_in? %>
-      <div class="flex items-center g2">
-        <div class="copyable tooltipped tooltipped--e" data-copy="<%= position.user.email %>" aria-label="Copy <%= position.user.email %>" style="height: fit-content; line-height: 0;">
-          <%= inline_icon "email", size: 24, class: "muted" %>
-        </div>
-        <% if current_user&.admin? %>
-          <div class="copyable tooltipped tooltipped--e" data-copy="<%= position.user.pretty_phone_number(international: true) %>" aria-label="Copy <%= position.user.pretty_phone_number(international: true) %>" style="height: fit-content; line-height: 0;">
-            <%= inline_icon "message-simple-new", size: 24, class: "admin" %>
-          </div>
-        <% end %>
+  <div class="inline-flex items-center g2">
+    <p class="h2 bold"><%= position.user.name %></p>
+    <div class="inline-flex g1">
+      <div class="info tooltipped tooltipped--n copyable flex align-center" aria-label="Copy <%= position.user.email %>" data-copy="<%= position.user.email %>">
+        <%= inline_icon("email", size: 24, class: "muted") %>
       </div>
-    <% end %>
-
-    <script>
-      for (const field of document.getElementsByClassName("copyable")) {
-        field.onclick = async () => await navigator.clipboard.writeText(field.dataset.copy);
-      }
-    </script>
+      <div class="info tooltipped tooltipped--n copyable" aria-label="Copy <%= position.user.phone_number %>" data-copy="<%= position.user.phone_number %>">
+        <%= inline_icon("message-simple", size: 24, class: "admin") if current_user.admin? %>
+      </div>
+    </div>
   </div>
 
-  <a href="/team" class="info m0">
-    <span>Manager</span>
-    <span>|</span>
-    <span>No spending limit</span>
-  </a>
-
-  <%= creator_bar_new position.organizer_position_invite, prefix: "Invited", style: "m0" %>
-
-  <% if current_user&.admin? %>
-    <div
-      class="absolute bottom-0 right-0 line-height-0 p2 tooltipped tooltipped--w"
-      aria-label="<%= position.signee? ? "Contract signee" : "No contract signature" %>"
-    >
-      <%= inline_icon position.signee? ? "docs-positive" : "docs-negative", size: 24 %>
+  <div data-controller="menu">
+    <div class="inline-flex items-center">
+      <p><%= position.role.humanize %></p>
+      <% if OrganizerPositionPolicy.new(current_user, position).update? %>
+        <div class="role-chevron line-height-0" data-action="click->menu#toggle click@document->menu#close keydown@document->menu#keydown" data-menu-target="toggle">
+          <%= inline_icon("down-caret", size: 32, class: "info") %>
+        </div>
+      <% end %>
     </div>
-  <% end %>
-</article>
+
+    <div data-menu-target="content" class="menu__content menu__content--2 menu__content--compact">
+      <% OrganizerPosition.roles.each do |role| %>
+        <a><%= role[0].humanize %></a>
+      <% end %>
+      <div class="menu__divider"></div>
+      <a href="/branding">What do these roles mean?</a>
+    </div>
+  </div>
+
+
+  <div class="muted flex justify-between align-bottom relative w-100 h6 mt1">
+    <p>Invited <%= relative_timestamp(position.organizer_position_invite.created_at) %> by <%= position.organizer_position_invite.sender.safe_name %></p>
+    <div class="absolute right-0 bottom-0 line-height-0 tooltipped tooltipped--w" aria-label="<%= position.signee? ? "Contract signee" : "No contract signature" %>">
+      <% if position.signee? %>
+        <%= inline_icon("docs-positive", size: 24) %>
+      <% else %>
+        <%= inline_icon("docs-negative", size: 24) %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  for (const field of document.getElementsByClassName("copyable")) {
+    field.onclick = async () => await navigator.clipboard.writeText(field.dataset.copy);
+  }
+</script>
+
+<style>
+  .card {
+      /*line-height: 1;*/
+
+      & p {
+          margin: 0;
+      }
+
+      .role-chevron {
+          margin-bottom: -4px;
+      }
+
+      & .avatar-container {
+          position: relative;
+
+          & > svg {
+              position: absolute;
+              left: -14.5px;
+              bottom: -2.5px;
+          }
+      }
+  }
+</style>
