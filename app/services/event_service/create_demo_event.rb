@@ -30,7 +30,7 @@ module EventService
 
         @event.save!
 
-        OrganizerPositionInviteService::Create.new(event: @event, sender: @point_of_contact, user_email: @email, initial: true).run!
+        OrganizerPositionInviteService::Create.new(event: @event, sender: @point_of_contact, user_email: @email, initial: true, role: :manager).run!
 
         @event
       end
