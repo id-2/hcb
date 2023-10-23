@@ -47,14 +47,13 @@
     </div>
 
     <div data-menu-target="content" class="menu__content menu__content--2 menu__content--compact">
-      <% OrganizerPosition.roles.each do |role| %>
-        <a><%= role[0].humanize %></a>
+      <% OrganizerPosition.roles.keys.each do |role| %>
+        <%= button_to(role.humanize, organizer_path(position), method: :patch, params: { organizer_position: { role: role } }, class: "menu__action") %>
       <% end %>
       <div class="menu__divider"></div>
       <a href="/branding">What do these roles mean?</a>
     </div>
   </div>
-
 
   <div class="muted flex justify-between align-bottom relative w-100 h6 mt1">
     <p>Invited <%= relative_timestamp(position.organizer_position_invite.created_at) %> by <%= position.organizer_position_invite.sender.safe_name %></p>

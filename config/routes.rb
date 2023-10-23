@@ -220,7 +220,7 @@ Rails.application.routes.draw do
     post "cancel"
   end
 
-  resources :organizer_positions, only: [:destroy], as: "organizers" do
+  resources :organizer_positions, only: [:destroy, :update], as: "organizers" do
     member do
       post "set_index"
       post "mark_visited"

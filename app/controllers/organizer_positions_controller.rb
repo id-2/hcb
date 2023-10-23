@@ -58,4 +58,13 @@ class OrganizerPositionsController < ApplicationController
     redirect_to organizer_position.event
   end
 
+  def update
+    organizer_position = OrganizerPosition.find(params[:id])
+    authorize organizer_position
+
+    organizer_position.update!(params.require(:organizer_position).permit(:role))
+
+    redirect_to event_team_path(organizer_position.event)
+  end
+
 end
