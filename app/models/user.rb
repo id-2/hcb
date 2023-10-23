@@ -144,10 +144,6 @@ class User < ApplicationRecord
     @last_name ||= namae(legal:)&.family&.split(" ")&.last
   end
 
-  def full_name(legal: false)
-    "#{first_name} #{last_name}".strip
-  end
-
   def initial_name
     @initial_name ||= if name.strip.split(" ").count == 1
                         name
