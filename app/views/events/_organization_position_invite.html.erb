@@ -16,7 +16,7 @@
           <%= pop_icon_to "spy", impersonate_users_path(user_id: position.user.id, return_to: request.url), data: { turbo_frame: "_top" }, class: "admin-tools circle" %>
         </div>
       <% end %>
-      <% if current_user.position(@event).manager? || current_user.admin? %>
+      <% if current_user.position(@event)&.manager? || current_user.admin? %>
         <div class="tooltipped tooltipped--s" aria-label="Remove user from organization">
           <%= pop_icon_to "member-remove", new_organizer_remove_path(organizer_id: position.id), class: "error", data: { turbo_frame: "_top" } %>
         </div>
