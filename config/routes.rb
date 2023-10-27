@@ -159,6 +159,7 @@ Rails.application.routes.draw do
       get "check", to: "admin#check"
       get "increase_checks", to: "admin#increase_checks"
       get "partner_organizations", to: "admin#partner_organizations"
+      get "raised", to: "admin#raised"
       get "events", to: "admin#events"
       get "event_new", to: "admin#event_new"
       post "event_create", to: "admin#event_create"
@@ -186,6 +187,7 @@ Rails.application.routes.draw do
     member do
       get "transaction", to: "admin#transaction"
       get "event_balance", to: "admin#event_balance"
+      get "event_raised", to: "admin#event_raised"
       get "event_process", to: "admin#event_process"
       put "event_toggle_approved", to: "admin#event_toggle_approved"
       put "event_reject", to: "admin#event_reject"

@@ -45,6 +45,7 @@
   <ul class="grid left-align w-100 mt0">
     <%= card_to "Bank Fees", bank_fees_admin_index_path, { badge: BankFee.in_transit_or_pending.count } %>
     <%= render partial: "static_pages/card", locals: { task_path: balances_admin_index_path, human_name: "Organization Balances" } %>
+    <%= render partial: "static_pages/card", locals: { task_path: raised_admin_index_path, human_name: "Money Raised" } %>
     <%= card_to "Check deposits", check_deposits_admin_index_path %>
     <%= render partial: "static_pages/card", locals: { task_path: blazer_path, human_name: "BI tool" } %>
   </ul>
