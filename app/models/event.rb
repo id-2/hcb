@@ -454,6 +454,16 @@ class Event < ApplicationRecord
       end
   end
 
+  def raised_v2_cents(start_date: nil, end_date: nil)
+    @raised_v2_cents ||=
+      begin
+        sum = settled_incoming_balance_cents(start_date:, end_date:, exclude_disbursements_without_fees: true)
+        sum += pending_incoming_balance_v2_cents(start_date:, end_date:, exclude_disbursements_without_fees: true)
+        sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
+        sum
+      end
+  end
+
   # This calculates v2 cents of settled (Canonical Transactions)
   # @return [Integer] Balance in cents (v2 transaction engine)
   def settled_balance_cents(start_date: nil, end_date: nil)
@@ -463,11 +473,12 @@ class Event < ApplicationRecord
   end
 
   # v2 cents (v2 transaction engine)
-  def settled_incoming_balance_cents(start_date: nil, end_date: nil)
+  def settled_incoming_balance_cents(start_date: nil, end_date: nil, exclude_disbursements_without_fees: false)
     @settled_incoming_balance_cents ||=
       begin
         ct = canonical_transactions.where("amount_cents > 0")
 
+        ct = ct.where.not("UPPER(memo) LIKE ?", "%HCB DISBURSE%") if exclude_disbursements_without_fees
         ct = ct.where("date >= ?", start_date) if start_date
         ct = ct.where("date <= ?", end_date) if end_date
 
@@ -515,11 +526,12 @@ class Event < ApplicationRecord
       pending_outgoing_balance_v2_cents(start_date:, end_date:)
   end
 
-  def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil)
+  def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil, exclude_disbursements_without_fees: false)
     @pending_incoming_balance_v2_cents ||=
       begin
         cpt = canonical_pending_transactions.incoming.unsettled.not_fronted
 
+        cpt = cpt.where.not("UPPER(memo) LIKE ?", "%HCB DISBURSE%") if exclude_disbursements_without_fees
         cpt = cpt.where("date >= ?", start_date) if start_date
         cpt = cpt.where("date <= ?", end_date) if end_date
 
@@ -544,6 +556,8 @@ class Event < ApplicationRecord
   end
 
   alias balance balance_v2_cents
+
+  alias raised raised_v2_cents
 
   # used for events with a pending ledger, this is the amount of money available
   # that isn't being transferred out by upcoming/floating transactions such as

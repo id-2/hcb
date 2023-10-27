@@ -206,6 +206,17 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
+  def raised
+    @page = params[:page] || 1
+    @per = params[:per] || 100
+
+    @events = filtered_events.page(@page).per(@per).reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    @count = @events.count
+    @raised = filtered_events.sum(&:raised)
+
+    render layout: "admin"
+  end
+
   def event_process
     @event = Event.find(params[:id])
 
@@ -246,6 +257,14 @@ class AdminController < ApplicationController
       @event.balance.to_i
     end
     render :event_balance, layout: false
+  end
+
+  def event_raised
+    @event = Event.find(params[:id])
+    @raised = Rails.cache.fetch("admin_event_raised_#{@event.id}", expires_in: 5.minutes) do
+      @event.raised.to_i
+    end
+    render :event_raised, layout: false
   end
 
   def event_toggle_approved
