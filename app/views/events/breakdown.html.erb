@@ -42,37 +42,37 @@
 <%= render "events/public_message" %>
 
 <div class="grid grid--split left-align w-100 mt0">
-  
+
   <div class="card border b--info">
-  
+
     <h3 class="mt1 mb3">Balance Over Time</h3>
-    
+
     <%= line_chart @filled_date_balance_hash, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#338eda", "#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#a633d6"] %>
-  
+
   </div>
-  
+
   <div class="card border b--info">
-  
+
     <h3 class="mt1 mb3">Income Sources</h3>
-    
+
     <%= pie_chart [["Donated", @stats[:donations].to_d / 100], ["Paid Invoices", @stats[:invoices].to_d / 100], ["Inbound ACHs", @event.incoming_ach_total.to_d / 100], ["HCB Disbursements", @event.incoming_disbursements_total.to_d / 100], ["Inbound Checks", @event.incoming_checks_total.to_d / 100], ["Other Income Sources", (@event.raised - @event.incoming_checks_total - @event.incoming_disbursements_total - @event.incoming_ach_total - @stats[:invoices] - @stats[:donations]).to_d / 100]], prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"], legend: "bottom" %>
-    
+
   </div>
-  
+
   <div class="card border b--info">
-  
+
     <h3 class="mt1 mb3">Spending By User</h3>
-    
-    <%= column_chart @organizers.each_with_object({}) { |position, hash| hash[position.user.name] = position.spent.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
-  
+
+    <%= column_chart @organizers.each_with_object { |position, hash| hash[position.user.name] = position.spent.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+
   </div>
-  
+
   <div class="card border b--info">
-  
+
     <h3 class="mt1 mb3">Spending By Tag</h3>
-    
-    <%= column_chart @event.tags.select{ |tag| tag.total_amount.abs() > 0 }.each_with_object({}) { |tag, hash| hash[tag.label] = tag.total_amount.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
-  
+
+    <%= column_chart @event.tags.select{ |tag| tag.total_amount.abs() > 0 }.each_with_object { |tag, hash| hash[tag.label] = tag.total_amount.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+
   </div>
 
 </div>
