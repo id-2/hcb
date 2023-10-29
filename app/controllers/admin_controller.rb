@@ -318,7 +318,11 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
 
-    @cards = StripeCard.includes(:stripe_cardholder).page(@page).per(@per).order("created_at desc")
+    @q = params[:q].presence
+
+    @cards = StripeCard.includes(stripe_cardholder: :user).page(@page).per(@per).order("stripe_cards.created_at desc")
+
+    @cards = @cards.joins(stripe_cardholder: :user).where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.last4 ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
 
     render layout: "admin"
   end
@@ -384,9 +388,8 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.match /\A\d+(\.\d{1,2})?\z/
         @q = Monetize.parse(@q).cents
-
         relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
       else
         case @q.delete(" ")
@@ -687,6 +690,8 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
+    @ip_address = params[:ip_address].present? ? params[:ip_address] : nil
+    @user_agent = params[:user_agent].present? ? params[:user_agent] : nil
     @deposited = params[:deposited] == "1" ? true : nil
     @in_transit = params[:in_transit] == "1" ? true : nil
     @failed = params[:failed] == "1" ? true : nil
@@ -713,6 +718,8 @@ class AdminController < ApplicationController
       end
     end
 
+    relation = relation.where(ip_address: @ip_address) if @ip_address
+    relation = relation.where("user_agent ILIKE ?", "%#{Donation.sanitize_sql_like(@user_agent)}%") if @user_agent
     relation = relation.deposited if @deposited
     relation = relation.in_transit if @in_transit
     relation = relation.failed if @failed

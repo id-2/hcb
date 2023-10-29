@@ -87,10 +87,12 @@ class CanonicalTransaction < ApplicationRecord
 
   belongs_to :transaction_source, polymorphic: true, optional: true
 
-  attr_writer :fee_payment, :hashed_transaction, :stripe_cardholder
+  attr_writer :fee_payment, :hashed_transaction, :stripe_cardholder, :raw_stripe_transaction
 
   validates :friendly_memo, presence: true, allow_nil: true
   validates :custom_memo, presence: true, allow_nil: true
+
+  before_validation { self.custom_memo = custom_memo.presence&.strip }
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
@@ -138,7 +140,9 @@ class CanonicalTransaction < ApplicationRecord
   end
 
   def raw_stripe_transaction
-    transaction_source if transaction_source_type == RawStripeTransaction.name
+    @raw_stripe_transaction ||= begin
+      transaction_source if transaction_source_type == RawStripeTransaction.name
+    end
   end
 
   def raw_increase_transaction

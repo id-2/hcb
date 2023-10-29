@@ -10,6 +10,7 @@ class DonationsController < ApplicationController
   skip_before_action :signed_in_user
   before_action :set_donation, only: [:show]
   before_action :set_event, only: [:start_donation, :make_donation, :qr_code]
+  skip_before_action :redirect_to_onboarding
 
   # Rationale: the session doesn't work inside iframes (because of third-party cookies)
   skip_before_action :verify_authenticity_token, only: [:start_donation, :make_donation, :finish_donation]
@@ -40,16 +41,14 @@ class DonationsController < ApplicationController
       return not_found
     end
 
-    if @event.demo_mode?
-      @example_event = Event.find(183)
-    end
-
     @donation = Donation.new(
       name: params[:name],
       email: params[:email],
       amount: params[:amount],
       message: params[:message],
-      event: @event
+      event: @event,
+      ip_address: request.ip,
+      user_agent: request.user_agent
     )
 
     authorize @donation
@@ -72,6 +71,8 @@ class DonationsController < ApplicationController
       redirect_to root_url and return
     end
 
+    d_params[:ip_address] = request.ip
+    d_params[:user_agent] = request.user_agent
 
     @donation = Donation.new(d_params)
     @donation.event = @event

@@ -11,6 +11,8 @@ class EventsController < ApplicationController
   skip_before_action :signed_in_user
   before_action :set_mock_data
 
+  before_action :redirect_to_onboarding, unless: -> { @event&.is_public? }
+
   # GET /events
   def index
     authorize Event
@@ -22,6 +24,13 @@ class EventsController < ApplicationController
   # GET /events/1
   def show
     render_tour @organizer_position, :welcome
+
+    maybe_pending_invite = OrganizerPositionInvite.pending.find_by(user: current_user, event: @event)
+
+    if maybe_pending_invite.present?
+      skip_authorization
+      return redirect_to maybe_pending_invite
+    end
 
     begin
       authorize @event
@@ -112,6 +121,7 @@ class EventsController < ApplicationController
             comments: Array.new(rand(9) > 1 ? 0 : rand(1..2)),
             donation?: !trans[:amount].negative?,
             donation: !trans[:amount].negative? ? nil : OpenStruct.new(recurring?: trans[:monthly]),
+            tags: []
           )
         )
       end
@@ -392,6 +402,9 @@ class EventsController < ApplicationController
       @recurring_donations.sort_by! { |invoice| invoice[:created_at] }.reverse!
       @donations.sort_by! { |invoice| invoice[:created_at] }.reverse!
     end
+
+    @recurring_donations_monthly_sum = @recurring_donations.sum(0) { |donation| donation[:amount] }
+
   end
 
   def partner_donation_overview
@@ -438,6 +451,9 @@ class EventsController < ApplicationController
     @checks = @event.checks.includes(:lob_address)
     @increase_checks = @event.increase_checks
     @disbursements = @transfers_enabled ? @event.outgoing_disbursements.includes(:destination_event) : Disbursement.none
+    @card_grants = @event.card_grants.includes(:user, :subledger, :stripe_card)
+
+    @disbursements = @disbursements.not_card_grant_related if Flipper.enabled?(:card_grants_2023_05_25, @event)
 
     @stats = {
       deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @increase_checks.increase_deposited.or(@increase_checks.in_transit).sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum,
@@ -459,6 +475,8 @@ class EventsController < ApplicationController
     @increase_checks = @increase_checks.increase_deposited if params[:filter] == "deposited"
     @increase_checks = @increase_checks.canceled if params[:filter] == "canceled"
 
+    @card_grants = @card_grants.search_recipient(params[:q]) if params[:q].present?
+
     if @transfers_enabled
       @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
       @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
@@ -466,7 +484,7 @@ class EventsController < ApplicationController
       @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
     end
 
-    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
+    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements + @card_grants).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
 
     # Generate mock data
     if helpers.show_mock_data?
@@ -626,7 +644,8 @@ class EventsController < ApplicationController
       :donation_header_image,
       :logo,
       :website,
-      :background_image
+      :background_image,
+      :stripe_card_shipping_type,
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend
