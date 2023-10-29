@@ -20,6 +20,8 @@
     "alpinejs": "^3.12.2",
     "axios": "^0.24.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
+    "chart.js": "^4.4.0",
+    "chartkick": "^5.0.1",
     "clsx": "^1.2.1",
     "gsap": "^3.11.3",
     "jquery": "^3.6.1",

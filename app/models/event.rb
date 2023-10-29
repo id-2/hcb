@@ -454,6 +454,16 @@ class Event < ApplicationRecord
       end
   end
 
+  def raised_v2_cents(start_date: nil, end_date: nil, exclude_disbursements_without_fees: false)
+    @raised_v2_cents ||=
+      begin
+        sum = settled_incoming_balance_cents(start_date:, end_date:, exclude_disbursements_without_fees: )
+        sum += pending_incoming_balance_v2_cents(start_date:, end_date:, exclude_disbursements_without_fees: )
+        sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
+        sum
+      end
+  end
+
   # This calculates v2 cents of settled (Canonical Transactions)
   # @return [Integer] Balance in cents (v2 transaction engine)
   def settled_balance_cents(start_date: nil, end_date: nil)
@@ -463,11 +473,12 @@ class Event < ApplicationRecord
   end
 
   # v2 cents (v2 transaction engine)
-  def settled_incoming_balance_cents(start_date: nil, end_date: nil)
+  def settled_incoming_balance_cents(start_date: nil, end_date: nil, exclude_disbursements_without_fees: false)
     @settled_incoming_balance_cents ||=
       begin
         ct = canonical_transactions.where("amount_cents > 0")
 
+        ct = ct.where.not("UPPER(memo) LIKE ?", "%HCB DISBURSE%") if exclude_disbursements_without_fees
         ct = ct.where("date >= ?", start_date) if start_date
         ct = ct.where("date <= ?", end_date) if end_date
 
@@ -515,15 +526,66 @@ class Event < ApplicationRecord
       pending_outgoing_balance_v2_cents(start_date:, end_date:)
   end
 
-  def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil)
+  def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil, exclude_disbursements_without_fees: false)
     @pending_incoming_balance_v2_cents ||=
       begin
         cpt = canonical_pending_transactions.incoming.unsettled.not_fronted
 
+        cpt = cpt.where.not("UPPER(memo) LIKE ?", "%HCB DISBURSE%") if exclude_disbursements_without_fees
         cpt = cpt.where("date >= ?", start_date) if start_date
         cpt = cpt.where("date <= ?", end_date) if end_date
 
         cpt.sum(:amount_cents)
+      end
+  end
+
+  def incoming_ach_total(start_date: nil, end_date: nil)
+    @incoming_ach_total ||=
+      begin
+        ct_likely_achs = canonical_transactions.likely_achs.where("canonical_transactions.amount_cents > 0")
+        ct_likely_achs = ct_likely_achs.where("date >= ?", start_date) if start_date
+        ct_likely_achs = ct_likely_achs.where("date <= ?", end_date) if end_date
+
+        ct_likely_increase_achs = canonical_transactions.likely_increase_achs.where("canonical_transactions.amount_cents > 0")
+        ct_likely_increase_achs = ct_likely_increase_achs.where("date >= ?", start_date) if start_date
+        ct_likely_increase_achs = ct_likely_increase_achs.where("date <= ?", end_date) if end_date
+
+        ct_likely_achs.sum(:amount_cents) + ct_likely_increase_achs.sum(:amount_cents)
+      end
+  end
+
+  def incoming_checks_total(start_date: nil, end_date: nil)
+    @incoming_checks_total ||=
+      begin
+        ct_likely_checks = canonical_transactions.likely_checks.where("canonical_transactions.amount_cents > 0")
+        ct_likely_checks = ct_likely_checks.where("date >= ?", start_date) if start_date
+        ct_likely_checks = ct_likely_checks.where("date <= ?", end_date) if end_date
+
+        ct_likely_increase_checks = canonical_transactions.likely_increase_checks.where("canonical_transactions.amount_cents > 0")
+        ct_likely_increase_checks = ct_likely_increase_checks.where("date >= ?", start_date) if start_date
+        ct_likely_increase_checks = ct_likely_increase_checks.where("date <= ?", end_date) if end_date
+
+        ct_likely_checks.sum(:amount_cents) + ct_likely_increase_checks.sum(:amount_cents)
+      end
+  end
+
+  def incoming_disbursements_total(start_date: nil, end_date: nil)
+    @incoming_disbursements_total ||=
+      begin
+        ct_likely_disbursements = canonical_transactions.likely_disbursements.where("amount_cents > 0")
+        ct_likely_disbursements = ct_likely_disbursements.where("date >= ?", start_date) if start_date
+        ct_likely_disbursements = ct_likely_disbursements.where("date <= ?", end_date) if end_date
+
+        ct_likely_disbursements.sum(:amount_cents)
+      end
+  end
+
+  def spent_by_user(user_id)
+    @spent_by_user ||=
+      begin
+        card_transactions = canonical_transactions.stripe_transaction.joins("JOIN stripe_cardholders on raw_stripe_transactions.stripe_transaction->>'cardholder' = stripe_cardholders.stripe_id").where(stripe_cardholders: { user_id: })
+
+        card_transactions.sum(:amount_cents)
       end
   end
 
@@ -544,6 +606,8 @@ class Event < ApplicationRecord
   end
 
   alias balance balance_v2_cents
+
+  alias raised raised_v2_cents
 
   # used for events with a pending ledger, this is the amount of money available
   # that isn't being transferred out by upcoming/floating transactions such as

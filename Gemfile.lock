@@ -798,6 +798,7 @@ DEPENDENCIES
   browser (~> 5.3)
   business_time
   byebug
+  chartkick
   chronic
   comma (~> 4.7)
   countries

@@ -37,4 +37,8 @@ class Tag < ApplicationRecord
     end
   end
 
+  def total_amount
+    hcb_codes.select{ |hcb_code| hcb_code.amount_cents < 0 }.sum { |hcb_code| hcb_code.amount_cents }
+  end
+
 end

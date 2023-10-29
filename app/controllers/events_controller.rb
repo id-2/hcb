@@ -136,6 +136,93 @@ class EventsController < ApplicationController
     end
   end
 
+  def breakdown
+
+    begin
+      authorize @event
+    rescue Pundit::NotAuthorizedError
+      return redirect_to root_path, flash: { error: "We couldn’t find that organization!" }
+    end
+
+    @mock_total = 0
+
+    @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
+
+    TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
+
+    date_balance_pairs = []
+
+
+    # Initialize the initial_subtotal and running_total
+    @date_balance_hash = {}
+
+    # Initialize the initial_subtotal and running_total
+    initial_subtotal = 0
+    running_total = 0
+
+    @all_transactions.reverse.each do |transaction|
+      running_total += (transaction.amount * 100).to_i
+      @date_balance_hash[transaction.date] = running_total
+    end
+
+    first_date = @date_balance_hash.keys.min.to_date
+    last_date = @date_balance_hash.keys.max.to_date
+
+    # Generate a range of dates between the first and last date
+    date_range = (first_date..last_date).to_a
+
+    # Initialize a new hash to store the filled date and balance pairs
+    @filled_date_balance_hash = {}
+
+    running_total_two  = 0
+
+    # Iterate through the date range and fill in the gaps with a balance of 0
+    date_range.each do |date|
+      balance = @date_balance_hash[date.to_s] || running_total_two
+      running_total_two = balance
+      @filled_date_balance_hash[date.to_s] = balance.to_d / 100
+    end
+
+    invoice_relation = @event.invoices
+
+    invoices_in_transit = (invoice_relation.paid_v2.where(payout_id: nil)
+      .where
+      .not(payout_creation_queued_for: nil) +
+      @event.invoices.joins(:payout)
+      .where(invoice_payouts: { status: "in_transit" })
+      .or(@event.invoices.joins(:payout).where(invoice_payouts: { status: "pending" })))
+
+    @stats = {
+      donations: @event.donations.not_pending.includes(:recurring_donation).where(aasm_state: [:in_transit, :deposited]).sum(:amount),
+      invoices: invoice_relation.paid_v2.sum(:item_amount) - invoices_in_transit.sum(&:amount_paid),
+    }
+
+    if params[:tag] && Flipper.enabled?(:transaction_tags_2022_07_29, @event)
+      @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
+    end
+
+    @organizers = @event.organizer_positions.includes(:user).order(created_at: :asc)
+
+    @pending_transactions = _show_pending_transactions
+
+    if !signed_in? && !@event.holiday_features
+      @hide_holiday_features = true
+    end
+
+    @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
+
+    page = (params[:page] || 1).to_i
+    per_page = (params[:per] || 75).to_i
+
+    @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
+    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
+
+    if flash[:popover]
+      @popover = flash[:popover]
+      flash.delete(:popover)
+    end
+  end
+
   # GET /event_by_airtable_id/recABC
   def by_airtable_id
     authorize Event

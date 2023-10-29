@@ -1,0 +1,78 @@
+<% title @event.name %>
+
+<% if @event&.is_public %>
+  <% content_for :head do %>
+    <% img = "https://hcb-og.hackclub.com/api/embeds/#{@event.slug}" %>
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="<%= img %>">
+    <meta name="twitter:image" content="<%= img %>">
+    <meta property="og:site_name" content="HCB">
+    <meta property="og:url" content="<%= event_url(@event) %>">
+    <meta property="og:title" content="<%= @event.name %>">
+    <meta name="twitter:title" content="<%= @event.name %>">
+    <% description = "#{@event.name}'s finances have been made public on HCB so you can see how their money is spent." %>
+    <meta property="og:description" content="<%= description %>">
+    <meta name="twitter:description" content="<%= description %>">
+    <meta name="description" content="<%= description %>">
+  <% end %>
+<% end %>
+
+<%= render "nav", selected: :breakdown %>
+
+<h1 class="flex items-center">
+  Breakdown
+</h1>
+
+<div class="statset mt2 mb3">
+  <div class="stat tooltipped tooltipped--s pr3" aria-label="This excludes archived invoices">
+    <span class="stat__label">Account balance</span>
+    <span class="stat__value"><%= render_money_amount(show_mock_data? ? @mock_total : @event.balance) %></span>
+  </div>
+  <div class="stat stat--small">
+    <span class="stat__label">Amount raised</span>
+    <span class="stat__value"><%= render_money_amount @event.raised %></span>
+  </div>
+  <div class="stat stat--small">
+    <span class="stat__label">Amount spent</span>
+    <span class="stat__value"><%= render_money_amount @event.raised - @event.balance %></span>
+  </div>
+</div>
+
+<%= render "events/public_message" %>
+
+<div class="grid grid--split left-align w-100 mt0">
+  
+  <div class="card border b--info">
+  
+    <h3 class="mt1 mb3">Balance Over Time</h3>
+    
+    <%= line_chart @filled_date_balance_hash, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#338eda", "#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#a633d6"] %>
+  
+  </div>
+  
+  <div class="card border b--info">
+  
+    <h3 class="mt1 mb3">Income Sources</h3>
+    
+    <%= pie_chart [["Donated", @stats[:donations].to_d / 100], ["Paid Invoices", @stats[:invoices].to_d / 100], ["Inbound ACHs", @event.incoming_ach_total.to_d / 100], ["HCB Disbursements", @event.incoming_disbursements_total.to_d / 100], ["Inbound Checks", @event.incoming_checks_total.to_d / 100], ["Other Income Sources", (@event.raised - @event.incoming_checks_total - @event.incoming_disbursements_total - @event.incoming_ach_total - @stats[:invoices] - @stats[:donations]).to_d / 100]], prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"], legend: "bottom" %>
+    
+  </div>
+  
+  <div class="card border b--info">
+  
+    <h3 class="mt1 mb3">Spending By User</h3>
+    
+    <%= column_chart @organizers.each_with_object({}) { |position, hash| hash[position.user.name] = position.spent.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+  
+  </div>
+  
+  <div class="card border b--info">
+  
+    <h3 class="mt1 mb3">Spending By Tag</h3>
+    
+    <%= column_chart @event.tags.select{ |tag| tag.total_amount.abs() > 0 }.each_with_object({}) { |tag, hash| hash[tag.label] = tag.total_amount.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+  
+  </div>
+
+</div>

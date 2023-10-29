@@ -133,6 +133,8 @@ gem "geocoder" # lookup lat/lng for Stripe Cards shipment tracking
 
 gem "rqrcode" # QR code generation
 
+gem "chartkick" # Breakdown charts
+
 gem "brakeman" # static security vulnerability scanner
 
 gem "awesome_print" # pretty print objects in console

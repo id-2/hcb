@@ -26,3 +26,5 @@ Alpine.start()
 
 import LocalTime from "local-time"
 LocalTime.start()
+
+import "chartkick/chart.js"

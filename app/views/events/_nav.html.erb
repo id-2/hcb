@@ -36,6 +36,11 @@
         tooltip: "View your transactions",
         icon: "home",
         selected: local_assigns[:selected] == :transactions %>
+      <%= dock_item "Breakdown",
+        event_breakdown_path(event_id: @event.slug),
+        tooltip: "View a breakdown of your finances.",
+        icon: "analytics",
+        selected: local_assigns[:selected] == :breakdown %>
       <h4 class="mb0 h5 muted">Receive</h4>
       <hr>
       <%= dock_item "Donations",
