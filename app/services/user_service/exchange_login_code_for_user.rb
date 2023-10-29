@@ -37,7 +37,7 @@ module UserService
 
       raise ::Errors::InvalidLoginCode if login_code.nil?
       raise ::Errors::InvalidLoginCode if login_code.created_at < (Time.current - 15.minutes)
-      raise ::Errors::BrowserMismatch if login_code.browser_token.present? && login_code.browser_token != @browser_token
+      raise ::Errors::BrowserMismatch if login_code.browser_token.present? && (login_code.browser_token != @browser_token || !@browser_token)
 
       login_code.update(used_at: Time.current)
 
