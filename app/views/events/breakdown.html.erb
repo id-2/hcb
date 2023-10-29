@@ -63,7 +63,7 @@
 
     <h3 class="mt1 mb3">Spending By User</h3>
 
-    <%= column_chart @organizers.each_with_object { |position, hash| hash[position.user.name] = position.spent.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+    <%= column_chart @organizers.each_with_object({}) { |position, hash| hash[position.user.name] = position.spent.abs.to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
 
   </div>
 
@@ -71,7 +71,7 @@
 
     <h3 class="mt1 mb3">Spending By Tag</h3>
 
-    <%= column_chart @event.tags.select{ |tag| tag.total_amount.abs() > 0 }.each_with_object { |tag, hash| hash[tag.label] = tag.total_amount.abs().to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+    <%= column_chart @event.tags.select{ |tag| tag.total_amount.abs > 0 }.each_with_object({}) { |tag, hash| hash[tag.label] = tag.total_amount.abs.to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
 
   </div>
 
