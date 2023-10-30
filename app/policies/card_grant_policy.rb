@@ -10,7 +10,7 @@ class CardGrantPolicy < ApplicationPolicy
   end
 
   def show?
-    user&.admin? || record.user == user
+    admin_or_user || record.user == user
   end
 
   def activate?
