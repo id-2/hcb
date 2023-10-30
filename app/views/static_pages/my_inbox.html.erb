@@ -30,7 +30,7 @@
       </div>
 
       <%= carousel @pairings do |pairing, i| %>
-        <p>Bank thinks that one of your receipts, <strong><%= pairing.receipt.file.blob.filename %></strong>, belongs to a transaction in <strong><%= pairing.hcb_code.event.name %></strong>.</p>
+        <p>HCB thinks that one of your receipts, <strong><%= pairing.receipt.file.blob.filename %></strong>, belongs to a transaction in <strong><%= pairing.hcb_code.event.name %></strong>.</p>
         <div class="flex p1 justify-center">
 
           <div class="xs-hide sm-hide" style="user-drag: none; -webkit-user-drag: none; -moz-user-drag: none;">
@@ -164,7 +164,7 @@
 </h2>
 
 <% @cards.each do |card| %>
-  <section class="mb3 card p0">
+  <section class="mb3 card p0 receipt-card">
     <h2 class="heading line-height-4 p1 pl2 mt0 ml0 flex justify-between items-center">
       <%= card.event.name %>
 
@@ -197,5 +197,13 @@
 <% if @count == 0 %>
   <%= blankslate "No missing receipts!" %>
 <% end %>
+
+<style>
+  @media (min-width: 72em) {
+    .receipt-card {
+      max-width: calc(100vw - 20rem);
+    }
+  }
+</style>
 
 <%= paginate @hcb_codes %>

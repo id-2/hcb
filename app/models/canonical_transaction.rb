@@ -66,6 +66,7 @@ class CanonicalTransaction < ApplicationRecord
   scope :likely_increase_achs, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'ach_transfer_intention'") }
   scope :likely_increase_account_number, -> { increase_transaction.joins("INNER JOIN increase_account_numbers ON increase_account_number_id = increase_route_id") }
   scope :likely_increase_check_deposit, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'check_deposit_acceptance'") }
+  scope :increase_interest, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'interest_payment'") }
   scope :likely_hack_club_fee, -> { where("memo ilike '%Hack Club Bank Fee TO ACCOUNT%'") }
   scope :old_likely_hack_club_fee, -> { where("memo ilike '% Fee TO ACCOUNT REDACTED%'") }
   scope :stripe_top_up, -> { where("memo ilike '%Hack Club Bank Stripe Top%' or memo ilike '%HACKC Stripe Top%' or memo ilike '%HCKCLB Stripe Top%'") }
@@ -86,10 +87,12 @@ class CanonicalTransaction < ApplicationRecord
 
   belongs_to :transaction_source, polymorphic: true, optional: true
 
-  attr_writer :fee_payment, :hashed_transaction, :stripe_cardholder
+  attr_writer :fee_payment, :hashed_transaction, :stripe_cardholder, :raw_stripe_transaction
 
   validates :friendly_memo, presence: true, allow_nil: true
   validates :custom_memo, presence: true, allow_nil: true
+
+  before_validation { self.custom_memo = custom_memo.presence&.strip }
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
@@ -137,7 +140,9 @@ class CanonicalTransaction < ApplicationRecord
   end
 
   def raw_stripe_transaction
-    transaction_source if transaction_source_type == RawStripeTransaction.name
+    @raw_stripe_transaction ||= begin
+      transaction_source if transaction_source_type == RawStripeTransaction.name
+    end
   end
 
   def raw_increase_transaction

@@ -6,6 +6,8 @@ class UsersController < ApplicationController
   skip_after_action :verify_authorized, except: [:edit, :update]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
 
+  wrap_parameters format: :url_encoded_form
+
   def impersonate
     authorize current_user
 
@@ -176,7 +178,7 @@ class UsersController < ApplicationController
     initialize_sms_params
     return render :login_code, status: :unprocessable_entity
   rescue ActiveRecord::RecordInvalid => e
-    flash[:error] = e.record.errors&.full_messages&.join(". ")
+    flash[:error] = e.record.errors&.messages&.values&.flatten&.join(". ")
     redirect_to auth_users_path
   end
 
@@ -213,22 +215,26 @@ class UsersController < ApplicationController
     redirect_to settings_previews_path
   end
 
-  FEATURE_CONFETTI_EMOJIS = {
+  FEATURES = { # the keys are current feature flags, the values are emojis that show when-enabled.
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
-    receipt_report_2023_04_19: %w[🧾 📧],
     turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
     sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
+    hcb_code_popovers_2023_06_16: nil
   }.freeze
 
   def enable_feature
     @user = current_user
     @feature = params[:feature]
     authorize @user
-    if Flipper.enable_actor(@feature, @user)
-      confetti!(emojis: FEATURE_CONFETTI_EMOJIS[@feature.to_sym])
-      flash[:success] = "Opted into beta"
+    if FEATURES.key?(@feature.to_sym) || @user.admin?
+      if Flipper.enable_actor(@feature, @user)
+        confetti!(emojis: FEATURES[@feature.to_sym])
+        flash[:success] = "Opted into beta"
+      else
+        flash[:error] = "Error while opting into beta"
+      end
     else
-      flash[:error] = "Error while opting into beta"
+      flash[:error] = "Beta doesn't exist."
     end
     redirect_back fallback_location: settings_previews_path
   end
@@ -237,10 +243,14 @@ class UsersController < ApplicationController
     @user = current_user
     @feature = params[:feature]
     authorize @user
-    if Flipper.disable_actor(@feature, @user)
-      flash[:success] = "Opted out of beta"
+    if FEATURES.key?(@feature.to_sym) || @user.admin?
+      if Flipper.disable_actor(@feature, @user)
+        flash[:success] = "Opted out of beta"
+      else
+        flash[:error] = "Error while opting out of beta"
+      end
     else
-      flash[:error] = "Error while opting out of beta"
+      flash[:error] = "Beta doesn't exist."
     end
     redirect_back fallback_location: settings_previews_path
   end
@@ -297,17 +307,19 @@ class UsersController < ApplicationController
       end
     end
 
-    locked = params[:user][:locked] == "1"
-    if locked && @user == current_user
-      flash[:error] = "As much as you might desire to, you cannot lock yourself out."
-      return redirect_to admin_user_path(@user)
-    elsif locked && @user.admin?
-      flash[:error] = "Contact a engineer to lock out another admin."
-      return redirect_to admin_user_path(@user)
-    elsif locked
-      @user.lock!
-    else
-      @user.unlock!
+    if params[:user][:locked].present?
+      locked = params[:user][:locked] == "1"
+      if locked && @user == current_user
+        flash[:error] = "As much as you might desire to, you cannot lock yourself out."
+        return redirect_to admin_user_path(@user)
+      elsif locked && @user.admin?
+        flash[:error] = "Contact a engineer to lock out another admin."
+        return redirect_to admin_user_path(@user)
+      elsif locked
+        @user.lock!
+      else
+        @user.unlock!
+      end
     end
 
     if @user.update(user_params)
@@ -318,7 +330,7 @@ class UsersController < ApplicationController
         redirect_to root_path
       else
         flash[:success] = @user == current_user ? "Updated your profile!" : "Updated #{@user.first_name}'s profile!"
-        redirect_to edit_user_path(@user)
+        redirect_back_or_to edit_user_path(@user)
       end
     else
       @onboarding = User.friendly.find(params[:id]).full_name.blank?
@@ -413,6 +425,10 @@ class UsersController < ApplicationController
           :stripe_billing_address_country
         ]
       }
+    end
+
+    if superadmin_signed_in?
+      attributes << :access_level
     end
 
     params.require(:user).permit(attributes)

@@ -5,14 +5,14 @@
 
 <h1 class="heading items-center md-items-baseline justify-center md-justify-between center md-left-align w-auto">
   <div>
-    <span class="h3 caps secondary block">Welcome to</span>
-    <span class="primary <%= "nowrap" unless fall? %> <%= "warning" if fall? %>">
-      <% if fall? %>
-        <span class="warning strikethrough"><span class="primary">Hack</span></span>
-        Spook&nbsp;Club Bank
-      <% else %>
-        Hack&nbsp;Club Bank
-      <% end %>
+    <a
+      class="h4 caps muted block text-decoration-none"
+      href="https://github.com/hackclub/hcb-expansions/tree/main#hcb-what-does-it-stand-for"
+      target="_blank">
+      <%= @hcb_expansion %>
+    </a>
+    <span class="<%= "nowrap" unless fall? %> <%= "warning" if fall? %>">
+      Welcome to <span class="primary">HCB</span>
     </span>
   </div>
   <span class="badge ml0 h5 caps <%= Rails.env.development? ? "bg-success" : by_season("", fall: "bg-warning") %>" id="flavor-text" data-turbo-permanent><%= flavor_text %></span>
@@ -42,7 +42,7 @@
     <% if @events.any? %>
       <% if @show_event_reorder_tip && Flipper.enabled?(:event_reordering_2022_10_10, current_user) %>
         <% if @events.size > 1 %>
-          <%= link_to "https://changelog.bank.hackclub.com/re-order-your-homepage-247413", class: "muted flex items-center justify-end h6 mb1", style: "align-self: baseline", target: "_blank" do %>
+          <%= link_to "https://changelog.hcb.hackclub.com/re-order-your-homepage-247413", class: "muted flex items-center justify-end h6 mb1", style: "align-self: baseline", target: "_blank" do %>
             <%= inline_icon "hand-pointer-solid", size: 18, class: "mr1" %> Drag to reorder
           <% end %>
         <% end %>
@@ -55,26 +55,32 @@
         data-action="sortable:stop->event-sort#sort">
         <% @events.not_hidden.each do |event| %>
           <%= link_to event, style: "max-width: 90vw", class: "draggable text-decoration-none" do %>
-            <li class="card card--hover flex flex-column justify-between h-100 mx-auto">
+            <li class="card card--hover flex flex-column justify-between h-100 mx-auto <%= "card--background-image" if event.background_image.attached? %>" style="<%= "--bg-image: url(#{url_for(event.background_image).dump})" if event.background_image.attached? %>">
               <div id="event-<%= event.id %>-title" class="flex mb2">
-                <strong class="brand-sans h3 line-height-2 display-inline">
-                  <% if event.logo.attached? %>
+                <% if event.logo.attached? %>
+                  <div style="display: flex; gap: 8px; align-items: center;">
                     <%= image_tag event.logo, height: 24, width: 24, class: "rounded display-inline align-bottom" %>
-                  <% end %>
-                  <%= event.name %>
-                </strong>
-                <% if event.demo_mode? %>
-                  <div class="badge bg-info" style="width: fit-content;">Playground Mode</div>
+                    <strong class="brand-sans h3 line-height-2 display-inline">
+                      <%= event.name %>
+                    </strong>
+                  </div>
+                <% else %>
+                  <strong class="brand-sans h3 line-height-2 display-inline">
+                    <%= event.name %>
+                  </strong>
                 <% end %>
               </div>
-              <div class="brand-sans h4 line-height-2 mb2 flex justify-between">
-                <span style="white-space: nowrap;">
+              <% if event.demo_mode? %>
+                <div class="badge bg-info ml0 mb2" style="width: fit-content;">Playground Mode</div>
+              <% end %>
+              <div class="brand-sans h4 line-height-2 mb2 flex justify-between item-center">
+                <span style="white-space: nowrap; gap: 4px;" class="flex items-center">
                   <%= inline_icon "payment", size: 16, class: "muted align-middle", 'aria-label': "Dollar sign", style: "transform: scale(2)" %>
                   <%= async_frame_to event_async_balance_path(event), as: :span do %>
                     <strong>-</strong>
                   <% end %>
                 </span>
-                <span>
+                <span style="gap: 4px;" class="flex items-center">
                   <%= inline_icon "card", size: 20, class: "muted align-middle", 'aria-label': "Cards", style: "transform: scale(1.2)" %>
                   <strong><%= event.stripe_cards.active.count %></strong>
                 </span>
@@ -88,7 +94,7 @@
           <% end %>
         <% end %>
 
-        <%= link_to "https://hackclub.com/bank/apply/?#{URI.encode_www_form(userEmail: current_user.email, firstName: current_user.first_name, lastName: current_user.last_name, returningUser: "Yes, I have used Hack Club Bank before", userPhone: current_user.phone_number)}" do %>
+        <%= link_to "https://hackclub.com/hcb/apply/?#{URI.encode_www_form(userEmail: current_user.email, firstName: current_user.first_name, lastName: current_user.last_name, returningUser: "Yes, I have used HCB before", userPhone: current_user.phone_number)}" do %>
           <li class="card card--hover bold brand-sans flex items-center justify-center align-center h-100" style="max-width: 90vw">
             <div class="center">
               <div class="pop success mx-auto" style="display: flex; margin-bottom: 4px;">
@@ -136,103 +142,11 @@
     <% end %>
     <% if @events.empty? && @invites.empty? && !current_user.admin? %>
       <%= blankslate "No projects associated with your account yet." %>
-      <a href="https://hackclub.com/bank/apply/?userEmail=<%= current_user.email %>&firstName=<%= current_user.first_name %>&lastName=<%= current_user.last_name %>&returningUser=No,%20first%20time!&userPhone=<%= current_user.phone_number %>" class="btn bg-success">
+      <a href="https://hackclub.com/hcb/apply/?userEmail=<%= current_user.email %>&firstName=<%= current_user.first_name %>&lastName=<%= current_user.last_name %>&returningUser=No,%20first%20time!&userPhone=<%= current_user.phone_number %>" class="btn bg-success">
         <%= inline_icon "plus" %>
         New project
       </a>
     <% end %>
   <% end %>
-
-  <% admin_tools("w-100 center mt3") do %>
-    <p>
-      <%= content_tag :strong, render_money(@transaction_volume) %>
-      in transactions & counting…
-    </p>
-
-    <h2>Tasks & Perks</h2>
-    <ul class="grid left-align w-100 mt0">
-      <%= react_component "admin_task/Card", human_name: "Applications", task_name: :pending_bank_applications_airtable, task_path: link_to_airtable_task(:bank_applications) %>
-      <%= react_component "admin_task/Card", human_name: "OnBoard ID", task_name: :pending_onboard_id_airtable, task_path: link_to_airtable_task(:onboard_id) %>
-      <%= card_to "Ledger (#{CanonicalTransaction.not_stripe_top_up.unmapped.count})", ledger_admin_index_path %>
-      <%= card_to "ACH (#{AchTransfer.pending.count})", ach_admin_index_path %>
-      <%= card_to "Check (#{IncreaseCheck.pending.count})", increase_checks_admin_index_path %>
-      <%= card_to "Grants (#{Grant.pending.count})", grants_admin_index_path %>
-      <%= react_component "admin_task/Card", human_name: "Wires", task_name: :pending_wire_transfers_airtable, task_path: link_to_airtable_task(:wire_transfers) %>
-      <%= react_component "admin_task/Card", human_name: "PayPal", task_name: :pending_paypal_transfers_airtable, task_path: link_to_airtable_task(:paypal_transfers) %>
-      <%= card_to "Disbursements (#{Disbursement.reviewing.count})", disbursements_admin_index_path %>
-      <%= card_to "Google Workspaces (#{GSuite.needs_ops_review.count})", google_workspaces_admin_index_path %>
-      <%= card_to "Deletion Requests (#{OrganizerPositionDeletionRequest.under_review.count})", organizer_position_deletion_requests_path %>
-      <%= react_component "admin_task/Card", human_name: "Disputes", task_name: :pending_disputed_transactions_airtable, task_path: link_to_airtable_task(:disputed_transactions) %>
-      <%= react_component "admin_task/Card", human_name: "Feedback", task_name: :pending_feedback_airtable, task_path: link_to_airtable_task(:feedback) %>
-      <%= react_component "admin_task/Card", human_name: "Stickers", task_name: :pending_stickers_airtable, task_path: link_to_airtable_task(:stickers) %>
-      <%= react_component "admin_task/Card", human_name: "Wallets", task_name: :pending_wallets_airtable, task_path: link_to_airtable_task(:wallets) %>
-      <%= react_component "admin_task/Card", human_name: "Hackathons", task_name: :pending_hackathons_airtable, task_path: link_to_airtable_task(:hackathons) %>
-      <%= react_component "admin_task/Card", human_name: "Sticker Mule", task_name: :pending_stickermule_airtable, task_path: link_to_airtable_task(:stickermule) %>
-      <%= react_component "admin_task/Card", human_name: "Sendy", task_name: :pending_sendy_airtable, task_path: link_to_airtable_task(:sendy) %>
-      <%= react_component "admin_task/Card", human_name: "1Password", task_name: :pending_onepassword_airtable, task_path: link_to_airtable_task(:onepassword) %>
-      <%= react_component "admin_task/Card", human_name: "Domains", task_name: :pending_domains_airtable, task_path: link_to_airtable_task(:domains) %>
-      <%= react_component "admin_task/Card", human_name: "PVSA", task_name: :pending_pvsa_airtable, task_path: link_to_airtable_task(:pvsa) %>
-      <%= react_component "admin_task/Card", human_name: "The Event Helper", task_name: :pending_theeventhelper_airtable, task_path: link_to_airtable_task(:theeventhelper) %>
-      <%= react_component "admin_task/Card", human_name: "FIRST Grants", task_name: :pending_first_grant_airtable, task_path: link_to_airtable_task(:first_grant) %>
-    </ul>
-
-    <h2>Information</h2>
-    <ul class="grid left-align w-100 mt0">
-      <%= card_to "Organizations (#{Event.approved.count})", events_admin_index_path %>
-      <%= card_to "Users", users_admin_index_path %>
-      <%= card_to "Pending Ledger (#{CanonicalPendingTransaction.unsettled.count})", pending_ledger_admin_index_path %>
-      <%= card_to "Donations", donations_admin_index_path %>
-      <%= card_to "Recurring donations (#{RecurringDonation.active.count})", recurring_donations_admin_index_path %>
-      <%= card_to "Invoices", invoices_admin_index_path %>
-      <%= card_to "Sponsors", sponsors_admin_index_path %>
-      <%= card_to "Bank Fees (#{BankFee.in_transit_or_pending.count})", bank_fees_admin_index_path %>
-      <%= render partial: "static_pages/card", locals: { task_path: balances_admin_index_path, human_name: "Organization Balances" } %>
-      <%= card_to "Check deposits", check_deposits_admin_index_path %>
-    </ul>
-
-    <h2>Admin Tasks</h2>
-    <ul class="grid left-align w-100 mt0">
-      <%= card_to "Bank Accounts (#{BankAccount.failing.count})", bank_accounts_admin_index_path %>
-      <%= card_to "Raw Transactions (#{RawCsvTransaction.unhashed.count})", raw_transactions_admin_index_path %>
-      <%= card_to "HCB Codes", hcb_codes_admin_index_path %>
-      <%= card_to "Transaction CSVs", transaction_csvs_admin_index_path %>
-    </ul>
-
-    <!--
-    <h2>Partner Tasks</h2>
-    <ul class="grid w-100 mt0 left-align">
-      <%#= card_to "Partners (#{Partner.count})", partners_admin_index_path %>
-      <%#= card_to "Partnered Signups (#{PartneredSignup.applicant_signed.count})", partnered_signups_admin_index_path %>
-      <%#= card_to "Partner Organizations (#{Event.partner.count})", partner_organizations_admin_index_path %>
-      <%#= card_to "Partner Donations (#{PartnerDonation.in_transit.count})", partner_donations_admin_index_path %>
-    </ul>
-    -->
-
-    <h2>Other Tools</h2>
-    <ul class="grid left-align w-100 mt0">
-      <%= render partial: "static_pages/card", locals: { task_path: blazer_path, human_name: "BI tool" } %>
-      <%= render partial: "static_pages/card", locals: { task_path: bank_accounts_path, human_name: "Bank accounts" } %>
-      <%= render partial: "static_pages/card", locals: { task_path: new_bank_account_path, human_name: "Setup HCB" } %>
-      <%= render partial: "static_pages/card", locals: { task_path: common_documents_path, human_name: "Common docs" } %>
-      <%= render partial: "static_pages/card", locals: { task_path: flipper_path, human_name: "Flipper" } %>
-    </ul>
-
-    <details>
-      <summary class="left-align">Information (old)</summary>
-      <ul class="grid left-align w-100 mt0">
-        <%= render partial: "static_pages/card", locals: { task_path: events_path, human_name: "Projects" } %>
-        <%= render partial: "static_pages/card", locals: { task_path: negative_events_path, human_name: "Negative projects" } %>
-        <%= react_component "admin_task/Card", human_name: "Stripe TXs", task_path: stripe_authorizations_path %>
-        <%= render partial: "static_pages/card", locals: { task_path: sponsors_path, human_name: "Sponsors" } %>
-        <%= render partial: "static_pages/card", locals: { task_path: g_suite_accounts_path, human_name: "Google Workspace accounts" } %>
-        <%= react_component "admin_task/Card", human_name: :bookkeeping, task_path: bookkeeping_path %>
-        <%= card_to "Emburse cards", emburse_cards_path %>
-        <%= card_to "Emburse card requests", emburse_card_requests_path %>
-        <%= card_to "Emburse transfers", emburse_transfers_path %>
-        <%= card_to "Emburse transactions", emburse_transactions_path %>
-        <%= render partial: "static_pages/card", locals: { task_path: admin_search_path, human_name: "Search by user" } %>
-        <%= render partial: "static_pages/card", locals: { task_path: "https://hack.af/hcb-knowledgebase", human_name: "Knowledgebase" } %>
-      </ul>
-    </details>
-  <% end %>
+  <%= render partial: "static_pages/admin" %>
 </main>

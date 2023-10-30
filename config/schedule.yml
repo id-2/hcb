@@ -123,3 +123,17 @@ stripe_card_nightly_job:
   class: "StripeCardJob::Nightly"
   queue: "default"
 
+128_collective_fund_distribute_monthly_job:
+  cron: "0 0 1 * *" # run first day of each month
+  class: "DisbursementJob::Distribute128CollectiveFund"
+  queue: "default"
+
+blazer_checks_nightly_job:
+  cron: "0 8 * * *"
+  class: "BlazerChecksJob"
+  args: { schedule: "1 day" }
+
+refresh_hcb_acronym_expansions_job:
+  cron: "*/5 * * * *" # run every 5 minutes
+  class: "RefreshHcbAcronymExpansionsJob"
+  queue: "default"

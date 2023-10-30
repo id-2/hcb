@@ -2,16 +2,16 @@
 
 <% if @event&.is_public %>
   <% content_for :head do %>
-    <% img = "https://bank-og.hackclub.com/api/embeds/#{@event.slug}" %>
+    <% img = "https://hcb-og.hackclub.com/api/embeds/#{@event.slug}" %>
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="og:image" content="<%= img %>">
     <meta name="twitter:image" content="<%= img %>">
-    <meta property="og:site_name" content="Hack Club Bank">
+    <meta property="og:site_name" content="HCB">
     <meta property="og:url" content="<%= event_url(@event) %>">
     <meta property="og:title" content="<%= @event.name %>">
     <meta name="twitter:title" content="<%= @event.name %>">
-    <% description = "#{@event.name}'s finances have been made public on Hack Club Bank so you can see how their money is spent." %>
+    <% description = "#{@event.name}'s finances have been made public on HCB so you can see how their money is spent." %>
     <meta property="og:description" content="<%= description %>">
     <meta name="twitter:description" content="<%= description %>">
     <meta name="description" content="<%= description %>">
@@ -93,13 +93,15 @@
   </div>
 </div>
 
+<%= render "events/public_message" %>
+
 <h2 class="heading">
   Transactions
   <% if organizer_signed_in? && @event.canonical_transactions.exists? %>
     <button
       type="button"
       <%= organizer_signed_in? ? "data-behavior=menu_toggle aria-expanded=false tabindex=0" : "disabled=disabled" %>
-      class="btn bg-info menu__toggle overflow-visible z1">
+      class="btn bg-info menu__toggle overflow-visible z2">
         <%= inline_icon "download", size: 16 %>
         Export
         <% if organizer_signed_in? %>

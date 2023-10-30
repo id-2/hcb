@@ -11,6 +11,8 @@ class EventsController < ApplicationController
   skip_before_action :signed_in_user
   before_action :set_mock_data
 
+  before_action :redirect_to_onboarding, unless: -> { @event&.is_public? }
+
   # GET /events
   def index
     authorize Event
@@ -22,6 +24,13 @@ class EventsController < ApplicationController
   # GET /events/1
   def show
     render_tour @organizer_position, :welcome
+
+    maybe_pending_invite = OrganizerPositionInvite.pending.find_by(user: current_user, event: @event)
+
+    if maybe_pending_invite.present?
+      skip_authorization
+      return redirect_to maybe_pending_invite
+    end
 
     begin
       authorize @event
@@ -112,6 +121,7 @@ class EventsController < ApplicationController
             comments: Array.new(rand(9) > 1 ? 0 : rand(1..2)),
             donation?: !trans[:amount].negative?,
             donation: !trans[:amount].negative? ? nil : OpenStruct.new(recurring?: trans[:monthly]),
+            tags: []
           )
         )
       end
@@ -281,7 +291,7 @@ class EventsController < ApplicationController
   def connect_gofundme
     @event_name = @event.name
     @document_title = "Connect a GoFundMe Campaign"
-    @document_subtitle = "Receive payouts from GoFundMe directly into Hack Club Bank"
+    @document_subtitle = "Receive payouts from GoFundMe directly into HCB"
     @document_image = "https://cloud-jl944nr65-hack-club-bot.vercel.app/004e072bbe1.png"
     authorize @event
   end
@@ -290,7 +300,7 @@ class EventsController < ApplicationController
   def receive_check
     @event_name = @event.name
     @document_title = "Receive Checks"
-    @document_subtitle = "Deposit checks into your Hack Club Bank account"
+    @document_subtitle = "Deposit checks into your HCB account"
     @document_image = "https://cloud-9sk4no7es-hack-club-bot.vercel.app/0slaps-jpg-this-image-can-hold-so-many-pixels.avi.onion.gif.7zip.msw.jpg"
     authorize @event
   end
@@ -299,7 +309,7 @@ class EventsController < ApplicationController
   def sell_merch
     event_name = @event.name
     @document_title = "Sell Merch with Redbubble"
-    @document_subtitle = "Connect your online merch shop to Hack Club Bank"
+    @document_subtitle = "Connect your online merch shop to HCB"
     @document_image = "https://cloud-fodxc88eu-hack-club-bot.vercel.app/0placeholder.png"
     authorize @event
   end
@@ -312,6 +322,7 @@ class EventsController < ApplicationController
     authorize @event
 
     @g_suite = @event.g_suites.first
+    @waitlist_form_submitted = GWaitlistTable.all(filter: "{OrgID} = '#{@event.id}'").any? unless Flipper.enabled?(:google_workspace, @event)
   end
 
   def g_suite_create
@@ -346,16 +357,15 @@ class EventsController < ApplicationController
     relation = @event.donations.not_pending.includes(:recurring_donation)
 
     @stats = {
-      # Amount we already deposited + partial amount that was deposit for in transit transactions
-      deposited: relation.deposited.sum(:amount) + relation.in_transit.sum(&:amount_settled),
-      # Amount in transit minus the amount that is already settled
-      in_transit: relation.in_transit.sum(:amount) - relation.in_transit.sum(&:amount_settled),
-      refunded: relation.refunded.sum(:amount)
+      deposited: relation.where(aasm_state: [:in_transit, :deposited]).sum(:amount),
     }
 
-    relation = relation.in_transit if params[:filter] == "in_transit"
-    relation = relation.deposited if params[:filter] == "deposited"
-    relation = relation.refunded if params[:filter] == "refunded"
+    if params[:filter] == "refunded"
+      relation = relation.refunded
+    else
+      relation = relation.where(aasm_state: [:in_transit, :deposited])
+    end
+
     relation = relation.search_name(params[:q]) if params[:q].present?
 
     @donations = relation.order(created_at: :desc)
@@ -398,6 +408,9 @@ class EventsController < ApplicationController
       @recurring_donations.sort_by! { |invoice| invoice[:created_at] }.reverse!
       @donations.sort_by! { |invoice| invoice[:created_at] }.reverse!
     end
+
+    @recurring_donations_monthly_sum = @recurring_donations.sum(0) { |donation| donation[:amount] }
+
   end
 
   def partner_donation_overview
@@ -444,6 +457,9 @@ class EventsController < ApplicationController
     @checks = @event.checks.includes(:lob_address)
     @increase_checks = @event.increase_checks
     @disbursements = @transfers_enabled ? @event.outgoing_disbursements.includes(:destination_event) : Disbursement.none
+    @card_grants = @event.card_grants.includes(:user, :subledger, :stripe_card)
+
+    @disbursements = @disbursements.not_card_grant_related if Flipper.enabled?(:card_grants_2023_05_25, @event)
 
     @stats = {
       deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @increase_checks.increase_deposited.or(@increase_checks.in_transit).sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum,
@@ -465,6 +481,8 @@ class EventsController < ApplicationController
     @increase_checks = @increase_checks.increase_deposited if params[:filter] == "deposited"
     @increase_checks = @increase_checks.canceled if params[:filter] == "canceled"
 
+    @card_grants = @card_grants.search_recipient(params[:q]) if params[:q].present?
+
     if @transfers_enabled
       @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
       @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
@@ -472,7 +490,7 @@ class EventsController < ApplicationController
       @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
     end
 
-    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
+    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements + @card_grants).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
 
     # Generate mock data
     if helpers.show_mock_data?
@@ -546,6 +564,14 @@ class EventsController < ApplicationController
     redirect_back fallback_location: edit_event_path(@event)
   end
 
+  def remove_background_image
+    authorize @event
+
+    @event.background_image.purge_later
+
+    redirect_back fallback_location: edit_event_path(@event)
+  end
+
   def remove_logo
     authorize @event
 
@@ -576,12 +602,28 @@ class EventsController < ApplicationController
     redirect_to edit_event_path(@event)
   end
 
+  def toggle_event_tag
+    @event_tag = EventTag.find(params[:event_tag_id])
+
+    authorize @event
+    authorize @event_tag
+
+    if @event.event_tags.where(id: @event_tag.id).exists?
+      @event.event_tags.destroy(@event_tag)
+    else
+      @event.event_tags << @event_tag
+    end
+
+    redirect_back fallback_location: edit_event_path(@event, anchor: "admin_organization_tags")
+  end
+
   private
 
   # Only allow a trusted parameter "white list" through.
   def event_params
     result_params = params.require(:event).permit(
       :name,
+      :description,
       :start,
       :end,
       :address,
@@ -593,8 +635,6 @@ class EventsController < ApplicationController
       :emburse_department_id,
       :country,
       :category,
-      :organized_by_hack_clubbers,
-      :organized_by_teenagers,
       :club_airtable_id,
       :point_of_contact_id,
       :slug,
@@ -608,7 +648,10 @@ class EventsController < ApplicationController
       :public_message,
       :custom_css_url,
       :donation_header_image,
-      :logo
+      :logo,
+      :website,
+      :background_image,
+      :stripe_card_shipping_type,
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend
@@ -621,6 +664,7 @@ class EventsController < ApplicationController
 
   def user_event_params
     result_params = params.require(:event).permit(
+      :description,
       :address,
       :slug,
       :hidden,
@@ -634,7 +678,9 @@ class EventsController < ApplicationController
       :public_message,
       :custom_css_url,
       :donation_header_image,
-      :logo
+      :logo,
+      :website,
+      :background_image
     )
 
     # convert whatever the user inputted into something that is a legal slug

@@ -125,6 +125,10 @@ class EventPolicy < ApplicationPolicy
     user_or_admin
   end
 
+  def remove_background_image?
+    user_or_admin
+  end
+
   def remove_logo?
     user_or_admin
   end
@@ -143,6 +147,14 @@ class EventPolicy < ApplicationPolicy
 
   def expiring_cards_badge?
     user_or_admin
+  end
+
+  def toggle_event_tag?
+    user.admin?
+  end
+
+  def receive_grant?
+    record.users.include?(user)
   end
 
   private

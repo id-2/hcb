@@ -21,7 +21,10 @@
 class RawPendingStripeTransaction < ApplicationRecord
   monetize :amount_cents
 
+  has_one :canonical_pending_transaction
+
   scope :reversed, -> { where("stripe_transaction->>'status' = 'reversed'") }
+  scope :pending, -> { where("stripe_transaction->>'status' = 'pending'") }
 
   def date
     date_posted

@@ -23,7 +23,7 @@ module TransactionGroupingEngine
 
         # Query for CanonicalTransactions associated with hcb_codes because this can be the superset of
         # canonical_transactions associated with @transactions due to pagination
-        # https://github.com/hackclub/bank/pull/2453#discussion_r848110917
+        # https://github.com/hackclub/hcb/pull/2453#discussion_r848110917
         # However, we still need to OR with CanonicalTransactions by id because hcb codes are lazily attached
         # If hcb codes are ever eagerly attached to CanonicalTransactions instead, we can remove the OR
         canonical_transactions = CanonicalTransaction
@@ -48,8 +48,11 @@ module TransactionGroupingEngine
                                                           .where(canonical_hashed_mappings: { canonical_transaction_id: canonical_transaction_ids })
                                                           .group_by { |ht| ht.canonical_hashed_mapping.canonical_transaction_id }
 
+        raw_stripe_transactions_by_id = RawStripeTransaction.find(canonical_transactions.where(transaction_source_type: RawStripeTransaction.name).pluck(:transaction_source_id)).index_by(&:id)
+
         canonical_transactions.each do |ct|
           ct.fee_payment = hack_club_fees_by_canonical_transaction_id[ct.id].present?
+          ct.raw_stripe_transaction = raw_stripe_transactions_by_id[ct.transaction_source_id] if ct.transaction_source_type == "RawStripeTransaction"
 
           hashed_transactions = hashed_transactions_by_canonical_transaction_id[ct.id]
           Airbrake.notify("There was more (or less) than 1 hashed_transaction for canonical_transaction: #{ct.id}") if hashed_transactions.length != 1

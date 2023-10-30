@@ -20,7 +20,7 @@ class StripeController < ApplicationController
     rescue NoMethodError => e
       puts e
       notify_airbrake(e)
-      head 200 # success so that stripe doesn't retry (method is unsupported by Bank)
+      head 200 # success so that stripe doesn't retry (method is unsupported by HCB)
       return
     rescue Stripe::SignatureVerificationError
       head 400
@@ -43,22 +43,8 @@ class StripeController < ApplicationController
   def handle_issuing_authorization_created(event)
     auth_id = event[:data][:object][:id]
 
-    # DEPRECATED: put the transaction on the v1 ledger
-    ::StripeAuthorizationJob::Deprecated::CreateFromWebhook.perform_later(auth_id)
-
     # put the transaction on the pending ledger in almost realtime
     ::StripeAuthorizationJob::CreateFromWebhook.perform_later(auth_id)
-
-    head 200
-  end
-
-  def handle_issuing_authorization_updated(event)
-    # This is to listen for edge-cases like multi-capture TXs
-    # https://stripe.com/docs/issuing/purchases/transactions
-    auth = event[:data][:object]
-    sa = StripeAuthorization.find_or_initialize_by(stripe_id: auth[:id])
-    sa.sync_from_stripe!
-    sa.save
 
     head 200
   end
@@ -196,8 +182,6 @@ class StripeController < ApplicationController
     )
     donation.set_fields_from_stripe_payment_intent(pi)
     donation.save!
-
-    DonationService::Queue.new(donation_id: donation.id).run # queues/crons payout. DEPRECATE. most is unnecessary if we just run in a cron
 
     donation.send_receipt!
 

@@ -196,11 +196,11 @@ module ApplicationHelper
   end
 
   def help_message
-    content_tag :span, "Contact the Bank team at #{help_email}.".html_safe
+    content_tag :span, "Contact the HCB team at #{help_email}.".html_safe
   end
 
   def help_email
-    mail_to "bank@hackclub.com"
+    mail_to "hcb@hackclub.com"
   end
 
   def format_date(date)
@@ -336,15 +336,9 @@ module ApplicationHelper
     "https://airtable.com/#{id}?#{URI.encode_www_form(query)}"
   end
 
-  def fillout_form(id, params = {}, hide = [])
-    query = {}
-    params.each do |key, value|
-      query["prefill_#{key}"] = value
-    end
-    hide.each do |field|
-      query["hide_#{field}"] = "true"
-    end
-
+  def fillout_form(id, params = {}, prefix: "")
+    query = params.transform_keys { |k| prefix + k }
     "https://forms.hackclub.com/t/#{id}?#{URI.encode_www_form(query)}"
   end
+
 end

@@ -121,7 +121,8 @@ class InvoicesController < ApplicationController
       sponsor_address_line2: sponsor_attrs[:address_line2],
       sponsor_address_city: sponsor_attrs[:address_city],
       sponsor_address_state: sponsor_attrs[:address_state],
-      sponsor_address_postal_code: sponsor_attrs[:address_postal_code]
+      sponsor_address_postal_code: sponsor_attrs[:address_postal_code],
+      sponsor_address_country: sponsor_attrs[:address_country]
     ).run
 
     flash[:success] = "Invoice successfully created and emailed to #{@invoice.sponsor.contact_email}."
@@ -175,6 +176,28 @@ class InvoicesController < ApplicationController
       flash[:error] = "Something went wrong while trying to archive this invoice!"
       redirect_to @invoice
     end
+  end
+
+  def hosted
+    @invoice = Invoice.find(params[:invoice_id])
+
+    authorize @invoice
+
+    @invoice.sync_remote!
+    @invoice.reload
+
+    redirect_to @invoice.hosted_invoice_url, allow_other_host: true
+  end
+
+  def pdf
+    @invoice = Invoice.find(params[:invoice_id])
+
+    authorize @invoice
+
+    @invoice.sync_remote!
+    @invoice.reload
+
+    redirect_to @invoice.invoice_pdf, allow_other_host: true
   end
 
   private

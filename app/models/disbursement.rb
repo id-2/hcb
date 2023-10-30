@@ -20,6 +20,7 @@
 #  fulfilled_by_id          :bigint
 #  requested_by_id          :bigint
 #  source_event_id          :bigint
+#  source_subledger_id      :bigint
 #
 # Indexes
 #
@@ -28,6 +29,7 @@
 #  index_disbursements_on_fulfilled_by_id           (fulfilled_by_id)
 #  index_disbursements_on_requested_by_id           (requested_by_id)
 #  index_disbursements_on_source_event_id           (source_event_id)
+#  index_disbursements_on_source_subledger_id       (source_subledger_id)
 #
 # Foreign Keys
 #
@@ -54,6 +56,7 @@ class Disbursement < ApplicationRecord
   belongs_to :destination_event, foreign_key: "event_id", class_name: "Event", inverse_of: "incoming_disbursements"
   belongs_to :source_event, class_name: "Event", inverse_of: "outgoing_disbursements"
   belongs_to :event
+  belongs_to :source_subledger, class_name: "Subledger", optional: true
   belongs_to :destination_subledger, class_name: "Subledger", optional: true
 
   has_one :raw_pending_incoming_disbursement_transaction
@@ -76,10 +79,12 @@ class Disbursement < ApplicationRecord
   scope :fulfilled, -> { deposited }
   scope :reviewing_or_processing, -> { where(aasm_state: [:reviewing, :pending, :in_transit]) }
 
+  scope :not_card_grant_related, -> { left_joins(source_subledger: :card_grant, destination_subledger: :card_grant).where("card_grants.id IS NULL AND card_grants_subledgers.id IS NULL") }
+
   SPECIAL_APPEARANCES = {
     hackathon_grant: {
       title: "Hackathon grant",
-      memo: "💰 Grant from Hack Club and FIRST®",
+      memo: "💰 Hackathon grant from Hack Club",
       css_class: "transaction--fancy",
       icon: "purse",
       qualifier: ->(d) { d.source_event_id == EventMappingEngine::EventIds::HACKATHON_GRANT_FUND }
@@ -269,7 +274,7 @@ class Disbursement < ApplicationRecord
   private
 
   def events_are_different
-    self.errors.add(:event, "must be different than source event") if event_id == source_event_id && destination_subledger_id.nil?
+    self.errors.add(:event, "must be different than source event") if event_id == source_event_id && destination_subledger_id == source_subledger_id
   end
 
   def events_are_not_demos

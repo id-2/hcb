@@ -16,6 +16,7 @@
 #  deleted_at                      :datetime
 #  demo_mode                       :boolean          default(FALSE), not null
 #  demo_mode_request_meeting_at    :datetime
+#  description                     :text
 #  donation_page_enabled           :boolean          default(TRUE)
 #  donation_page_message           :text
 #  end                             :datetime
@@ -29,8 +30,6 @@
 #  name                            :text
 #  omit_stats                      :boolean          default(FALSE)
 #  organization_identifier         :string           not null
-#  organized_by_hack_clubbers      :boolean
-#  organized_by_teenagers          :boolean          default(FALSE), not null
 #  owner_address                   :string
 #  owner_birthdate                 :date
 #  owner_email                     :string
@@ -42,14 +41,16 @@
 #  slug                            :text
 #  sponsorship_fee                 :decimal(, )
 #  start                           :datetime
+#  stripe_card_shipping_type       :integer          default("standard"), not null
 #  transaction_engine_v2_at        :datetime
 #  webhook_url                     :string
+#  website                         :string
 #  created_at                      :datetime         not null
 #  updated_at                      :datetime         not null
 #  club_airtable_id                :text
 #  emburse_department_id           :string
 #  increase_account_id             :string           not null
-#  partner_id                      :bigint           not null
+#  partner_id                      :bigint
 #  point_of_contact_id             :bigint
 #
 # Indexes
@@ -105,8 +106,10 @@ class Event < ApplicationRecord
       .references(:canonical_transaction)
   }
   scope :not_funded, -> { where.not(id: funded) }
-  scope :organized_by_hack_clubbers, -> { where(organized_by_hack_clubbers: true) }
-  scope :not_organized_by_hack_clubbers, -> { where.not(organized_by_hack_clubbers: true) }
+  scope :organized_by_hack_clubbers, -> { includes(:event_tags).where(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }) }
+  scope :not_organized_by_hack_clubbers, -> { includes(:event_tags).where.not(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }).or(includes(:event_tags).where(event_tags: { name: nil })) }
+  scope :organized_by_teenagers, -> { includes(:event_tags).where(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }) }
+  scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(includes(:event_tags).where(event_tags: { name: nil })) }
   scope :event_ids_with_pending_fees_greater_than_100, -> do
     query = <<~SQL
       ;select event_id, fee_balance from (
@@ -231,8 +234,8 @@ class Event < ApplicationRecord
     state :rejected # Rejected from fiscal sponsorship
 
     # DEPRECATED
-    state :awaiting_connect # Initial state of partner events. Waiting for user to fill out Bank Connect form
-    state :pending # Awaiting Bank approval (after filling out Bank Connect form)
+    state :awaiting_connect # Initial state of partner events. Waiting for user to fill out HCB Connect form
+    state :pending # Awaiting HCB approval (after filling out HCB Connect form)
     state :unapproved # Old spend only events. Deprecated, should not be granted to any new events
 
     event :mark_pending do
@@ -300,6 +303,7 @@ class Event < ApplicationRecord
   has_many :bank_fees
 
   has_many :tags, -> { includes(:hcb_codes) }
+  has_and_belongs_to_many :event_tags
 
   has_many :check_deposits
 
@@ -316,6 +320,7 @@ class Event < ApplicationRecord
   has_many :grants
 
   has_one_attached :donation_header_image
+  has_one_attached :background_image
   has_one_attached :logo
 
   validate :point_of_contact_is_admin
@@ -326,10 +331,15 @@ class Event < ApplicationRecord
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
   validates :name, :sponsorship_fee, :organization_identifier, presence: true
+  validates :description, length: { maximum: 250 }
   validates :slug, presence: true, format: { without: /\s/ }
   validates_uniqueness_of_without_deleted :slug
 
   after_save :update_slug_history
+
+  validates :website, format: URI::DEFAULT_PARSER.make_regexp(%w[http https]), if: -> { website.present? }
+
+  validates :sponsorship_fee, numericality: { in: 0..0.5, message: "must be between 0 and 0.5" }
 
   before_create { self.increase_account_id ||= IncreaseService::AccountIds::FS_MAIN }
 
@@ -365,6 +375,13 @@ class Event < ApplicationRecord
     'outernet guild': 8, # summer event 2023
     'grant recipient': 9,
     salary: 10, # e.g. Sam's Shillings
+    ai: 11,
+  }
+
+  enum stripe_card_shipping_type: {
+    standard: 0,
+    express: 1,
+    priority: 2,
   }
 
   def country_us?
@@ -381,12 +398,14 @@ class Event < ApplicationRecord
   end
 
   def admin_dropdown_description
-    desc = "#{name} - #{id}"
+    "#{name} - #{id}"
 
-    badges = BADGES.map { |_, badge| send(badge[:qualifier]) ? badge[:emoji] : nil }.compact
-    desc += " [#{badges.join(' ')}]" if badges.any?
+    # Causing n+1 queries on admin pages with an event dropdown
 
-    desc
+    # badges = BADGES.map { |_, badge| send(badge[:qualifier]) ? badge[:emoji] : nil }.compact
+    # desc += " [#{badges.join(' ')}]" if badges.any?
+
+    # desc
   end
 
   def disbursement_dropdown_description
@@ -418,7 +437,11 @@ class Event < ApplicationRecord
   end
 
   def total_raised
-    settled_incoming_balance_cents
+    balance = settled_incoming_balance_cents
+    if can_front_balance?
+      balance += fronted_incoming_balance_v2_cents
+    end
+    balance
   end
 
   def balance_v2_cents(start_date: nil, end_date: nil)
@@ -520,32 +543,13 @@ class Event < ApplicationRecord
     @balance_available_v2_cents ||= balance_v2_cents - (can_front_balance? ? fronted_fee_balance_v2_cents : fee_balance_v2_cents)
   end
 
-  def balance
-    return balance_v2_cents if transaction_engine_v2_at.present?
+  alias balance balance_v2_cents
 
-    bank_balance = transactions.sum(:amount)
-    stripe_balance = -stripe_authorizations.approved.sum(:amount)
-
-    bank_balance + stripe_balance
-  end
-
-  # used for emburse transfers, this is the amount of money available that
-  # isn't being transferred out by an emburse_transfer or isn't going to be
-  # pulled out via fee -tmb@hackclub
-  def balance_available
-    return balance_available_v2_cents if transaction_engine_v2_at.present?
-
-    emburse_transfer_pending = (emburse_transfers.under_review + emburse_transfers.pending).sum(&:load_amount)
-    balance - emburse_transfer_pending - fee_balance
-  end
-
+  # used for events with a pending ledger, this is the amount of money available
+  # that isn't being transferred out by upcoming/floating transactions such as
+  # pending fees or checks awaiting deposit -tmb@hackclub
+  alias balance_available balance_available_v2_cents
   alias available_balance balance_available
-
-  def fee_balance
-    return fee_balance_v2_cents if transaction_engine_v2_at.present?
-
-    @fee_balance ||= total_fees - total_fee_payments
-  end
 
   # `fee_balance_v2_cents`, but it includes fees on fronted (unsettled) transactions to prevent overspending before fees are charged
   def fronted_fee_balance_v2_cents
@@ -559,13 +563,15 @@ class Event < ApplicationRecord
                            .sum(&:fronted_amount)
 
     # TODO: make sure this has the same rounding error has the rest of the codebase
-    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee)
+    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee).ceil
   end
 
   # This intentionally does not include fees on fronted transactions to make sure they aren't actually charged
   def fee_balance_v2_cents
     @fee_balance_v2_cents ||= total_fees_v2_cents - total_fee_payments_v2_cents
   end
+
+  alias fee_balance fee_balance_v2_cents
 
   # amount of balance that fees haven't been pulled out for
   def balance_not_feed
@@ -639,6 +645,18 @@ class Event < ApplicationRecord
     (increase_account_number || create_increase_account_number)&.routing_number || "•••••••••"
   end
 
+  def increase_account_number_id
+    (increase_account_number || create_increase_account_number).increase_account_number_id
+  end
+
+  def organized_by_hack_clubbers?
+    event_tags.where(name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS).exists?
+  end
+
+  def organized_by_teenagers?
+    event_tags.where(name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS]).exists?
+  end
+
   private
 
   def min_waiting_time_between_fees
@@ -650,15 +668,6 @@ class Event < ApplicationRecord
     return if point_of_contact&.admin_override_pretend?
 
     errors.add(:point_of_contact, "must be an admin")
-  end
-
-  def total_fees
-    @total_fees ||= transactions.joins(:fee_relationship).where(fee_relationships: { fee_applies: true }).sum("fee_relationships.fee_amount")
-  end
-
-  # fee payments are withdrawals, so negate value
-  def total_fee_payments
-    @total_fee_payments ||= -transactions.joins(:fee_relationship).where(fee_relationships: { is_fee_payment: true }).sum(:amount)
   end
 
   def total_fee_payments_v2_cents

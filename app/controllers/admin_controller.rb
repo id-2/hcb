@@ -293,6 +293,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
     @q = params[:q].present? ? params[:q] : nil
+    @access_level = params[:access_level]
     @event_id = params[:event_id].present? ? params[:event_id] : nil
 
     if @event_id
@@ -304,10 +305,24 @@ class AdminController < ApplicationController
     end
 
     relation = relation.search_name(@q) if @q
+    relation = relation.where(access_level: @access_level) if @access_level.present?
 
     @count = relation.count
 
     @users = relation.page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
+  def stripe_cards
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+
+    @q = params[:q].presence
+
+    @cards = StripeCard.includes(stripe_cardholder: :user).page(@page).per(@per).order("stripe_cards.created_at desc")
+
+    @cards = @cards.joins(stripe_cardholder: :user).where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.last4 ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
 
     render layout: "admin"
   end
@@ -373,9 +388,8 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.match /\A\d+(\.\d{1,2})?\z/
         @q = Monetize.parse(@q).cents
-
         relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
       else
         case @q.delete(" ")
@@ -676,6 +690,8 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
+    @ip_address = params[:ip_address].present? ? params[:ip_address] : nil
+    @user_agent = params[:user_agent].present? ? params[:user_agent] : nil
     @deposited = params[:deposited] == "1" ? true : nil
     @in_transit = params[:in_transit] == "1" ? true : nil
     @failed = params[:failed] == "1" ? true : nil
@@ -702,6 +718,8 @@ class AdminController < ApplicationController
       end
     end
 
+    relation = relation.where(ip_address: @ip_address) if @ip_address
+    relation = relation.where("user_agent ILIKE ?", "%#{Donation.sanitize_sql_like(@user_agent)}%") if @user_agent
     relation = relation.deposited if @deposited
     relation = relation.in_transit if @in_transit
     relation = relation.failed if @failed
@@ -1140,11 +1158,11 @@ class AdminController < ApplicationController
     relation = relation.funded if @funded == "funded"
     relation = relation.not_funded if @funded == "not_funded"
     relation = relation.organized_by_hack_clubbers if @organized_by == "hack_clubbers"
-    relation = relation.where(organized_by_teenagers: true).or(relation.where(organized_by_hack_clubbers: true)) if @organized_by == "teenagers"
-    relation = relation.where.not(organized_by_hack_clubbers: true).and(relation.where.not(organized_by_teenagers: true)) if @organized_by == "adults"
+    relation = relation.organized_by_teenagers if @organized_by == "teenagers"
+    relation = relation.not_organized_by_teenagers if @organized_by == "adults"
     relation = relation.demo_mode if @demo_mode == "demo"
     relation = relation.not_demo_mode if @demo_mode == "full"
-    relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date).group("events.id") if @activity_since_date.present?
+    relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date) if @activity_since_date.present?
     if @category == "none"
       relation = relation.where(category: nil)
     elsif @category != "all"
@@ -1169,14 +1187,25 @@ class AdminController < ApplicationController
 
   def airtable_task_size(task_name)
     info = airtable_info[task_name]
-    res = HTTParty.get info[:url], query: { select: info[:query].to_json }
-    case res.code
-    when 200..399
-      tasks = JSON.parse res.body
-      tasks.size
-    else # not successful
-      return 9999 # return something invalidly high to get the ops team to report it
-    end
+    task = Faraday
+           .new { |c| c.response :json }
+           .get(info[:url], { select: info[:query].to_json })
+           .body
+
+    task.size
+  rescue Faraday::Error
+    9999 # return something invalidly high to get the ops team to report it
+  end
+
+  def hackathons_task_size
+    hackathons = Faraday
+                 .new { |c| c.response :json }
+                 .get("https://dash.hackathons.hackclub.com/api/v1/stats/hackathons")
+                 .body
+
+    hackathons.dig("status", "pending", "meta", "count")
+  rescue Faraday::Error
+    9999
   end
 
   def pending_task(task_name)
@@ -1184,7 +1213,7 @@ class AdminController < ApplicationController
     @pending_tasks[task_name] ||= begin
       case task_name
       when :pending_hackathons_airtable
-        airtable_task_size :hackathons
+        hackathons_task_size
       when :pending_grant_airtable
         airtable_task_size :grant
       when :pending_bank_applications_airtable
@@ -1219,6 +1248,8 @@ class AdminController < ApplicationController
         airtable_task_size :disputed_transactions
       when :pending_feedback_airtable
         airtable_task_size :feedback
+      when :pending_google_workspace_waitlist_airtable
+        airtable_task_size :google_workspace_waitlist
       when :emburse_card_requests
         EmburseCardRequest.under_review.size
       when :emburse_transactions

@@ -16,6 +16,9 @@ class StaticPagesController < ApplicationController
       @invites = @service.invites
 
       @show_event_reorder_tip = current_user.organizer_positions.where.not(sort_index: nil).none?
+
+      @hcb_expansion = Rails.cache.read("hcb_acronym_expansions")&.sample || "Hack Club Buckaroos"
+
     end
     if admin_signed_in?
       @transaction_volume = CanonicalTransaction.included_in_stats.sum("@amount_cents")
@@ -30,8 +33,8 @@ class StaticPagesController < ApplicationController
       { name: "Outlined White", criteria: "For black or dark colored backgrounds.", background: "black" }
     ]
     @icons = [
-      { name: "Icon Original", criteria: "The original Hack Club Bank logo.", background: "smoke" },
-      { name: "Icon Dark", criteria: "Hack Club Bank logo in dark mode.", background: "black" }
+      { name: "Icon Original", criteria: "The original HCB logo.", background: "smoke" },
+      { name: "Icon Dark", criteria: "HCB logo in dark mode.", background: "black" }
     ]
     @event_name = signed_in? && current_user.events.first&.name || "Hack Pennsylvania"
     @event_slug = signed_in? && current_user.events.first&.slug || "hack-pennsylvania"

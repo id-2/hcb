@@ -47,15 +47,11 @@ Rails.application.routes.draw do
     get "settings/previews", to: "users#edit_featurepreviews"
     get "settings/security", to: "users#edit_security"
     get "settings/admin", to: "users#edit_admin"
-    resources :stripe_authorizations, only: [:index, :show], path: "transactions" do
-      resources :comments
-    end
     get "inbox", to: "static_pages#my_inbox", as: :my_inbox
     post "receipts/upload", to: "static_pages#receipt", as: :my_receipts_upload
     get "missing_receipts", to: "static_pages#my_missing_receipts_list", as: :my_missing_receipts_list
     get "missing_receipts_icon", to: "static_pages#my_missing_receipts_icon", as: :my_missing_receipts_icon
     get "receipts", to: redirect("/my/inbox")
-    get "receipts/:id", to: "stripe_authorizations#receipt", as: :my_receipt
 
     post "receipt_report", to: "users#receipt_report", as: :trigger_receipt_report
 
@@ -157,6 +153,7 @@ Rails.application.routes.draw do
       get "raw_transaction_new", to: "admin#raw_transaction_new"
       post "raw_transaction_create", to: "admin#raw_transaction_create"
       get "ledger", to: "admin#ledger"
+      get "stripe_cards", to: "admin#stripe_cards"
       get "pending_ledger", to: "admin#pending_ledger"
       get "ach", to: "admin#ach"
       get "check", to: "admin#check"
@@ -182,6 +179,7 @@ Rails.application.routes.draw do
         post "approve"
         post "additional_info_needed"
         post "reject"
+        post "mark_fulfilled"
       end
     end
 
@@ -258,12 +256,11 @@ Rails.application.routes.draw do
     post "manually_mark_as_paid"
     post "archive"
     post "unarchive"
+    get "hosted"
+    get "pdf"
     resources :comments
   end
 
-  resources :stripe_authorizations, only: [:show, :index] do
-    resources :comments
-  end
   resources :stripe_cardholders, only: [:new, :create, :update]
   resources :stripe_cards, only: %i[create index show] do
     get "edit"
@@ -297,6 +294,9 @@ Rails.application.routes.draw do
   resources :ach_transfers, only: [:show] do
     member do
       post "cancel"
+    end
+    collection do
+      post "validate_routing_number"
     end
     resources :comments
   end
@@ -430,6 +430,10 @@ Rails.application.routes.draw do
     end
   end
 
+  use_doorkeeper scope: "api/v4/oauth" do
+    skip_controllers :applications, :authorized_applications
+  end
+
   namespace :api do
     get "v2/login", to: "v2#login"
 
@@ -442,6 +446,46 @@ Rails.application.routes.draw do
     post "v2/partnered_signups/new", to: "v2#partnered_signups_new"
     get "v2/partnered_signups", to: "v2#partnered_signups"
     get "v2/partnered_signup/:public_id", to: "v2#partnered_signup", as: :v2_partnered_signup
+
+    namespace :v4 do
+      defaults format: :json do
+        resource :user do
+          resources :events, path: "organizations", only: [:index]
+          resources :stripe_cards, path: "cards", only: [:index]
+          resources :invitations, only: [:index, :show] do
+            member do
+              post "accept"
+              post "reject"
+            end
+          end
+
+          get "transactions/missing_receipt", to: "transactions#missing_receipt"
+        end
+
+        resources :events, path: "organizations", only: [:show] do
+          resources :stripe_cards, path: "cards", only: [:index]
+          resources :transactions, only: [:show, :update] do
+            resources :receipts, only: [:create, :index]
+
+            member do
+              get "memo_suggestions"
+            end
+          end
+
+          member do
+            get "transactions"
+          end
+        end
+
+        resources :stripe_cards, path: "cards", only: [:show, :update] do
+          member do
+            get "transactions"
+          end
+        end
+
+        match "*path" => "application#not_found", via: [:get, :post]
+      end
+    end
   end
 
   get "partnered_signups/:public_id", to: "partnered_signups#edit", as: :edit_partnered_signups
@@ -503,6 +547,7 @@ Rails.application.routes.draw do
     put "toggle_hidden", to: "events#toggle_hidden"
 
     post "remove_header_image"
+    post "remove_background_image"
     post "remove_logo"
 
     get "team", to: "events#team", as: :team
@@ -540,10 +585,8 @@ Rails.application.routes.draw do
     resources :documents, only: [:index]
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
     resources :invoices, only: [:new, :create, :index]
-    resources :stripe_authorizations, only: [:show] do
-      resources :comments
-    end
     resources :tags, only: [:create, :destroy]
+    resources :event_tags, only: [:create, :destroy]
 
     resources :recurring_donations, only: [:create], path: "recurring" do
       member do
@@ -554,7 +597,11 @@ Rails.application.routes.draw do
 
     resources :check_deposits, only: [:index, :create], path: "check-deposits"
 
-    resources :card_grants, only: [:new, :create], path: "card-grants"
+    resources :card_grants, only: [:new, :create], path: "card-grants" do
+      member do
+        post "cancel"
+      end
+    end
 
     resources :grants, only: [:index, :new, :create]
 
@@ -564,6 +611,7 @@ Rails.application.routes.draw do
       post "test_ach_payment"
       get "account-number", to: "events#account_number"
       get "expiring_cards_badge"
+      post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
     end
   end
 

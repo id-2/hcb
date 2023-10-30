@@ -3,9 +3,10 @@
 FactoryBot.define do
   factory :user do
     email { Faker::Internet.email }
+    full_name { Faker::Name.name }
 
     trait :make_admin do
-      admin_at { Time.zone.now }
+      access_level { :admin }
     end
   end
 end

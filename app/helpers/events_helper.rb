@@ -10,10 +10,10 @@ module EventsHelper
     ) do
       (content_tag :div, class: "line-height-0 relative" do
         if async_badge
-          inline_icon(icon, size: 32, class: "primary") +
+          inline_icon(icon, size: 32) +
           turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" })
         else
-          inline_icon(icon, size: 32, class: "primary")
+          inline_icon(icon, size: 32)
         end
       end) + content_tag(:span, name.html_safe, class: "line-height-3")
     end
@@ -47,5 +47,13 @@ module EventsHelper
     prefill << "prefill_Submitter+Email=#{CGI.escape(user.email)}" if user
 
     (embed ? embed_url : url) + "?" + prefill.join("&")
+  end
+
+  def transaction_memo(tx) # needed to handle mock data in playground mode
+    if tx.local_hcb_code.method(:memo).parameters.size == 0
+      tx.local_hcb_code.memo
+    else
+      tx.local_hcb_code.memo(event: @event)
+    end
   end
 end

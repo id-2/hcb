@@ -85,7 +85,8 @@
         <% if @sponsor.address_line2.present? %>
           <%= @sponsor.address_line2 %><br>
         <% end %>
-        <%= @sponsor.address_city %>, <%= @sponsor.address_state %> <%= @sponsor.address_postal_code %>
+        <%= @sponsor.address_city %>, <%= @sponsor.address_state %> <%= @sponsor.address_postal_code %> <br>
+        <%= get_country_name_from_alpha2(@sponsor.address_country) %>
         </span>
       <% else %>
         <span><strong>Sign in to view</strong></span>
@@ -120,14 +121,14 @@
 
   <section class="card__banner border-top flex flex-wrap">
     <div class="btn-group mr-auto">
-    <%= link_to organizer_signed_in? ? @invoice.hosted_invoice_url : root_path,
+    <%= link_to organizer_signed_in? ? invoice_hosted_path(@invoice.hashid) : root_path,
       disabled: !organizer_signed_in?,
       class: "btn bg-accent mr1",
       target: "_blank" do %>
       <%= inline_icon "external" %>
       View sent invoice
     <% end %>
-    <%= link_to organizer_signed_in? ? @invoice.invoice_pdf : root_path,
+    <%= link_to organizer_signed_in? ? invoice_pdf_path(@invoice.hashid) : root_path,
       disabled: !organizer_signed_in?,
       class: "btn bg-info mr1",
       target: "_blank" do %>
@@ -225,7 +226,7 @@
             +<%= invoice_payment_processor_fee %>
             <span class="muted">
               <% "Pending " unless @invoice&.fee_reimbursement&.t_transaction %>
-              (<%= link_to "learn more", "https://headwayapp.co/bank-changelog/we're-making-payment-processing-fees-disappear-101088" %>)
+              (<%= link_to "learn more", "https://changelog.hcb.hackclub.com/we're-making-payment-processing-fees-disappear-101088" %>)
             </span>
           </span>
         </p>
@@ -238,7 +239,7 @@
         <section class="card__banner card__darker secondary border-top">
           <p class="my0 italic">
             The funds from this invoice payment are immediately reflected in your account balance.
-            (<a href="https://changelog.bank.hackclub.com/instant-deposits-238700">learn more</a>)
+            (<a href="https://changelog.hcb.hackclub.com/instant-deposits-238700">learn more</a>)
           </p>
         </section>
       <% end %>

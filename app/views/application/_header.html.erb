@@ -10,7 +10,7 @@
       <%= inline_icon "moon-fill", size: home_action_size, style: "display: none;" %>
     </action>
     <% if signed_in? %>
-      <div class="ml2 relative muted pointer tooltipped tooltipped--s" aria-label="See what’s new in Bank" id="changelog-icon">
+      <div class="ml2 relative muted pointer tooltipped tooltipped--s" aria-label="See what’s new with HCB" id="changelog-icon">
         <%= inline_icon "rep", size: home_action_size %>
       </div>
     <% end %>
@@ -20,17 +20,17 @@
     <%= link_to root_path,
       class: "header-center text-decoration-none flex items-center #{'tooltipped tooltipped--s' if !Rails.env.production? || user_birthday?}",
       'aria-label': user_birthday? ? "Happy birthday! #{['🎂', '🎈', '🎉', '🥳'].sample}" : "You’re in #{Rails.env} mode. #{development_mode_flavor}",
-      data: { "controller" => "fullstory #{"ar" if current_page?(auth_users_path)}", "fullstory-event-name-value" => "Icon right-clicked", "ar-usdz-href-value" => "/bank.usdz", "action" => "contextmenu->menu#toggle contextmenu->fullstory#event click@document->menu#close keydown@document->menu#keydown", "menu-target" => "toggle" } do %>
-      <%= image_tag user_birthday? ? "logo-party-dark.gif" : by_season("logo-#{Rails.env}-dark.svg", fall: "https://cloud-qmskqc293-hack-club-bot.vercel.app/0bank-pumpkin.png"),
+      data: { "controller" => "analytics #{"ar" if current_page?(auth_users_path)}", "analytics-event-name-value" => "Icon right-clicked", "ar-usdz-href-value" => "/bank.usdz", "action" => "contextmenu->menu#toggle contextmenu->analytics#track click@document->menu#close keydown@document->menu#keydown", "menu-target" => "toggle" } do %>
+      <%= image_tag user_birthday? ? "logo-party-dark.gif" : by_season("logo-#{Rails.env}-dark.png", fall: "https://cloud-qmskqc293-hack-club-bot.vercel.app/0bank-pumpkin.png"),
           name: "header-logo",
           class: "logo-dark",
           height: @home_size || 36,
-          alt: "Bank logo" %>
-      <%= image_tag user_birthday? ? "logo-party.gif" : by_season("logo-#{Rails.env}.svg", fall: "https://cloud-qmskqc293-hack-club-bot.vercel.app/0bank-pumpkin.png"),
+          alt: "HCB logo" %>
+      <%= image_tag user_birthday? ? "logo-party.gif" : by_season("logo-#{Rails.env}.png", fall: "https://cloud-qmskqc293-hack-club-bot.vercel.app/0bank-pumpkin.png"),
           name: "header-logo",
           class: "logo",
           height: @home_size || 36,
-          alt: "Bank logo" %>
+          alt: "HCB logo" %>
     <% end %>
 
     <div data-menu-target="content" class="menu__content menu__content--2 menu__content--compact">
@@ -52,6 +52,10 @@
       <a href="/branding">Brand guidelines</a>
       <div class="menu__divider"></div>
       <a href="/" target="_blank">Open link in new tab</a>
+      <% if current_user&.admin_override_pretend? %>
+        <div class="menu__divider"></div>
+        <%= button_to "#{"✔ " if current_user.pretend_is_not_admin}Pretend not to be an admin", user_path(current_user), method: :patch, params: { pretend_is_not_admin: !current_user.pretend_is_not_admin }, class: "menu__action admin-tools" %>
+      <% end %>
     </div>
   </div>
 

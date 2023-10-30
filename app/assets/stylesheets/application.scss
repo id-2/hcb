@@ -38,6 +38,7 @@ body {
 h1,
 h2,
 h3,
+h4,
 .heading,
 .stat__value,
 .brand-sans {
@@ -197,6 +198,7 @@ summary {
 @import 'components/details';
 @import 'components/dock';
 @import 'components/donations';
+@import 'components/donation_qr_codes';
 @import 'components/filters';
 @import 'components/forms';
 @import 'components/header';
@@ -284,6 +286,10 @@ summary {
 .memo-frame[busy] .memo-frame__ai-button {
   opacity: 0.5;
   pointer-events: none;
+}
+
+.embedded .embedded-display-none {
+  display: none;
 }
 
 @keyframes flying-spook {
