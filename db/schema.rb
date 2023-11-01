@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_29_211935) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1674,7 +1674,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_16_153904) do
     t.datetime "updated_at", precision: nil, null: false
     t.text "email"
     t.string "full_name"
-    t.text "phone_number"
+    t.text "phone_number", unique: true
     t.datetime "admin_at", precision: nil
     t.string "slug"
     t.boolean "pretend_is_not_admin", default: false, null: false
