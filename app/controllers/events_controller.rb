@@ -150,37 +150,24 @@ class EventsController < ApplicationController
 
     TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
 
-    date_balance_pairs = []
-
-
-    # Initialize the initial_subtotal and running_total
-    @date_balance_hash = {}
-
-    # Initialize the initial_subtotal and running_total
+    @balance_by_date = {}
     initial_subtotal = 0
     running_total = 0
 
     @all_transactions.reverse.each do |transaction|
       running_total += (transaction.amount * 100).to_i
-      @date_balance_hash[transaction.date] = running_total
+      @balance_by_date[transaction.date] = running_total
     end
 
-    first_date = @date_balance_hash.keys.min.to_date
-    last_date = @date_balance_hash.keys.max.to_date
-
-    # Generate a range of dates between the first and last date
+    first_date = @balance_by_date.keys.min.to_date
+    last_date = @balance_by_date.keys.max.to_date
     date_range = (first_date..last_date).to_a
+    running_total = 0
 
-    # Initialize a new hash to store the filled date and balance pairs
-    @filled_date_balance_hash = {}
-
-    running_total_two  = 0
-
-    # Iterate through the date range and fill in the gaps with a balance of 0
     date_range.each do |date|
-      balance = @date_balance_hash[date.to_s] || running_total_two
-      running_total_two = balance
-      @filled_date_balance_hash[date.to_s] = balance.to_d / 100
+      balance = @balance_by_date[date.to_s] || running_total
+      running_total = balance
+      @balance_by_date[date.to_s] = balance.to_d / 100
     end
 
     invoice_relation = @event.invoices
@@ -203,19 +190,9 @@ class EventsController < ApplicationController
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :asc)
 
-    @pending_transactions = _show_pending_transactions
-
     if !signed_in? && !@event.holiday_features
       @hide_holiday_features = true
     end
-
-    @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
-
-    page = (params[:page] || 1).to_i
-    per_page = (params[:per] || 75).to_i
-
-    @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
-    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
     if flash[:popover]
       @popover = flash[:popover]
