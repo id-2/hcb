@@ -67,13 +67,6 @@ class StripeController < ApplicationController
     head 200
   end
 
-  def handle_charge_succeeded(event)
-    charge = event[:data][:object]
-    ::PartnerDonationService::HandleWebhookChargeSucceeded.new(charge).run
-
-    head 200
-  end
-
   def handle_invoice_paid(event)
     stripe_invoice = event[:data][:object]
 
