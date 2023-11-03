@@ -28,7 +28,6 @@ Lint/FloatComparison:
 # Offense count: 2
 Lint/IneffectiveAccessModifier:
   Exclude:
-    - 'app/models/partner.rb'
     - 'lib/emburse_client.rb'
 
 # Offense count: 3
@@ -72,7 +71,6 @@ Naming/MemoizedInstanceVariableName:
   Exclude:
     - 'app/models/event.rb'
     - 'app/models/invoice.rb'
-    - 'app/services/partnered_signup_service/deliver_webhook.rb'
     - 'app/services/transaction_engine/friendly_memo_service/generate.rb'
 
 # Offense count: 16
@@ -129,7 +127,6 @@ Style/OptionalBooleanParameter:
     - 'app/helpers/donations_helper.rb'
     - 'app/helpers/events_helper.rb'
     - 'app/helpers/invoices_helper.rb'
-    - 'app/helpers/partner_donations_helper.rb'
     - 'app/helpers/sessions_helper.rb'
     - 'app/models/g_suite_account.rb'
 
@@ -156,5 +153,3 @@ Style/StringConcatenation:
     - 'app/models/emburse_card_request.rb'
     - 'app/models/stripe_card.rb'
     - 'app/models/transaction.rb'
-    - 'app/services/partners/docusign/api.rb'
-    - 'app/services/partners/docusign/signing_completion_redirect.rb'

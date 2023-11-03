@@ -10,7 +10,6 @@ module PendingTransactionEngine
       import_raw_pending_donation_transactions!
       import_raw_pending_invoice_transactions!
       import_raw_pending_bank_fee_transactions!
-      import_raw_pending_partner_donation_transactions!
       import_raw_pending_outgoing_disbursement_transactions!
       import_raw_pending_incoming_disbursement_transactions!
 
@@ -21,7 +20,6 @@ module PendingTransactionEngine
       canonize_raw_pending_donation_transactions!
       canonize_raw_pending_invoice_transactions!
       canonize_raw_pending_bank_fee_transactions!
-      canonize_raw_pending_partner_donation_transactions!
       canonize_raw_pending_incoming_disbursement_transactions!
       canonize_raw_pending_outgoing_disbursement_transactions!
     end

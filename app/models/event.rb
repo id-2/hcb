@@ -96,8 +96,6 @@ class Event < ApplicationRecord
   scope :hidden, -> { where("hidden_at is not null") }
   scope :v1, -> { where(transaction_engine_v2_at: nil) }
   scope :v2, -> { where.not(transaction_engine_v2_at: nil) }
-  scope :not_partner, -> { where(partner_id: 1) }
-  scope :partner, -> { where.not(partner_id: 1) }
   scope :hidden, -> { where.not(hidden_at: nil) }
   scope :not_hidden, -> { where(hidden_at: nil) }
   scope :funded, -> {
@@ -233,11 +231,6 @@ class Event < ApplicationRecord
     state :approved, initial: true # Full fiscal sponsorship
     state :rejected # Rejected from fiscal sponsorship
 
-    # DEPRECATED
-    state :awaiting_connect # Initial state of partner events. Waiting for user to fill out HCB Connect form
-    state :pending # Awaiting HCB approval (after filling out HCB Connect form)
-    state :unapproved # Old spend only events. Deprecated, should not be granted to any new events
-
     event :mark_pending do
       transitions from: [:awaiting_connect, :approved], to: :pending
     end
@@ -306,10 +299,6 @@ class Event < ApplicationRecord
   has_and_belongs_to_many :event_tags
 
   has_many :check_deposits
-
-  belongs_to :partner, optional: true
-  has_one :partnered_signup, required: false
-  has_many :partner_donations
 
   has_many :subledgers
 
@@ -666,7 +655,6 @@ class Event < ApplicationRecord
   end
 
   def point_of_contact_is_admin
-    return unless point_of_contact # for remote partner created events
     return if point_of_contact&.admin_override_pretend?
 
     errors.add(:point_of_contact, "must be an admin")

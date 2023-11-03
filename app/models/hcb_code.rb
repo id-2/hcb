@@ -82,7 +82,6 @@ class HcbCode < ApplicationRecord
     return disbursement_memo(event:) if disbursement?
     return invoice_memo if invoice?
     return donation_memo if donation?
-    return partner_donation_memo if partner_donation?
     return ach_transfer_memo if ach_transfer?
     return check_memo if check?
     return increase_check_memo if increase_check?
@@ -98,7 +97,6 @@ class HcbCode < ApplicationRecord
     return :unknown if unknown?
     return :invoice if invoice?
     return :donation if donation?
-    return :partner_donation if partner_donation?
     return :ach if ach_transfer?
     return :check if check?
     return :disbursement if disbursement?
@@ -160,7 +158,6 @@ class HcbCode < ApplicationRecord
         ids.concat([
           invoice.try(:event).try(:id),
           donation.try(:event).try(:id),
-          partner_donation.try(:event).try(:id),
           ach_transfer.try(:event).try(:id),
           check.try(:event).try(:id),
           increase_check.try(:event).try(:id),
@@ -177,7 +174,7 @@ class HcbCode < ApplicationRecord
 
   def pretty_title(show_event_name: true, show_amount: false)
     event_preposition = [:unknown, :invoice, :ach, :check, :card_charge, :bank_fee].include?(type || :unknown) ? "in" : "to"
-    amount_preposition = [:transaction, :donation, :partner_donation, :disbursement, :card_charge, :bank_fee].include?(type || :unknown) ? "of" : "for"
+    amount_preposition = [:transaction, :donation, :disbursement, :card_charge, :bank_fee].include?(type || :unknown) ? "of" : "for"
 
     amount_preposition = "refunded" if stripe_refund?
 
@@ -252,10 +249,6 @@ class HcbCode < ApplicationRecord
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::DONATION_CODE
   end
 
-  def partner_donation?
-    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::PARTNER_DONATION_CODE
-  end
-
   def ach_transfer?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::ACH_TRANSFER_CODE
   end
@@ -323,10 +316,6 @@ class HcbCode < ApplicationRecord
 
   def donation_memo
     "DONATION FROM #{donation.smart_memo}#{donation.refunded? ? " (REFUNDED)" : ""}"
-  end
-
-  def partner_donation_memo
-    "DONATION FROM #{partner_donation.smart_memo}#{partner_donation.refunded? ? " (REFUNDED)" : ""}"
   end
 
   def ach_transfer

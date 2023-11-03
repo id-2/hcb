@@ -33,9 +33,6 @@ module PendingEventMappingEngine
       map_canonical_pending_bank_fee!
       settle_canonical_pending_bank_fee_hcb_code!
 
-      map_canonical_pending_partner_donation!
-      settle_canonical_pending_partner_donation_hcb_code!
-
       map_canonical_pending_outgoing_disbursement!
       settle_canonical_pending_outgoing_disbursement_hcb_code!
       decline_canonical_pending_outgoing_disbursement!

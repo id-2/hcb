@@ -284,10 +284,6 @@ class CanonicalTransaction < ApplicationRecord
     memo.match(/BUSBILLPAY TRAN#(\d+)/)&.[](1)
   end
 
-  def partner_donation
-    nil # TODO: implement
-  end
-
   def donation
     donation_payout.try(:donation)
   end

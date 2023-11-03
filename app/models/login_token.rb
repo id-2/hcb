@@ -34,7 +34,6 @@ class LoginToken < ApplicationRecord
 
   belongs_to :user
   belongs_to :user_session, optional: true
-  belongs_to :partner, optional: true # The partner that requested this login link
 
   validates :token, presence: true
   validates :expiration_at, presence: true
