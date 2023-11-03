@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_03_184513) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -293,7 +293,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
     t.bigint "raw_pending_invoice_transaction_id"
     t.text "hcb_code"
     t.bigint "raw_pending_bank_fee_transaction_id"
-    t.bigint "raw_pending_partner_donation_transaction_id"
     t.text "custom_memo"
     t.bigint "raw_pending_incoming_disbursement_transaction_id"
     t.bigint "raw_pending_outgoing_disbursement_transaction_id"
@@ -315,7 +314,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
     t.index ["raw_pending_outgoing_ach_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_ach_tx_id"
     t.index ["raw_pending_outgoing_check_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_outgoing_check_tx_id"
     t.index ["raw_pending_outgoing_disbursement_transaction_id"], name: "index_cpts_on_raw_pending_outgoing_disbursement_transaction_id"
-    t.index ["raw_pending_partner_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_partner_dntn_tx_id"
     t.index ["raw_pending_stripe_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_stripe_tx_id"
     t.check_constraint "fronted IS NOT NULL", name: "canonical_pending_transactions_fronted_null"
   end
@@ -677,7 +675,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
     t.string "aasm_state"
     t.string "organization_identifier", null: false
     t.string "redirect_url"
-    t.bigint "partner_id"
     t.string "owner_name"
     t.string "owner_email"
     t.string "owner_phone"
@@ -702,8 +699,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
     t.string "card_grants_approved_merchants"
     t.string "card_grants_category_lock"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
-    t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
-    t.index ["partner_id"], name: "index_events_on_partner_id"
     t.index ["point_of_contact_id"], name: "index_events_on_point_of_contact_id"
   end
 
@@ -1088,10 +1083,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
     t.string "ip"
     t.string "aasm_state"
     t.bigint "user_session_id"
-    t.bigint "partner_id"
     t.decimal "latitude"
     t.decimal "longitude"
-    t.index ["partner_id"], name: "index_login_tokens_on_partner_id"
     t.index ["token"], name: "index_login_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
@@ -1309,15 +1302,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["disbursement_id"], name: "index_rpodts_on_disbursement_id"
-  end
-
-  create_table "raw_pending_partner_donation_transactions", force: :cascade do |t|
-    t.text "partner_donation_transaction_id"
-    t.integer "amount_cents"
-    t.date "date_posted"
-    t.string "state"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "raw_pending_stripe_transactions", force: :cascade do |t|

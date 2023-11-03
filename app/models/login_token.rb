@@ -13,13 +13,11 @@
 #  token           :text             not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  partner_id      :bigint
 #  user_id         :bigint           not null
 #  user_session_id :bigint
 #
 # Indexes
 #
-#  index_login_tokens_on_partner_id       (partner_id)
 #  index_login_tokens_on_token            (token) UNIQUE
 #  index_login_tokens_on_user_id          (user_id)
 #  index_login_tokens_on_user_session_id  (user_session_id)

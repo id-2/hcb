@@ -91,6 +91,7 @@ module PendingTransactionEngine
     def canonize_raw_pending_bank_fee_transactions!
       ::PendingTransactionEngine::CanonicalPendingTransactionService::Import::BankFee.new.run
     end
-    
+
+
   end
 end

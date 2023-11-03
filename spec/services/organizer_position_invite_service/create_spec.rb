@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe OrganizerPositionInviteService::Create do
-  def create_event()
+  def create_event
     Event.create!({
                     name: "test-event",
                     sponsorship_fee: 0,

@@ -53,15 +53,12 @@
 #  club_airtable_id                :text
 #  emburse_department_id           :string
 #  increase_account_id             :string           not null
-#  partner_id                      :bigint
 #  point_of_contact_id             :bigint
 #
 # Indexes
 #
-#  index_events_on_club_airtable_id                        (club_airtable_id) UNIQUE
-#  index_events_on_partner_id                              (partner_id)
-#  index_events_on_partner_id_and_organization_identifier  (partner_id,organization_identifier) UNIQUE
-#  index_events_on_point_of_contact_id                     (point_of_contact_id)
+#  index_events_on_club_airtable_id     (club_airtable_id) UNIQUE
+#  index_events_on_point_of_contact_id  (point_of_contact_id)
 #
 # Foreign Keys
 #

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DropPartnerDonationsPartneredSignupsPartners < ActiveRecord::Migration[7.0]
   def up
     drop_table :partner_donations, force: :cascade
@@ -8,4 +10,5 @@ class DropPartnerDonationsPartneredSignupsPartners < ActiveRecord::Migration[7.0
   def down
     raise ActiveRecord::IrreversibleMigration
   end
+
 end
