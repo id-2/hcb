@@ -148,14 +148,6 @@ class CanonicalTransactionGrouped
     smartish_custom_memo || "DONATION FROM #{donation.smart_memo}"
   end
 
-  def partner_donation
-    PartnerDonation.find(hcb_i2)
-  end
-
-  def partner_donation_memo
-    smartish_custom_memo || "DONATION FROM #{partner_donation.smart_memo}"
-  end
-
   def ach_transfer
     AchTransfer.find(hcb_i2)
   end

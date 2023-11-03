@@ -93,14 +93,6 @@ module PendingTransactionEngine
     def canonize_raw_pending_bank_fee_transactions!
       ::PendingTransactionEngine::CanonicalPendingTransactionService::Import::BankFee.new.run
     end
-
-    def import_raw_pending_partner_donation_transactions!
-      ::PendingTransactionEngine::RawPendingPartnerDonationTransactionService::PartnerDonation::Import.new.run
-    end
-
-    def canonize_raw_pending_partner_donation_transactions!
-      ::PendingTransactionEngine::CanonicalPendingTransactionService::Import::PartnerDonation.new.run
-    end
-
+    
   end
 end

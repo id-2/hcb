@@ -325,10 +325,6 @@ class HcbCode < ApplicationRecord
     "DONATION FROM #{donation.smart_memo}#{donation.refunded? ? " (REFUNDED)" : ""}"
   end
 
-  def partner_donation
-    @partner_donation ||= PartnerDonation.find_by(id: hcb_i2) if partner_donation?
-  end
-
   def partner_donation_memo
     "DONATION FROM #{partner_donation.smart_memo}#{partner_donation.refunded? ? " (REFUNDED)" : ""}"
   end
