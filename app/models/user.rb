@@ -28,8 +28,9 @@
 #
 # Indexes
 #
-#  index_users_on_email  (email) UNIQUE
-#  index_users_on_slug   (slug) UNIQUE
+#  index_users_on_email         (email) UNIQUE
+#  index_users_on_phone_number  (phone_number) UNIQUE
+#  index_users_on_slug          (slug) UNIQUE
 #
 class User < ApplicationRecord
   self.ignored_columns = ["seen_platinum_announcement"]

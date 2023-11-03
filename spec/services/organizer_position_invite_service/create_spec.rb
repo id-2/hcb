@@ -3,14 +3,9 @@
 require "rails_helper"
 
 RSpec.describe OrganizerPositionInviteService::Create do
-  def create_event(representative_email)
-    partner = Partner.create!({
-                                slug: SecureRandom.hex(30),
-                                representative: User.create!(email: representative_email)
-                              })
+  def create_event()
     Event.create!({
                     name: "test-event",
-                    partner:,
                     sponsorship_fee: 0,
                     organization_identifier: SecureRandom.hex(30)
                   })

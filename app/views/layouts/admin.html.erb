@@ -34,12 +34,6 @@
       |
       <%= link_to "bank accounts (#{BankAccount.failing.count})", bank_accounts_admin_index_path %>
       |
-      <%= link_to "partners (#{Partner.count})", partners_admin_index_path %>
-      |
-      <%= link_to "partnered signups (#{PartneredSignup.applicant_signed.count})", partnered_signups_admin_index_path %>
-      |
-      <%= link_to "partner organizations (#{Event.partner.count})", partner_organizations_admin_index_path %>
-      |
       <%= link_to "organizations (#{Event.approved.count})", events_admin_index_path %>
       |
       <%= link_to "organization balances", balances_admin_index_path %>
@@ -57,8 +51,6 @@
       <%= link_to "achs (#{AchTransfer.pending.count})", ach_admin_index_path %>
       |
       <%= link_to "checks (#{IncreaseCheck.pending.count})", increase_checks_admin_index_path %>
-      |
-      <%= link_to "Partner donations", partner_donations_admin_index_path %>
       |
       <%= link_to "donations", donations_admin_index_path %>
       |

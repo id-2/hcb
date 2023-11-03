@@ -4,12 +4,10 @@ require "rails_helper"
 
 RSpec.describe UserService::GenerateToken, type: :model do
   let(:user) { create(:user) }
-  let(:partner) { create(:partner) }
 
   let(:service) do
     UserService::GenerateToken.new(
       user_id: user.id,
-      partner_id: partner.id
     )
   end
 

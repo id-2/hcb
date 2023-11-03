@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_03_184005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -423,6 +421,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
+  create_table "compliance_checks", force: :cascade do |t|
+    t.date "start"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "disbursements", force: :cascade do |t|
     t.bigint "event_id"
     t.integer "amount"
@@ -693,7 +697,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
     t.string "increase_account_id", null: false
     t.string "website"
     t.text "description"
+    t.jsonb "post_grant_survey_schema"
     t.integer "stripe_card_shipping_type", default: 0, null: false
+    t.string "card_grants_approved_merchants"
+    t.string "card_grants_category_lock"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -1065,6 +1072,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "browser_token_bidx"
+    t.string "browser_token_ciphertext"
+    t.string "browser_token"
     t.index ["code"], name: "index_login_codes_on_code", unique: true, where: "(used_at IS NULL)"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
@@ -1197,70 +1207,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
     t.datetime "updated_at", null: false
     t.index ["hcb_code_id"], name: "index_outgoing_twilio_messages_on_hcb_code_id"
     t.index ["twilio_message_id"], name: "index_outgoing_twilio_messages_on_twilio_message_id"
-  end
-
-  create_table "partner_donations", force: :cascade do |t|
-    t.bigint "event_id", null: false
-    t.string "hcb_code"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "aasm_state"
-    t.integer "payout_amount_cents"
-    t.string "stripe_charge_id"
-    t.datetime "stripe_charge_created_at", precision: nil
-    t.index ["event_id"], name: "index_partner_donations_on_event_id"
-  end
-
-  create_table "partnered_signups", force: :cascade do |t|
-    t.string "owner_phone"
-    t.string "owner_email"
-    t.string "owner_name"
-    t.string "owner_address"
-    t.string "redirect_url", null: false
-    t.date "owner_birthdate"
-    t.integer "country"
-    t.string "organization_name", null: false
-    t.datetime "accepted_at", precision: nil
-    t.datetime "rejected_at", precision: nil
-    t.bigint "user_id"
-    t.bigint "event_id"
-    t.bigint "partner_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "submitted_at", precision: nil
-    t.string "docusign_envelope_id"
-    t.boolean "signed_contract"
-    t.string "owner_address_line1"
-    t.string "owner_address_line2"
-    t.string "owner_address_city"
-    t.string "owner_address_state"
-    t.text "owner_address_postal_code"
-    t.integer "owner_address_country"
-    t.string "aasm_state"
-    t.datetime "applicant_signed_at", precision: nil
-    t.datetime "completed_at", precision: nil
-    t.boolean "legal_acknowledgement"
-    t.index ["event_id"], name: "index_partnered_signups_on_event_id"
-    t.index ["partner_id"], name: "index_partnered_signups_on_partner_id"
-    t.index ["user_id"], name: "index_partnered_signups_on_user_id"
-  end
-
-  create_table "partners", force: :cascade do |t|
-    t.string "slug", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "external", default: true, null: false
-    t.text "name"
-    t.text "logo"
-    t.string "public_stripe_api_key"
-    t.text "stripe_api_key_ciphertext"
-    t.string "webhook_url"
-    t.string "docusign_template_id"
-    t.bigint "representative_id"
-    t.text "api_key_ciphertext"
-    t.string "api_key_bidx"
-    t.index ["api_key_bidx"], name: "index_partners_on_api_key_bidx", unique: true
-    t.index ["representative_id"], name: "index_partners_on_representative_id"
   end
 
   create_table "raw_csv_transactions", force: :cascade do |t|
@@ -1413,7 +1359,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
 
   create_table "receipts", force: :cascade do |t|
     t.bigint "user_id"
-    t.datetime "attempted_match_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "receiptable_type"
@@ -1699,6 +1644,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
     t.string "preferred_name"
     t.integer "access_level", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["phone_number"], name: "index_users_on_phone_number", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
 
@@ -1774,7 +1720,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
   add_foreign_key "emburse_transfers", "events"
   add_foreign_key "emburse_transfers", "users", column: "creator_id"
   add_foreign_key "emburse_transfers", "users", column: "fulfilled_by_id"
-  add_foreign_key "events", "partners"
   add_foreign_key "events", "users", column: "point_of_contact_id"
   add_foreign_key "fee_relationships", "events"
   add_foreign_key "fees", "canonical_event_mappings"
@@ -1810,11 +1755,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_19_092813) do
   add_foreign_key "organizer_position_invites", "users", column: "sender_id"
   add_foreign_key "organizer_positions", "events"
   add_foreign_key "organizer_positions", "users"
-  add_foreign_key "partner_donations", "events"
-  add_foreign_key "partnered_signups", "events"
-  add_foreign_key "partnered_signups", "partners"
-  add_foreign_key "partnered_signups", "users"
-  add_foreign_key "partners", "users", column: "representative_id"
   add_foreign_key "raw_pending_incoming_disbursement_transactions", "disbursements"
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
   add_foreign_key "receipts", "users"

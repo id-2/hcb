@@ -2,8 +2,7 @@
 
 module UserService
   class GenerateToken
-    def initialize(partner_id:, user_id:)
-      @partner_id = partner_id
+    def initialize(user_id:)
       @user_id = user_id
     end
 
@@ -17,7 +16,6 @@ module UserService
       {
         token:,
         expiration_at:,
-        partner:
       }
     end
 
@@ -42,10 +40,6 @@ module UserService
 
     def user
       @user ||= ::User.find(@user_id)
-    end
-
-    def partner
-      @partner ||= ::Partner.find(@partner_id)
     end
 
   end

@@ -6,10 +6,6 @@ FactoryBot.define do
     sponsorship_fee { 0 }
     organization_identifier { SecureRandom.hex(30) }
 
-    trait :partnered do
-      association :partner
-    end
-
     trait :demo_mode do
       demo_mode { true }
     end
