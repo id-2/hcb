@@ -7,7 +7,8 @@ RSpec.describe OrganizerPositionInviteService::Create do
     Event.create!({
                     name: "test-event",
                     sponsorship_fee: 0,
-                    organization_identifier: SecureRandom.hex(30)
+                    organization_identifier: SecureRandom.hex(30),
+                    point_of_contact_id: create(:user, :make_admin).id
                   })
   end
 
