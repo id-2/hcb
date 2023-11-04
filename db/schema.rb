@@ -1630,7 +1630,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_184513) do
     t.string "preferred_name"
     t.integer "access_level", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["phone_number"], name: "index_users_on_phone_number", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
 
