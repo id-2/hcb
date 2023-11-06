@@ -151,6 +151,9 @@ class EventsController < ApplicationController
     TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
 
     @balance_by_date = {}
+    @change_by_date = {}
+    @max_pos_change = 0
+    @max_neg_change = 0
     initial_subtotal = 0
     running_total = 0
 
@@ -164,10 +167,27 @@ class EventsController < ApplicationController
     date_range = (first_date..last_date).to_a
     running_total = 0
 
+    ((1.year.ago - (1.year.ago.to_date.wday % 7).day).to_date...0.day.ago.to_date).each do |date|
+      @change_by_date[date.to_s] = 0
+    end
+
     date_range.each do |date|
       balance = @balance_by_date[date.to_s] || running_total
+      if @change_by_date.key?(date.to_s)
+        change = (balance - running_total).to_d
+        @change_by_date[date.to_s] = change
+        if change > @max_pos_change
+          @max_pos_change = change
+        elsif change < @max_neg_change
+          @max_neg_change = change
+        end
+      end
       running_total = balance
       @balance_by_date[date.to_s] = balance.to_d / 100
+    end
+
+    ((last_date + 1.day).to_date..6.day.from_now.to_date).each do |date|
+      @change_by_date[date.to_s] = 0
     end
 
     invoice_relation = @event.invoices

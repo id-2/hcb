@@ -39,6 +39,28 @@
   </div>
 </div>
 
+<div class="grid-container mb3">
+  <% 7.times do |x| %>
+    <% 53.times do |y| %>
+      <% if @change_by_date.to_a[y*7 + x][1] > 0 %>
+       <div
+         class="grid-item"
+         title="<%= @change_by_date.to_a[y * 7 + x][0] %>"
+         style="background-color: rgba(57, 211, 83, <%= Math.log(@change_by_date.to_a[y * 7 + x][1]) / Math.log(@max_pos_change) %>)">
+        </div>
+      <% elsif @change_by_date.to_a[y*7 + x][1] < 0 %>
+       <div
+        class="grid-item"
+        title="<%= @change_by_date.to_a[y * 7 + x][0] %>"
+        style="background-color: rgba(248, 81, 73, <%= Math.log(@change_by_date.to_a[y * 7 + x][1].abs) / Math.log(@max_neg_change.abs) %>)">
+       </div>
+      <% else %>
+       <div class="grid-item card" title="<%= @change_by_date.to_a[y * 7 + x][0] %>"></div>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
+
 <%= render "events/public_message" %>
 
 <div class="grid grid--split left-align w-100 mt0">
@@ -76,3 +98,22 @@
   </div>
 
 </div>
+
+<style>
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(53, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 2px;
+    max-width: 100%;
+  }
+
+  .grid-item {
+    border: 0.5px solid #000;
+    border-radius: 3px;
+    padding-left: 0px!important;
+    padding-right: 0px!important;
+    padding-bottom: 0px!important;
+    padding-top: calc(100% - 1px)!important;
+  }
+</style>
