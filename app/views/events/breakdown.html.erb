@@ -42,28 +42,28 @@
 <div class="grid-container mb3">
   <% 7.times do |x| %>
     <% 53.times do |y| %>
-      <% if @change_by_date.to_a[y*7 + x][1][:pos] > 0 &&  @change_by_date.to_a[y*7 + x][1][:neg] == 0 %>
-       <div
-         class="grid-item"
-         title="<%= @change_by_date.to_a[y * 7 + x][0] %>"
-         style="background-color: rgba(57, 211, 83, <%= Math.log(@change_by_date.to_a[y * 7 + x][1][:pos]) / Math.log(@max_pos_change) %>)">
+      <% entry = @change_by_date.to_a[y * 7 + x][1] %>
+      <% label = @change_by_date.to_a[y * 7 + x][0] %>
+      <% pos_bg = "rgba(57, 211, 83, #{Math.log(entry[:pos]) / Math.log(@max_pos_change)})" %>
+      <% neg_bg = "rgba(248, 81, 73, #{Math.log(entry[:neg].abs) / Math.log(@max_neg_change.abs)})" %>
+
+      <% if entry[:pos] > 0 && entry[:neg] == 0 %>
+        <div class="grid-item tooltipped tooltipped--s"
+             aria-label="<%= label %>"
+             style="background-color: <%= pos_bg %>">
         </div>
-      <% elsif @change_by_date.to_a[y*7 + x][1][:neg] < 0 &&  @change_by_date.to_a[y*7 + x][1][:pos] == 0 %>
-       <div
-        class="grid-item"
-        title="<%= @change_by_date.to_a[y * 7 + x][0] %>"
-        style="background-color: rgba(248, 81, 73, <%= Math.log(@change_by_date.to_a[y * 7 + x][1][:neg].abs) / Math.log(@max_neg_change.abs) %>)">
-       </div>
-       <% elsif @change_by_date.to_a[y*7 + x][1][:neg] + @change_by_date.to_a[y*7 + x][1][:pos] != 0 %>
-        <div
-         class="grid-item"
-         title="<%= @change_by_date.to_a[y * 7 + x][0] %>"
-         style="
-          background: linear-gradient(135deg, rgba(57, 211, 83, <%= Math.log(@change_by_date.to_a[y * 7 + x][1][:pos]) / Math.log(@max_pos_change) %>), rgba(57, 211, 83, <%= Math.log(@change_by_date.to_a[y * 7 + x][1][:pos]) / Math.log(@max_pos_change) %>) 50%, rgba(248, 81, 73, <%= Math.log(@change_by_date.to_a[y * 7 + x][1][:neg].abs) / Math.log(@max_neg_change.abs) %>) 50%)
-         ">
+      <% elsif entry[:neg] < 0 && entry[:pos] == 0 %>
+        <div class="grid-item tooltipped tooltipped--s"
+             aria-label="<%= label %>"
+             style="background-color: <%= neg_bg %>">
+        </div>
+      <% elsif entry[:neg] + entry[:pos] != 0 %>
+        <div class="grid-item tooltipped tooltipped--s"
+             aria-label="<%= label %>"
+             style="background: linear-gradient(135deg, <%= pos_bg %>, <%= pos_bg %> 50%, <%= neg_bg %> 50%)">
         </div>
       <% else %>
-       <div class="grid-item card" title="<%= @change_by_date.to_a[y * 7 + x][0] %>"></div>
+        <div class="grid-item card" title="<%= label %>"></div>
       <% end %>
     <% end %>
   <% end %>
