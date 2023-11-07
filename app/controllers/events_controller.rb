@@ -156,7 +156,7 @@ class EventsController < ApplicationController
     @max_neg_change = 0
     initial_subtotal = 0
     running_total = 0
-    
+
     ((1.year.ago - (1.year.ago.to_date.wday % 7).day).to_date...0.day.ago.to_date).each do |date|
       @change_by_date[date.to_s] = {
         neg: 0,
@@ -184,7 +184,7 @@ class EventsController < ApplicationController
       running_total = balance
       @balance_by_date[date.to_s] = balance.to_d / 100
     end
-    
+
     # Iterate through the hash and update the maximum values
     @change_by_date.each do |date, change|
       @max_pos_change = [@max_pos_change, change[:pos]].max
