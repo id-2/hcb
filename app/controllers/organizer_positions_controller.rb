@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class OrganizerPositionsController < ApplicationController
+  wrap_parameters format: :url_encoded_form
+
   def destroy
     @organizer_position = OrganizerPosition.find(params[:id])
     authorize @organizer_position
