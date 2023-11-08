@@ -14,8 +14,9 @@ class OrganizerPositionPolicy < ApplicationPolicy
   end
 
   def update?
-    return false if record.user.admin?
-    return false if record.user == user
+    return false if !Flipper.enabled?(:user_permissions, record.event)
+    return false if record.user.admin?  # an admin's role can't be changed
+    return false if record.user == user # a user can't change their own role
 
     return user.admin? || user.position(record.event).manager?
   end

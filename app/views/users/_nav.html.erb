@@ -24,7 +24,7 @@
     <%= dock_item "Approvals",
         root_path,
         tooltip: "See transactions awaiting approval",
-        icon: "flag" %>
+        icon: "flag" if Flipper.enabled?(:user_permissions, current_user.events) %>
     <%= dock_item "Settings",
       my_settings_path,
       tooltip: "Edit account settings.",
