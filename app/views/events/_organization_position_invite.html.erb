@@ -6,17 +6,17 @@
     </div>
 
     <div class="flex g1 h-fit-content">
-      <% if current_user.admin? %>
+      <% if admin_signed_in? %>
         <div class="tooltipped tooltipped--s" aria-label="Edit user's global settings">
           <%= pop_icon_to "controls", edit_user_path(position.user.slug), data: { turbo_frame: "_top" }, class: "admin-tools circle" %>
         </div>
       <% end %>
-      <% if current_user.admin? %>
+      <% if admin_signed_in? %>
         <div class="tooltipped tooltipped--s" aria-label="Impersonate user">
           <%= pop_icon_to "spy", impersonate_users_path(user_id: position.user.id, return_to: request.url), data: { turbo_frame: "_top" }, class: "admin-tools circle" %>
         </div>
       <% end %>
-      <% if current_user.position(@event)&.manager? || current_user.admin? %>
+      <% if current_user&.position(@event)&.manager? || admin_signed_in? %>
         <div class="tooltipped tooltipped--s" aria-label="Remove user from organization">
           <%= pop_icon_to "member-remove", new_organizer_remove_path(organizer_id: position.id), class: "error", data: { turbo_frame: "_top" } %>
         </div>
@@ -31,7 +31,7 @@
         <%= inline_icon("email", size: 24, class: "muted") %>
       </div>
       <div class="info tooltipped tooltipped--n copyable" aria-label="Copy <%= position.user.phone_number %>" data-copy="<%= position.user.phone_number %>">
-        <%= inline_icon("message-simple", size: 24, class: "admin") if current_user.admin? %>
+        <%= inline_icon("message-simple", size: 24, class: "admin") if admin_signed_in? %>
       </div>
     </div>
   </div>

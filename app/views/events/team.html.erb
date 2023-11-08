@@ -64,7 +64,7 @@
           <% end %>
         </div>
       </section>
-      <% if current_user&.admin? %>
+      <% if admin_signed_in? %>
         <section class='card__banner card__darker b--warning h5' style='border-style: dashed; border-width: 1px;'>
           <div>
             <% if invite.signee? %>
