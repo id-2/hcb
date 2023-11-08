@@ -64,7 +64,7 @@ class OrganizerPositionsController < ApplicationController
 
     organizer_position.update!(params.require(:organizer_position).permit(:role))
 
-    redirect_to event_team_path(organizer_position.event)
+    redirect_to event_team_path(organizer_position.event), flash: { success: "Made #{organizer_position.user.first_name} a #{organizer_position.role}!" }
   end
 
 end

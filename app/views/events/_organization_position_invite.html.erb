@@ -38,18 +38,18 @@
 
   <% if Flipper.enabled?(:user_permissions, @event) %>
     <div data-controller="menu">
-      <div class="inline-flex items-center">
+      <div class="<%= position.role_color %> inline-flex items-center <%= "pointer" if policy(position).update?  %>" data-action="<%= "click->menu#toggle" if policy(position).update? %> click@document->menu#close keydown@document->menu#keydown" data-menu-target="toggle">
         <p><%= position.role_title %></p>
-        <% if OrganizerPositionPolicy.new(current_user, position).update? %>
-          <div class="role-chevron line-height-0" data-action="click->menu#toggle click@document->menu#close keydown@document->menu#keydown" data-menu-target="toggle">
-            <%= inline_icon("down-caret", size: 32, class: "info") %>
+        <% if policy(position).update? %>
+          <div class="role-chevron line-height-0">
+            <%= inline_icon("down-caret", size: 24, class: position.role_color) %>
           </div>
         <% end %>
       </div>
 
       <div data-menu-target="content" class="menu__content menu__content--2 menu__content--compact">
         <% OrganizerPosition.roles.keys.each do |role| %>
-          <%= button_to(role.humanize, organizer_path(position), method: :patch, params: { organizer_position: { role: } }, class: "menu__action") %>
+          <%= button_to("#{"✓ " if position.role == role}#{role.humanize}", organizer_path(position), method: :patch, params: { organizer_position: { role: } }, class: "menu__action") %>
         <% end %>
         <div class="menu__divider"></div>
         <a href="/branding">What do these roles mean?</a>
