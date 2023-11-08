@@ -107,9 +107,9 @@ class Event < ApplicationRecord
   }
   scope :not_funded, -> { where.not(id: funded) }
   scope :organized_by_hack_clubbers, -> { includes(:event_tags).where(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }) }
-  scope :not_organized_by_hack_clubbers, -> { includes(:event_tags).where.not(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }).or(where(event_tags: { name: nil })) }
+  scope :not_organized_by_hack_clubbers, -> { includes(:event_tags).where.not(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }).or(includes(:event_tags).where(event_tags: { name: nil })) }
   scope :organized_by_teenagers, -> { includes(:event_tags).where(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }) }
-  scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(where(event_tags: { name: nil })) }
+  scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(includes(:event_tags).where(event_tags: { name: nil })) }
   scope :event_ids_with_pending_fees_greater_than_100, -> do
     query = <<~SQL
       ;select event_id, fee_balance from (
@@ -267,7 +267,7 @@ class Event < ApplicationRecord
   has_many :fee_relationships
   has_many :transactions, through: :fee_relationships, source: :t_transaction
 
-  has_many :stripe_cards, -> { on_main_ledger }
+  has_many :stripe_cards
   has_many :stripe_authorizations, through: :stripe_cards
 
   has_many :emburse_cards
@@ -312,7 +312,10 @@ class Event < ApplicationRecord
   has_many :partner_donations
 
   has_many :subledgers
+
   has_many :card_grants
+  has_one :card_grant_setting
+  accepts_nested_attributes_for :card_grant_setting, update_only: true
 
   has_one :stripe_ach_payment_source
   has_one :increase_account_number
@@ -331,7 +334,6 @@ class Event < ApplicationRecord
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
   validates :name, :sponsorship_fee, :organization_identifier, presence: true
-  validates :description, length: { maximum: 250 }
   validates :slug, presence: true, format: { without: /\s/ }
   validates_uniqueness_of_without_deleted :slug
 

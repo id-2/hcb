@@ -153,6 +153,10 @@ class Donation < ApplicationRecord
     pending?
   end
 
+  def includes_message?
+    self.message.present?
+  end
+
   def filter_data
     {
       in_transit: in_transit?,
@@ -176,49 +180,53 @@ class Donation < ApplicationRecord
     DateTime.now > self.arrival_date
   end
 
+  def payment_method
+    stripe_obj[:payment_method] || stripe_obj.dig(:invoice, :subscription, :default_payment_method)
+  end
+
   def payment_method_type
-    stripe_obj.dig(:payment_method, :type)
+    payment_method&.dig(:type)
   end
 
   def payment_method_card_brand
-    stripe_obj.dig(:payment_method, :card, :brand)
+    payment_method&.dig(:card, :brand)
   end
 
   def payment_method_card_last4
-    stripe_obj.dig(:payment_method, :card, :last4)
+    payment_method&.dig(:card, :last4)
   end
 
   def payment_method_card_funding
-    stripe_obj.dig(:payment_method, :card, :funding)
+    payment_method&.dig(:card, :funding)
   end
 
   def payment_method_card_exp_month
-    stripe_obj.dig(:payment_method, :card, :exp_month)
+    payment_method&.dig(:card, :exp_month)
   end
 
   def payment_method_card_exp_year
-    stripe_obj.dig(:payment_method, :card, :exp_year)
+    payment_method&.dig(:card, :exp_year)
   end
 
   def payment_method_card_country
-    stripe_obj.dig(:payment_method, :card, :country)
+    payment_method&.dig(:card, :country)
   end
 
   def payment_method_card_checks_address_line1_check
-    stripe_obj.dig(:payment_method, :card, :checks, :address_line1_check)
+    payment_method&.dig(:card, :checks, :address_line1_check)
   end
 
   def payment_method_card_checks_address_postal_code_check
-    stripe_obj.dig(:payment_method, :card, :checks, :address_postal_code_check)
+    payment_method&.dig(:card, :checks, :address_postal_code_check)
   end
 
   def payment_method_card_checks_cvc_check
-    stripe_obj.dig(:payment_method, :card, :checks, :cvc_check)
+    payment_method&.dig(:card, :checks, :cvc_check)
   end
 
   def stripe_obj
     @stripe_donation_obj ||=
-      StripeService::PaymentIntent.retrieve(id: stripe_payment_intent_id, expand: ["payment_method"]).to_hash
+      StripeService::PaymentIntent.retrieve(id: stripe_payment_intent_id, expand: ["payment_method", "invoice.subscription.default_payment_method"]).to_hash
   rescue => e
     {}
   end
@@ -297,9 +305,14 @@ class Donation < ApplicationRecord
     return unless saved_changes[:status].present?
 
     return unless status_changed_to_succeeded?(saved_changes[:status])
-    return unless first_donation?
 
-    DonationMailer.with(donation: self).first_donation_notification.deliver_later
+    if first_donation?
+      DonationMailer.with(donation: self).first_donation_notification.deliver_later
+    elsif includes_message?
+      DonationMailer.with(donation: self).donation_with_message_notification.deliver_later
+    end
+
+
   end
 
   def status_changed_to_succeeded?(saved_changes)

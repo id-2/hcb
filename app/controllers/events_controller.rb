@@ -267,6 +267,11 @@ class EventsController < ApplicationController
       # the grid view is a wee bummer but it's not the end of the world.
     end
 
+    page = (params[:page] || 1).to_i
+    per_page = (params[:per] || 20).to_i
+
+    @paginated_stripe_cards = Kaminari.paginate_array(@stripe_cards).page(page).per(per_page)
+
   end
 
   def documentation
@@ -646,6 +651,11 @@ class EventsController < ApplicationController
       :website,
       :background_image,
       :stripe_card_shipping_type,
+      card_grant_setting_attributes: [
+        :merchant_lock,
+        :category_lock,
+        :invite_message
+      ]
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend
@@ -674,7 +684,12 @@ class EventsController < ApplicationController
       :donation_header_image,
       :logo,
       :website,
-      :background_image
+      :background_image,
+      card_grant_setting_attributes: [
+        :merchant_lock,
+        :category_lock,
+        :invite_message
+      ]
     )
 
     # convert whatever the user inputted into something that is a legal slug

@@ -7,7 +7,7 @@ ruby File.read(File.join(File.dirname(__FILE__), ".ruby-version")).strip
 
 gem "dotenv-rails", groups: [:development, :test]
 
-gem "rails", "~> 7.0.4"
+gem "rails", "~> 7.0.8"
 
 gem "puma", "~> 6.4" # app server
 
@@ -182,12 +182,12 @@ group :development do
   gem "annotate" # comment models with database schema
 
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  gem "listen", "~> 3.2"
+  gem "listen", "~> 3.8"
   gem "web-console", ">= 3.3.0"
 
   gem "letter_opener_web" # preview emails
 
-  gem "wkhtmltopdf-binary", "0.12.3" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
+  gem "wkhtmltopdf-binary", "0.12.6.6" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
 
   # Ruby language server
   gem "solargraph", require: false
@@ -200,4 +200,5 @@ end
 
 gem "jbuilder", "~> 2.11"
 
+gem "libledger"
 gem "doorkeeper", "~> 5.6"

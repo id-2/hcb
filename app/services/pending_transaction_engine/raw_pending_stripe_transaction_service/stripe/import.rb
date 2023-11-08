@@ -4,21 +4,23 @@ module PendingTransactionEngine
   module RawPendingStripeTransactionService
     module Stripe
       class Import
-        def initialize
+        def initialize(created_after: nil)
+          @created_after = created_after
         end
 
         def run
-          pending_stripe_transactions.each do |t|
-            ::PendingTransactionEngine::RawPendingStripeTransactionService::Stripe::ImportSingle.new(remote_stripe_transaction: t).run
-          end
+          authorizations = ::Partners::Stripe::Issuing::Authorizations::List.new(created_after: @created_after).run
+
+          RawPendingStripeTransaction.upsert_all(authorizations.map { |authorization|
+            {
+              stripe_transaction_id: authorization[:id],
+              stripe_transaction: authorization,
+              amount_cents: -authorization[:amount],
+              date_posted: Time.at(authorization[:created]),
+            }
+          }, unique_by: :stripe_transaction_id)
 
           nil
-        end
-
-        private
-
-        def pending_stripe_transactions
-          @pending_stripe_transactions ||= ::Partners::Stripe::Issuing::Authorizations::List.new.run
         end
 
       end

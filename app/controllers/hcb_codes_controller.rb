@@ -31,6 +31,11 @@ class HcbCodesController < ApplicationController
 
     authorize @hcb_code
 
+    if params[:show_details] == "true" && @hcb_code.ach_transfer?
+      ahoy.track "ACH details shown", hcb_code_id: @hcb_code.id
+      @show_ach_details = true
+    end
+
     if params[:frame]
       @frame = true
       render :show, layout: false
@@ -125,7 +130,7 @@ class HcbCodesController < ApplicationController
 
     cpt = @hcb_code.canonical_pending_transactions.first
 
-    CanonicalPendingTransactionJob::SendTwilioMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
+    CanonicalPendingTransactionJob::SendTwilioReceiptMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
 
     flash[:success] = "SMS queued for delivery!"
     redirect_back fallback_location: @hcb_code

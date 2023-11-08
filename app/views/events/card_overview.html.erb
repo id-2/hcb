@@ -124,4 +124,16 @@
     </section>
   <% end %>
 
+  <h4>Organization Cards</h4>
+
+  <% if params[:view] == "list" %>
+    <%= render "event_cards_table", stripe_cards: @paginated_stripe_cards %>
+  <% else %>
+    <article class="mixed-grid grid--spacious">
+      <%= render @paginated_stripe_cards %>
+    </article>
+  <% end %>
+
+  <%= paginate @paginated_stripe_cards %>
+
 <% end %>
