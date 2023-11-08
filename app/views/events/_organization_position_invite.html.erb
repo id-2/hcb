@@ -48,7 +48,7 @@
 
     <div data-menu-target="content" class="menu__content menu__content--2 menu__content--compact">
       <% OrganizerPosition.roles.keys.each do |role| %>
-        <%= button_to(role.humanize, organizer_path(position), method: :patch, params: { organizer_position: { role: role } }, class: "menu__action") %>
+        <%= button_to(role.humanize, organizer_path(position), method: :patch, params: { organizer_position: { role: } }, class: "menu__action") %>
       <% end %>
       <div class="menu__divider"></div>
       <a href="/branding">What do these roles mean?</a>

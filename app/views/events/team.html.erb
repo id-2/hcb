@@ -7,10 +7,7 @@
   <%= badge_for @all_positions.size, class: "bg-muted" %>
 
   <% if organizer_signed_in? %>
-    <a
-      href="mailto:<%= @positions.map(&:user).map(&:email).join(',') %>"
-      class="btn btn--icon bg-info"
-    >
+    <a href="mailto:<%= @positions.map(&:user).map(&:email).join(",") %>" class="btn btn--icon bg-info">
       <%= inline_icon "email" %>
       Email everyone
     </a>
