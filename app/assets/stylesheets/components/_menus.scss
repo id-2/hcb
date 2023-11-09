@@ -218,12 +218,3 @@
     background-color: $slate;
   }
 }
-
-[data-filter-menu-selected="false"] {
-  display: none;
-}
-
-[data-filter-menu-label-selected="true"] {
-  font-weight: 800;
-  color: $cyan;
-}
