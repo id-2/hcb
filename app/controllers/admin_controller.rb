@@ -206,17 +206,6 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
-  def raised
-    @page = params[:page] || 1
-    @per = params[:per] || 100
-
-    @events = filtered_events.page(@page).per(@per).reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
-    @count = @events.count
-    @raised = filtered_events.sum(&:raised)
-
-    render layout: "admin"
-  end
-
   def event_process
     @event = Event.find(params[:id])
 
