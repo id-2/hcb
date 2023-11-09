@@ -153,6 +153,10 @@ class Donation < ApplicationRecord
     pending?
   end
 
+  def includes_message?
+    self.message.present?
+  end
+
   def filter_data
     {
       in_transit: in_transit?,
@@ -301,9 +305,14 @@ class Donation < ApplicationRecord
     return unless saved_changes[:status].present?
 
     return unless status_changed_to_succeeded?(saved_changes[:status])
-    return unless first_donation?
 
-    DonationMailer.with(donation: self).first_donation_notification.deliver_later
+    if first_donation?
+      DonationMailer.with(donation: self).first_donation_notification.deliver_later
+    elsif includes_message?
+      DonationMailer.with(donation: self).donation_with_message_notification.deliver_later
+    end
+
+
   end
 
   def status_changed_to_succeeded?(saved_changes)

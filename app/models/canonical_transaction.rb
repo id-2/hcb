@@ -57,6 +57,7 @@ class CanonicalTransaction < ApplicationRecord
   scope :emburse_transaction,  -> { joins("INNER JOIN raw_emburse_transactions  ON transaction_source_type = 'RawEmburseTransaction'  AND raw_emburse_transactions.id  = transaction_source_id") }
 
   scope :likely_hack_club_bank_issued_cards, -> { where("memo ilike 'Hack Club Bank Issued car%' or memo ilike 'HCKCLB Issued car%'") }
+  scope :likely_fee_reimbursement, -> { where(memo: "Stripe fee reimbursement") }
   scope :likely_github, -> { where("memo ilike '%github grant%'") }
   scope :likely_clearing_checks, -> { where("memo ilike '%Withdrawal - Inclearing Check #%' or memo ilike '%Withdrawal - On-Us Deposited Ite #%'") }
   scope :likely_checks, -> { where("memo ilike '%Check TO ACCOUNT REDACTED'") }
@@ -96,6 +97,12 @@ class CanonicalTransaction < ApplicationRecord
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
+  after_create do
+    if likely_stripe_card_transaction?
+      PendingEventMappingEngine::Settle::Single::Stripe.new(canonical_transaction: self).run
+      EventMappingEngine::Map::Single::Stripe.new(canonical_transaction: self).run
+    end
+  end
 
   def smart_memo
     custom_memo || less_smart_memo
