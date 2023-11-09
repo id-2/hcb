@@ -218,7 +218,7 @@ class User < ApplicationRecord
     full_name.blank?
   end
 
-  def position(event)
+  def position_in(event)
     organizer_positions.find_by(event:)
   end
 

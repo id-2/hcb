@@ -19,7 +19,7 @@ class OrganizerPositionPolicy < ApplicationPolicy
     return false if record.user.admin?  # an admin's role can't be changed
     return false if record.user == user # a user can't change their own role
 
-    return user.admin? || user.position(record.event)&.manager?
+    return user.admin? || user.position_in(record.event)&.manager?
   end
 
 end

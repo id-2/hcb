@@ -16,7 +16,7 @@
           <%= pop_icon_to "spy", impersonate_users_path(user_id: position.user.id, return_to: request.url), data: { turbo_frame: "_top" }, class: "admin-tools circle" %>
         </div>
       <% end %>
-      <% if current_user&.position(@event)&.manager? || admin_signed_in? %>
+      <% if current_user&.position_in(@event)&.manager? || admin_signed_in? %>
         <div class="tooltipped tooltipped--s" aria-label="Remove user from organization">
           <%= pop_icon_to "member-remove", new_organizer_remove_path(organizer_id: position.id), class: "error", data: { turbo_frame: "_top" } %>
         </div>
@@ -38,7 +38,7 @@
 
   <% if Flipper.enabled?(:user_permissions, @event) %>
     <div data-controller="menu">
-      <div class="<%= position.role_color %> inline-flex items-center <%= "pointer" if policy(position).update?  %>" data-action="<%= "click->menu#toggle" if policy(position).update? %> click@document->menu#close keydown@document->menu#keydown" data-menu-target="toggle">
+      <div class="<%= position.role_color %> inline-flex items-center <%= "pointer" if policy(position).update? %>" data-action="<%= "click->menu#toggle" if policy(position).update? %> click@document->menu#close keydown@document->menu#keydown" data-menu-target="toggle">
         <p><%= position.role_title %></p>
         <% if policy(position).update? %>
           <div class="role-chevron line-height-0">
