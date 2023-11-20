@@ -104,6 +104,22 @@
     <%= column_chart @event.tags.select{ |tag| tag.total_amount.abs > 0 }.each_with_object({}) { |tag, hash| hash[tag.label] = tag.total_amount.abs.to_d / 100 }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
 
   </div>
+  
+  <div class="card border b--info">
+  
+    <h3 class="mt1 mb3">Top Categories</h3>
+  
+    <%= column_chart @categories.each_with_object({}) { |merchant, hash| hash[merchant[:category]] = merchant[:dollars_spent] }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+  
+  </div>
+  
+  <div class="card border b--info">
+  
+    <h3 class="mt1 mb3">Top Merchants</h3>
+  
+    <%= column_chart @merchants.each_with_object({}) { |merchant, hash| hash[merchant[:merchant_name]] = merchant[:dollars_spent] }, prefix: "$", thousands: ",", decimal: ".", round: 2, zeros: true, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
+  
+  </div>
 
 </div>
 

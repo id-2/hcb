@@ -144,8 +144,6 @@ class EventsController < ApplicationController
       return redirect_to root_path, flash: { error: "We couldn’t find that organization!" }
     end
 
-    @mock_total = 0
-
     @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
 
     TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
@@ -212,15 +210,43 @@ class EventsController < ApplicationController
       invoices: invoice_relation.paid_v2.sum(:item_amount) - invoices_in_transit.sum(&:amount_paid),
     }
 
-    if params[:tag] && Flipper.enabled?(:transaction_tags_2022_07_29, @event)
-      @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
-    end
-
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :asc)
-
-    if !signed_in? && !@event.holiday_features
-      @hide_holiday_features = true
-    end
+    
+    @merchants = RawStripeTransaction.select(
+      "CASE
+         WHEN raw_stripe_transactions.stripe_transaction->'merchant_data'->>'name' SIMILAR TO '(SQ|GOOGLE|TST|RAZ|INF|PayUp|IN|INT|\\*)%'
+           THEN TRIM(UPPER(raw_stripe_transactions.stripe_transaction->'merchant_data'->>'name'))
+         ELSE TRIM(UPPER(SPLIT_PART(raw_stripe_transactions.stripe_transaction->'merchant_data'->>'name', '*', 1)))
+       END AS merchant_name",
+      "(SUM(raw_stripe_transactions.amount_cents) / 100) * -1 AS dollars_spent"
+    )
+      .joins("LEFT JOIN canonical_transactions ct ON raw_stripe_transactions.id = ct.transaction_source_id")
+      .joins("LEFT JOIN canonical_event_mappings event_mapping ON ct.id = event_mapping.canonical_transaction_id")
+      .where("EXTRACT(YEAR FROM date_posted) = ?", 2023)
+      .where("event_mapping.event_id = ?", @event.id)
+      .group(
+        "CASE
+           WHEN raw_stripe_transactions.stripe_transaction->'merchant_data'->>'name' SIMILAR TO '(SQ|GOOGLE|TST|RAZ|INF|PayUp|IN|INT|\\*)%'
+             THEN TRIM(UPPER(raw_stripe_transactions.stripe_transaction->'merchant_data'->>'name'))
+           ELSE TRIM(UPPER(SPLIT_PART(raw_stripe_transactions.stripe_transaction->'merchant_data'->>'name', '*', 1)))
+         END"
+      )
+      .order(Arel.sql("SUM(raw_stripe_transactions.amount_cents) * -1 DESC"))
+      .limit(100)
+      
+    @categories = RawStripeTransaction.select(
+      "trim(upper(split_part(raw_stripe_transactions.stripe_transaction->'merchant_data'->>'category', '*', 1))) AS category",
+      "(SUM(raw_stripe_transactions.amount_cents) / 100) * -1 AS dollars_spent"
+    )
+      .joins("LEFT JOIN canonical_transactions ct ON raw_stripe_transactions.id = ct.transaction_source_id")
+      .joins("LEFT JOIN canonical_event_mappings event_mapping ON ct.id = event_mapping.canonical_transaction_id")
+      .where("EXTRACT(YEAR FROM date_posted) = ?", 2023)
+      .where("event_mapping.event_id = ?", @event.id)
+      .group(
+        "trim(upper(split_part(raw_stripe_transactions.stripe_transaction->'merchant_data'->>'category', '*', 1)))"
+      )
+      .order(Arel.sql("SUM(raw_stripe_transactions.amount_cents) * -1 DESC"))
+      .limit(100)
 
     if flash[:popover]
       @popover = flash[:popover]
