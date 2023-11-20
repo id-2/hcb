@@ -33,12 +33,13 @@ class UsersController < ApplicationController
       redirect_to login_code_users_path, status: 307
     else
       session[:auth_email] = @email
-      redirect_to choose_login_preference_users_path
+      redirect_to choose_login_preference_users_path(return_to: params[:return_to])
     end
   end
 
   def choose_login_preference
     @email = session[:auth_email]
+    @return_to = params[:return_to]
     return redirect_to auth_users_path if @email.nil?
 
     session.delete :login_preference
@@ -189,7 +190,7 @@ class UsersController < ApplicationController
 
   def logout_all
     sign_out_of_all_sessions
-    redirect_to edit_user_path(current_user), flash: { success: "Success" }
+    redirect_back_or_to security_user_path(current_user), flash: { success: "Success" }
   end
 
   def logout_session
@@ -207,6 +208,11 @@ class UsersController < ApplicationController
       flash[:error] = "Session is not found"
     end
     redirect_to root_path
+  end
+
+  def revoke_oauth_application
+    Doorkeeper::Application.revoke_tokens_and_grants_for(params[:id], current_user)
+    redirect_back_or_to security_user_path(current_user)
   end
 
   def receipt_report
@@ -265,6 +271,10 @@ class UsersController < ApplicationController
 
   def edit_address
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    @states = [
+      ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] },
+      ISO3166::Country.new("CA").subdivisions.values.map { |s| [s.translations["en"], s.code] }
+    ].flatten(1)
     redirect_to edit_user_path(@user) unless @user.stripe_cardholder
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
@@ -285,6 +295,13 @@ class UsersController < ApplicationController
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    @oauth_authorizations = @user.api_tokens
+                                 .select("application_id, MAX(created_at) AS created_at, MIN(created_at) AS first_authorized_at, COUNT(*) AS authorization_count")
+                                 .accessible
+                                 .group(:application_id)
+                                 .includes(:application)
+    @all_sessions = (@sessions + @oauth_authorizations).sort_by { |s| s.created_at }.reverse!
+
     authorize @user
   end
 

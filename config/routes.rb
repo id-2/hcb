@@ -111,6 +111,7 @@ Rails.application.routes.draw do
       delete "logout", to: "users#logout"
       delete "logout_all", to: "users#logout_all"
       delete "logout_session", to: "users#logout_session"
+      delete "revoke/:id", to: "users#revoke_oauth_application", as: "revoke_oauth_application"
 
       # sometimes users refresh the login code page and get 404'd
       get "exchange_login_code", to: redirect("/users/auth", status: 301)
@@ -431,7 +432,7 @@ Rails.application.routes.draw do
   end
 
   use_doorkeeper scope: "api/v4/oauth" do
-    skip_controllers :applications, :authorized_applications
+    skip_controllers :authorized_applications
   end
 
   namespace :api do

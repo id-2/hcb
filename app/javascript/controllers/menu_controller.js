@@ -1,6 +1,13 @@
 import { Controller } from '@hotwired/stimulus'
-import { autoUpdate, computePosition, flip, offset } from '@floating-ui/dom'
+import {
+  autoUpdate,
+  computePosition,
+  flip,
+  offset,
+  size
+} from '@floating-ui/dom'
 import $ from 'jquery'
+import gsap from 'gsap'
 
 export default class extends Controller {
   static targets = ['toggle', 'content']
@@ -41,23 +48,12 @@ export default class extends Controller {
       top: 0
     })
 
-    this.cleanup = autoUpdate(this.toggleTarget, this.content, () => {
-      computePosition(this.toggleTarget, this.content, {
-        placement: this.placementValue,
-        middleware: [offset(5), flip({ padding: 5 })]
-      }).then(({ x, y }) => {
-        Object.assign(this.content.style, {
-          top: `${y}px`,
-          left: `${x}px`
-        })
-        this.toggleTarget.setAttribute('aria-expanded', true)
-        this.isOpen = true
-
-        this.content
-          .querySelectorAll("[data-behavior~='autofocus']")
-          .forEach(input => input.focus())
-      })
-    })
+    this.computePosition(true)
+    this.cleanup = autoUpdate(
+      this.toggleTarget,
+      this.content,
+      this.computePosition.bind(this, false)
+    )
   }
 
   close(e) {
@@ -66,6 +62,11 @@ export default class extends Controller {
       if (
         e.target == this.toggleTarget ||
         $(this.toggleTarget).find(e.target).length
+      )
+        return
+      if (
+        e.target == this.content ||
+        $(this.content).find(e.target).length
       )
         return
       if (
@@ -97,5 +98,43 @@ export default class extends Controller {
 
   keydown(e) {
     if (e.code == 'Escape' && this.isOpen) this.close()
+  }
+
+  computePosition(firstTime = false) {
+    computePosition(this.toggleTarget, this.content, {
+      placement: this.placementValue,
+      middleware: [
+        offset(5),
+        flip({ padding: 5 }),
+        size({
+          padding: 5,
+          apply({ availableHeight, elements }) {
+            Object.assign(elements.floating.style, {
+              maxHeight: `${availableHeight}px`
+            })
+          }
+        })
+      ]
+    }).then(({ x, y, placement }) => {
+      Object.assign(this.content.style, {
+        top: `${y}px`,
+        left: `${x}px`
+      })
+      if (firstTime) {
+        // Animate!
+        gsap.from(this.content, {
+          y: placement.includes('top') ? -15 : 15,
+          opacity: 0,
+          duration: 0.25
+        })
+      }
+
+      this.toggleTarget.setAttribute('aria-expanded', true)
+      this.isOpen = true
+
+      this.content
+        .querySelectorAll("[data-behavior~='autofocus']")
+        .forEach(input => input.focus())
+    })
   }
 }

@@ -375,6 +375,7 @@ class AdminController < ApplicationController
     @q = params[:q].present? ? params[:q] : nil
     @unmapped = params[:unmapped] != "0"
     @exclude_top_ups = params[:exclude_top_ups] == "1" ? true : nil
+    @exclude_spending = params[:exclude_spending] == "1" ? true : nil
     @mapped_by_human = params[:mapped_by_human] == "1" ? true : nil
     @event_id = params[:event_id].present? ? params[:event_id] : nil
     @user_id = params[:user_id].present? ? params[:user_id] : nil
@@ -404,6 +405,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.unmapped if @unmapped
+    relation = relation.where("amount_cents >= 0") if @exclude_spending
     relation = relation.not_stripe_top_up if @exclude_top_ups
     relation = relation.mapped_by_human if @mapped_by_human
 
@@ -1259,8 +1261,6 @@ class AdminController < ApplicationController
         0
       when :ach_transfers
         AchTransfer.pending.size
-      when :pending_fees
-        Event.pending_fees.size
       when :negative_events
         Event.negatives.size
       when :fee_reimbursements
@@ -1306,7 +1306,6 @@ class AdminController < ApplicationController
     pending_task :emburse_card_requests
     pending_task :checks
     pending_task :ach_transfers
-    pending_task :pending_fees
     pending_task :negative_events
     pending_task :fee_reimbursements
     pending_task :emburse_transfers
