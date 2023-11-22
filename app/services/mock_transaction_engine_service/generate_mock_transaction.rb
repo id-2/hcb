@@ -45,7 +45,11 @@ module MockTransactionEngineService
           date: trans[:date],
           local_hcb_code: OpenStruct.new(
             memo: trans[:desc],
-            receipts: trans[:amount] > 0 || trans[:desc].include?("💰 Fiscal sponsorship fee") ? [] : Array.new(rand(100) < 90 ? 1 : 0), # 90% chance of 1 receipt, 10% chance of no receipts
+            receipts: if trans[:amount] > 0 || trans[:desc].include?("💰 Fiscal sponsorship fee")
+                        []
+                      else
+                        Array.new(rand(100) < 90 ? 1 : 0)
+                      end, # 90% chance of 1 receipt, 10% chance of no receipts
             comments: Array.new(rand(9) > 1 || trans[:desc].include?("💰 Fiscal sponsorship fee") ? 0 : rand(1..2)), # 1/3 chance of no comments, 2/3 chance of 1 or 2 comments
             donation?: !trans[:amount].negative?,
             donation: !trans[:amount].negative? ? nil : OpenStruct.new(recurring?: trans[:monthly]),
@@ -57,18 +61,18 @@ module MockTransactionEngineService
 
     def generate_mock_tx
       if @mock_balance < 0
-          raise "Balance is less than 0. Something's gone wrong."
+        raise "Balance is less than 0. Something's gone wrong."
       else
         return NEGATIVE_DESCRIPTIONS[rand(NEGATIVE_DESCRIPTIONS.length)].merge({ amount: rand(0..@mock_balance) * -1 })
       end
     end
 
     def generate_mock_donation
-        return POSITIVE_DESCRIPTIONS[rand(POSITIVE_DESCRIPTIONS.length)].merge({ amount: rand(1000) })
+      return POSITIVE_DESCRIPTIONS[rand(POSITIVE_DESCRIPTIONS.length)].merge({ amount: rand(1000) })
     end
 
     def generate_mock_fiscal_sponsorship_fee(donation_amount)
-        return { desc: "💰 Fiscal sponsorship fee", amount: -0.07 * donation_amount }
+      return { desc: "💰 Fiscal sponsorship fee", amount: -0.07 * donation_amount }
     end
 
     def generate_mock_transaction_list
@@ -91,10 +95,11 @@ module MockTransactionEngineService
       current_date = DateTime.now
       @mock_tx.reverse.each do |tx|
         random_interval = tx[:desc].include?("💰 Fiscal sponsorship fee") ? 7 : rand(8..180) # If the transaction is not a fiscal sponsorship fee, generate a random interval between 8 and 180 days
-        tx[:date] = current_date.strftime("%Y-%m-%d")  # Format the date
-        current_date -= random_interval  # Increment the date by the random interval, or 7 if the transaction is a fiscal sponsorship fee
+        tx[:date] = current_date.strftime("%Y-%m-%d") # Format the date
+        current_date -= random_interval # Increment the date by the random interval, or 7 if the transaction is a fiscal sponsorship fee
       end
       return @mock_tx.reverse
     end
+
   end
 end
