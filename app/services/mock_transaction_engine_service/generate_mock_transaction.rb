@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module MockTransactionEngineService
   class GenerateMockTransaction
     NEGATIVE_DESCRIPTIONS = [
@@ -23,13 +25,13 @@ module MockTransactionEngineService
       { desc: "🪨 Hackathon rock tumbler" },
       { desc: "🌸 Payment for a floral arrangement", monthly: true },
       { desc: "🧼 Purchase of eco-friendly soap for the club bathrooms", monthly: true },
-    ]
+    ].freeze
     POSITIVE_DESCRIPTIONS = [
       { desc: "💰 Donation from t̶͖̯́̒̇͝h̸͇̥̘̖̞̋͛̕ę̷̧̯̓̄͜ ̵̧̡̀̎͋̚v̸̰̰̝͈̟̂̇̏̓ͅo̶͓͈͑̑̄̍i̸͉̺͕̥̓̍d̵̟̮̼̠̺̿͌́" },
       { desc: "💰 Donation from the man in the walls", monthly: true },
       { desc: "💰 Donation from Dave from next door", monthly: true },
       { desc: "💰 Donation from Old Greg down hill" },
-    ]
+    ].freeze
 
     def initialize
       @mock_tx_num = rand(7..10)
