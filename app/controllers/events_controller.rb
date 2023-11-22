@@ -177,13 +177,13 @@ class EventsController < ApplicationController
         { desc: "💰 Donation from Old Greg down hill" },
       ]
 
-      @mock_tx_num = rand(7..10) # generate a random number to start with
-      @mock_tx = [] # create an empty array of transactions
-      @mock_balance = 0 # start with a balance of 0
+      @mock_tx_num = rand(7..10)
+      @mock_tx = []
+      @mock_balance = 0
 
       def generate_mock_tx
-          if @mock_balance < 0 # if the balance is less than 0, throw an error
-              raise "Balance is less than 0"
+          if @mock_balance < 0
+              raise "Balance is less than 0. Something's gone wrong."
           else
             return @negative_descriptions[rand(@negative_descriptions.length)].merge({ amount: rand(0..@mock_balance) * -1 })
           end
@@ -198,25 +198,25 @@ class EventsController < ApplicationController
       end
 
       index = 0
-      while index < @mock_tx_num # loop through the array of transactions
-        if @mock_balance > rand(1..40) # if the balance is greater than 0, generate a random transaction
-          @mock_tx << generate_mock_tx # generate a random transaction
-          @mock_balance += @mock_tx[index][:amount] # add the transaction amount to the balance
+      while index < @mock_tx_num
+        if @mock_balance > rand(1..40)
+          @mock_tx << generate_mock_tx
+          @mock_balance += @mock_tx[index][:amount] # add the negative transaction amount to the balance
           index += 1
         else # else, generate a random donation
-          @mock_tx << generate_mock_donation # generate a random donation
-          @mock_tx << generate_mock_fiscal_sponsorship_fee(@mock_tx.last[:amount]) # generate a fiscal sponsorship fee
-          @mock_balance += @mock_tx[index][:amount] # add the transaction amount to the balance
-          @mock_balance += @mock_tx.last[:amount] # add the fiscal fee amount to the balance
+          @mock_tx << generate_mock_donation
+          @mock_tx << generate_mock_fiscal_sponsorship_fee(@mock_tx.last[:amount])
+          @mock_balance += @mock_tx[index][:amount] # add the donation amount to the balance
+          @mock_balance += @mock_tx.last[:amount] # add the negative fiscal fee amount to the balance
           index += 2 # increment the index by 2 to account for the donation and the fee
         end
       end
 
       current_date = DateTime.now
       @mock_tx.reverse.each do |tx|
-        random_interval = !tx.include?("fiscal sponsorship fee") ? rand(1..365) : 0  # If the transaction is not a fiscal sponsorship fee, generate a random interval between 1 and 365 days
+        random_interval = tx[:desc].include?("💰 Fiscal sponsorship fee") ? 0 : rand(1..180) # If the transaction is not a fiscal sponsorship fee, generate a random interval between 1 and 180 days
         tx[:date] = current_date.strftime("%Y-%m-%d")  # Format the date
-        current_date -= random_interval  # Increment the date by a random interval
+        current_date -= random_interval  # Increment the date by the random interval, or 0 if the transaction is a fiscal sponsorship fee
       end
 
       @transactions.clear # clear the transactions array (only really matters for development testing)
