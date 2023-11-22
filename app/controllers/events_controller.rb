@@ -227,6 +227,7 @@ class EventsController < ApplicationController
           amount: trans[:amount],
           amount_cents: trans[:amount] * 100,
           fee_payment: true,
+          fee_payment?: trans[:desc].include?("💰 Fiscal sponsorship fee") ? true : false,
           date: trans[:date],
           local_hcb_code: OpenStruct.new(
             memo: trans[:desc],
