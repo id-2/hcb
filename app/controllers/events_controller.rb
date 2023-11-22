@@ -177,7 +177,8 @@ class EventsController < ApplicationController
         { desc: "💰 Donation from Old Greg down hill" },
       ]
 
-      @mock_tx = Array.new(rand(6..10)) # 6-10 nil's to start with in an array
+      @mock_tx_num = rand(6..10) # generate a random number between 6 and 10 to start with
+      @mock_tx = [] # create an empty array of transactions
       @mock_balance = 0 # start with a balance of 0
 
       def generate_mock_tx
@@ -196,14 +197,17 @@ class EventsController < ApplicationController
           return { desc: "💰 Fiscal sponsorship fee", amount: -0.07 * donation_amount }
       end
 
-      @mock_tx.each_with_index do |tx, i|
+      index = 0
+      while index <= @mock_tx_num # loop through the array of transactions
         if @mock_balance > 1 # if the balance is greater than 1, generate a random transaction
-            @mock_tx[i] = generate_mock_tx # generate a random transaction
+          @mock_tx << generate_mock_tx # generate a random transaction
         else # if the balance is less than 1, generate a random donation
-            @mock_tx[i] = generate_mock_donation # generate a random donation
-            # @mock_tx.insert(i + 1, generate_mock_fiscal_sponsorship_fee(@mock_tx[i][:amount])) # generate a fiscal sponsorship fee
+          @mock_tx << generate_mock_donation # generate a random donation
+          @mock_tx << generate_mock_fiscal_sponsorship_fee(@mock_tx.last[:amount]) # generate a fiscal sponsorship fee
+          @mock_balance += @mock_tx.last[:amount] # add the fiscal fee amount to the balance
         end
-            @mock_balance += @mock_tx[i][:amount] # add the transaction amount to the balance
+            @mock_balance += @mock_tx[index][:amount] # add the transaction amount to the balance
+            index += 1 # increment the index by 1
       end
 
       puts @mock_tx
