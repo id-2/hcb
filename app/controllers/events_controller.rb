@@ -177,15 +177,15 @@ class EventsController < ApplicationController
         { desc: "💰 Donation from Old Greg down hill" },
       ]
 
-      @mock_tx_num = rand(6..10) # generate a random number between 6 and 10 to start with
+      @mock_tx_num = rand(7..10) # generate a random number to start with
       @mock_tx = [] # create an empty array of transactions
       @mock_balance = 0 # start with a balance of 0
 
       def generate_mock_tx
-          if @mock_balance < 1 # if the balance is less than 1, throw an error
-              raise "Balance is less than 1"
+          if @mock_balance < 0 # if the balance is less than 0, throw an error
+              raise "Balance is less than 0"
           else
-            return @negative_descriptions[rand(@negative_descriptions.length)].merge({ amount: rand(1..@mock_balance) * -1 })
+            return @negative_descriptions[rand(@negative_descriptions.length)].merge({ amount: rand(0..@mock_balance) * -1 })
           end
       end
 
@@ -198,31 +198,25 @@ class EventsController < ApplicationController
       end
 
       index = 0
-      while index <= @mock_tx_num # loop through the array of transactions
-        if @mock_balance > 1 # if the balance is greater than 1, generate a random transaction
+      while index < @mock_tx_num # loop through the array of transactions
+        if @mock_balance > rand(1..40) # if the balance is greater than 0, generate a random transaction
           @mock_tx << generate_mock_tx # generate a random transaction
-        else # if the balance is less than 1, generate a random donation
+          @mock_balance += @mock_tx[index][:amount] # add the transaction amount to the balance
+          index += 1
+        else # else, generate a random donation
           @mock_tx << generate_mock_donation # generate a random donation
           @mock_tx << generate_mock_fiscal_sponsorship_fee(@mock_tx.last[:amount]) # generate a fiscal sponsorship fee
+          @mock_balance += @mock_tx[index][:amount] # add the transaction amount to the balance
           @mock_balance += @mock_tx.last[:amount] # add the fiscal fee amount to the balance
+          index += 2 # increment the index by 2 to account for the donation and the fee
         end
-            @mock_balance += @mock_tx[index][:amount] # add the transaction amount to the balance
-            index += 1 # increment the index by 1
       end
-
-      puts @mock_tx
 
       current_date = DateTime.now
       @mock_tx.reverse.each do |tx|
-        if !tx.include?("fiscal sponsorship fee") # if the transaction is not a fiscal sponsorship fee, then set the date to a random date using the current date as a starting point
-          random_interval = rand(1..365)  # Random interval between 1 and 7 days
-          tx[:date] = current_date.strftime("%Y-%m-%d")  # Format the date
-          current_date -= random_interval  # Increment the date by a random interval
-        else # if the transaction is a fiscal sponsorship fee, then set the date to the date of the donation
-          random_interval = 0  # Random interval between 1 and 7 days
-          tx[:date] = current_date.strftime("%Y-%m-%d")  # Format the date
-          current_date -= random_interval  # Increment the date by a random interval
-        end
+        random_interval = !tx.include?("fiscal sponsorship fee") ? rand(1..365) : 0  # If the transaction is not a fiscal sponsorship fee, generate a random interval between 1 and 365 days
+        tx[:date] = current_date.strftime("%Y-%m-%d")  # Format the date
+        current_date -= random_interval  # Increment the date by a random interval
       end
 
       @transactions.clear # clear the transactions array (only really matters for development testing)
@@ -236,15 +230,14 @@ class EventsController < ApplicationController
           date: trans[:date],
           local_hcb_code: OpenStruct.new(
             memo: trans[:desc],
-            receipts: Array.new(rand(100) < 90 ? 1 : 0), # 90% chance of 1 receipt, 10% chance of no receipts
-            comments: Array.new(rand(9) > 1 ? 0 : rand(1..2)), # 1/3 chance of no comments, 2/3 chance of 1 or 2 comments
+            receipts: trans[:amount] > 0 || trans[:desc].include?("💰 Fiscal sponsorship fee") ? [] : Array.new(rand(100) < 90 ? 1 : 0), # 90% chance of 1 receipt, 10% chance of no receipts
+            comments: Array.new(rand(9) > 1 || trans[:desc].include?("💰 Fiscal sponsorship fee") ? 0 : rand(1..2)), # 1/3 chance of no comments, 2/3 chance of 1 or 2 comments
             donation?: !trans[:amount].negative?,
             donation: !trans[:amount].negative? ? nil : OpenStruct.new(recurring?: trans[:monthly]),
             tags: []
           )
         )
       end
-      puts @transactions
 
       @transactions.sort_by!(&:date).reverse!
       @transactions = Kaminari.paginate_array(@transactions).page(params[:page]).per(params[:per] || 75)
