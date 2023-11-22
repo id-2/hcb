@@ -1,3 +1,4 @@
+require 'date'
 # frozen_string_literal: true
 
 class EventsController < ApplicationController
@@ -143,53 +144,104 @@ class EventsController < ApplicationController
       end
     end
 
-    @mock_total = 0
     if helpers.show_mock_data?
-      mock_transaction_descriptions = [
-        { desc: "🌶️ Jalapeños for the steamy social salsa sesh", amount: -9.57 },
-        { desc: "👩‍💻 Payment for club coding lessons (solid gold; rare; imported)", amount: -127.63 },
-        { desc: "🍺 Reimbursement for Friday night's team-building pub crawl", amount: -88.90 },
-        { desc: "😨 Monthly payment to the local protection racket", monthly: true, amount: -2500.00 },
-        { desc: "🚀 Rocket fuel for Lucas' commute", amount: -50.00 },
-        { desc: "💰 Donation from t̶͖̯́̒̇͝h̸͇̥̘̖̞̋͛̕ę̷̧̯̓̄͜ ̵̧̡̀̎͋̚v̸̰̰̝͈̟̂̇̏̓ͅo̶͓͈͑̑̄̍i̸͉̺͕̥̓̍d̵̟̮̼̠̺̿͌́", amount: 50_000.00 },
-        { desc: "🎵 Payment for a DJ for the club disco (groovy)", amount: -430.00 },
-        { desc: "🤫 Hush money", amount: -1000.00 },
-        { desc: "🦄 Purchase of a cute unicorn for team morale", amount: -57.00 },
-        { desc: "🍌 Bananas (Fairtrade)", amount: -1.80 },
-        { desc: "💸 Withdrawal for emergency pizza run", amount: -62.99 },
-        { desc: "🍔 Withdrawal for a not-so-emergency burger run", amount: -47.06 },
-        { desc: "🧑‍🚀 Astronaut suit for Lucas to get home when it's cold", amount: -943.99 },
-        { desc: "💰 Donation from the man in the walls", amount: 1_200.00, monthly: true },
-        { desc: "🫘 Chilli con carne (home cooked, just how you like it)", amount: -8.28 },
-        { desc: "🦖 Purchase of a teeny tiny T-Rex", amount: -3.35 },
-        { desc: "🧪 Purchase of lab rats for the club's genetics project", amount: -120.00 },
-        { desc: "🐣 An incubator to help hatch big ideas", amount: -1.59 },
-        { desc: "📈 Financial advisor to teach us better spending tips", amount: -900.00 },
-        { desc: "🐛 Office wormery", amount: -47.53 },
-        { desc: "📹 Webcams for the team x4", amount: -199.96 },
-        { desc: "🪨 Hackathon rock tumbler", amount: -19.99 },
-        { desc: "🌸 Payment for a floral arrangement", monthly: true, amount: -15.50 },
-        { desc: "🧼 Purchase of eco-friendly soap for the club bathrooms", monthly: true, amount: -7.49 },
-        { desc: "💰 Donation from Dave from next door", monthly: true, amount: 250.00 },
-        { desc: "💰 Donation from Old Greg down hill", amount: 500.00 },
+      @negative_descriptions = [
+        { desc: "🌶️ Jalapeños for the steamy social salsa sesh" },
+        { desc: "👩‍💻 Payment for club coding lessons (solid gold; rare; imported)" },
+        { desc: "🍺 Reimbursement for Friday night's team-building pub crawl" },
+        { desc: "😨 Monthly payment to the local protection racket", monthly: true },
+        { desc: "🚀 Rocket fuel for Lucas' commute" },
+        { desc: "🎵 Payment for a DJ for the club disco (groovy)" },
+        { desc: "🤫 Hush money" },
+        { desc: "🦄 Purchase of a cute unicorn for team morale" },
+        { desc: "🍌 Bananas (Fairtrade)" },
+        { desc: "💸 Withdrawal for emergency pizza run" },
+        { desc: "🍔 Withdrawal for a not-so-emergency burger run" },
+        { desc: "🧑‍🚀 Astronaut suit for Lucas to get home when it's cold" },
+        { desc: "🫘 Chilli con carne (home cooked, just how you like it)" },
+        { desc: "🦖 Purchase of a teeny tiny T-Rex" },
+        { desc: "🧪 Purchase of lab rats for the club's genetics project" },
+        { desc: "🐣 An incubator to help hatch big ideas" },
+        { desc: "📈 Financial advisor to teach us better spending tips" },
+        { desc: "🐛 Office wormery" },
+        { desc: "📹 Webcams for the team x4" },
+        { desc: "🪨 Hackathon rock tumbler" },
+        { desc: "🌸 Payment for a floral arrangement", monthly: true },
+        { desc: "🧼 Purchase of eco-friendly soap for the club bathrooms", monthly: true },
       ]
 
-      mock_transaction_descriptions.shuffle.slice(0, rand(6..10)).each do |trans|
+      @positive_descriptions = [
+        { desc: "💰 Donation from t̶͖̯́̒̇͝h̸͇̥̘̖̞̋͛̕ę̷̧̯̓̄͜ ̵̧̡̀̎͋̚v̸̰̰̝͈̟̂̇̏̓ͅo̶͓͈͑̑̄̍i̸͉̺͕̥̓̍d̵̟̮̼̠̺̿͌́" },
+        { desc: "💰 Donation from the man in the walls", monthly: true },
+        { desc: "💰 Donation from Dave from next door", monthly: true },
+        { desc: "💰 Donation from Old Greg down hill" },
+      ]
+
+      @mock_tx = Array.new(rand(6..10)) # 6-10 nil's to start with in an array
+      @mock_balance = 0 # start with a balance of 0
+
+      def generate_mock_tx
+          if @mock_balance < 1 # if the balance is less than 1, throw an error
+              raise "Balance is less than 1"
+          else
+            return @negative_descriptions[rand(@negative_descriptions.length)].merge({ amount: rand(1..@mock_balance) * -1 })
+          end
+      end
+
+      def generate_mock_donation
+          return @positive_descriptions[rand(@positive_descriptions.length)].merge({ amount: rand(1000) })
+      end
+
+      def generate_mock_fiscal_sponsorship_fee(donation_amount)
+          return { desc: "💰 Fiscal sponsorship fee", amount: -0.07 * donation_amount }
+      end
+
+      @mock_tx.each_with_index do |tx, i|
+        if @mock_balance > 1 # if the balance is greater than 1, generate a random transaction
+            @mock_tx[i] = generate_mock_tx # generate a random transaction
+        else # if the balance is less than 1, generate a random donation
+            @mock_tx[i] = generate_mock_donation # generate a random donation
+            # @mock_tx.insert(i + 1, generate_mock_fiscal_sponsorship_fee(@mock_tx[i][:amount])) # generate a fiscal sponsorship fee
+        end
+            @mock_balance += @mock_tx[i][:amount] # add the transaction amount to the balance
+      end
+
+      puts @mock_tx
+
+      current_date = DateTime.now
+      @mock_tx.reverse.each do |tx|
+        if !tx.include?("fiscal sponsorship fee") # if the transaction is not a fiscal sponsorship fee, then set the date to a random date using the current date as a starting point
+          random_interval = rand(1..365)  # Random interval between 1 and 7 days
+          tx[:date] = current_date.strftime("%Y-%m-%d")  # Format the date
+          current_date -= random_interval  # Increment the date by a random interval
+        else # if the transaction is a fiscal sponsorship fee, then set the date to the date of the donation
+          random_interval = 0  # Random interval between 1 and 7 days
+          tx[:date] = current_date.strftime("%Y-%m-%d")  # Format the date
+          current_date -= random_interval  # Increment the date by a random interval
+        end
+      end
+
+      @transactions.clear # clear the transactions array (only really matters for development testing)
+
+
+      @mock_tx.each do |trans|
         @transactions << OpenStruct.new(
           amount: trans[:amount],
-          amount_cents: rand(1000),
+          amount_cents: trans[:amount] * 100,
           fee_payment: true,
-          date: Faker::Date.backward(days: 365 * 2),
+          date: trans[:date],
           local_hcb_code: OpenStruct.new(
             memo: trans[:desc],
-            receipts: Array.new(rand(9) > 1 ? 0 : rand(1..2)),
-            comments: Array.new(rand(9) > 1 ? 0 : rand(1..2)),
+            receipts: Array.new(rand(100) < 90 ? 1 : 0), # 90% chance of 1 receipt, 10% chance of no receipts
+            comments: Array.new(rand(9) > 1 ? 0 : rand(1..2)), # 1/3 chance of no comments, 2/3 chance of 1 or 2 comments
             donation?: !trans[:amount].negative?,
             donation: !trans[:amount].negative? ? nil : OpenStruct.new(recurring?: trans[:monthly]),
             tags: []
           )
         )
       end
+      puts @transactions
+
       @transactions.sort_by!(&:date).reverse!
       @transactions = Kaminari.paginate_array(@transactions).page(params[:page]).per(params[:per] || 75)
       @mock_total = @transactions.reduce(0) { |sum, obj| sum + obj.amount * 100 }.to_i
