@@ -60,7 +60,7 @@ class OrganizerPosition < ApplicationRecord
     ach = event.ach_transfers.where(creator_id: user.id, rejected_at: nil).sum(:amount)
     checks = event.checks.where(creator_id: user.id, rejected_at: nil).sum(:amount) + event.increase_checks.where(user_id: user.id, increase_status: "deposited").where.not(approved_at: nil).sum(:amount)
     disbursements = event.disbursements.where(requested_by_id: user.id).where.not(fulfilled_by_id: nil).sum(:amount)
-    card + ach + disbursements
+    card + ach + checks + disbursements
   end
 
 end
