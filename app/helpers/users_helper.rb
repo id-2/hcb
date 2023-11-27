@@ -136,11 +136,12 @@ module UsersHelper
     colors[id.to_i % colors.length] || colors.last
   end
 
-  def settings_tab(active: false, &block)
+  def settings_tab(active: false, **attrs, &block)
     if active
-      tag.li(class: "active", data: { controller: "scroll-into-view" }, &block)
+      class_attr = attrs.delete(:class)
+      tag.li(class: "active #{class_attr}", data: { controller: "scroll-into-view" }, **attrs, &block)
     else
-      tag.li(&block)
+      tag.li(**attrs, &block)
     end
   end
 end

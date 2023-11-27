@@ -13,9 +13,37 @@
   <%= settings_tab active: active == "security" do %>
     <%= link_to "Security", @user == current_user ? settings_security_path : security_user_path(@user), data: { turbo: true, turbo_action: "advance" } %>
   <% end %>
+  <% if Flipper.enabled?(:dev_mode, current_user) %>
+    <%= settings_tab active: active == "general", class: "mono" do %>
+      <%= link_to "developer", @user == current_user ? settings_security_path : security_user_path(@user), data: { turbo: true, turbo_action: "advance" } %>
+    <% end %>
+  <% end %>
   <% admin_tools("p0 overflow-hidden", override_pretend: true) do %>
     <%= settings_tab active: active == "admin" do %>
       <%= link_to "Admin", @user == current_user ? settings_admin_path : admin_user_path(@user), data: { turbo: true, turbo_action: "advance" } %>
     <% end %>
   <% end %>
 </ul>
+
+<% unless Flipper.enabled?(:dev_mode, current_user) %>
+  <%= form_with url: enable_feature_users_path(feature: "dev_mode"), data: { controller: "form", turbo: true, turbo_frame: "_self", turbo_confirm: "would you like to activate the DEVELOPER MENU?" } do |form| %>
+    <div
+      data-controller="key-sequence"
+      data-action="keydown@window->key-sequence#keydown key-sequence:completed->form#submit"
+      data-key-sequence-sequence-value='[
+        "ArrowUp",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowLeft",
+        "ArrowRight",
+        "KeyB",
+        "KeyA",
+        "Enter"
+      ]'
+    >
+    </div>
+  <% end %>
+<% end %>
