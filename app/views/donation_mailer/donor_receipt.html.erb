@@ -2,8 +2,10 @@
 
 <% if @donation.recurring? %>
 <p>
-  Your donation of <%= render_money @donation.recurring_donation.amount %> per month to <%= @donation.event.name %> has <%= @initial_recurring_donation ? "been started" : "renewed" %> and your card has been charged <%= render_money @donation.amount %>. Please consider this email a receipt for your gift  for the month of <strong><%= @donation.created_at.strftime("%B %Y") %></strong>.
+  Your donation of <%= render_money @donation.recurring_donation.amount %> per month to <%= @donation.event.name %> has <%= @initial_recurring_donation ? "been started" : "renewed" %> and your card has been charged <%= render_money @donation.amount %>. Please consider this email a receipt for your gift for the month of <strong><%= @donation.created_at.strftime("%B %Y") %></strong>.
 </p>
+<% elsif @purchased_product %>
+  Thank you for your generous purchase of <%= @donation.product.name %> for <%= render_money @donation.amount %> from <%= @donation.event.name %>. Please consider this email a receipt for your purchase.
 <% else %>
 <p>
   Thank you for your generous donation of <%= render_money @donation.amount %> to <%= @donation.event.name %>. Please consider this email a receipt for your gift.
@@ -19,7 +21,12 @@
   </p>
 <% end %>
 
-<p><%= @donation.event.name %> is fiscally sponsored by Hack Club, a 501(c)(3) nonprofit. Our EIN is 81-2908499. Per IRS guidelines, you agree that no goods or services will be provided in return for this gift.</p>
+<p>
+  <%= @donation.event.name %> is fiscally sponsored by Hack Club, a 501(c)(3) nonprofit. Our EIN is 81-2908499. 
+  <% if !@purchased_product  %>
+    Per IRS guidelines, you agree that no goods or services will be provided in return for this gift.
+  <% end %>
+</p>
 
 <% if @donation.recurring? %>
 <p>To cancel your donation or update your payment details, click <%= link_to "this link", recurring_donation_url(@donation.recurring_donation.url_hash) %>.</p>

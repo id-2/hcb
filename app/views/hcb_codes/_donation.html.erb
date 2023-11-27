@@ -98,6 +98,12 @@
       <%= @donation.message %>
     </p>
     <% end %>
+    <% if @donation.product.present? %>
+    <p>
+      <strong>Product</strong>
+      <%= @donation.product %>
+    </p>
+    <% end %>
     <p>
       <strong><%= donation_fee_type(@donation) %></strong>
       -<%= donation_payment_processor_fee(true, @donation) %>

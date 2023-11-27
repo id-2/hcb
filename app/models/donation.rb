@@ -60,6 +60,7 @@ class Donation < ApplicationRecord
   belongs_to :fee_reimbursement, required: false
   belongs_to :payout, class_name: "DonationPayout", required: false
   belongs_to :recurring_donation, required: false
+  belongs_to :product, required: false
 
   before_create :create_stripe_payment_intent, unless: -> { recurring? }
   before_create :assign_unique_hash, unless: -> { recurring? }
@@ -155,6 +156,10 @@ class Donation < ApplicationRecord
 
   def includes_message?
     self.message.present?
+  end
+  
+  def purchased_a_product?
+    self.product.present?
   end
 
   def filter_data
@@ -308,8 +313,8 @@ class Donation < ApplicationRecord
 
     if first_donation?
       DonationMailer.with(donation: self).first_donation_notification.deliver_later
-    elsif includes_message?
-      DonationMailer.with(donation: self).donation_with_message_notification.deliver_later
+    elsif includes_message? || purchased_a_product?
+      DonationMailer.with(donation: self).donation_with_message_or_product_notification.deliver_later
     end
 
 

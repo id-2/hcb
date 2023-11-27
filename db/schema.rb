@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_27_072827) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -339,9 +337,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
   end
 
   create_table "card_grant_settings", force: :cascade do |t|
+    t.bigint "event_id", null: false
     t.string "merchant_lock"
     t.string "category_lock"
-    t.bigint "event_id", null: false
     t.string "invite_message"
     t.index ["event_id"], name: "index_card_grant_settings_on_event_id"
   end
@@ -522,9 +520,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
     t.bigint "recurring_donation_id"
     t.text "user_agent"
     t.inet "ip_address"
+    t.bigint "product_id"
     t.index ["event_id"], name: "index_donations_on_event_id"
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
     t.index ["payout_id"], name: "index_donations_on_payout_id"
+    t.index ["product_id"], name: "index_donations_on_product_id"
     t.index ["recurring_donation_id"], name: "index_donations_on_recurring_donation_id"
   end
 
@@ -1265,6 +1265,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
     t.index ["representative_id"], name: "index_partners_on_representative_id"
   end
 
+  create_table "products", force: :cascade do |t|
+    t.string "name"
+    t.integer "amount"
+    t.bigint "event_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_products_on_event_id"
+  end
+
   create_table "raw_csv_transactions", force: :cascade do |t|
     t.integer "amount_cents"
     t.date "date_posted"
@@ -1818,6 +1827,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
   add_foreign_key "partnered_signups", "partners"
   add_foreign_key "partnered_signups", "users"
   add_foreign_key "partners", "users", column: "representative_id"
+  add_foreign_key "products", "events"
   add_foreign_key "raw_pending_incoming_disbursement_transactions", "disbursements"
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
   add_foreign_key "receipts", "users"

@@ -1,4 +1,5 @@
 <% @has_header_image = @event.donation_header_image.attached? %>
+<% @product = @product || @donation.product || nil %>
 <% content_for(:container_style) { @has_header_image ? "padding-top: 68px" : "padding-top: 16px" } %>
 
 <action
@@ -43,7 +44,9 @@
 <% end %>
 
 <h1 class="mt3 mb0 border-none center <%= "smoke text-shadow-lg" if @has_header_image %>">
-  <span class="h3 caps block <%= @has_header_image ? "muted" : "secondary" %>">Donate to</span>
+  <span class="h3 caps block <%= @has_header_image ? "muted" : "secondary" %>">
+    <%= @product ? "Purchase from" : "Donate to" %>
+  </span>
   <div class="flex justify-center items-center mt1">
     <%= render "donations/logo" %>
     <span><%= @event.name %></span>

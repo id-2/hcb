@@ -413,6 +413,7 @@ Rails.application.routes.draw do
     collection do
       get "start/:event_name", to: "donations#start_donation", as: "start_donation"
       post "start/:event_name", to: "donations#make_donation", as: "make_donation"
+      post "start_from_product/:event_name", to: "donations#make_donation_from_product", as: "make_donation_from_product"
       get "qr/:event_name.png", to: "donations#qr_code", as: "qr_code"
       get ":event_name/:donation", to: "donations#finish_donation", as: "finish_donation"
       get "export"
@@ -574,6 +575,7 @@ Rails.application.routes.draw do
     get "promotions", to: "events#promotions", as: :promotions
     get "reimbursements", to: "events#reimbursements", as: :reimbursements
     get "donations", to: "events#donation_overview", as: :donation_overview
+    get "products", to: "events#products"
     get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overview
     post "demo_mode_request_meeting", to: "events#demo_mode_request_meeting", as: :demo_mode_request_meeting
     resources :disbursements, only: [:new, :create]
@@ -614,6 +616,13 @@ Rails.application.routes.draw do
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
     end
   end
+  
+  get '/buy/:id', to: 'products#buy', as: 'buy'
+  
+  post 'products/create'
+  post 'products/update'
+  delete 'products/delete'
+  
 
   # rewrite old event urls to the new ones not prefixed by /events/
   get "/events/*path", to: redirect("/%{path}", status: 302)

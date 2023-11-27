@@ -45,6 +45,11 @@
         icon: "support",
         data: { tour_step: "donations" },
         selected: local_assigns[:selected] == :donations unless !@event.approved? %>
+      <%= dock_item "Products",
+        event_products_path(event_id: @event.slug),
+        tooltip: "Sell merchandise to raise money",
+        icon: "sticker",
+        selected: local_assigns[:selected] == :products unless !@event.approved? %>
       <%= dock_item "Invoices",
         event_invoices_path(event_id: @event.slug),
         tooltip: "Collect sponsor payments",

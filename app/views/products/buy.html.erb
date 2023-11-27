@@ -1,0 +1,53 @@
+<% title "Purchase from " + @event.name %>
+<% page_sm %>
+<% no_app_shell %>
+
+<% content_for :head do %>
+	<meta name="twitter:card" content="summary_large_image">
+	<meta property="og:site_name" content="HCB">
+	<meta property="og:title" content="Purchase from <%= @event.name %>">
+	<meta name="twitter:title" content="Purchase from <%= @event.name %>">
+<% end %>
+
+<%= render "donations/header" %>
+
+<% if @event.donation_page_message.present? %>
+	<div class="container container--sm">
+		<div class="card border b--info mt3 mb3 pb0 pt0 public-message">
+			<%== MarkdownService.instance.renderer.render @event.donation_page_message %>
+		</div>
+	</div>
+<% end %>
+
+<%= turbo_frame_tag :donation do %>
+
+	<%= form_with(model: @donation, local: true, url: make_donation_from_product_donations_url(event_name: @event.slug),
+								class: "card mx-auto max-width-1 mb3", data: { turbo: "false" }) do |form| %>
+
+		<%= form.invisible_captcha :subtitle %>
+
+		<div class="field mb2">
+			<%= form.label :name, "Your name" %>
+			<%= form.text_field :name, placeholder: "Fiona Hackworth", required: true, autofocus: true %>
+		</div>
+
+		<div class="field mb2">
+			<%= form.label :email, "Your email" %>
+			<span class="muted block h5">We’ll send a receipt here.</span>
+			<%= form.email_field :email, placeholder: "fionah@gmail.com", required: true %>
+		</div>
+
+		<div class="field mb2">
+			<%= form.label :message, "Message" %>
+			<span class="muted block h5">Optionally include a note.</span>
+			<%= form.text_area :message, placeholder: "Keep up the good work!", required: false %>
+		</div>
+
+		<%= form.hidden_field :product, value: @product.id %>
+
+		<%= form.submit "Purchase #{@product.name} →", class: "w-100 bg-success" %>
+	<% end %>
+<% end %>
+
+
+<%= render "donations/footer" %>

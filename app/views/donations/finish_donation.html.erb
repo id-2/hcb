@@ -111,7 +111,7 @@
   </p>
 
   <p class="mb2">
-    Please enter your payment information for your contribution of
+    Please enter your payment information <%= @donation.product.present? ? "for your purchase of #{@donation.product.name} for" : "for your contribution of" %> 
     <strong><%= render_money @donation.amount %></strong>.
   </p>
 
@@ -123,7 +123,9 @@
       <div id="card-errors" role="alert" class="muted"></div>
 
       <div class="show-on-processing" style="display: none">
-        <p class="flash fit">Sending your donation...</p>
+        <p class="flash fit">
+          <%= @donation.product.present? ? "Processing your payment..." : "Sending your donation..." %>
+        </p>
       </div>
 
       <div class="processing-errors">
@@ -131,14 +133,14 @@
       </div>
 
       <div class="mt3">
-        <button id="submit" class="btn w-100 donation-btn">Donate <%= render_money @donation.amount %></button>
+        <button id="submit" class="btn w-100 donation-btn"> <%= @donation.product.present? ? "Pay" : "Donate" %> <%= render_money @donation.amount %></button>
       </div>
     </div>
   </div>
 
   <div id="success" class="show-on-success center mt3" style="display: none">
     <p class="flash success fit">
-      Thanks! Your generous donation to <%= @event.name %>
+      Thanks! Your generous contribution towards <%= @event.name %>
       is on its way. We'll send you a receipt shortly.
     </p>
   </div>

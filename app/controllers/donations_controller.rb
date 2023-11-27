@@ -86,6 +86,27 @@ class DonationsController < ApplicationController
       render :start_donation, status: :unprocessable_entity
     end
   end
+  
+  def make_donation_from_product
+    d_params = donation_from_product_params
+    d_params[:product] = Product.find(d_params[:product])
+    d_params[:amount] = d_params[:product].amount
+  
+    d_params[:ip_address] = request.ip
+    d_params[:user_agent] = request.user_agent
+  
+    @donation = Donation.new(d_params)
+    @donation.event = d_params[:product].event
+    @event = d_params[:product].event
+  
+    authorize @donation
+  
+    if @donation.save
+      redirect_to finish_donation_donations_path(@event, @donation.url_hash)
+    else
+      render :start_donation, status: :unprocessable_entity
+    end
+  end
 
   def finish_donation
 
@@ -193,6 +214,10 @@ class DonationsController < ApplicationController
 
   def donation_params
     params.require(:donation).permit(:email, :name, :amount, :message)
+  end
+  
+  def donation_from_product_params
+    params.permit(:email, :name, :product, :message)
   end
 
   def redirect_to_404

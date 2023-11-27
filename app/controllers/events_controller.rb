@@ -431,6 +431,13 @@ class EventsController < ApplicationController
     @recurring_donations_monthly_sum = @recurring_donations.sum(0) { |donation| donation[:amount] }
 
   end
+  
+  def products
+    authorize @event
+  
+    @products = @event.products
+  
+  end
 
   def partner_donation_overview
     authorize @event

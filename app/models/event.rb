@@ -262,6 +262,8 @@ class Event < ApplicationRecord
   has_many :payouts, through: :invoices
 
   has_many :documents
+  
+  has_many :products
 
   has_many :canonical_pending_event_mappings, -> { on_main_ledger }
   has_many :canonical_pending_transactions, through: :canonical_pending_event_mappings
