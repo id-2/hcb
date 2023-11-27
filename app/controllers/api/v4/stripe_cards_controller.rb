@@ -5,10 +5,14 @@ module Api
     class StripeCardsController < ApplicationController
       def index
         if params[:event_id].present?
+          require_scope! "read:org:cards"
+
           @event = authorize(Event.find_by_public_id(params[:event_id]) || Event.friendly.find(params[:event_id]), :card_overview?)
           @stripe_cards = @event.stripe_cards.includes(:user, :event).order(created_at: :desc)
         else
+          require_scope! "read:user:cards"
           skip_authorization
+
           @stripe_cards = current_user.stripe_cards.includes(:user, :event).order(created_at: :desc)
         end
       end

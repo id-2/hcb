@@ -4,6 +4,10 @@ module Api
   module V4
     class InvitationsController < ApplicationController
       skip_after_action :verify_authorized, only: [:index]
+
+      before_action(only: [:index, :show]) { require_scope! "read:user:invitations" }
+      before_action(only: [:accept, :reject]) { require_scope! "write:user:invitations" }
+
       before_action :set_invitation, except: [:index]
 
       def index

@@ -5,7 +5,7 @@
 <h2 class="border-none center regular mt5 mb2">Connect <strong><%= @pre_auth.client.name %></strong> to your HCB account?</h2>
 
 <section class="mb2">
-  <div class="flex items-start">
+  <!-- <div class="flex items-start">
     <span class="muted mr2"><%= inline_icon "private-outline" %></span>
     <p class="mt0"><%= @pre_auth.client.name %> is a trusted app created by HCB.</p>
   </div>
@@ -14,7 +14,18 @@
     <span class="muted mr2"><%= inline_icon "important" %></span>
 
     <p class="mt0"><%= @pre_auth.client.name %> will have full access to your organization funds.</p>
-  </div>
+  </div> -->
+  <ul class="card list-reset pl2 flex flex-column g1">
+    <%# @pre_auth.scopes.each {|scope| t(scope, scope: [:doorkeeper, :scopes])}.join("\n") %>
+    <% @pre_auth.scopes.each do |scope| %>
+      <li class="flex items-start">
+        <%= inline_icon "checkmark", size: 28, class: "info mr1", style: "margin-top: calc(0.5lh - 14px)" %>
+        <%= t(scope, scope: [:doorkeeper, :scopes]) %>
+      </li>
+    <% end %>
+  </ul>
+  <small class="muted flex items-center justify-center"><%= inline_icon "private-outline", size: 24, class: "mr1" %> <span><strong><%= @pre_auth.client.name %></strong> is a trusted app created by HCB.</span></small>
+
 </section>
 
 <div class="flex items-center justify-center g1">
@@ -40,7 +51,7 @@
       }, form: { data: { turbo: false } } %>
 </div>
 
-<div class="center mt2">
+<div class="center mt3">
   <div class="flex items-center justify-center muted">Signed in as <%= user_mention current_user, class: "ml1" %></div>
 
   <%= link_to "Switch accounts", auth_users_path(return_to: request.fullpath), class: "center" %>

@@ -3,6 +3,9 @@
 module Api
   module V4
     class ReceiptsController < ApplicationController
+      before_action(only: [:index]) { require_scope! "read:receipts" }
+      before_action(only: [:create]) { require_scope! "write:receipts" }
+
       def index
         @hcb_code = authorize HcbCode.find_by_public_id(params[:transaction_id]), :show?
         @receipts = @hcb_code.receipts.includes(:user)
