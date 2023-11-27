@@ -111,7 +111,7 @@
   </p>
 
   <p class="mb2">
-    Please enter your payment information <%= @donation.product.present? ? "for your purchase of #{@donation.product.name} for" : "for your contribution of" %> 
+    Please enter your payment information <%= @donation.product.present? ? "for your purchase of #{@donation.product.name} for" : "for your contribution of" %>
     <strong><%= render_money @donation.amount %></strong>.
   </p>
 
