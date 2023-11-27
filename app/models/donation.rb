@@ -157,7 +157,7 @@ class Donation < ApplicationRecord
   def includes_message?
     self.message.present?
   end
-  
+
   def purchased_a_product?
     self.product.present?
   end

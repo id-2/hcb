@@ -12,7 +12,7 @@ class DonationPolicy < ApplicationPolicy
   def make_donation?
     record.event.donation_page_enabled && !record.event.demo_mode?
   end
-  
+
   def make_donation_from_product?
     record.event.donation_page_enabled && !record.event.demo_mode?
   end

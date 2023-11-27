@@ -616,13 +616,13 @@ Rails.application.routes.draw do
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
     end
   end
-  
-  get '/buy/:id', to: 'products#buy', as: 'buy'
-  
-  post 'products/create'
-  post 'products/update'
-  delete 'products/delete'
-  
+
+  get "/buy/:id", to: "products#buy", as: "buy"
+
+  post "products/create"
+  post "products/update"
+  delete "products/delete"
+
 
   # rewrite old event urls to the new ones not prefixed by /events/
   get "/events/*path", to: redirect("/%{path}", status: 302)

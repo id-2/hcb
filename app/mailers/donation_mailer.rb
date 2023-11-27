@@ -6,7 +6,11 @@ class DonationMailer < ApplicationMailer
     @initial_recurring_donation = @donation.initial_recurring_donation? && !@donation.recurring_donation&.migrated_from_legacy_stripe_account?
     @purchased_product = @donation.product.present?
 
-    mail to: @donation.email, reply_to: @donation.event.donation_reply_to_email.presence, subject: @donation.recurring? ? "Receipt for your donation to #{@donation.event.name} — #{@donation.created_at.strftime("%B %Y")}" : "Receipt for your #{@purchased_product ? "purchase from" : "donation to"} #{@donation.event.name}"
+    mail to: @donation.email, reply_to: @donation.event.donation_reply_to_email.presence, subject: if @donation.recurring?
+                                                                                                     "Receipt for your donation to #{@donation.event.name} — #{@donation.created_at.strftime("%B %Y")}"
+                                                                                                   else
+                                                                                                     "Receipt for your #{@purchased_product ? "purchase from" : "donation to"} #{@donation.event.name}"
+                                                                                                   end
   end
 
   def first_donation_notification

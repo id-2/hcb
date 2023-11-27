@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -520,9 +522,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_27_072827) do
     t.bigint "recurring_donation_id"
     t.text "user_agent"
     t.inet "ip_address"
+    t.bigint "grant_id"
     t.bigint "product_id"
     t.index ["event_id"], name: "index_donations_on_event_id"
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
+    t.index ["grant_id"], name: "index_donations_on_grant_id"
     t.index ["payout_id"], name: "index_donations_on_payout_id"
     t.index ["product_id"], name: "index_donations_on_product_id"
     t.index ["recurring_donation_id"], name: "index_donations_on_recurring_donation_id"
@@ -1087,6 +1091,16 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_27_072827) do
     t.index ["token"], name: "index_login_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
+  end
+
+  create_table "metrics", force: :cascade do |t|
+    t.string "type"
+    t.jsonb "metric"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
   create_table "mfa_codes", force: :cascade do |t|

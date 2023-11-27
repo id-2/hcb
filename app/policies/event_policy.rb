@@ -116,7 +116,7 @@ class EventPolicy < ApplicationPolicy
   def donation_overview?
     is_public || user_or_admin
   end
-  
+
   def products?
     is_public || user_or_admin
   end
