@@ -12,7 +12,7 @@ module LoginCodeService
     def run
       user = User.find_or_initialize_by(email: @email)
 
-      if @sms
+      if false
         send_login_code_by_sms(user)
       else
         send_login_code_by_email(user)
