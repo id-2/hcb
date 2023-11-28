@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -339,9 +337,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
   end
 
   create_table "card_grant_settings", force: :cascade do |t|
+    t.bigint "event_id", null: false
     t.string "merchant_lock"
     t.string "category_lock"
-    t.bigint "event_id", null: false
     t.string "invite_message"
     t.index ["event_id"], name: "index_card_grant_settings_on_event_id"
   end
@@ -693,9 +691,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
     t.string "increase_account_id", null: false
     t.string "website"
     t.text "description"
+    t.integer "stripe_card_shipping_type", default: 0, null: false
     t.text "donation_thank_you_message"
     t.text "donation_reply_to_email"
-    t.integer "stripe_card_shipping_type", default: 0, null: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -1802,6 +1800,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
   add_foreign_key "login_codes", "users"
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
+  add_foreign_key "mailbox_addresses", "users"
   add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "ops_checkins", "users", column: "point_of_contact_id"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"

@@ -29,5 +29,15 @@
   "[ruby][gemfile][erb]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true
+  },
+  "ruby.rubocop.executePath": "./bin/rubocop/",
+  "erb.erb-lint.executePath": "./bin/bundle exec erblint app/views/ -a",
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#58141f",
+    "titleBar.activeBackground": "#7e1d2b",
+    "titleBar.activeForeground": "#FBFBF7"
+  },
+  "[ruby]": {
+    "editor.defaultFormatter": "ms-vsliveshare.vsliveshare"
   }
 }

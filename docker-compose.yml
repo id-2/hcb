@@ -6,31 +6,15 @@ services:
       - pg-data:/var/lib/postgresql/data
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5432:5432
   redis:
     image: redis
     volumes:
       - redis-data:/data
-  web:
-    env_file:
-      - .env.development
-    build: ./
-    command: bash -c 'rm -f /usr/src/app/tmp/pids/server.pid; ./bin/dev'
-    volumes:
-      - ./:/usr/src/app:cached
-      - tmp:/usr/src/app/tmp
-      - gems:/usr/local/bundle
-      - node_modules:/usr/src/app/node_modules
-    depends_on:
-      - db
-      - redis
-    environment:
-      REDIS_URL: redis://redis:6379
     ports:
-      - 3000:3000
+      - 6379:6379
 
 volumes:
   pg-data:
   redis-data:
-  tmp:
-  gems:
-  node_modules:

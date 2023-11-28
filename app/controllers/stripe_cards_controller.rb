@@ -70,8 +70,12 @@ class StripeCardsController < ApplicationController
   def show
     @card = StripeCard.includes(:event, :user).find(params[:id])
 
-
     authorize @card
+
+    if flash[:popover]
+      @popover = flash[:popover]
+      flash.delete(:popover)
+    end
 
     if @card.card_grant.present? && !current_user&.admin? && @card.event.users.exclude?(current_user)
       return redirect_to @card.card_grant
@@ -87,11 +91,6 @@ class StripeCardsController < ApplicationController
     @hcb_codes = @card.hcb_codes
                       .includes(canonical_pending_transactions: [:raw_pending_stripe_transaction], canonical_transactions: :transaction_source)
                       .page(params[:page]).per(25)
-
-    if flash[:popover]
-      @popover = flash[:popover]
-      flash.delete(:popover)
-    end
   end
 
   def new
