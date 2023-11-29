@@ -117,7 +117,7 @@ class StatsController < ApplicationController
 
     render json: User.find_by_sql([q, users])
   end
-  
+
   def hq_receipt_stats # secret api endpoint
     q = <<~SQL
       SELECT
@@ -145,7 +145,7 @@ class StatsController < ApplicationController
       GROUP BY users.full_name, users.id
       ORDER BY count DESC;
     SQL
-    
+
     render json: User.find_by_sql([q]).reject { |x| x.count == 0 }
   end
 
