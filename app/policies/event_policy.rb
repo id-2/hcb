@@ -153,6 +153,10 @@ class EventPolicy < ApplicationPolicy
     record.users.include?(user)
   end
 
+  def missing_receipts?
+    user_or_admin
+  end
+
   private
 
   def user_or_admin

@@ -10,6 +10,7 @@ class EventsController < ApplicationController
   end
   skip_before_action :signed_in_user
   before_action :set_mock_data
+  before_action :hide_footer, only: :missing_receipts
 
   before_action :redirect_to_onboarding, unless: -> { @event&.is_public? }
 
@@ -636,6 +637,39 @@ class EventsController < ApplicationController
     end
 
     redirect_back fallback_location: edit_event_path(@event, anchor: "admin_organization_tags")
+  end
+
+  def missing_receipts
+    q = <<~SQL
+      SELECT
+      users.*,
+      (
+          SELECT COUNT(*) FROM "hcb_codes" h#{' '}
+          JOIN canonical_transactions ct ON ct.hcb_code = h.hcb_code
+          JOIN raw_stripe_transactions rst ON ct.transaction_source_id = rst.id
+          LEFT JOIN receipts r ON r.receiptable_id = h.id
+          LEFT JOIN stripe_cardholders ch ON rst.stripe_transaction->>'cardholder' = ch.stripe_id
+          LEFT JOIN users u ON ch.user_id = u.id
+          LEFT JOIN canonical_event_mappings em ON ct.id = em.canonical_transaction_id
+          LEFT JOIN events e ON em.event_id = e.id
+          WHERE ch.user_id = users.id#{' '}
+                AND r.receiptable_id IS NULL#{' '}
+                AND rst.id IS NOT NULL#{' '}
+                AND h.marked_no_or_lost_receipt_at IS NULL#{' '}
+                AND e.id = :event
+      )
+      FROM users
+      JOIN organizer_positions op ON op.user_id = users.id
+      WHERE op.event_id = :event
+      ORDER BY count DESC;
+    SQL
+
+    @users = User.find_by_sql([q, { event: @event.id }]).reject { |x| x.count == 0 }
+
+    @count = @users.sum { |u| u.count }
+
+    authorize @event
+
   end
 
   private

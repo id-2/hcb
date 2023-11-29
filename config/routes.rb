@@ -552,6 +552,7 @@ Rails.application.routes.draw do
     post "remove_logo"
 
     get "team", to: "events#team", as: :team
+    get "missing_receipts", to: "events#missing_receipts", as: :missing_receipts
     get "google_workspace", to: "events#g_suite_overview", as: :g_suite_overview
     post "g_suite_create", to: "events#g_suite_create", as: :g_suite_create
     put "g_suite_verify", to: "events#g_suite_verify", as: :g_suite_verify

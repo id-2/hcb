@@ -35,5 +35,7 @@ import Alpine from 'alpinejs'
 window.Alpine = Alpine
 Alpine.start()
 
+import "chartkick/chart.js"
+
 import LocalTime from 'local-time'
 LocalTime.start()
