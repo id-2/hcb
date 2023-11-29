@@ -117,5 +117,36 @@ class StatsController < ApplicationController
 
     render json: User.find_by_sql([q, users])
   end
+  
+  def hq_receipt_stats # secret api endpoint
+    q = <<~SQL
+      SELECT
+      users.id,
+      users.full_name,
+      (
+          SELECT COUNT(*) FROM "hcb_codes" h#{' '}
+          JOIN canonical_transactions ct ON ct.hcb_code = h.hcb_code
+          JOIN raw_stripe_transactions rst ON ct.transaction_source_id = rst.id
+          LEFT JOIN receipts r ON r.receiptable_id = h.id
+          LEFT JOIN stripe_cardholders ch ON rst.stripe_transaction->>'cardholder' = ch.stripe_id
+          LEFT JOIN users u ON ch.user_id = u.id
+          LEFT JOIN canonical_event_mappings em ON ct.id = em.canonical_transaction_id
+          LEFT JOIN events e ON em.event_id = e.id
+          WHERE ch.user_id = users.id#{' '}
+                AND r.receiptable_id IS NULL#{' '}
+                AND rst.id IS NOT NULL#{' '}
+                AND h.marked_no_or_lost_receipt_at IS NULL#{' '}
+                AND e.category = 7
+      ) as count
+      FROM users
+      LEFT JOIN organizer_positions op ON op.user_id = users.id
+      LEFT JOIN events e ON e.id = op.event_id
+      WHERE e.category = 7
+      GROUP BY users.full_name, users.id
+      ORDER BY count DESC;
+    SQL
+    
+    render json: User.find_by_sql([q]).reject { |x| x.count == 0 }
+  end
 
 end

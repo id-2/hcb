@@ -33,6 +33,7 @@ Rails.application.routes.draw do
   get "stats", to: "stats#stats"
   get "stats_custom_duration", to: "stats#stats_custom_duration"
   get "stats/admin_receipt_stats", to: "stats#admin_receipt_stats"
+  get "stats/hq_receipt_stats", to: "stats#hq_receipt_stats"
   get "project_stats", to: "stats#project_stats"
   get "bookkeeping", to: "admin#bookkeeping"
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
