@@ -1,17 +1,16 @@
 <% page_md %>
 
-<%
-		jokes = [
-				->(event_name, count) { "#{event_name} has #{count} missing #{"receipt".pluralize(count)}. Yeah." },
-				->(event_name, count) { "If I had a penny for each of your missing receipts. I'd be #{render_money count} richer." },
-				->(event_name, count) { "Reciepts? Receipts? Recepts? I'm not sure but there's #{count} missing." },
-		]
+jokes = [
+        ->(event_name, count) { "#{event_name} has #{count} missing #{"receipt".pluralize(count)}. Yeah." },
+        ->(event_name, count) { "If I had a penny for each of your missing receipts. I'd be #{render_money count} richer." },
+        ->(event_name, count) { "Reciepts? Receipts? Recepts? I'm not sure but there's #{count} missing." },
+    ]
 %>
 
 <meta http-equiv="refresh" content="60">
 
 <h1 style="text-align: center">
-	<%= jokes.sample.call(@event.name, @count) %>
+  <%= jokes.sample.call(@event.name, @count) %>
 </h1>
 
 <%= column_chart @users.each_with_object({}) { |user, hash| hash[user.full_name] = user.count }, colors: ["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#5bc0de", "#338eda", "#a633d6"] %>
