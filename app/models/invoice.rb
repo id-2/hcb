@@ -111,6 +111,7 @@ class Invoice < ApplicationRecord
   scope :unpaid, -> { where("aasm_state != 'paid_v2'") }
   scope :past_due, -> { where("due_date < ?", Time.current) }
   scope :not_manually_marked_as_paid, -> { where(manually_marked_as_paid_at: nil) }
+  scope :missing_raw_pending_invoice_transaction, -> { joins("LEFT JOIN raw_pending_invoice_transactions ON raw_pending_invoice_transactions.invoice_transaction_id = invoices.id::text").where(raw_pending_invoice_transactions: { id: nil }) }
 
   friendly_id :slug_text, use: :slugged
 
@@ -333,11 +334,11 @@ class Invoice < ApplicationRecord
   end
 
   def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code: hcb_code)
+    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 
   def canonical_transactions
-    @canonical_transactions ||= CanonicalTransaction.where(hcb_code: hcb_code)
+    @canonical_transactions ||= CanonicalTransaction.where(hcb_code:)
   end
 
   def canonical_pending_transactions

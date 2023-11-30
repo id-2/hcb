@@ -9,23 +9,15 @@ module PendingTransactionEngine
         end
 
         def run
-          return existing_canonical_pending_transaction if existing_canonical_pending_transaction
+          cpt = CanonicalPendingTransaction.find_or_initialize_by(raw_pending_stripe_transaction: @raw_pending_stripe_transaction)
 
-          ActiveRecord::Base.transaction do
-            attrs = {
-              date: @raw_pending_stripe_transaction.date,
-              memo: @raw_pending_stripe_transaction.memo,
-              amount_cents: @raw_pending_stripe_transaction.amount_cents,
-              raw_pending_stripe_transaction_id: @raw_pending_stripe_transaction.id
-            }
-            ::CanonicalPendingTransaction.create!(attrs)
-          end
-        end
+          cpt.date = @raw_pending_stripe_transaction.date
+          cpt.memo = @raw_pending_stripe_transaction.memo
+          cpt.amount_cents = @raw_pending_stripe_transaction.amount_cents
 
-        private
+          cpt.save!
 
-        def existing_canonical_pending_transaction
-          @existing_canonical_pending_transaction ||= ::CanonicalPendingTransaction.where(raw_pending_stripe_transaction_id: @raw_pending_stripe_transaction.id).first
+          return cpt
         end
 
       end

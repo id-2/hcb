@@ -13,22 +13,24 @@
           <h3 class="mt1 mb0">API Docs</h3>
           <span class="badge nowrap bg-success mt1">New</span>
         </span>
-        <p class="mb1 mt1">The Hack Club Bank API.</p>
+        <p class="mb1 mt1">The HCB API.</p>
       </li>
     <% end %>
 
-    <%= link_to(branding_path) do %>
+    <%= link_to(brand_guidelines_path) do %>
     <li class="card card--hover">
       <h3 class="mt1 mb0">Branding</h3>
       <p class="mb1 mt1">How and when to use our logo.</p>
     </li>
     <% end %>
 
-    <%= link_to(event_documents_path) do %>
-      <li class="card card--hover">
-        <h3 class="mt1 mb0">Legal Documents</h3>
-        <p class="mb1 mt1">EINs, W-9s, and paperwork&nbsp;oh&nbsp;my!</p>
-      </li>
+    <% if organizer_signed_in? %>
+      <%= link_to(event_documents_path) do %>
+        <li class="card card--hover">
+          <h3 class="mt1 mb0">Legal Documents</h3>
+          <p class="mb1 mt1">EINs, W-9s, and paperwork&nbsp;oh&nbsp;my!</p>
+        </li>
+      <% end %>
     <% end %>
   </ul>
 
@@ -50,7 +52,7 @@
     <h3 class="mt1 mb0">
     Receive Checks
     </h3>
-    <p class="mb1 mt1">Deposit checks into your Hack Club Bank account</p>
+    <p class="mb1 mt1">Deposit checks into your HCB account</p>
   </li>
   <% end %>
 
@@ -69,7 +71,7 @@
     <h3 class="mb0 mt1">
     Sell Merchandise
     </h3>
-    <p class="mb1 mt1">Connect your online merch shop to Hack Club Bank</p>
+    <p class="mb1 mt1">Connect your online merch shop to HCB</p>
   </li>
   <% end %>
 </ul>

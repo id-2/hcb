@@ -18,7 +18,7 @@ class ApplicationController < ActionController::Base
   before_action :redirect_to_onboarding
 
   # Force usage of Pundit on actions
-  after_action :verify_authorized
+  after_action :verify_authorized, unless: -> { controller_path.starts_with?("doorkeeper/") }
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
@@ -85,8 +85,9 @@ class ApplicationController < ActionController::Base
     headers.delete("Content-Length")
   end
 
-  def confetti!
+  def confetti!(emojis: nil)
     flash[:confetti] = true
+    flash[:confetti_emojis] = emojis.join(",") if emojis
   end
 
 end

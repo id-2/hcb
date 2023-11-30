@@ -9,7 +9,7 @@ module PayoutService
 
       def run
         return nil unless donation.payout_id.nil?
-        return nil unless donation.in_transit?
+        return nil unless donation.in_transit? || donation.refunded?
         return nil unless funds_available?
 
         ActiveRecord::Base.transaction do
@@ -25,11 +25,11 @@ module PayoutService
       private
 
       def payout
-        @payout ||= ::DonationPayout.new(donation: donation)
+        @payout ||= ::DonationPayout.new(donation:)
       end
 
       def fee_reimbursement
-        @fee_reimbursement ||= FeeReimbursement.new(donation: donation)
+        @fee_reimbursement ||= FeeReimbursement.new(donation:)
       end
 
       def donation

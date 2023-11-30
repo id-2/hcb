@@ -16,9 +16,9 @@ module StripeCardholderService
 
         remote_cardholder = ::StripeService::Issuing::Cardholder.create(remote_attrs)
 
-        stripe_cardholder.update_column(:stripe_id, remote_cardholder.id)
+        stripe_cardholder.update!(stripe_id: remote_cardholder.id)
 
-        stripe_cardholder.reload
+        stripe_cardholder
       end
     end
 
@@ -31,7 +31,7 @@ module StripeCardholderService
         stripe_email: email,
         stripe_phone_number: phone_number,
         stripe_billing_address_line1: line1,
-        # stripe_billing_address_line2: line2,
+        stripe_billing_address_line2: line2,
         stripe_billing_address_city: city,
         stripe_billing_address_state: state,
         stripe_billing_address_postal_code: postal_code,
@@ -41,24 +41,24 @@ module StripeCardholderService
 
     def remote_attrs
       {
-        name: name,
-        email: email,
-        phone_number: phone_number,
+        name:,
+        email:,
+        phone_number:,
         type: cardholder_type,
         billing: {
           address: {
-            line1: line1,
-            # line2: line2,
-            city: city,
-            state: state,
-            postal_code: postal_code,
-            country: country
+            line1:,
+            # line2:,
+            city:,
+            state:,
+            postal_code:,
+            country:
           }
         },
         individual: {
-          first_name: first_name,
-          last_name: last_name,
-          dob: dob,
+          first_name:,
+          last_name:,
+          dob:,
           card_issuing: {
             user_terms_acceptance: {
               date: DateTime.now.to_i,
@@ -70,11 +70,11 @@ module StripeCardholderService
     end
 
     def first_name
-      clean_name(@current_user.first_name)
+      clean_name(@current_user.first_name(legal: true))
     end
 
     def last_name
-      clean_name(@current_user.last_name)
+      clean_name(@current_user.last_name(legal: true))
     end
 
     def clean_name(name)
@@ -95,7 +95,7 @@ module StripeCardholderService
     def dob
       return nil unless @current_user.birthday
       # We don't want to share the dob for users under 13
-      # https://github.com/hackclub/bank/pull/3071#issuecomment-1268880804
+      # https://github.com/hackclub/hcb/pull/3071#issuecomment-1268880804
       return nil if @current_user.birthday > 13.years.ago
 
       {

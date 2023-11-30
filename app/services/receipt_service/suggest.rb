@@ -7,11 +7,12 @@ module ReceiptService
     end
 
     def run!(include_details: false)
+      return nil if user.nil?
+      return nil unless @receipt.has_textual_content?
+
       @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
 
-      return nil if @extracted.nil?
-
-      transaction_distances(include_details: include_details)
+      transaction_distances(include_details:)
     end
 
     def self.weights

@@ -16,7 +16,7 @@
     "
   <% end %>>
     <% if ct.fee_payment? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Hack Club Bank Fee payment">
+      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Fiscal sponsorship payment">
         <%= inline_icon "minus-fill" %>
       </td>
     <% elsif ct.local_hcb_code.fee_revenue? %>
@@ -95,8 +95,8 @@
       <div class="flex-auto">
         <div class="flex items-center justify-start">
           <%= turbo_frame_tag "#{ct.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis" do %>
-            <span title="<%= ct.local_hcb_code.memo %>">
-              <%= ct.local_hcb_code.memo %>
+            <span title="<%= transaction_memo(ct) %>">
+              <%= transaction_memo(ct) %>
             </span>
             <% if ct.amount_cents.negative? && name_contains_emoji?(ct.local_hcb_code.memo) %>
               <% admin_tools("memo-frame__ai-button badge m0 ml1 p0 overflow-visible") do %>
@@ -116,7 +116,7 @@
               <div class="menu__content menu__content--2 menu__content--compact menu__content--left h6" data-menu-target="content">
                 <% (@event || ct.local_hcb_code.event).tags.each do |tag| %>
                   <div class="flex items-center">
-                    <%= button_to toggle_tag_hcb_code_path(id: ct.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
+                    <%= button_to toggle_tag_hcb_code_path(id: ct.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(ct.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
                       <%= "✓" if ct.local_hcb_code.tags.include?(tag) %>
 
                       <%= tag.label %>
@@ -139,17 +139,8 @@
         </div>
 
         <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
-          <div class="flex flex-wrap" style="gap: 0.25rem">
-            <% ct.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event }.each do |tag| %>
-              <div class="badge tx-tag m0 shrink-none flex items-center">
-                <%= tag.label %>
-                <% if organizer_signed_in? %>
-                  <%= button_to toggle_tag_hcb_code_path(id: ct.local_hcb_code.hashid, tag_id: tag.id), class: "p0 line-height-0 bg-transparent border-none cursor-pointer link-reset", form_class: "line-height-0", form: { "data-turbo" => "true" } do %>
-                    <%= inline_icon "view-close", size: 16 %>
-                  <% end %>
-                <% end %>
-              </div>
-            <% end %>
+          <div class="flex flex-wrap" style="gap: 0.25rem" id="hcb_code_<%= ct.local_hcb_code.hashid %>_tags">
+            <%= render partial: "canonical_transactions/tag", collection: ct.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event }, locals: { hcb_code: ct.local_hcb_code } %>
           </div>
         <% end %>
       </div>
@@ -172,13 +163,13 @@
     <td><%= number_to_currency ct.running_balance %></td>
   <% end %>
   <td>
-    <%= link_to "Details", ct.local_hcb_code.url, data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{instance}" } if organizer_signed_in? || defined?(force_display_details) %>
+    <%= link_to "Details", ct.local_hcb_code.url, data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) ? { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{instance}", "modal-auto-open": defined?(@popover) ? @popover == ct.local_hcb_code.hashid : nil } : { turbo_frame: "_top" } if organizer_signed_in? || defined?(force_display_details) %>
   </td>
   <% if defined?(receipt_upload_button) %>
     <td style="width: 1%">
       <% if ct.local_hcb_code.needs_receipt? %>
         <%= form_with url: upload_receipts_path, data: { controller: "form", "file-drop-target" => "form" } do |form| %>
-          <%= form.file_field :file, id: "file_#{ct.local_hcb_code.hashid}", multiple: true, required: true, class: "display-none", data: { action: "change->form#submit", "file-drop-target" => "fileInput" } %>
+          <%= form.file_field :file, id: "file_#{ct.local_hcb_code.hashid}", multiple: true, include_hidden: false, required: true, class: "display-none", data: { action: "change->form#submit", "file-drop-target" => "fileInput" } %>
           <%= form.hidden_field :redirect_url, value: @card_grant ? card_grant_path(@card_grant) : my_inbox_path %>
           <% unless @card_grant.present? %>
             <%= form.hidden_field :show_link, value: true %>
@@ -214,7 +205,7 @@
   <% end %>
 </tr>
 
-<% if ct.local_hcb_code.event.present? %>
+<% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && ct.local_hcb_code.event.present? %>
   <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= instance %>">
     <%= modal_header(ct.local_hcb_code.pretty_title(show_event_name: defined?(show_event_name), show_amount: defined?(show_amount)), level: "h1", external_link: ct.local_hcb_code.url) %>
     <%= async_frame_to ct.local_hcb_code.popover_url, as: :span, lazy: true do %>

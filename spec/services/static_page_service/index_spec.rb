@@ -3,15 +3,13 @@
 require "rails_helper"
 
 RSpec.describe StaticPageService::Index, type: :model do
-  let(:current_user) { create(:user, admin_at: Time.now) }
+  let(:current_user) { create(:user, access_level: :admin) }
 
-  let(:attrs) do
-    {
-      current_user: current_user
-    }
+  let(:service) do
+    StaticPageService::Index.new(
+      current_user:
+    )
   end
-
-  let(:service) { StaticPageService::Index.new(**attrs) }
 
   describe "#events" do
     it "returns events for that user" do

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ToursController < ApplicationController
+  skip_after_action :verify_authorized, only: [:set_step]
+
   def mark_complete
     @tour = Tour.find(params[:id])
     authorize @tour
@@ -20,12 +22,16 @@ class ToursController < ApplicationController
 
     return render status: :bad_request if step < 0
 
-    @tour = Tour.find(params[:id])
-    authorize @tour
+    suppress(ActiveRecord::RecordNotFound) do
+      @tour = Tour.find(params[:id])
+      authorize @tour
 
-    @tour.update(step: step)
+      @tour.update(step:)
 
-    ahoy.track "Tour advanced", tour_id: @tour.id, tour_options: @tour.tourable.tourable_options, to_step: step
+      ahoy.track "Tour advanced", tour_id: @tour.id, tour_options: @tour.tourable.tourable_options, to_step: step
+    end
+
+    head :no_content
   end
 
 end

@@ -7,35 +7,49 @@ module Partners
         class List
           include StripeService
 
-          def run
-            stripe_authorizations
+          def initialize(created_after: nil)
+            @created_after = created_after
+          end
+
+          def run(&block)
+            stripe_authorizations(&block)
           end
 
           private
 
-          def stripe_authorizations
+          def stripe_authorizations(&block)
             resp = fetch_authorizations
 
             ts = resp.data
+            if block_given?
+              ts.each { |t| block.call(t) }
+            end
 
             while resp.has_more
               starting_after = ts.last.id
 
-              resp = fetch_authorizations(starting_after: starting_after)
+              resp = fetch_authorizations(starting_after:)
 
-              ts += resp.data
+              if block_given?
+                resp.data.each { |t| block.call(t) }
+              else
+                ts += resp.data
+              end
             end
 
-            ts
+            ts unless block_given?
           end
 
           def fetch_authorizations(starting_after: nil)
-            ::StripeService::Issuing::Authorization.list(list_attrs(starting_after: starting_after))
+            ::StripeService::Issuing::Authorization.list(list_attrs(starting_after:))
           end
 
           def list_attrs(starting_after:)
             {
-              starting_after: starting_after,
+              starting_after:,
+              created: {
+                gt: @created_after
+              },
               limit: 100
             }
           end

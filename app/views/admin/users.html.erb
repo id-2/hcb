@@ -10,6 +10,9 @@
   <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: true, selected: @event_id }, { width: 150, style: "max-width: 150px" }) %>
   |
 
+  <%= form.select :access_level, User.access_levels.keys.map { |level| [level.humanize, level] }, { include_blank: "All user types", selected: @access_level } %>
+  |
+
   <%= form.submit "Search" %>
 <% end %>
 
@@ -22,13 +25,13 @@
       <th class="w-32">Created</th>
       <th>Name</th>
       <th>Email</th>
-      <th>Events</th>
+      <th>Org Positions</th>
       <th class="w-32">Actions</th>
     </tr>
   </thead>
   <tbody>
     <% @users.each do |user| %>
-      <tr style="<%= "background: #ff8c38;" if user.admin_at.present? %>">
+      <tr style="<%= "background: #ff8c38;" if user.admin? %>">
         <td><%= user.id %></td>
         <td><%= user.created_at.strftime("%Y-%m-%d") %></td>
         <td>
@@ -38,8 +41,18 @@
         </td>
         <td><%= user.email %></td>
         <td>
-          <% user.events.each do |e| %>
-            <%= link_to e.id, e %>
+          <% user.organizer_positions.with_deleted.each do |op| %>
+            <% if op.deleted? %>
+              <em style="font-size: 0.8em;">
+                <% if op.organizer_position_deletion_requests.any? %>
+                  <%= link_to "#{op&.event&.id}☥", op.organizer_position_deletion_requests.first %>
+                <% else %>
+                  <%= link_to "#{op.event_id}☥", Event.with_deleted.find(op.event_id) %>
+                <% end %>
+              </em>
+            <% else %>
+              <%= link_to op.event.id, op.event %>
+            <% end %>
           <% end %>
         </td>
         <td>

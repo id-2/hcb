@@ -37,7 +37,7 @@ class AdminController < ApplicationController
     size = pending_task params[:task_name].to_sym
     ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     elapsed = ending - starting
-    render json: { elapsed: elapsed, size: size }, status: 200
+    render json: { elapsed:, size: }, status: 200
   end
 
   def search
@@ -200,7 +200,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
 
-    @events = filtered_events.page(@page).per(@per).reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    @events = filtered_events.page(@page).per(@per)
     @count = @events.count
 
     render layout: "admin"
@@ -221,7 +221,7 @@ class AdminController < ApplicationController
 
     ::EventService::Create.new(
       name: params[:name],
-      emails: emails,
+      emails:,
       is_signee: params[:is_signee].to_i == 1,
       country: params[:country],
       category: params[:category],
@@ -293,6 +293,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
     @q = params[:q].present? ? params[:q] : nil
+    @access_level = params[:access_level]
     @event_id = params[:event_id].present? ? params[:event_id] : nil
 
     if @event_id
@@ -304,10 +305,24 @@ class AdminController < ApplicationController
     end
 
     relation = relation.search_name(@q) if @q
+    relation = relation.where(access_level: @access_level) if @access_level.present?
 
     @count = relation.count
 
     @users = relation.page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
+  def stripe_cards
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+
+    @q = params[:q].presence
+
+    @cards = StripeCard.includes(stripe_cardholder: :user).page(@page).per(@per).order("stripe_cards.created_at desc")
+
+    @cards = @cards.joins(stripe_cardholder: :user).where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.last4 ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
 
     render layout: "admin"
   end
@@ -360,6 +375,7 @@ class AdminController < ApplicationController
     @q = params[:q].present? ? params[:q] : nil
     @unmapped = params[:unmapped] != "0"
     @exclude_top_ups = params[:exclude_top_ups] == "1" ? true : nil
+    @exclude_spending = params[:exclude_spending] == "1" ? true : nil
     @mapped_by_human = params[:mapped_by_human] == "1" ? true : nil
     @event_id = params[:event_id].present? ? params[:event_id] : nil
     @user_id = params[:user_id].present? ? params[:user_id] : nil
@@ -373,9 +389,8 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.match /\A\d+(\.\d{1,2})?\z/
         @q = Monetize.parse(@q).cents
-
         relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
       else
         case @q.delete(" ")
@@ -390,6 +405,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.unmapped if @unmapped
+    relation = relation.where("amount_cents >= 0") if @exclude_spending
     relation = relation.not_stripe_top_up if @exclude_top_ups
     relation = relation.mapped_by_human if @mapped_by_human
 
@@ -496,10 +512,8 @@ class AdminController < ApplicationController
   end
 
   def ach_approve
-    ach_transfer = AchTransferService::Approve.new(
-      ach_transfer_id: params[:id],
-      processor: current_user
-    ).run
+    ach_transfer = AchTransfer.find(params[:id])
+    ach_transfer.approve!(current_user)
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
   rescue => e
@@ -507,9 +521,8 @@ class AdminController < ApplicationController
   end
 
   def ach_reject
-    ach_transfer = AchTransferService::Reject.new(
-      ach_transfer_id: params[:id],
-    ).run
+    ach_transfer = AchTransfer.find(params[:id])
+    ach_transfer.mark_rejected!(current_user)
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
   rescue => e
@@ -679,6 +692,8 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
+    @ip_address = params[:ip_address].present? ? params[:ip_address] : nil
+    @user_agent = params[:user_agent].present? ? params[:user_agent] : nil
     @deposited = params[:deposited] == "1" ? true : nil
     @in_transit = params[:in_transit] == "1" ? true : nil
     @failed = params[:failed] == "1" ? true : nil
@@ -705,6 +720,8 @@ class AdminController < ApplicationController
       end
     end
 
+    relation = relation.where(ip_address: @ip_address) if @ip_address
+    relation = relation.where("user_agent ILIKE ?", "%#{Donation.sanitize_sql_like(@user_agent)}%") if @user_agent
     relation = relation.deposited if @deposited
     relation = relation.in_transit if @in_transit
     relation = relation.failed if @failed
@@ -1072,6 +1089,28 @@ class AdminController < ApplicationController
     end
   end
 
+  def grants
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @grants = Grant.includes(:event, :recipient).page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
+  def grant_process
+    @grant = Grant.find(params[:id])
+
+    render layout: "admin"
+  end
+
+  def check_deposits
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @check_deposits = CheckDeposit.page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
   private
 
   def stream_data(content_type, filename, data, download = true)
@@ -1108,8 +1147,9 @@ class AdminController < ApplicationController
       @country = params[:country].present? ? params[:country] : "all"
     end
     @activity_since_date = params[:activity_since]
+    @sort_by = params[:sort_by].present? ? params[:sort_by] : "date_desc"
 
-    relation = events.not_partner
+    relation = events
 
     relation = relation.search_name(@q) if @q
     relation = relation.transparent if @transparent == "transparent"
@@ -1121,11 +1161,11 @@ class AdminController < ApplicationController
     relation = relation.funded if @funded == "funded"
     relation = relation.not_funded if @funded == "not_funded"
     relation = relation.organized_by_hack_clubbers if @organized_by == "hack_clubbers"
-    relation = relation.where(organized_by_teenagers: true).or(relation.where(organized_by_hack_clubbers: true)) if @organized_by == "teenagers"
-    relation = relation.where.not(organized_by_hack_clubbers: true).and(relation.where.not(organized_by_teenagers: true)) if @organized_by == "adults"
+    relation = relation.organized_by_teenagers if @organized_by == "teenagers"
+    relation = relation.not_organized_by_teenagers if @organized_by == "adults"
     relation = relation.demo_mode if @demo_mode == "demo"
     relation = relation.not_demo_mode if @demo_mode == "full"
-    relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date).group("events.id") if @activity_since_date.present?
+    relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date) if @activity_since_date.present?
     if @category == "none"
       relation = relation.where(category: nil)
     elsif @category != "all"
@@ -1144,20 +1184,41 @@ class AdminController < ApplicationController
     states << "approved" if @approved
     states << "rejected" if @rejected
     relation = relation.where("aasm_state in (?)", states)
+
+    # Sorting
+    case @sort_by
+    when "balance_asc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents))
+    when "balance_desc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents).reverse!)
+    else # Default sort is "date_desc"
+      relation = relation.reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    end
   end
 
   include StaticPagesHelper # for airtable_info
 
   def airtable_task_size(task_name)
     info = airtable_info[task_name]
-    res = HTTParty.get info[:url], query: { select: info[:query].to_json }
-    case res.code
-    when 200..399
-      tasks = JSON.parse res.body
-      tasks.size
-    else # not successful
-      return 9999 # return something invalidly high to get the ops team to report it
-    end
+    task = Faraday
+           .new { |c| c.response :json }
+           .get(info[:url], { select: info[:query].to_json })
+           .body
+
+    task.size
+  rescue Faraday::Error
+    9999 # return something invalidly high to get the ops team to report it
+  end
+
+  def hackathons_task_size
+    hackathons = Faraday
+                 .new { |c| c.response :json }
+                 .get("https://dash.hackathons.hackclub.com/api/v1/stats/hackathons")
+                 .body
+
+    hackathons.dig("status", "pending", "meta", "count")
+  rescue Faraday::Error
+    9999
   end
 
   def pending_task(task_name)
@@ -1165,7 +1226,7 @@ class AdminController < ApplicationController
     @pending_tasks[task_name] ||= begin
       case task_name
       when :pending_hackathons_airtable
-        airtable_task_size :hackathons
+        hackathons_task_size
       when :pending_grant_airtable
         airtable_task_size :grant
       when :pending_bank_applications_airtable
@@ -1200,6 +1261,8 @@ class AdminController < ApplicationController
         airtable_task_size :disputed_transactions
       when :pending_feedback_airtable
         airtable_task_size :feedback
+      when :pending_google_workspace_waitlist_airtable
+        airtable_task_size :google_workspace_waitlist
       when :emburse_card_requests
         EmburseCardRequest.under_review.size
       when :emburse_transactions
@@ -1209,8 +1272,6 @@ class AdminController < ApplicationController
         0
       when :ach_transfers
         AchTransfer.pending.size
-      when :pending_fees
-        Event.pending_fees.size
       when :negative_events
         Event.negatives.size
       when :fee_reimbursements
@@ -1256,7 +1317,6 @@ class AdminController < ApplicationController
     pending_task :emburse_card_requests
     pending_task :checks
     pending_task :ach_transfers
-    pending_task :pending_fees
     pending_task :negative_events
     pending_task :fee_reimbursements
     pending_task :emburse_transfers

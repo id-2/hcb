@@ -4,8 +4,8 @@ module CheckService
   module LobUrl
     class AssignHavingLobId
       def run
-        checks.each do |check|
-          CheckJob::LobUrl::SingleAssignHavingLobId.perform_later(check: check)
+        checks.find_each(batch_size: 100) do |check|
+          CheckJob::LobUrl::SingleAssignHavingLobId.perform_later(check:)
         end
       end
 

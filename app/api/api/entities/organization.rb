@@ -6,32 +6,38 @@ module Api
       when_expanded do
         expose :name
         expose :slug
+        expose :website
         expose :category, documentation: {
-          values: %w[
-            hackathon
-            high_school_hackathon
-            event
-            hack_club
-            nonprofit
-            robotics_team
-            hardware_grant
-            hack_club_hq
-          ]
+          values: Event.categories.keys.map(&:parameterize).map(&:underscore)
         } do |organization|
           organization.category&.parameterize&.underscore
         end
         expose :is_public, as: :transparent, documentation: { type: "boolean" }
         expose :demo_mode, documentation: { type: "boolean" }
         expose :logo do |organization|
-          organization.logo.attached? ? Rails.application.routes.url_helpers.url_for(organization.logo) : nil
+          url_for_attached organization.logo
         end
-        expose :public_message do |event|
-          event.public_message.presence
+        expose :donation_header do |organization|
+          url_for_attached organization.donation_header_image
+        end
+        expose :background_image do |organization|
+          url_for_attached organization.background_image
+        end
+        expose :public_message do |organization|
+          organization.public_message.presence
+        end
+        expose :donation_link do |organization|
+          if organization.donation_page_enabled?
+            Rails.application.routes.url_helpers.start_donation_donations_url(organization)
+          else
+            nil
+          end
         end
         expose :balances do
           expose :balance_available_v2_cents, as: :balance_cents, documentation: { type: "integer" }
           expose :fee_balance_v2_cents, as: :fee_balance_cents, documentation: { type: "integer" }
           expose :pending_incoming_balance_v2_cents, as: :incoming_balance_cents, documentation: { type: "integer" }
+          expose :total_raised, as: :total_raised, documentation: { type: "integer" }
         end
 
         format_as_date do

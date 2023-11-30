@@ -10,7 +10,7 @@ RSpec.describe UserService::ExchangeLoginCodeForUser, type: :model do
     UserService::ExchangeLoginCodeForUser.new(
       user_id: user.id,
       login_code: login_code.code,
-      sms: sms
+      sms:
     )
   }
 
@@ -24,7 +24,7 @@ RSpec.describe UserService::ExchangeLoginCodeForUser, type: :model do
     let(:sms) { false }
 
     context "when sent by email" do
-      it "exchanges login code for user in bank" do
+      it "exchanges login code for user in hcb" do
         exchanged_user = service.run
         expect(exchanged_user).to eq(user)
       end
@@ -35,7 +35,7 @@ RSpec.describe UserService::ExchangeLoginCodeForUser, type: :model do
         UserService::ExchangeLoginCodeForUser.new(
           user_id: user.id,
           login_code: "does not exist",
-          sms: sms
+          sms:
         )
       }
 

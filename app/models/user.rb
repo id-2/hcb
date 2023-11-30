@@ -5,6 +5,7 @@
 # Table name: users
 #
 #  id                       :bigint           not null, primary key
+#  access_level             :integer          default("user"), not null
 #  admin_at                 :datetime
 #  birthday                 :date
 #  email                    :text
@@ -12,6 +13,7 @@
 #  locked_at                :datetime
 #  phone_number             :text
 #  phone_number_verified    :boolean          default(FALSE)
+#  preferred_name           :string
 #  pretend_is_not_admin     :boolean          default(FALSE), not null
 #  receipt_report_option    :integer          default("none"), not null
 #  running_balance_enabled  :boolean          default(FALSE), not null
@@ -38,17 +40,25 @@ class User < ApplicationRecord
   include Commentable
   extend FriendlyId
 
+  has_paper_trail only: [:access_level]
+
   include PgSearch::Model
   pg_search_scope :search_name, against: [:full_name, :email, :phone_number], using: { tsearch: { prefix: true, dictionary: "english" } }
 
   friendly_id :slug_candidates, use: :slugged
-  scope :admin, -> { where.not(admin_at: nil) }
+  scope :admin, -> { where(access_level: [:admin, :superadmin]) }
 
   enum :receipt_report_option, {
     none: 0,
     weekly: 1,
     monthly: 2,
   }, prefix: :receipt_report
+
+  enum :access_level, [
+    :user,
+    :admin,
+    :superadmin,
+  ], scopes: false, default: :user
 
   has_many :login_codes
   has_many :login_tokens
@@ -58,6 +68,7 @@ class User < ApplicationRecord
   has_many :organizer_position_deletion_requests, inverse_of: :submitted_by
   has_many :organizer_position_deletion_requests, inverse_of: :closed_by
   has_many :webauthn_credentials
+  has_many :api_tokens
 
   has_many :events, through: :organizer_positions
 
@@ -73,6 +84,7 @@ class User < ApplicationRecord
   has_many :emburse_transactions, through: :emburse_cards
 
   has_one :stripe_cardholder
+  accepts_nested_attributes_for :stripe_cardholder, update_only: true
   has_many :stripe_cards, through: :stripe_cardholder
   has_many :stripe_authorizations, through: :stripe_cards
   has_many :receipts
@@ -88,59 +100,51 @@ class User < ApplicationRecord
   before_create :format_number
   before_save :on_phone_number_update
 
-  validate on: :update do
-    if full_name.blank? && full_name_in_database.present?
-      errors.add(:full_name, "can't be blank")
-    end
-  end
+  after_update :update_stripe_cardholder, if: -> { phone_number_previously_changed? || email_previously_changed? }
 
-  validate on: :update do
-    # Birthday is required if the user already had a birthday
-    if birthday_in_database.present? && birthday.blank?
-      errors.add(:birthday, "can't be blank")
-    end
-  end
+  validates_presence_of :full_name, if: -> { full_name_in_database.present? }
+  validates_presence_of :birthday, if: -> { birthday_in_database.present? }
+
+  alias_attribute :legal_name, :full_name
+  validates :legal_name, format: {
+    with: /\A[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,'-]+ [a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,' -]+\z/,
+    message: "must contain your first and last name, and can't contain special characters.", allow_blank: true,
+  }
 
   validates :email, uniqueness: true, presence: true
   validates_email_format_of :email
   validates :phone_number, phone: { allow_blank: true }
+
+  validates :preferred_name, length: { maximum: 30 }
 
   validate :profile_picture_format
 
   # admin? takes into account an admin user's preference
   # to pretend to be a non-admin, normal user
   def admin?
-    self.admin_at.present? && !self.pretend_is_not_admin
+    (self.access_level == "admin" || self.access_level == "superadmin") && !self.pretend_is_not_admin
   end
 
   # admin_override_pretend? ignores an admin user's
   # preference to pretend not to be an admin.
   def admin_override_pretend?
-    self.admin_at.present?
+    self.access_level == "admin" || self.access_level == "superadmin"
   end
 
   def make_admin!
-    update!(admin_at: Time.now)
+    admin!
   end
 
   def remove_admin!
-    update!(admin_at: nil)
+    user!
   end
 
-  def first_name
-    @first_name ||= begin
-      return nil unless namae.given || namae.particle
-
-      (namae.given || namae.particle).split(" ").first
-    end
+  def first_name(legal: false)
+    @first_name ||= (namae(legal:)&.given || namae(legal:)&.particle)&.split(" ")&.first
   end
 
-  def last_name
-    @last_name ||= begin
-      return nil unless namae.family
-
-      namae.family.split(" ").last
-    end
+  def last_name(legal: false)
+    @last_name ||= namae(legal:)&.family&.split(" ")&.last
   end
 
   def initial_name
@@ -159,7 +163,7 @@ class User < ApplicationRecord
   end
 
   def name
-    full_name || email_handle
+    preferred_name.presence || full_name || email_handle
   end
 
   def initials
@@ -216,8 +220,16 @@ class User < ApplicationRecord
 
   private
 
-  def namae
-    @namae ||= Namae.parse(name).first || Namae.parse(name_simplified).first || Namae::Name.new(given: name_simplified)
+  def update_stripe_cardholder
+    stripe_cardholder&.update!(stripe_email: email, stripe_phone_number: phone_number)
+  end
+
+  def namae(legal: false)
+    if legal
+      @legal_namae ||= Namae.parse(full_name).first
+    else
+      @namae ||= Namae.parse(name).first || Namae.parse(name_simplified).first || Namae::Name.new(given: name_simplified)
+    end
   end
 
   def name_simplified

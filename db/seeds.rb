@@ -7,27 +7,20 @@ if user.nil?
 else
   puts "Continuing with #{user.email}..."
 
-  user.update!(admin_at: Time.now) if !user.admin?
-
-  partner = Partner.create_with(
-    id: 1,
-    name: "Bank",
-    external: false,
-  ).find_or_create_by!(slug: "bank")
+  user.make_admin! if !user.admin?
 
   event = Event.create_with(
     name: "Test Org",
     slug: "test",
     can_front_balance: true,
     point_of_contact: user,
-    partner: partner,
     sponsorship_fee: 0.07,
     organization_identifier: "bank_#{SecureRandom.hex}",
   ).find_or_create_by!(slug: "test")
 
   OrganizerPositionInvite.create!(
-    event: event,
-    user: user,
+    event:,
+    user:,
     sender: user,
   )
 

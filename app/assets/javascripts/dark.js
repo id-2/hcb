@@ -15,7 +15,7 @@ try {
     let darkMode = darkModeConfig == 'true'
 
     if (darkModeConfig === null) {
-      // Bank has not stored a dark mode preference. Fallback to the browser's
+      // HCB has not stored a dark mode preference. Fallback to the browser's
       // `prefers-color-scheme` preference.
       if (
         window.matchMedia &&
@@ -33,7 +33,7 @@ try {
 
     if (darkMode) {
       document.querySelector('html').setAttribute('data-dark', darkMode)
-      document.querySelector('meta[name=theme-color]').setAttribute('content', '#17171d')
+      document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#17171d')
     }
   })()
 } catch (e) {

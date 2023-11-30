@@ -4,25 +4,28 @@ require "net/http"
 
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:stats, :stats_custom_duration, :project_stats, :branding, :faq]
-  skip_before_action :redirect_to_onboarding, only: [:branding, :faq]
+  skip_before_action :signed_in_user, only: [:branding, :brand_guidelines, :faq]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :brand_guidelines, :faq]
 
   def index
     if signed_in?
-      @service = StaticPageService::Index.new(current_user: current_user)
+      @service = StaticPageService::Index.new(current_user:)
 
       @events = @service.events
       @organizer_positions = @service.organizer_positions.not_hidden
       @invites = @service.invites
 
       @show_event_reorder_tip = current_user.organizer_positions.where.not(sort_index: nil).none?
+
+      @hcb_expansion = Rails.cache.read("hcb_acronym_expansions")&.sample || "Hack Club Buckaroos"
+
     end
     if admin_signed_in?
       @transaction_volume = CanonicalTransaction.included_in_stats.sum("@amount_cents")
     end
   end
 
-  def branding
+  def brand_guidelines
     @logos = [
       { name: "Original Light", criteria: "For white or light colored backgrounds.", background: "smoke" },
       { name: "Original Dark", criteria: "For black or dark colored backgrounds.", background: "black" },
@@ -30,17 +33,18 @@ class StaticPagesController < ApplicationController
       { name: "Outlined White", criteria: "For black or dark colored backgrounds.", background: "black" }
     ]
     @icons = [
-      { name: "Icon Original", criteria: "The original Hack Club Bank logo.", background: "smoke" },
-      { name: "Icon Dark", criteria: "Hack Club Bank logo in dark mode.", background: "black" }
+      { name: "Icon Original", criteria: "The original HCB logo.", background: "smoke" },
+      { name: "Icon Dark", criteria: "HCB logo in dark mode.", background: "black" }
     ]
-    @event_name = signed_in? && current_user.events.first ? current_user.events.first.name : "Hack Pennsylvania"
+    @event_name = signed_in? && current_user.events.first&.name || "Hack Pennsylvania"
+    @event_slug = signed_in? && current_user.events.first&.slug || "hack-pennsylvania"
   end
 
   def faq
   end
 
   def my_cards
-    flash[:success] = "Card activated!" if params[:activate]
+    flash.now[:success] = "Card activated!" if params[:activate]
     @stripe_cards = current_user.stripe_cards.includes(:event)
     @emburse_cards = current_user.emburse_cards.includes(:event)
   end
@@ -122,6 +126,11 @@ class StaticPagesController < ApplicationController
         pairing
       end.compact
     end
+
+    if flash[:popover]
+      @popover = flash[:popover]
+      flash.delete(:popover)
+    end
   end
 
   def receipt
@@ -150,78 +159,6 @@ class StaticPagesController < ApplicationController
     return redirect_to params[:redirect_url] if params[:redirect_url]
 
     redirect_back
-  end
-
-  def project_stats
-    slug = params[:slug]
-
-    event = Event.find_by(is_public: true, slug: slug)
-
-    return render plain: "404 Not found", status: 404 unless event
-
-    raised = event.canonical_transactions.revenue.sum(:amount_cents)
-
-    render json: {
-      raised: raised
-    }
-  end
-
-  def stats_custom_duration
-    start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : DateTime.new(2015, 1, 1)
-    end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : DateTime.current
-
-    render json: CanonicalTransactionService::Stats::During.new(start_time: start_date, end_time: end_date).run
-  end
-
-  def stats
-    now = params[:date].present? ? Date.parse(params[:date]) : DateTime.current
-    year_ago = now - 1.year
-    qtr_ago = now - 3.month
-    month_ago = now - 1.month
-    week_ago = now - 1.week
-
-    events_list = Event.not_omitted
-                       .where("created_at <= ?", now)
-                       .order(created_at: :desc)
-                       .limit(10)
-                       .pluck(:created_at)
-                       .map(&:to_i)
-                       .map { |time| { created_at: time } }
-
-    tx_all = CanonicalTransaction.where.not("hcb_code LIKE 'HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::BANK_FEE_CODE}%'")
-                                 .included_in_stats
-                                 .where("date <= ?", now)
-
-    pending_tx_all = CanonicalPendingTransaction.where(raw_pending_bank_fee_transaction_id: nil)
-                                                .included_in_stats
-                                                .unsettled
-                                                .and(CanonicalPendingTransaction.outgoing.or(CanonicalPendingTransaction.fronted))
-
-    render json: {
-      date: now,
-      events_count: Event.not_omitted
-                         .not_hidden
-                         .not_demo_mode
-                         .approved
-                         .where("created_at <= ?", now)
-                         .count,
-      last_transaction_date: tx_all.order(:date).last.date.to_time.to_i,
-
-      # entire time period. this remains to prevent breaking changes to existing systems that use this endpoint
-      raised: tx_all.revenue.sum(:amount_cents) + pending_tx_all.incoming.sum(:amount_cents),
-      transactions_count: tx_all.size,
-      transactions_volume: tx_all.sum("@amount_cents") + pending_tx_all.sum("@amount_cents"),
-
-      # entire (all), year, quarter, and month time periods
-      all: CanonicalTransactionService::Stats::During.new.run,
-      last_year: CanonicalTransactionService::Stats::During.new(start_time: year_ago, end_time: now).run,
-      last_qtr: CanonicalTransactionService::Stats::During.new(start_time: qtr_ago, end_time: now).run,
-      last_month: CanonicalTransactionService::Stats::During.new(start_time: month_ago, end_time: now).run,
-      last_week: CanonicalTransactionService::Stats::During.new(start_time: week_ago, end_time: now).run,
-
-      # events
-      events: events_list,
-    }
   end
 
   def stripe_charge_lookup
@@ -258,7 +195,7 @@ class StaticPagesController < ApplicationController
     }
 
     if share_email == "1"
-      feedback["Name"] = current_user.full_name
+      feedback["Name"] = current_user.name
       feedback["Email"] = current_user.email
       feedback["Organization"] = current_user.events.first&.name
     end

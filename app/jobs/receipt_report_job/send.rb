@@ -10,8 +10,8 @@ module ReceiptReportJob
                     @user.receipt_report_monthly?
       return unless hcb_ids.any?
 
-      mailer = ReceiptableMailer.with user_id: user_id,
-                                      hcb_ids: hcb_ids
+      mailer = ReceiptableMailer.with(user_id:,
+                                      hcb_ids:)
 
       mailer.receipt_report.deliver_later
     end
@@ -21,7 +21,7 @@ module ReceiptReportJob
       @hcb_ids ||= begin
         ids = []
         @user.stripe_cards.each do |card|
-          card.hcb_codes.missing_receipt.each do |hcb_code|
+          card.hcb_codes.missing_receipt.find_each(batch_size: 100) do |hcb_code|
             next unless hcb_code.receipt_required?
 
             ids << hcb_code.id

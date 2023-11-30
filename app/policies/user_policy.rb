@@ -1,11 +1,19 @@
 # frozen_string_literal: true
 
 class UserPolicy < ApplicationPolicy
+  def show?
+    user == record
+  end
+
   def impersonate?
     user.admin?
   end
 
   def edit?
+    user.admin? || record == user
+  end
+
+  def edit_address?
     user.admin? || record == user
   end
 

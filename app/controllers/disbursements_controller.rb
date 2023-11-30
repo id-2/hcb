@@ -28,7 +28,7 @@ class DisbursementsController < ApplicationController
       end
 
       format.pdf do
-        render pdf: "Hack Club Bank Transfer ##{@disbursement.id} Confirmation Letter (#{@disbursement.source_event.name} to #{@disbursement.destination_event.name} on #{@disbursement.created_at})", page_height: "11in", page_width: "8.5in"
+        render pdf: "HCB Transfer ##{@disbursement.id} Confirmation Letter (#{@disbursement.source_event.name} to #{@disbursement.destination_event.name} on #{@disbursement.created_at})", page_height: "11in", page_width: "8.5in"
       end
 
       # not being used at the moment
@@ -42,17 +42,18 @@ class DisbursementsController < ApplicationController
   def new
     @destination_event = Event.friendly.find(params[:event_id]) if params[:event_id]
     @source_event = Event.friendly.find(params[:source_event_id]) if params[:source_event_id]
-    @disbursement = Disbursement.new(destination_event: @destination_event)
+    @event = @source_event
+    @disbursement = Disbursement.new(destination_event: @destination_event, source_event: @source_event)
 
     @allowed_source_events = if current_user.admin?
                                Event.all
                              else
-                               [@source_event]
+                               current_user.events.not_hidden.filter_demo_mode(false)
                              end
     @allowed_destination_events = if current_user.admin?
                                     Event.all
                                   else
-                                    current_user.events.not_hidden.transparent.where.not(id: @source_event.id).filter_demo_mode(false)
+                                    current_user.events.not_hidden.without(@source_event).filter_demo_mode(false)
                                   end
 
     authorize @destination_event, policy_class: DisbursementPolicy

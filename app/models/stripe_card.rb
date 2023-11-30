@@ -37,6 +37,7 @@
 #  index_stripe_cards_on_event_id              (event_id)
 #  index_stripe_cards_on_replacement_for_id    (replacement_for_id)
 #  index_stripe_cards_on_stripe_cardholder_id  (stripe_cardholder_id)
+#  index_stripe_cards_on_stripe_id             (stripe_id) UNIQUE
 #  index_stripe_cards_on_subledger_id          (subledger_id)
 #
 # Foreign Keys
@@ -134,7 +135,11 @@ class StripeCard < ApplicationRecord
   end
 
   def total_spent
-    stripe_authorizations.approved.sum(:amount)
+    # pending authorizations + settled transactions
+    RawPendingStripeTransaction
+      .pending
+      .where("stripe_transaction->'card'->>'id' = ?", stripe_id)
+      .sum(:amount_cents).abs + canonical_transactions.sum(:amount_cents).abs
   end
 
   def status_text
@@ -187,6 +192,10 @@ class StripeCard < ApplicationRecord
 
   def frozen?
     activated? && stripe_status == "inactive"
+  end
+
+  def active?
+    stripe_status == "active"
   end
 
   def deactivated?
@@ -367,14 +376,6 @@ class StripeCard < ApplicationRecord
     end
 
     @auths
-  end
-
-  def sync_authorizations
-    authorizations_from_stripe.each do |stripe_auth|
-      sa = StripeAuthorization.find_or_initialize_by(stripe_id: stripe_auth[:id])
-      sa.sync_from_stripe!
-      sa.save
-    end
   end
 
 end

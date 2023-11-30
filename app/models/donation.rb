@@ -10,6 +10,7 @@
 #  amount_received                      :integer
 #  email                                :text
 #  hcb_code                             :text
+#  ip_address                           :inet
 #  message                              :text
 #  name                                 :text
 #  payout_creation_balance_available_at :datetime
@@ -20,6 +21,7 @@
 #  status                               :string
 #  stripe_client_secret                 :string
 #  url_hash                             :string
+#  user_agent                           :text
 #  created_at                           :datetime         not null
 #  updated_at                           :datetime         not null
 #  event_id                             :bigint
@@ -62,7 +64,7 @@ class Donation < ApplicationRecord
   before_create :create_stripe_payment_intent, unless: -> { recurring? }
   before_create :assign_unique_hash, unless: -> { recurring? }
 
-  after_update :send_payment_notification_if_needed
+  after_update_commit :send_payment_notification_if_needed
 
   validates :name, :email, presence: true, unless: -> { recurring? } # recurring donations have a name/email in their `RecurringDonation` object
   validates_presence_of :amount
@@ -104,6 +106,16 @@ class Donation < ApplicationRecord
     self.status = payment_intent.status
     self.stripe_client_secret = payment_intent.client_secret
 
+    if status == "succeeded"
+      balance_transaction = payment_intent.charges.data.first.balance_transaction
+      funds_available_at = Time.at(balance_transaction.available_on)
+
+      self.payout_creation_queued_for = funds_available_at + 1.day
+      self.payout_creation_balance_net = balance_transaction.net # amount to pay out
+      self.payout_creation_balance_stripe_fee = balance_transaction.fee
+      self.payout_creation_balance_available_at = funds_available_at
+    end
+
     self.aasm_state = "in_transit" if aasm_state == "pending" && status == "succeeded" # hacky
   end
 
@@ -141,6 +153,10 @@ class Donation < ApplicationRecord
     pending?
   end
 
+  def includes_message?
+    self.message.present?
+  end
+
   def filter_data
     {
       in_transit: in_transit?,
@@ -156,7 +172,7 @@ class Donation < ApplicationRecord
   def arrival_date
     arrival = self&.payout&.arrival_date || 3.business_days.after(payout_creation_queued_for)
 
-    # Add 1 day to account for plaid and Bank processing time
+    # Add 1 day to account for plaid and HCB processing time
     arrival + 1.day
   end
 
@@ -164,49 +180,53 @@ class Donation < ApplicationRecord
     DateTime.now > self.arrival_date
   end
 
+  def payment_method
+    stripe_obj[:payment_method] || stripe_obj.dig(:invoice, :subscription, :default_payment_method)
+  end
+
   def payment_method_type
-    stripe_obj.dig(:payment_method, :type)
+    payment_method&.dig(:type)
   end
 
   def payment_method_card_brand
-    stripe_obj.dig(:payment_method, :card, :brand)
+    payment_method&.dig(:card, :brand)
   end
 
   def payment_method_card_last4
-    stripe_obj.dig(:payment_method, :card, :last4)
+    payment_method&.dig(:card, :last4)
   end
 
   def payment_method_card_funding
-    stripe_obj.dig(:payment_method, :card, :funding)
+    payment_method&.dig(:card, :funding)
   end
 
   def payment_method_card_exp_month
-    stripe_obj.dig(:payment_method, :card, :exp_month)
+    payment_method&.dig(:card, :exp_month)
   end
 
   def payment_method_card_exp_year
-    stripe_obj.dig(:payment_method, :card, :exp_year)
+    payment_method&.dig(:card, :exp_year)
   end
 
   def payment_method_card_country
-    stripe_obj.dig(:payment_method, :card, :country)
+    payment_method&.dig(:card, :country)
   end
 
   def payment_method_card_checks_address_line1_check
-    stripe_obj.dig(:payment_method, :card, :checks, :address_line1_check)
+    payment_method&.dig(:card, :checks, :address_line1_check)
   end
 
   def payment_method_card_checks_address_postal_code_check
-    stripe_obj.dig(:payment_method, :card, :checks, :address_postal_code_check)
+    payment_method&.dig(:card, :checks, :address_postal_code_check)
   end
 
   def payment_method_card_checks_cvc_check
-    stripe_obj.dig(:payment_method, :card, :checks, :cvc_check)
+    payment_method&.dig(:card, :checks, :cvc_check)
   end
 
   def stripe_obj
     @stripe_donation_obj ||=
-      StripeService::PaymentIntent.retrieve(id: stripe_payment_intent_id, expand: ["payment_method"]).to_hash
+      StripeService::PaymentIntent.retrieve(id: stripe_payment_intent_id, expand: ["payment_method", "invoice.subscription.default_payment_method"]).to_hash
   rescue => e
     {}
   end
@@ -220,7 +240,7 @@ class Donation < ApplicationRecord
   end
 
   def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code: hcb_code)
+    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 
   def canonical_pending_transaction
@@ -228,7 +248,7 @@ class Donation < ApplicationRecord
   end
 
   def canonical_transactions
-    @canonical_transactions ||= CanonicalTransaction.where(hcb_code: hcb_code)
+    @canonical_transactions ||= CanonicalTransaction.where(hcb_code:)
   end
 
   def canonical_pending_transactions
@@ -282,18 +302,14 @@ class Donation < ApplicationRecord
   end
 
   def send_payment_notification_if_needed
-    return unless saved_changes[:status].present?
+    return unless status_previously_changed?(to: "succeeded")
 
-    return unless status_changed_to_succeeded?(saved_changes[:status])
-    return unless first_donation?
+    if first_donation?
+      DonationMailer.with(donation: self).first_donation_notification.deliver_later
+    elsif includes_message?
+      DonationMailer.with(donation: self).donation_with_message_notification.deliver_later
+    end
 
-    DonationMailer.with(donation: self).first_donation_notification.deliver_later
-  end
-
-  def status_changed_to_succeeded?(saved_changes)
-    was, now = saved_changes
-
-    was != "succeeded" && now == "succeeded"
   end
 
   def first_donation?
@@ -302,9 +318,9 @@ class Donation < ApplicationRecord
 
   def create_payment_intent_attrs
     {
-      amount: amount,
+      amount:,
       currency: "usd",
-      statement_descriptor: "HACK CLUB BANK",
+      statement_descriptor: "HCB",
       statement_descriptor_suffix: StripeService::StatementDescriptor.format(event.name, as: :suffix),
       metadata: { 'donation': true, 'event_id': event.id }
     }

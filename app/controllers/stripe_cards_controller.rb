@@ -29,7 +29,7 @@ class StripeCardsController < ApplicationController
 
     if @card.freeze!
       flash[:success] = "Card frozen"
-      redirect_to @card
+      redirect_back_or_to @card
     else
       render :show, status: :unprocessable_entity
     end
@@ -41,7 +41,7 @@ class StripeCardsController < ApplicationController
 
     if @card.defrost!
       flash[:success] = "Card defrosted"
-      redirect_to @card
+      redirect_back_or_to @card
     else
       render :show, status: :unprocessable_entity
     end
@@ -73,8 +73,8 @@ class StripeCardsController < ApplicationController
 
     authorize @card
 
-    if @card.card_grant.present? && !current_user&.admin?
-      redirect_to @card.card_grant
+    if @card.card_grant.present? && !current_user&.admin? && @card.event.users.exclude?(current_user)
+      return redirect_to @card.card_grant
     end
 
     if params[:show_details] == "true"
@@ -87,7 +87,6 @@ class StripeCardsController < ApplicationController
     @hcb_codes = @card.hcb_codes
                       .includes(canonical_pending_transactions: [:raw_pending_stripe_transaction], canonical_transactions: :transaction_source)
                       .page(params[:page]).per(25)
-
   end
 
   def new
@@ -106,8 +105,8 @@ class StripeCardsController < ApplicationController
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Invalid country" } unless %w(US CA).include? sc[:stripe_shipping_address_country]
 
     ::StripeCardService::Create.new(
-      current_user: current_user,
-      current_session: current_session,
+      current_user:,
+      current_session:,
       event_id: event.id,
       card_type: sc[:card_type],
       stripe_shipping_name: sc[:stripe_shipping_name],
@@ -137,7 +136,7 @@ class StripeCardsController < ApplicationController
     authorize card
     name = params[:stripe_card][:name]
     name = nil unless name.present?
-    updated = card.update(name: name)
+    updated = card.update(name:)
 
     redirect_to stripe_card_url(card), flash: updated ? { success: "Card's name has been successfully updated!" } : { error: "Card's name could not be updated" }
   end

@@ -1,0 +1,23 @@
+<% if defined?(link) %>
+  <% if link.start_with?("#") %>
+    <%= link_to link do %>
+      <div class="callout callout--<%= type %>">
+        <span class="callout__emoji"><%= emoji %></span>
+        <%= title %>
+      </div>
+    <% end %>
+  <% else %>
+    <%= link_to link do %>
+      <div class="callout callout--<%= type %>">
+        <span class="callout__emoji"><%= emoji %></span>
+        <%= inline_icon "external", size: 28, class: "callout--external" %>
+        <%= title %>
+      </div>
+    <% end %>
+  <% end %>
+<% else %>
+  <div class="callout callout--<%= type %>">
+    <span class="callout__emoji"><%= emoji %></span>
+    <%= title %>
+  </div>
+<% end %>

@@ -3,6 +3,8 @@
 module StripeAuthorizationService
   module Webhook
     class HandleIssuingAuthorizationRequest
+      attr_reader :declined_reason
+
       def initialize(stripe_event:)
         @stripe_event = stripe_event
       end
@@ -33,20 +35,48 @@ module StripeAuthorizationService
         @card ||= StripeCard.includes(:card_grant).find_by(stripe_id: stripe_card_id)
       end
 
+      def card_balance_available
+        @card_balance_available ||= card.balance_available
+      end
+
       def event
         card.event
       end
 
       def decline_with_reason!(reason)
-        StripeService::Issuing::Authorization.update(auth_id, { metadata: { declined_reason: reason } })
-        return false
+        @declined_reason = reason
+        set_metadata!(declined_reason: reason)
+
+        false
       end
 
       def approve?
-        return decline_with_reason!("inadequate_balance")   if card.balance_available < amount_cents
-        return decline_with_reason!("merchant_not_allowed") if card.card_grant&.allowed_merchants.present? && card.card_grant.allowed_merchants.exclude?(auth[:merchant_data][:network_id]) # Handle merchant locks for restricted grants
+        return decline_with_reason!("inadequate_balance") if card_balance_available < amount_cents
+
+        if card&.card_grant&.allowed_categories&.present? && card.card_grant.allowed_categories.exclude?(auth[:merchant_data][:category])
+          return decline_with_reason!("merchant_not_allowed")
+        end
+
+        if card&.card_grant&.allowed_merchants&.present? && card.card_grant.allowed_merchants.exclude?(auth[:merchant_data][:network_id])
+          return decline_with_reason!("merchant_not_allowed")
+        end
+
+        set_metadata!
 
         true
+      end
+
+      def set_metadata!(additional = {})
+        return if Rails.env.test?
+
+        default_metadata = {
+          current_balance_available: card_balance_available,
+        }
+
+        StripeService::Issuing::Authorization.update(
+          auth_id,
+          { metadata: default_metadata.deep_merge(additional) }
+        )
       end
 
     end

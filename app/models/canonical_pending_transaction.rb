@@ -16,6 +16,7 @@
 #  updated_at                                       :datetime         not null
 #  ach_payment_id                                   :bigint
 #  check_deposit_id                                 :bigint
+#  grant_id                                         :bigint
 #  increase_check_id                                :bigint
 #  raw_pending_bank_fee_transaction_id              :bigint
 #  raw_pending_donation_transaction_id              :bigint
@@ -31,6 +32,7 @@
 #
 #  index_canonical_pending_transactions_on_ach_payment_id           (ach_payment_id)
 #  index_canonical_pending_transactions_on_check_deposit_id         (check_deposit_id)
+#  index_canonical_pending_transactions_on_grant_id                 (grant_id)
 #  index_canonical_pending_transactions_on_hcb_code                 (hcb_code)
 #  index_canonical_pending_transactions_on_increase_check_id        (increase_check_id)
 #  index_canonical_pending_txs_on_raw_pending_bank_fee_tx_id        (raw_pending_bank_fee_transaction_id)
@@ -52,7 +54,7 @@ class CanonicalPendingTransaction < ApplicationRecord
 
   include PgSearch::Model
   pg_search_scope :search_memo, against: [:memo, :custom_memo, :hcb_code], using: { tsearch: { any_word: true, prefix: true, dictionary: "english" } }, ranked_by: "canonical_pending_transactions.date"
-  pg_search_scope :pg_text_search, lambda { |query, options_hash| { query: query }.merge(options_hash) }
+  pg_search_scope :pg_text_search, lambda { |query, options_hash| { query: }.merge(options_hash) }
 
   belongs_to :raw_pending_stripe_transaction, optional: true
   belongs_to :raw_pending_outgoing_check_transaction, optional: true
@@ -66,6 +68,8 @@ class CanonicalPendingTransaction < ApplicationRecord
   belongs_to :ach_payment, optional: true
   belongs_to :increase_check, optional: true
   belongs_to :check_deposit, optional: true
+  belongs_to :grant, optional: true
+
   has_one :canonical_pending_event_mapping
   has_one :event, through: :canonical_pending_event_mapping
   has_one :subledger, through: :canonical_pending_event_mapping
@@ -116,8 +120,11 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :not_declined, -> { includes(:canonical_pending_declined_mapping).where(canonical_pending_declined_mapping: { canonical_pending_transaction_id: nil }) }
   scope :not_waived, -> { where(fee_waived: false) }
   scope :included_in_stats, -> { includes(canonical_pending_event_mapping: :event).where(events: { omit_stats: false }) }
+  scope :with_custom_memo, -> { where("custom_memo is not null") }
 
   validates :custom_memo, presence: true, allow_nil: true
+
+  before_validation { self.custom_memo = custom_memo.presence&.strip }
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
@@ -133,6 +140,8 @@ class CanonicalPendingTransaction < ApplicationRecord
   end
 
   def decline!
+    return false if declined?
+
     create_canonical_pending_declined_mapping!
     true
   rescue ActiveRecord::RecordNotUnique
@@ -152,14 +161,15 @@ class CanonicalPendingTransaction < ApplicationRecord
 
     pts = local_hcb_code.canonical_pending_transactions
                         .includes(:canonical_pending_event_mapping)
-                        .where(canonical_pending_event_mapping: { event_id: event.id })
+                        .where(canonical_pending_event_mapping: { event_id: event.id, subledger_id: subledger&.id })
                         .where(fronted: true)
                         .order(date: :asc, id: :asc)
     pts_sum = pts.map(&:amount_cents).sum
     return 0 if pts_sum.negative?
 
     cts_sum = local_hcb_code.canonical_transactions
-                            .filter { |ct| ct.canonical_event_mapping&.event_id == event.id }
+                            .includes(:canonical_event_mapping)
+                            .where(canonical_event_mapping: { event_id: event.id, subledger_id: subledger&.id })
                             .sum(&:amount_cents)
 
     # PTs that were chronologically created first in an HcbCode are first

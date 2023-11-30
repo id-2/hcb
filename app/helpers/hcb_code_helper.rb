@@ -10,7 +10,7 @@ module HcbCodeHelper
     url = "https://forms.hackclub.com/t/#{form_id}"
 
     prefill = []
-    prefill << "prefill_Your+Name=#{CGI.escape(user.full_name)}" if user
+    prefill << "prefill_Your+Name=#{CGI.escape(user.name)}" if user
     prefill << "prefill_Login+Email=#{CGI.escape(user.email)}" if user
     prefill << "prefill_Transaction+Code=#{CGI.escape(hcb_code.hashid)}" if hcb_code
 
@@ -25,7 +25,7 @@ module HcbCodeHelper
   end
 
   def can_dispute?(hcb_code:)
-    can_dispute, error_reason = ::HcbCodeService::CanDispute.new(hcb_code: hcb_code).run
+    can_dispute, error_reason = ::HcbCodeService::CanDispute.new(hcb_code:).run
 
     can_dispute
   end
@@ -48,7 +48,7 @@ module HcbCodeHelper
       background = "success"
       icon_name = "checkmark"
       text = "Passed"
-    when "failed"
+    when "mismatch"
       background = "warning"
       icon_name = "view-close"
       text = "Failed"

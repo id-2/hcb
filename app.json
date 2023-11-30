@@ -1,10 +1,10 @@
 {
   "name": "bank",
   "scripts": {
-    "postdeploy": "pg_dump --data-only -Fc $HEROKU_POSTGRESQL_ROSE_URL | pg_restore --clean --if-exists --no-acl --no-owner -d $DATABASE_URL; bundle exec rails db:migrate"
+    "postdeploy": "pg_dump --data-only -Fc $HEROKU_POSTGRESQL_CHARCOAL_URL | pg_restore --clean --if-exists --no-acl --no-owner -d $DATABASE_URL; bundle exec rails db:migrate"
   },
   "env": {
-    "HEROKU_POSTGRESQL_ROSE_URL": {
+    "HEROKU_POSTGRESQL_CHARCOAL_URL": {
       "required": true
     },
     "LANG": {
@@ -17,9 +17,6 @@
       "required": true
     },
     "RAILS_LOG_TO_STDOUT": {
-      "required": true
-    },
-    "RAILS_MASTER_KEY": {
       "required": true
     },
     "RAILS_SERVE_STATIC_FILES": {
@@ -59,13 +56,7 @@
       "url": "https://github.com/maxwofford/heroku-buildpack-sourceversion"
     },
     {
-      "url": "https://github.com/HiMamaInc/heroku-buildpack-imagemagick-heif"
-    },
-    {
       "url": "https://github.com/nickrivadeneira/heroku-buildpack-apt#gobject-introspection-support"
-    },
-    {
-      "url": "https://github.com/hackclub/heroku-buildpack-poppler"
     },
     {
       "url": "https://github.com/dscout/wkhtmltopdf-buildpack.git"
@@ -80,5 +71,5 @@
       "url": "heroku/metrics"
     }
   ],
-  "stack": "heroku-20"
+  "stack": "heroku-22"
 }

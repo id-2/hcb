@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html data-dark="<%= !!@dark %>" <%= "data-ignore-theme" unless @dark.nil? %>>
+<html lang="en" data-dark="<%= !!@dark %>" <%= "data-ignore-theme" unless @dark.nil? %>>
   <head>
     <title>
       <%= yield(:title).concat(" –") if content_for?(:title) %>
-      Bank
+      HCB
     </title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -15,7 +15,17 @@
     <%= javascript_include_tag "application", 'data-turbo-track': "reload", defer: true %>
 
     <% if signed_in? %>
-      <script>document.addEventListener("turbo:load", () => { Headway.init({ selector: "#changelog-icon", account:  "7z8ovy", trigger: "#changelog-icon" }) })</script>
+      <script>
+        document.addEventListener("turbo:load", () => {
+          try {
+            Headway.init({
+              selector: "#changelog-icon",
+              account:  "7z8ovy",
+              trigger: "#changelog-icon"
+            })
+          } catch {}
+        })
+      </script>
       <script async src="https://cdn.headwayapp.co/widget.js"></script>
     <% end %>
 
@@ -33,7 +43,7 @@
     <meta name="msapplication-TileColor" content="#ec3750">
     <%= yield(:head) if content_for?(:head) %>
   </head>
-  <body <%= yield(:body_attributes) if content_for?(:body_attributes) %> class="bg-snow <%= content_for :page_class %> <%= "season-#{current_season}" if current_season %>" data-turbo="<%= Flipper.enabled?(:turbo_2023_01_23, current_user) %>">
+  <body <%= yield(:body_attributes) if content_for?(:body_attributes) %> class="bg-snow embedded <%= content_for :page_class %> <%= "season-#{current_season}" if current_season %>" data-turbo="<%= Flipper.enabled?(:turbo_2023_01_23, current_user) %>">
     <%= react_component "tour/TourOverlay",
                         tour: @tour&.name,
                         id: @tour&.id,
@@ -44,21 +54,37 @@
     <% if @event&.is_public && !organizer_signed_in? && !@no_app_shell && !@no_transparency_header %>
       <div class="w-100 px3 bg-white transparency-banner" data-behavior="hide_iframe">
         <p class="h5 medium center mt1 mb1">
-          This Hack Club Bank project has been made public so you can see all its finances.
-          Hey, <%= link_to "what’s Bank?", "https://hackclub.com/bank/", target: "_blank", class: "primary" %>
+          This HCB project has been made public so you can see all its finances.
+          Hey, <%= link_to "what’s HCB?", "https://hackclub.com/hcb/", target: "_blank", class: "primary" %>
         </p>
       </div>
     <% end %>
 
-    <% if @event&.demo_mode? %>
+    <% if @event&.demo_mode? && !@no_app_shell && !@no_transparency_header %>
+      <style>
+        .banner-content {
+          grid-template-columns: 1fr 2fr 1fr;
+          place-items: center;
+
+          @media (max-width: 660px) {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 1rem;
+
+            .playground-desc {
+              order: 1;
+            }
+          }
+        }
+      </style>
       <div class="w-full dev-banner dev-banner--info rounded-bottom">
         <div class="flex flex-column container container--md center pb2">
           <p class="bold center m0" style="font-size: 2rem;">Playground Mode</p>
-          <div class="grid g3" style="grid-template-columns: 1fr 2fr 1fr; place-items: center;">
+          <div class="grid g3 banner-content">
             <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn bg-primary shrink-none nowrap #{"disabled" unless can_request_activation? }", data: { tour_step: "activate_account" } do %>
               <%= inline_icon "welcome" %>Request Activation
             <% end %>
-            <p class="center m0">While in Playground mode, explore the dashboard with mock data, and invite your team.<br>To utilise financial features, activate your account!</p>
+            <p class="center m0 playground-desc">While in Playground mode, explore the dashboard with mock data, and invite your team.<br>To utilise financial features, activate your account!</p>
             <button
               id="mock-data-toggle"
               data-mock-data-status="<%= show_mock_data? %>"
@@ -81,7 +107,7 @@
         <%= modal_header "Playground Mode" %>
         <% if organizer_signed_in? %>
           <p>
-            Your account is in <strong>Playground Mode</strong>. You can sign in and poke around, but many features are disabled. Once you're ready to activate your account, you can schedule a call with the Hack Club Bank team.
+            Your account is in <strong>Playground Mode</strong>. You can sign in and poke around, but many features are disabled. Once you're ready to activate your account, you can schedule a call with the HCB team.
           </p>
           <% if @event.demo_mode_request_meeting_at.blank? %>
             <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn btn-success" do %>
@@ -122,13 +148,13 @@
             <div class="welcome__content">
               <div class="center">
                 <h3 class="h3 caps secondary block m0">Welcome to</h3>
-                <h1 class="primary mt0 border-none"><%= @organizer_position.initial? ? "Hack Club Bank" : @event.name %></h1>
+                <h1 class="primary mt0 border-none"><%= @organizer_position.initial? ? "HCB" : @event.name %></h1>
               </div>
 
               <div class="mb2">
                 <button class="btn" data-action="welcome#tour">Show me around</button>
               </div>
-              <a href="<%= event_path(@event) %>" data-action="welcome#dismiss">No thanks, bring me straight to Bank</a>
+              <a href="<%= event_path(@event) %>" data-action="welcome#dismiss">No thanks, bring me straight to HCB</a>
             </div>
           </div>
         <% end %>
@@ -164,9 +190,16 @@
       <script>
         document.addEventListener('DOMContentLoaded', (event) => {
           const jsConfetti = new JSConfetti()
+          const emojis = <%= flash[:confetti_emojis].to_json.html_safe %>
 
           setTimeout(() => {
-            jsConfetti.addConfetti()
+            if (!emojis) {
+              jsConfetti.addConfetti()
+            } else {
+              jsConfetti.addConfetti({
+                emojis: emojis.split(",")
+              })
+            }
           }, 100);
         });
       </script>

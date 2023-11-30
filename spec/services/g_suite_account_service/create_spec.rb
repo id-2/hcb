@@ -17,19 +17,17 @@ RSpec.describe GSuiteAccountService::Create, type: :model do
     double("remoteOrgUnit", name: ou_name, org_unit_id: "id:1234", org_unit_path: "/Events/#{ou_name}")
   end
 
-  let(:attrs) do
-    {
-      g_suite: g_suite,
-      current_user: current_user,
+  let(:service) do
+    GSuiteAccountService::Create.new(
+      g_suite:,
+      current_user:,
 
-      backup_email: backup_email,
-      address: address,
-      first_name: first_name,
-      last_name: last_name
-    }
+      backup_email:,
+      address:,
+      first_name:,
+      last_name:
+    )
   end
-
-  let(:service) { GSuiteAccountService::Create.new(**attrs) }
 
   before do
     allow_any_instance_of(::Partners::Google::GSuite::OrgUnit).to receive(:run).and_return(remote_org_unit)
@@ -52,7 +50,7 @@ RSpec.describe GSuiteAccountService::Create, type: :model do
     mail = ActionMailer::Base.deliveries.last
 
     expect(mail.to).to eql(["backup@mailinator.com"])
-    expect(mail.subject).to include("Your Google Workspace account via Bank is ready")
+    expect(mail.subject).to include("Your Google Workspace account via HCB is ready")
     expect(mail.body.encoded).to include("address@event.example.com")
     expect(mail.body.encoded).to include(g_suite_account.initial_password)
   end

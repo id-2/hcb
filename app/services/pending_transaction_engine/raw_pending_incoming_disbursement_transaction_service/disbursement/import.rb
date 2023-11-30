@@ -5,8 +5,8 @@ module PendingTransactionEngine
     module Disbursement
       class Import
         def run
-          disbursements.each do |disbursement|
-            ImportSingle.new(disbursement: disbursement).run
+          disbursements.find_each(batch_size: 100) do |disbursement|
+            ImportSingle.new(disbursement:).run
           end
         end
 

@@ -26,7 +26,7 @@ export default class extends Controller {
 
     const paymentElement = this.elements.create('payment', {
       business: {
-        name: 'Hack Club Bank'
+        name: 'HCB'
       },
       terms: { card: 'never' }
     })
@@ -40,9 +40,9 @@ export default class extends Controller {
 
     const result = await this.confirm()
 
-    if (result.error) {
-      e.submitter.disabled = false
+    e.submitter.disabled = false
 
+    if (result.error) {
       if (result.error.type != 'validation_error') {
         if (this.hasErrorsTarget) {
           const flash = document.createElement('p')

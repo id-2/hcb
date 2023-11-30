@@ -9,7 +9,8 @@ module InvoiceService
                    sponsor_name:, sponsor_email:,
                    sponsor_address_line1:, sponsor_address_line2:,
                    sponsor_address_city:, sponsor_address_state:,
-                   sponsor_address_postal_code:)
+                   sponsor_address_postal_code:,
+                   sponsor_address_country:)
       @event_id = event_id
 
       @due_date = due_date
@@ -26,6 +27,7 @@ module InvoiceService
       @sponsor_address_city = sponsor_address_city
       @sponsor_address_state = sponsor_address_state
       @sponsor_address_postal_code = sponsor_address_postal_code
+      @sponsor_address_country = sponsor_address_country
     end
 
     def run
@@ -37,7 +39,7 @@ module InvoiceService
         invoice = Invoice.create!(attrs)
 
         item = StripeService::InvoiceItem.create(remote_invoice_item_attrs)
-        remote_invoice = StripeService::Invoice.create(remote_invoice_attrs(invoice: invoice))
+        remote_invoice = StripeService::Invoice.create(remote_invoice_attrs(invoice:))
 
         invoice.item_stripe_id = item.id
         invoice.stripe_invoice_id = remote_invoice.id
@@ -45,10 +47,9 @@ module InvoiceService
 
         remote_invoice.send_invoice
 
-        attrs = {
+        ::InvoiceService::SyncRemoteToLocal.new(
           invoice_id: invoice.id
-        }
-        ::InvoiceService::SyncRemoteToLocal.new(**attrs).run
+        ).run
       end
 
       invoice
@@ -73,9 +74,9 @@ module InvoiceService
         due_date: invoice.due_date.to_i, # convert to unixtime
         description: invoice.memo,
         status: invoice.status,
-        statement_descriptor: invoice.statement_descriptor || "HACK CLUB BANK",
+        statement_descriptor: invoice.statement_descriptor || "HCB",
         tax_percent: invoice.tax_percent,
-        footer: footer
+        footer:
       }
     end
 
@@ -93,7 +94,7 @@ module InvoiceService
         due_date: @due_date,
         item_description: @item_description,
         item_amount: clean_item_amount,
-        sponsor: sponsor,
+        sponsor:,
         statement_descriptor: StripeService::StatementDescriptor.format(event.name, as: :full),
         creator: @current_user
       }
@@ -107,7 +108,8 @@ module InvoiceService
         address_line2: @sponsor_address_line2,
         address_city: @sponsor_address_city,
         address_state: @sponsor_address_state,
-        address_postal_code: @sponsor_address_postal_code
+        address_postal_code: @sponsor_address_postal_code,
+        address_country: @sponsor_address_country
       }
     end
 

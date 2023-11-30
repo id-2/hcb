@@ -12,7 +12,7 @@ class GsuiteService
 
   # this is a hack to work with the google library's requirement that tokens must be in files
   TOKEN_FILE = Tempfile.new("token")
-  TOKEN_FILE << Rails.application.credentials.gsuite[:token]
+  TOKEN_FILE << Rails.application.credentials.dig(:gsuite, :token)
   TOKEN_FILE.rewind
   TOKEN_FILE.close
 
@@ -24,7 +24,7 @@ class GsuiteService
            "resulting code after authorization:\n" + url
       code = gets
       credentials = authorizer.get_and_store_credentials_from_code(
-        user_id: user_id, code: code, base_url: OOB_URI
+        user_id:, code:, base_url: OOB_URI
       )
     end
     credentials
@@ -63,7 +63,7 @@ class GsuiteService
   def reset_gsuite_user_password(email, password)
     update_user_struct = Google::Apis::AdminDirectoryV1::User.new(
       change_password_at_next_login: true,
-      password: password
+      password:
     )
     client.update_user(email, update_user_struct)
   end

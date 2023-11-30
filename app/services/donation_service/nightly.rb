@@ -3,14 +3,14 @@
 module DonationService
   class Nightly
     def run
-      Donation.in_transit.each do |donation|
+      Donation.in_transit.find_each(batch_size: 100) do |donation|
         cpt = donation.canonical_pending_transaction
 
         next unless cpt
         next unless cpt.settled?
         next unless donation.fee_reimbursed?
 
-        raise ArgumentError, "anomaly detected when attempting to mark deposited donation #{donation.id}" if anomaly_detected?(donation: donation)
+        raise ArgumentError, "anomaly detected when attempting to mark deposited donation #{donation.id}" if anomaly_detected?(donation:)
 
         begin
           donation.mark_deposited!

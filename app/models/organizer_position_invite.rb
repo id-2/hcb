@@ -55,6 +55,9 @@
 class OrganizerPositionInvite < ApplicationRecord
   has_paper_trail
 
+  include PublicIdentifiable
+  set_public_id_prefix :inv
+
   include FriendlyId
 
   friendly_id :slug_candidates, use: :slugged
@@ -74,9 +77,11 @@ class OrganizerPositionInvite < ApplicationRecord
   validates :accepted_at, absence: true, if: -> { rejected_at.present? }
   validates :rejected_at, absence: true, if: -> { accepted_at.present? }
 
-  after_create_commit :send_email
+  after_create_commit do
+    user == sender ? accept : deliver
+  end
 
-  def send_email
+  def deliver
     OrganizerPositionInvitesMailer.with(invite: self).notify.deliver_later
   end
 
@@ -92,9 +97,9 @@ class OrganizerPositionInvite < ApplicationRecord
     end
 
     self.organizer_position = OrganizerPosition.new(
-      event: event,
-      user: user,
-      is_signee: is_signee
+      event:,
+      user:,
+      is_signee:
     )
 
     self.accepted_at = Time.current

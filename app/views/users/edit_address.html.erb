@@ -1,0 +1,56 @@
+<% title "Account Settings" %>
+<% page_md %>
+<%= render "users/nav", selected: :settings %>
+<h1>
+  Settings
+</h1>
+<turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
+  <%= render "settings_nav", active: "address" %>
+  <section>
+    <h2 id="address">Billing address</h2>
+
+    <p class="h5 muted mt0 mb1">
+      This will be linked to your cards and may be checked against by merchants.
+      <br>
+      By default this is our address.
+    </p>
+
+    <%= form_with model: @user do |form| %>
+      <%= form.fields_for :stripe_cardholder, @user.stripe_cardholder do |form| %>
+        <div class="field">
+          <%= form.label :stripe_billing_address_line1, "Street address" %>
+          <%= form.text_field :stripe_billing_address_line1, placeholder: "8605 Santa Monica Blvd #86294", required: true %>
+        </div>
+
+        <div class="field">
+          <%= form.text_field :stripe_billing_address_line2 %>
+        </div>
+
+        <div class="flex">
+          <div class="field flex-auto mr1">
+            <%= form.label :stripe_billing_address_city, "City" %>
+            <%= form.text_field :stripe_billing_address_city, placeholder: "West Hollywood", required: true %>
+          </div>
+          <div class="field flex-auto ml1">
+            <%= form.label :address_state, "State / Province" %>
+            <%= form.select :stripe_billing_address_state, @states %>
+          </div>
+        </div>
+
+        <div class="field">
+          <%= form.label :postal_code %>
+          <%= form.text_field :stripe_billing_address_postal_code, placeholder: "90069", required: true %>
+        </div>
+
+        <div class="field">
+          <%= form.label :country %>
+          <%= form.country_select :stripe_billing_address_country, nil, { only: ["US", "CA"] }, { required: true } %>
+        </div>
+
+        <div class="actions inline-block mt1">
+          <%= form.submit "Save" %>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+</turbo-frame>

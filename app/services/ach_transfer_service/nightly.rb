@@ -4,13 +4,13 @@ module AchTransferService
   class Nightly
     def run
       # in_transit -> processed
-      AchTransfer.in_transit.each do |ach_transfer|
+      AchTransfer.in_transit.find_each(batch_size: 100) do |ach_transfer|
         cpt = ach_transfer.canonical_pending_transaction
 
         next unless cpt
         next unless cpt.settled?
 
-        raise ArgumentError, "anomaly detected when attempting to mark deposited ach_transfer #{ach_transfer.id}" if anomaly_detected?(ach_transfer: ach_transfer)
+        raise ArgumentError, "anomaly detected when attempting to mark deposited ach_transfer #{ach_transfer.id}" if anomaly_detected?(ach_transfer:)
 
         ach_transfer.mark_deposited!
       end

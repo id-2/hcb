@@ -1,14 +1,26 @@
 const whenViewed = (element, callback) => new IntersectionObserver(([entry]) => entry.isIntersecting && callback(), { threshold: 1 }).observe(element);
-const loadModals = element => $(element).on('click', '[data-behavior~=modal_trigger]', function (e) {
-  if ($(this).attr('href') || $(e.target).attr('href')) e.preventDefault()
-  BK.s('modal', '#' + $(this).data('modal')).modal({
-    modalClass: $(this).parents('turbo-frame').length
-      ? 'turbo-frame-modal'
-      : undefined,
-    closeExisting: false
+const loadModals = element => {
+   $(element).on('click', '[data-behavior~=modal_trigger]', function (e) {
+    const controlOrCommandClick = e.ctrlKey || e.metaKey;
+    if ($(this).attr('href') || $(e.target).attr('href')) {
+      if (controlOrCommandClick) return;
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    BK.s('modal', '#' + $(this).data('modal')).modal({
+      modalClass: $(this).parents('turbo-frame').length
+        ? 'turbo-frame-modal'
+        : undefined,
+      closeExisting: false
+    })
+    return this.blur()
   })
-  return this.blur()
-})
+
+  $(element).on('click', '[data-behavior~=modal_trigger] [data-behavior~=modal_ignore]', function(e) {
+    e.stopPropagation();
+    e.preventDefault()
+  });
+}
 
 // restore previous theme setting
 $(document).ready(function () {
@@ -26,6 +38,20 @@ $(document).on('click', '[data-behavior~=flash]', function () {
 })
 
 loadModals(document);
+(() => {
+  let autoModals = $('[data-modal-auto-open~=true]')
+
+  if (autoModals.length < 1) return;
+
+  let element = autoModals.first();
+
+  BK.s('modal', '#' + $(element).data('modal')).modal({
+    modalClass: $(element).parents('turbo-frame').length
+      ? 'turbo-frame-modal'
+      : undefined,
+    closeExisting: false
+  })
+})();
 
 $(document).on('keyup', 'action', function (e) {
   if (e.keyCode === 13) {
@@ -58,11 +84,12 @@ $(document).on('change', '[name="invoice[sponsor]"]', function (e) {
     'address_city',
     'address_state',
     'address_postal_code',
+    'address_country',
     'id'
   ]
 
   return fields.forEach(field =>
-    $(`input#invoice_sponsor_attributes_${field}`).val(sponsor[field])
+    $(`#invoice_sponsor_attributes_${field}`).val(sponsor[field])
   )
 })
 
@@ -100,7 +127,7 @@ const updateAmountPreview = function () {
     const feeAmount = BK.money(feePercent * amount * 100)
     const revenue = BK.money((1 - feePercent) * amount * 100)
     BK.s('amount-preview').text(
-      `${lAmount} - ${feeAmount} (${lFeePercent}% Bank fee) = ${revenue}`
+      `${lAmount} - ${feeAmount} (${lFeePercent}% fiscal sponsorship fee) = ${revenue}`
     )
     BK.s('amount-preview').show()
     return BK.s('amount-preview').data('amount', amount)
@@ -144,9 +171,9 @@ $(document).keydown(function (e) {
   }
 })
 
-$(document).on('turbo:load', function () {
-  $('[data-behavior~=toggle_theme]').on('click', () => BK.toggleDark())
+$(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
+$(document).on('turbo:load', function () {
   if (window.location !== window.parent.location) {
     $('[data-behavior~=hide_iframe]').hide()
   }
@@ -334,6 +361,9 @@ $(document).on('turbo:load', function () {
     const transparencyToggle = $('#event_is_public')
     $(transparencyToggle).on('change', e => {
       if (e.target.checked) {
+        // When transparency mode is enabled, also enable indexing by default
+        $('#event_is_indexable').prop('checked', true)
+
         additionalTransparencySettings.slideDown()
       } else {
         additionalTransparencySettings.slideUp()
@@ -377,3 +407,28 @@ $('[data-behavior~=submit_form]').click(function (e) {
   const formId = $(this).data('form')
   $(`#${formId}`).submit()
 })
+
+$(document).on('click', '[data-behavior~=expand_receipt]', function (e) {
+  const controlOrCommandClick = e.ctrlKey || e.metaKey;
+  if ($(this).attr('href') || $(e.target).attr('href')) {
+    if (controlOrCommandClick) return;
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  $(e.target).parents(".modal--popover").addClass("modal--popover--receipt-expanded");
+  let selected_receipt = document.querySelectorAll(`.hidden_except_${e.originalEvent.target.dataset.receiptId}`)[0]
+  selected_receipt.style.display = "flex";
+  selected_receipt.style.setProperty("--receipt-size", "100%");
+  selected_receipt.classList.add("receipt--expanded")
+})
+
+function unexpandReceipt(){
+  document.querySelectorAll(`.receipt--expanded`)[0]?.classList?.remove('receipt--expanded'); 
+  document.querySelector('.modal--popover.modal--popover--receipt-expanded')?.classList?.remove('modal--popover--receipt-expanded');
+}
+
+window.onload = function() {
+  if (window.self === window.top) {
+     document.body.classList.remove('embedded');
+  }
+}

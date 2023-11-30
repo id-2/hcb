@@ -27,13 +27,17 @@ module EventService
 
       ActiveRecord::Base.transaction do
         event = ::Event.create!(attrs)
+        event.event_tags << ::EventTag.find_or_create_by!(name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS) if @organized_by_hack_clubbers
+        event.event_tags << ::EventTag.find_or_create_by!(name: EventTag::Tags::ORGANIZED_BY_TEENAGERS) if @organized_by_teenagers
 
         # Event aasm_state is already approved by default.
         # event.mark_approved! if @approved
 
         @emails.each do |email|
-          OrganizerPositionInviteService::Create.new(event: event, sender: point_of_contact, user_email: email, initial: true, is_signee: @is_signee).run!
+          OrganizerPositionInviteService::Create.new(event:, sender: point_of_contact, user_email: email, initial: true, is_signee: @is_signee).run!
         end
+
+        event
       end
     end
 
@@ -47,8 +51,6 @@ module EventService
         address: "N/A",
         country: @country,
         category: @category,
-        organized_by_hack_clubbers: @organized_by_hack_clubbers,
-        organized_by_teenagers: @organized_by_teenagers,
         omit_stats: @omit_stats,
         is_public: @is_public,
         is_indexable: @is_indexable,
@@ -56,8 +58,8 @@ module EventService
         can_front_balance: @can_front_balance,
         expected_budget: 100.0,
         point_of_contact_id: @point_of_contact_id,
-        partner_id: partner.id,
-        organization_identifier: organization_identifier,
+        partner:,
+        organization_identifier:,
         demo_mode: @demo_mode
       }
     end
@@ -67,11 +69,11 @@ module EventService
     end
 
     def partner
-      @partner ||= ::Partner.find_by!(slug: "bank")
+      @partner ||= ::Partner.find_by(slug: "bank")
     end
 
     def organization_identifier
-      @organization_identifier ||= "bank_#{SecureRandom.hex}"
+      @organization_identifier ||= "hcb_#{SecureRandom.hex}"
     end
 
   end

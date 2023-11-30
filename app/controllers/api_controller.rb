@@ -62,8 +62,8 @@ class ApiController < ApplicationController
     d = Disbursement.new(
       event: target_event,
       source_event: Event.find(source_event_slug),
-      amount: amount,
-      name: name
+      amount:,
+      name:
     )
 
     if !d.save
@@ -72,10 +72,10 @@ class ApiController < ApplicationController
     end
 
     render json: {
-      source_event_slug: source_event_slug,
-      destination_event_slug: destination_event_slug,
+      source_event_slug:,
+      destination_event_slug:,
       amount: amount.to_f / 100,
-      name: name
+      name:
     }, status: 201
   end
 
@@ -85,6 +85,7 @@ class ApiController < ApplicationController
       email: params[:email],
       country: params[:country],
       category: params[:category],
+      is_public: params[:transparent].nil? ? true : params[:transparent],
     ).run
 
     result = {}
@@ -96,11 +97,42 @@ class ApiController < ApplicationController
       result[:name] = event.name
       result[:slug] = event.slug
       result[:email] = params[:email]
+      result[:transparent] = event.is_public?
     end
 
-    render json: result, status: status
+    render json: result, status:
   rescue ArgumentError, ActiveRecord::RecordInvalid => e
     render json: { error: e }, status: 422
+  end
+
+  def user_find
+    user = User.find_by_email!(params[:email])
+    recent_transactions = if user.stripe_cardholder.present?
+                            RawPendingStripeTransaction.where("stripe_transaction->>'cardholder' = ?", user.stripe_cardholder.stripe_id)
+                                                       .order(Arel.sql("stripe_transaction->>'created' DESC"))
+                                                       .limit(10)
+                                                       .includes(canonical_pending_transaction: [:canonical_pending_declined_mapping, :local_hcb_code])
+                                                       .map do |t|
+                                                         {
+                                                           memo: t.memo,
+                                                           date: t.date_posted,
+                                                           declined: t.canonical_pending_transaction.declined?,
+                                                           id: t.canonical_pending_transaction.local_hcb_code.hashid,
+                                                           amount: t.amount_cents,
+                                                         }
+                                                       end
+                          else
+                            []
+                          end
+
+    render json: {
+      name: user.name,
+      email: user.email,
+      slug: user.slug,
+      id: user.id,
+      orgs: user.events.not_hidden.map { |e| { name: e.name, slug: e.slug, demo: e.demo_mode? } },
+      recent_transactions:
+    }
   end
 
   private

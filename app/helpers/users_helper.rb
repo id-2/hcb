@@ -67,7 +67,7 @@ module UsersHelper
     alt ||= user&.initials
     alt ||= "Brown dog grinning and gazing off into the distance"
 
-    image_tag(src, options.merge(loading: "lazy", alt: alt, width: size, height: size, class: klass))
+    image_tag(src, options.merge(loading: "lazy", alt:, width: size, height: size, class: klass))
   end
 
   def user_mention(user, options = {}, default_name = "No User")
@@ -85,7 +85,7 @@ module UsersHelper
            elsif user.id == current_user&.id
              current_user_flavor_text.sample
            elsif user.admin?
-             "#{user.name.split(' ').first} is an admin"
+             "#{user.name} is an admin"
            end
 
     content = if user&.admin?
@@ -134,5 +134,13 @@ module UsersHelper
     alphabet = ("A".."Z").to_a
     colors = ["ec3750", "ff8c37", "f1c40f", "33d6a6", "5bc0de", "338eda"]
     colors[id.to_i % colors.length] || colors.last
+  end
+
+  def settings_tab(active: false, &block)
+    if active
+      tag.li(class: "active", data: { controller: "scroll-into-view" }, &block)
+    else
+      tag.li(&block)
+    end
   end
 end

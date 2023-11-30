@@ -1,6 +1,6 @@
-import HttpClient from "../../common/http";
-import React, { useState } from 'react';
-import PropTypes from "prop-types"
+import csrf from '../../common/csrf'
+import React, { useEffect, useRef, useState } from 'react'
+import PropTypes from 'prop-types'
 
 const SmsVerification = ({ phoneNumber }) => {
   const [errors, setErrors] = useState([])
@@ -8,25 +8,34 @@ const SmsVerification = ({ phoneNumber }) => {
   const [validationSuccess, setValidationSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [code, setCode] = useState('')
+  const verificationCodeInput = useRef(null)
 
   const handleClick = async (e) => {
     e.preventDefault()
     if (loading) { return }
     setLoading(true)
     try {
-      const resp = await HttpClient.post('/users/start_sms_auth_verification');
+      const resp = await fetch('/users/start_sms_auth_verification', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrf() }
+      })
 
-      if (resp.status === 200) {
+      if (resp.ok) {
         setErrors([])
         setValidationSent(true)
       } else {
         setErrors(["something went wrong!"])
       }
     } finally {
-      document.getElementById('verification-code').focus()
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if(validationSent) {
+      verificationCodeInput.current.focus()
+    }
+  }, [validationSent])
 
   const handleSubmit = async (e) => {
     console.log('submitting...')
@@ -34,15 +43,19 @@ const SmsVerification = ({ phoneNumber }) => {
       e.preventDefault()
     }
     setLoading(true)
-    await HttpClient.post(
-      '/users/complete_sms_auth_verification',
-      { code },
-    ).then(() => {
+    const resp = await fetch('/users/complete_sms_auth_verification', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrf(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    })
+
+    if (resp.ok) {
       setErrors([])
       setValidationSuccess(true)
-    }).catch(() => {
-      setErrors(["⚠️ Invalid code. Did you type it in correctly?"])
-    })
+    } else {
+      setErrors(['⚠️ Invalid code. Did you type it in correctly?'])
+    }
+
     setLoading(false)
   }
 
@@ -79,7 +92,7 @@ const SmsVerification = ({ phoneNumber }) => {
               <p>We&apos;ve just sent a code to {phoneNumber}. It should arrive in the next 5 to 30 seconds depending on your connection.</p>
               <div className="flex">
                 <form onSubmit={handleSubmit}>
-                  <input type="tel" id="verification-code" autoComplete="off" onSubmit={handleSubmit} onInput={handleInput} placeholder="XXX-XXX" value={code} className="mb1" required />
+                  <input type="tel" ref={verificationCodeInput} autoComplete="off" onSubmit={handleSubmit} onInput={handleInput} placeholder="XXX-XXX" value={code} className="mb1" required />
                   <input className={loading ? 'muted wait disabled' : 'pointer'} onSubmit={handleSubmit} type="submit" value="Verify" />
                 </form>
               </div>

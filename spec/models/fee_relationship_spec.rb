@@ -16,8 +16,8 @@ RSpec.describe FeeRelationship, type: :model do
 
     context "when before_validation is called" do
       let(:transaction) { create(:transaction, amount: 100) }
-      let(:event) { create(:event, sponsorship_fee: 5) }
-      let(:fee_relationship) { create(:fee_relationship, fee_applies: fee_applies, t_transaction: transaction, event: event) }
+      let(:event) { create(:event, sponsorship_fee: 0.05) }
+      let(:fee_relationship) { create(:fee_relationship, fee_applies:, t_transaction: transaction, event:) }
 
       context "when fee_applies is true" do
         let(:fee_applies) { true }
@@ -27,7 +27,7 @@ RSpec.describe FeeRelationship, type: :model do
 
           fee_relationship.save
 
-          expect(fee_relationship.reload.fee_amount).to eql(500)
+          expect(fee_relationship.reload.fee_amount).to eql(5)
         end
 
         context "when fee amount already exists on the fee relationship" do
