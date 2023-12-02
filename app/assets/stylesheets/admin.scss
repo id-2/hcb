@@ -760,7 +760,6 @@ video {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(map-get($palette, darker), 0.95);
 }
 
 .sub-items > a {
