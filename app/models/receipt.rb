@@ -77,6 +77,8 @@ class Receipt < ApplicationRecord
       Rails.application.routes.url_helpers.rails_representation_url(file.preview(resize:).processed, only_path:)
     elsif file.variable?
       Rails.application.routes.url_helpers.rails_representation_url(file.variant(resize:).processed, only_path:)
+    elsif file.content_type == "image/webp"
+      Rails.application.routes.url_helpers.rails_representation_url(file, only_path:)
     end
   rescue
     nil
