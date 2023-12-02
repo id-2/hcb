@@ -306,7 +306,7 @@ class Donation < ApplicationRecord
 
     if first_donation?
       DonationMailer.with(donation: self).first_donation_notification.deliver_later
-    elsif includes_message?
+    elsif includes_message? && (initial_recurring_donation? || !recurring?)
       DonationMailer.with(donation: self).donation_with_message_notification.deliver_later
     end
 
