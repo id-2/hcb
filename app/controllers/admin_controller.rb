@@ -200,7 +200,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
 
-    @events = filtered_events.page(@page).per(@per).reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    @events = filtered_events.page(@page).per(@per)
     @count = @events.count
 
     render layout: "admin"
@@ -318,7 +318,11 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
 
-    @cards = StripeCard.includes(:stripe_cardholder).page(@page).per(@per).order("created_at desc")
+    @q = params[:q].presence
+
+    @cards = StripeCard.includes(stripe_cardholder: :user).page(@page).per(@per).order("stripe_cards.created_at desc")
+
+    @cards = @cards.joins(stripe_cardholder: :user).where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.last4 ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
 
     render layout: "admin"
   end
@@ -371,6 +375,7 @@ class AdminController < ApplicationController
     @q = params[:q].present? ? params[:q] : nil
     @unmapped = params[:unmapped] != "0"
     @exclude_top_ups = params[:exclude_top_ups] == "1" ? true : nil
+    @exclude_spending = params[:exclude_spending] == "1" ? true : nil
     @mapped_by_human = params[:mapped_by_human] == "1" ? true : nil
     @event_id = params[:event_id].present? ? params[:event_id] : nil
     @user_id = params[:user_id].present? ? params[:user_id] : nil
@@ -400,6 +405,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.unmapped if @unmapped
+    relation = relation.where("amount_cents >= 0") if @exclude_spending
     relation = relation.not_stripe_top_up if @exclude_top_ups
     relation = relation.mapped_by_human if @mapped_by_human
 
@@ -1141,6 +1147,7 @@ class AdminController < ApplicationController
       @country = params[:country].present? ? params[:country] : "all"
     end
     @activity_since_date = params[:activity_since]
+    @sort_by = params[:sort_by].present? ? params[:sort_by] : "date_desc"
 
     relation = events
 
@@ -1177,6 +1184,16 @@ class AdminController < ApplicationController
     states << "approved" if @approved
     states << "rejected" if @rejected
     relation = relation.where("aasm_state in (?)", states)
+
+    # Sorting
+    case @sort_by
+    when "balance_asc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents))
+    when "balance_desc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents).reverse!)
+    else # Default sort is "date_desc"
+      relation = relation.reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    end
   end
 
   include StaticPagesHelper # for airtable_info
@@ -1255,8 +1272,6 @@ class AdminController < ApplicationController
         0
       when :ach_transfers
         AchTransfer.pending.size
-      when :pending_fees
-        Event.pending_fees.size
       when :negative_events
         Event.negatives.size
       when :fee_reimbursements
@@ -1302,7 +1317,6 @@ class AdminController < ApplicationController
     pending_task :emburse_card_requests
     pending_task :checks
     pending_task :ach_transfers
-    pending_task :pending_fees
     pending_task :negative_events
     pending_task :fee_reimbursements
     pending_task :emburse_transfers

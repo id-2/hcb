@@ -48,7 +48,7 @@
       <p class="h5 muted mt0 mb1">
         A short description of your organization's goals and impacts.
       </p>
-      <%= form.text_area :description, placeholder: "Focusing on...", maxlength: 250, class: "w-100 fit" %>
+      <%= form.text_area :description, placeholder: "Focusing on...", class: "w-100 fit" %>
     </div>
 
     <div class="field mt2">
@@ -58,6 +58,43 @@
 
     <%= form.submit "Update" %>
   </div>
+
+  <% if @event.card_grant_setting.present? %>
+
+    <h3 class="mb1" id="card-grants">Card Grants</h3>
+
+    <div class="card">
+      <%= form.fields_for :card_grant_setting, @event.card_grant_setting do |card_grant_setting_fields| %>
+        <%= card_grant_setting_fields.hidden_field :id, value: @event.card_grant_setting.id %>
+        <div class="field">
+          <%= card_grant_setting_fields.label :merchant_lock, "Update Approved Merchants" %>
+          <%= card_grant_setting_fields.text_field :merchant_lock, placeholder: "123456789", class: "w-100 fit", value: @event.card_grant_setting.merchant_lock.join(", ") %>
+          <p class="h5 muted mt0 mb1">
+            Provide a comma-separated list of merchant network IDs to lock all card grants issued from this event to.
+          </p>
+        </div>
+
+        <div class="field">
+          <%= card_grant_setting_fields.label :category_lock, "Update Category Lock" %>
+          <%= card_grant_setting_fields.text_field :category_lock, placeholder: "fast_food_restaurants", value: @event.card_grant_setting.category_lock.join(", ") %>
+          <p class="h5 muted mt0 mb1">Provide a comma-separated list of <a href="https://stripe.com/docs/issuing/categories">merchant categories</a> to lock all card grants issued from this event to.</p>
+        </div>
+
+        <div class="field">
+          <%= card_grant_setting_fields.label :invite_message, "Update Invite Message" %>
+          <%= card_grant_setting_fields.text_area :invite_message, placeholder: "It's pizza time!", value: @event.card_grant_setting.invite_message %>
+          <p class="h5 muted mt0 mb1">
+            <%= link_to "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#table-of-contents", target: "_blank" do %>
+              <%= inline_icon "markdown", size: 32 %> Styling with Markdown is supported
+            <% end %>
+          </p>
+        </div>
+      <% end %>
+
+      <%= form.submit "Update" %>
+    </div>
+
+  <% end %>
 
   <% if !@event.unapproved? %>
     <% if params[:jank].present? || DateTime.now <= Time.new(2022, 4, 2, 9, 30, 00, "-04:00") %>
@@ -116,6 +153,15 @@
         <%= form.label :donation_page_message, "Message to show on donation page" %>
         <%= form.text_area :donation_page_message, class: "w-100 fit" %>
         <%= inline_icon "markdown", size: 32, class: "muted right" %>
+      </div>
+      <div class="field">
+        <%= form.label :donation_thank_you_message, "Thank you message to donors" %>
+        <%= form.text_area :donation_thank_you_message, class: "w-100 fit" %>
+        <%= inline_icon "markdown", size: 32, class: "muted right" %>
+      </div>
+      <div class="field">
+        <%= form.label :donation_reply_to_email, "Reply-to email for donation receipts" %>
+        <%= form.text_field :donation_reply_to_email, type: "email", placeholder: "fiona@hackclub.com", class: "w-100 fit" %>
       </div>
       <%= form.submit "Update" %>
     </div>
@@ -203,12 +249,17 @@
 
     <div class="field">
       <%= form.label :sponsorship_fee, "Sponsorship fee (as fraction of revenue)" %>
-      <%= form.text_field :sponsorship_fee, value: event.sponsorship_fee || 0.07, placeholder: "0.07" %>
+      <%= form.text_field :sponsorship_fee, value: event.sponsorship_fee || 0.07, placeholder: "0.07", required: true %>
     </div>
 
     <div class="field">
       <%= form.label :emburse_department_id %>
       <%= form.text_field :emburse_department_id %>
+    </div>
+
+    <div class="field">
+      <%= form.label :stripe_card_shipping_type, "Card shipping method" %>
+      <%= form.collection_select :stripe_card_shipping_type, Event.stripe_card_shipping_types, :first, :first %>
     </div>
 
     <div class="field">

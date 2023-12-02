@@ -9,6 +9,7 @@
 #  category_lock   :string
 #  email           :string           not null
 #  merchant_lock   :string
+#  status          :integer          default("active"), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  disbursement_id :bigint
@@ -44,26 +45,76 @@ class CardGrant < ApplicationRecord
   belongs_to :user, optional: true
   belongs_to :sent_by, class_name: "User"
   belongs_to :disbursement, optional: true
+  has_one :card_grant_setting, through: :event, required: true
+  alias_method :setting, :card_grant_setting
+
+  enum :status, [:active, :canceled], default: :active
 
   before_create :create_user
   before_create :create_subledger
   after_create :transfer_money
   after_create_commit :send_email
 
+  before_validation { self.email = email.presence&.downcase&.strip }
+
   delegate :balance, to: :subledger
 
   serialize :merchant_lock, CommaSeparatedCoder # convert comma-separated merchant list to an array
   serialize :category_lock, CommaSeparatedCoder
-  alias_attribute :allowed_merchants, :merchant_lock
-  alias_attribute :allowed_categories, :category_lock
 
   validates_presence_of :amount_cents, :email
   validates :amount_cents, numericality: { greater_than: 0, message: "can't be zero!" }
 
-  scope :not_activated, -> { where(stripe_card_id: nil) }
-  scope :activated, -> { where.not(stripe_card_id: nil) }
+  scope :not_activated, -> { active.where(stripe_card_id: nil) }
+  scope :activated, -> { active.where.not(stripe_card_id: nil) }
+  scope :search_recipient, ->(q) { joins(:user).where("users.full_name ILIKE :query OR card_grants.email ILIKE :query", query: "%#{User.sanitize_sql_like(q)}%") }
 
   monetize :amount_cents
+
+  def name
+    "#{user.name} (#{user.email})"
+  end
+
+  def state
+    if canceled?
+      "muted"
+    elsif stripe_card.nil?
+      "info"
+    elsif stripe_card.frozen?
+      "info"
+    else
+      "success"
+    end
+  end
+
+  def state_text
+    if canceled?
+      "Canceled"
+    elsif stripe_card.nil?
+      "Invitation sent"
+    elsif stripe_card.frozen?
+      "Frozen"
+    else
+      "Active"
+    end
+  end
+
+  def cancel!(canceled_by)
+    if balance > 0
+      DisbursementService::Create.new(
+        source_event_id: event_id,
+        destination_event_id: event_id,
+        name: "Cancel of grant to #{user.email}",
+        amount: balance.amount,
+        source_subledger_id: subledger_id,
+        requested_by_id: canceled_by.id,
+      ).run
+    end
+
+    update!(status: :canceled)
+
+    stripe_card&.freeze!
+  end
 
   def create_stripe_card(session)
     return if stripe_card.present?
@@ -79,6 +130,14 @@ class CardGrant < ApplicationRecord
     save!
   end
 
+  def allowed_merchants
+    (merchant_lock + (setting&.merchant_lock || [])).uniq
+  end
+
+  def allowed_categories
+    (category_lock + (setting&.category_lock || [])).uniq
+  end
+
   private
 
   def create_user
@@ -86,7 +145,7 @@ class CardGrant < ApplicationRecord
   end
 
   def create_subledger
-    create_subledger!(event:)
+    self.subledger = event.subledgers.create!
   end
 
   def transfer_money

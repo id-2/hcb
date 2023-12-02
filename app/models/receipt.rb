@@ -5,7 +5,6 @@
 # Table name: receipts
 #
 #  id                         :bigint           not null, primary key
-#  attempted_match_at         :datetime
 #  receiptable_type           :string
 #  textual_content_ciphertext :text
 #  upload_method              :integer
@@ -26,11 +25,14 @@
 class Receipt < ApplicationRecord
   has_encrypted :textual_content
 
+  include PublicIdentifiable
+  set_public_id_prefix :rct
+
   belongs_to :receiptable, polymorphic: true, required: false
 
   belongs_to :user, class_name: "User", required: false
   alias_attribute :uploader, :user
-  alias_attribute :transaction, :receiptable
+  alias_method :transaction, :receiptable
 
   has_many :suggested_pairings, dependent: :destroy
   has_many :suggested_transactions, source: :hcb_code, through: :suggested_pairings
@@ -38,6 +40,12 @@ class Receipt < ApplicationRecord
   has_one_attached :file
 
   validates :file, attached: true
+
+  before_create do
+    suppress(ActiveModel::MissingAttributeError) do
+      receiptable&.update(marked_no_or_lost_receipt_at: nil)
+    end
+  end
 
   after_create_commit do
     # Queue async job to extract text from newly upload receipt
@@ -52,20 +60,23 @@ class Receipt < ApplicationRecord
     receipts_page_drag_and_drop: 3,
     attach_receipt_page: 4,
     attach_receipt_page_drag_and_drop: 5,
-    email: 6,
+    email_hcb_code: 6,
     receipt_center: 7,
-    receipt_center_drag_and_drop: 8
+    receipt_center_drag_and_drop: 8,
+    api: 9,
+    email_receipt_bin: 10,
+    sms: 11
   }
 
   def url
-    Rails.application.routes.url_helpers.rails_blob_url(object)
+    Rails.application.routes.url_helpers.rails_blob_url(file)
   end
 
-  def preview(resize: "512x512")
+  def preview(resize: "1024x1024", only_path: true)
     if file.previewable?
-      Rails.application.routes.url_helpers.rails_representation_url(file.preview(resize:).processed, only_path: true)
+      Rails.application.routes.url_helpers.rails_representation_url(file.preview(resize:).processed, only_path:)
     elsif file.variable?
-      Rails.application.routes.url_helpers.rails_representation_url(file.variant(resize:).processed, only_path: true)
+      Rails.application.routes.url_helpers.rails_representation_url(file.variant(resize:).processed, only_path:)
     end
   rescue
     nil
@@ -99,6 +110,10 @@ class Receipt < ApplicationRecord
     extract_textual_content.tap do |text|
       update!(textual_content: text)
     end
+  end
+
+  def has_textual_content?
+    !!(textual_content || extract_textual_content!)
   end
 
   private

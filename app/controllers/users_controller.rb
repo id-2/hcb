@@ -6,6 +6,8 @@ class UsersController < ApplicationController
   skip_after_action :verify_authorized, except: [:edit, :update]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
 
+  wrap_parameters format: :url_encoded_form
+
   def impersonate
     authorize current_user
 
@@ -31,12 +33,14 @@ class UsersController < ApplicationController
       redirect_to login_code_users_path, status: 307
     else
       session[:auth_email] = @email
-      redirect_to choose_login_preference_users_path
+      redirect_to choose_login_preference_users_path(return_to: params[:return_to])
     end
   end
 
   def choose_login_preference
     @email = session[:auth_email]
+    @user = User.find_by_email(@email)
+    @return_to = params[:return_to]
     return redirect_to auth_users_path if @email.nil?
 
     session.delete :login_preference
@@ -176,7 +180,7 @@ class UsersController < ApplicationController
     initialize_sms_params
     return render :login_code, status: :unprocessable_entity
   rescue ActiveRecord::RecordInvalid => e
-    flash[:error] = e.record.errors&.full_messages&.join(". ")
+    flash[:error] = e.record.errors&.messages&.values&.flatten&.join(". ")
     redirect_to auth_users_path
   end
 
@@ -187,7 +191,7 @@ class UsersController < ApplicationController
 
   def logout_all
     sign_out_of_all_sessions
-    redirect_to edit_user_path(current_user), flash: { success: "Success" }
+    redirect_back_or_to security_user_path(current_user), flash: { success: "Success" }
   end
 
   def logout_session
@@ -207,28 +211,37 @@ class UsersController < ApplicationController
     redirect_to root_path
   end
 
+  def revoke_oauth_application
+    Doorkeeper::Application.revoke_tokens_and_grants_for(params[:id], current_user)
+    redirect_back_or_to security_user_path(current_user)
+  end
+
   def receipt_report
     ReceiptReportJob::Send.perform_later(current_user.id, force_send: true)
     flash[:success] = "Receipt report generating. Check #{current_user.email}"
     redirect_to settings_previews_path
   end
 
-  FEATURE_CONFETTI_EMOJIS = {
+  FEATURES = { # the keys are current feature flags, the values are emojis that show when-enabled.
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
-    receipt_report_2023_04_19: %w[🧾 📧],
     turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
     sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
+    hcb_code_popovers_2023_06_16: nil
   }.freeze
 
   def enable_feature
     @user = current_user
     @feature = params[:feature]
     authorize @user
-    if Flipper.enable_actor(@feature, @user)
-      confetti!(emojis: FEATURE_CONFETTI_EMOJIS[@feature.to_sym])
-      flash[:success] = "Opted into beta"
+    if FEATURES.key?(@feature.to_sym) || @user.admin?
+      if Flipper.enable_actor(@feature, @user)
+        confetti!(emojis: FEATURES[@feature.to_sym])
+        flash[:success] = "Opted into beta"
+      else
+        flash[:error] = "Error while opting into beta"
+      end
     else
-      flash[:error] = "Error while opting into beta"
+      flash[:error] = "Beta doesn't exist."
     end
     redirect_back fallback_location: settings_previews_path
   end
@@ -237,10 +250,14 @@ class UsersController < ApplicationController
     @user = current_user
     @feature = params[:feature]
     authorize @user
-    if Flipper.disable_actor(@feature, @user)
-      flash[:success] = "Opted out of beta"
+    if FEATURES.key?(@feature.to_sym) || @user.admin?
+      if Flipper.disable_actor(@feature, @user)
+        flash[:success] = "Opted out of beta"
+      else
+        flash[:error] = "Error while opting out of beta"
+      end
     else
-      flash[:error] = "Error while opting out of beta"
+      flash[:error] = "Beta doesn't exist."
     end
     redirect_back fallback_location: settings_previews_path
   end
@@ -248,6 +265,7 @@ class UsersController < ApplicationController
   def edit
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.onboarding?
+    @mailbox_address = @user.active_mailbox_address
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     authorize @user
@@ -255,6 +273,10 @@ class UsersController < ApplicationController
 
   def edit_address
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    @states = [
+      ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] },
+      ISO3166::Country.new("CA").subdivisions.values.map { |s| [s.translations["en"], s.code] }
+    ].flatten(1)
     redirect_to edit_user_path(@user) unless @user.stripe_cardholder
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
@@ -275,6 +297,14 @@ class UsersController < ApplicationController
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    @oauth_authorizations = @user.api_tokens
+                                 .where.not(application_id: nil)
+                                 .select("application_id, MAX(api_tokens.created_at) AS created_at, MIN(api_tokens.created_at) AS first_authorized_at, COUNT(*) AS authorization_count")
+                                 .accessible
+                                 .group(:application_id)
+                                 .includes(:application)
+    @all_sessions = (@sessions + @oauth_authorizations).sort_by { |s| s.created_at }.reverse!
+
     authorize @user
   end
 
@@ -297,17 +327,19 @@ class UsersController < ApplicationController
       end
     end
 
-    locked = params[:user][:locked] == "1"
-    if locked && @user == current_user
-      flash[:error] = "As much as you might desire to, you cannot lock yourself out."
-      return redirect_to admin_user_path(@user)
-    elsif locked && @user.admin?
-      flash[:error] = "Contact a engineer to lock out another admin."
-      return redirect_to admin_user_path(@user)
-    elsif locked
-      @user.lock!
-    else
-      @user.unlock!
+    if params[:user][:locked].present?
+      locked = params[:user][:locked] == "1"
+      if locked && @user == current_user
+        flash[:error] = "As much as you might desire to, you cannot lock yourself out."
+        return redirect_to admin_user_path(@user)
+      elsif locked && @user.admin?
+        flash[:error] = "Contact a engineer to lock out another admin."
+        return redirect_to admin_user_path(@user)
+      elsif locked
+        @user.lock!
+      else
+        @user.unlock!
+      end
     end
 
     if @user.update(user_params)
@@ -356,6 +388,7 @@ class UsersController < ApplicationController
     params.require(:code)
     svc = UserService::EnrollSmsAuth.new(current_user)
     svc.complete_verification(params[:code])
+    svc.enroll_sms_auth if params[:enroll_sms_auth]
     # flash[:success] = "Completed verification"
     # redirect_to edit_user_path(current_user)
     render json: { message: "completed verification successfully" }, status: :ok
@@ -370,12 +403,10 @@ class UsersController < ApplicationController
     svc = UserService::EnrollSmsAuth.new(current_user)
     if current_user.use_sms_auth
       svc.disable_sms_auth
-      flash[:success] = "SMS sign-in turned off"
     else
       svc.enroll_sms_auth
-      flash[:success] = "SMS sign-in turned on"
     end
-    redirect_to edit_user_path(current_user)
+    redirect_back_or_to security_user_path(current_user)
   end
 
   def wrapped

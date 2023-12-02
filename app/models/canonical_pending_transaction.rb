@@ -120,8 +120,11 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :not_declined, -> { includes(:canonical_pending_declined_mapping).where(canonical_pending_declined_mapping: { canonical_pending_transaction_id: nil }) }
   scope :not_waived, -> { where(fee_waived: false) }
   scope :included_in_stats, -> { includes(canonical_pending_event_mapping: :event).where(events: { omit_stats: false }) }
+  scope :with_custom_memo, -> { where("custom_memo is not null") }
 
   validates :custom_memo, presence: true, allow_nil: true
+
+  before_validation { self.custom_memo = custom_memo.presence&.strip }
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
@@ -158,14 +161,15 @@ class CanonicalPendingTransaction < ApplicationRecord
 
     pts = local_hcb_code.canonical_pending_transactions
                         .includes(:canonical_pending_event_mapping)
-                        .where(canonical_pending_event_mapping: { event_id: event.id })
+                        .where(canonical_pending_event_mapping: { event_id: event.id, subledger_id: subledger&.id })
                         .where(fronted: true)
                         .order(date: :asc, id: :asc)
     pts_sum = pts.map(&:amount_cents).sum
     return 0 if pts_sum.negative?
 
     cts_sum = local_hcb_code.canonical_transactions
-                            .filter { |ct| ct.canonical_event_mapping&.event_id == event.id }
+                            .includes(:canonical_event_mapping)
+                            .where(canonical_event_mapping: { event_id: event.id, subledger_id: subledger&.id })
                             .sum(&:amount_cents)
 
     # PTs that were chronologically created first in an HcbCode are first

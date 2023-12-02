@@ -6,7 +6,7 @@ module Api
       include ActionController::HttpAuthentication::Token::ControllerMethods
       include Pundit::Authorization
 
-      after_action :verify_authorized, except: :index
+      after_action :verify_authorized
 
       before_action :authenticate!
 
@@ -18,6 +18,10 @@ module Api
         render json: { error: "resource_not_found" }, status: :not_found
       end
 
+      rescue_from ActiveRecord::RecordInvalid do |e|
+        render json: { error: "invalid_operation", messages: e.record.errors.full_messages }, status: :bad_request
+      end
+
       def not_found
         skip_authorization
         render json: { error: "not_found" }, status: :not_found
@@ -27,7 +31,7 @@ module Api
 
       def authenticate!
         @current_token = authenticate_with_http_token { |t, _options| ApiToken.find_by(token: t) }
-        if @current_token.blank?
+        unless @current_token&.accessible?
           return render json: { error: "invalid_auth" }, status: :unauthorized
         end
 

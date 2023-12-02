@@ -43,6 +43,11 @@
     Activity Since
     <%= form.date_field :activity_since, value: @activity_since_date %>
   <% end %>
+  
+  <%= form.label :sort_by do %>
+    Sort By
+    <%= form.select :sort_by, [["Balance Ascending", "balance_asc"], ["Balance Descending", "balance_desc"], ["Date Descending", "date_desc"]], selected: @sort_by %>
+  <% end %>
 </div>
 
 <fieldset style='display: flex; flex-wrap: wrap; gap: 4px 16px; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.6rem; padding-top: 0.3rem; margin-right: 0.5rem; margin-top: 8px;'>

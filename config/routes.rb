@@ -47,20 +47,22 @@ Rails.application.routes.draw do
     get "settings/previews", to: "users#edit_featurepreviews"
     get "settings/security", to: "users#edit_security"
     get "settings/admin", to: "users#edit_admin"
-    resources :stripe_authorizations, only: [:index, :show], path: "transactions" do
-      resources :comments
-    end
     get "inbox", to: "static_pages#my_inbox", as: :my_inbox
     post "receipts/upload", to: "static_pages#receipt", as: :my_receipts_upload
     get "missing_receipts", to: "static_pages#my_missing_receipts_list", as: :my_missing_receipts_list
     get "missing_receipts_icon", to: "static_pages#my_missing_receipts_icon", as: :my_missing_receipts_icon
     get "receipts", to: redirect("/my/inbox")
-    get "receipts/:id", to: "stripe_authorizations#receipt", as: :my_receipt
 
     post "receipt_report", to: "users#receipt_report", as: :trigger_receipt_report
 
     get "cards", to: "static_pages#my_cards", as: :my_cards
     get "cards/shipping", to: "stripe_cards#shipping", as: :my_cards_shipping
+  end
+
+  resources :mailbox_addresses, only: [:create, :show] do
+    member do
+      post "activate"
+    end
   end
 
   resources :receipts, only: [] do
@@ -115,6 +117,7 @@ Rails.application.routes.draw do
       delete "logout", to: "users#logout"
       delete "logout_all", to: "users#logout_all"
       delete "logout_session", to: "users#logout_session"
+      delete "revoke/:id", to: "users#revoke_oauth_application", as: "revoke_oauth_application"
 
       # sometimes users refresh the login code page and get 404'd
       get "exchange_login_code", to: redirect("/users/auth", status: 301)
@@ -265,9 +268,6 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  resources :stripe_authorizations, only: [:show, :index] do
-    resources :comments
-  end
   resources :stripe_cardholders, only: [:new, :create, :update]
   resources :stripe_cards, only: %i[create index show] do
     get "edit"
@@ -364,10 +364,14 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  resources :transactions, only: [:index, :show, :edit, :update] do
+  resources :exports do
     collection do
-      get "export"
+      get "collect_email", to: "exports#collect_email", as: "collect_email"
+      get ":event", to: "exports#transactions", as: "transactions"
     end
+  end
+
+  resources :transactions, only: [:index, :show, :edit, :update] do
     resources :comments
   end
 
@@ -421,6 +425,7 @@ Rails.application.routes.draw do
       post "start/:event_name", to: "donations#make_donation", as: "make_donation"
       get "qr/:event_name.png", to: "donations#qr_code", as: "qr_code"
       get ":event_name/:donation", to: "donations#finish_donation", as: "finish_donation"
+      get ":event_name/:donation/finished", to: "donations#finished", as: "finished_donation"
       get "export"
     end
 
@@ -438,7 +443,7 @@ Rails.application.routes.draw do
   end
 
   use_doorkeeper scope: "api/v4/oauth" do
-    skip_controllers :applications, :authorized_applications
+    skip_controllers :authorized_applications
   end
 
   namespace :api do
@@ -459,10 +464,26 @@ Rails.application.routes.draw do
         resource :user do
           resources :events, path: "organizations", only: [:index]
           resources :stripe_cards, path: "cards", only: [:index]
+          resources :invitations, only: [:index, :show] do
+            member do
+              post "accept"
+              post "reject"
+            end
+          end
+
+          get "transactions/missing_receipt", to: "transactions#missing_receipt"
         end
 
         resources :events, path: "organizations", only: [:show] do
           resources :stripe_cards, path: "cards", only: [:index]
+          resources :transactions, only: [:show, :update] do
+            resources :receipts, only: [:create, :index]
+
+            member do
+              get "memo_suggestions"
+            end
+          end
+
           member do
             get "transactions"
           end
@@ -482,10 +503,12 @@ Rails.application.routes.draw do
   get "partnered_signups/:public_id", to: "partnered_signups#edit", as: :edit_partnered_signups
   patch "partnered_signups/:public_id", to: "partnered_signups#update", as: :update_partnered_signups
 
+  post "api/v1/users/find", to: "api#user_find"
   get "api/v1/events/find", to: "api#event_find" # to be deprecated
   post "api/v1/disbursements", to: "api#disbursement_new" # to be deprecated
   post "api/v1/events/create_demo", to: "api#create_demo_event"
 
+  post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
   post "increase/webhook", to: "increase#webhook"
   get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"
@@ -576,9 +599,6 @@ Rails.application.routes.draw do
     resources :documents, only: [:index]
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
     resources :invoices, only: [:new, :create, :index]
-    resources :stripe_authorizations, only: [:show] do
-      resources :comments
-    end
     resources :tags, only: [:create, :destroy]
     resources :event_tags, only: [:create, :destroy]
 
@@ -591,7 +611,11 @@ Rails.application.routes.draw do
 
     resources :check_deposits, only: [:index, :create], path: "check-deposits"
 
-    resources :card_grants, only: [:new, :create], path: "card-grants"
+    resources :card_grants, only: [:new, :create], path: "card-grants" do
+      member do
+        post "cancel"
+      end
+    end
 
     resources :grants, only: [:index, :new, :create]
 

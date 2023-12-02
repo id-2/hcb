@@ -11,6 +11,8 @@ class EventsController < ApplicationController
   skip_before_action :signed_in_user
   before_action :set_mock_data
 
+  before_action :redirect_to_onboarding, unless: -> { @event&.is_public? }
+
   # GET /events
   def index
     authorize Event
@@ -25,7 +27,10 @@ class EventsController < ApplicationController
 
     maybe_pending_invite = OrganizerPositionInvite.pending.find_by(user: current_user, event: @event)
 
-    return redirect_to maybe_pending_invite if maybe_pending_invite.present?
+    if maybe_pending_invite.present?
+      skip_authorization
+      return redirect_to maybe_pending_invite
+    end
 
     begin
       authorize @event
@@ -41,7 +46,11 @@ class EventsController < ApplicationController
       @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
     end
 
-    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc).limit(5)
+    @user = User.find(params[:user]) if params[:user]
+
+    @type = params[:type]
+
+    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
@@ -49,6 +58,67 @@ class EventsController < ApplicationController
     end
 
     @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
+
+    if @user
+      @all_transactions = @all_transactions.select { |t| t.stripe_cardholder&.user == @user }
+      @pending_transactions = @pending_transactions.select { |x| x.stripe_cardholder && x.stripe_cardholder.user.id == @user.id }
+    end
+
+    @type_filters = {
+      "ach_transfer"           => {
+        "settled" => ->(t) { t.local_hcb_code.ach_transfer? },
+        "pending" => ->(t) { t.raw_pending_outgoing_ach_transaction_id },
+        "icon"    => "plus-fill"
+      },
+      "mailed_check"           => {
+        "settled" => ->(t) { t.local_hcb_code.check? || t.local_hcb_code.increase_check? },
+        "pending" => ->(t) { t.raw_pending_outgoing_check_transaction_id || t.increase_check_id },
+        "icon"    => "payment-transfer"
+      },
+      "account_transfer"       => {
+        "settled" => ->(t) { t.local_hcb_code.disbursement? },
+        "pending" => ->(t) { t.local_hcb_code.disbursement? },
+        "icon"    => "door-enter"
+      },
+      "card_charge"            => {
+        "settled" => ->(t) { t.raw_stripe_transaction },
+        "pending" => ->(t) { t.raw_pending_stripe_transaction_id },
+        "icon"    => "card"
+      },
+      "check_deposit"          => {
+        "settled" => ->(t) { t.local_hcb_code.check_deposit? },
+        "pending" => ->(t) { t.check_deposit_id },
+        "icon"    => "payment-docs"
+      },
+      "donation"               => {
+        "settled" => ->(t) { t.local_hcb_code.donation? },
+        "pending" => ->(t) { t.raw_pending_donation_transaction_id },
+        "icon"    => "support"
+      },
+      "invoice"                => {
+        "settled" => ->(t) { t.local_hcb_code.invoice? },
+        "pending" => ->(t) { t.raw_pending_invoice_transaction_id },
+        "icon"    => "briefcase"
+      },
+      "refund"                 => {
+        "settled" => ->(t) { t.local_hcb_code.stripe_refund? },
+        "pending" => ->(t) { false },
+        "icon"    => "view-reload"
+      },
+      "fiscal_sponsorship_fee" => {
+        "settled" => ->(t) { t.local_hcb_code.fee_revenue? || t.fee_payment? },
+        "pending" => ->(t) { t.raw_pending_bank_fee_transaction_id },
+        "icon"    => "minus-fill"
+      }
+    }
+
+    if @type
+      filter = @type_filters[@type]
+      if filter
+        @all_transactions = @all_transactions.select(&filter["settled"])
+        @pending_transactions = @pending_transactions.select(&filter["pending"])
+      end
+    end
 
     page = (params[:page] || 1).to_i
     per_page = (params[:per] || 75).to_i
@@ -73,56 +143,11 @@ class EventsController < ApplicationController
       end
     end
 
-    @mock_total = 0
     if helpers.show_mock_data?
-      mock_transaction_descriptions = [
-        { desc: "🌶️ Jalapeños for the steamy social salsa sesh", amount: -9.57 },
-        { desc: "👩‍💻 Payment for club coding lessons (solid gold; rare; imported)", amount: -127.63 },
-        { desc: "🍺 Reimbursement for Friday night's team-building pub crawl", amount: -88.90 },
-        { desc: "😨 Monthly payment to the local protection racket", monthly: true, amount: -2500.00 },
-        { desc: "🚀 Rocket fuel for Lucas' commute", amount: -50.00 },
-        { desc: "💰 Donation from t̶͖̯́̒̇͝h̸͇̥̘̖̞̋͛̕ę̷̧̯̓̄͜ ̵̧̡̀̎͋̚v̸̰̰̝͈̟̂̇̏̓ͅo̶͓͈͑̑̄̍i̸͉̺͕̥̓̍d̵̟̮̼̠̺̿͌́", amount: 50_000.00 },
-        { desc: "🎵 Payment for a DJ for the club disco (groovy)", amount: -430.00 },
-        { desc: "🤫 Hush money", amount: -1000.00 },
-        { desc: "🦄 Purchase of a cute unicorn for team morale", amount: -57.00 },
-        { desc: "🍌 Bananas (Fairtrade)", amount: -1.80 },
-        { desc: "💸 Withdrawal for emergency pizza run", amount: -62.99 },
-        { desc: "🍔 Withdrawal for a not-so-emergency burger run", amount: -47.06 },
-        { desc: "🧑‍🚀 Astronaut suit for Lucas to get home when it's cold", amount: -943.99 },
-        { desc: "💰 Donation from the man in the walls", amount: 1_200.00, monthly: true },
-        { desc: "🫘 Chilli con carne (home cooked, just how you like it)", amount: -8.28 },
-        { desc: "🦖 Purchase of a teeny tiny T-Rex", amount: -3.35 },
-        { desc: "🧪 Purchase of lab rats for the club's genetics project", amount: -120.00 },
-        { desc: "🐣 An incubator to help hatch big ideas", amount: -1.59 },
-        { desc: "📈 Financial advisor to teach us better spending tips", amount: -900.00 },
-        { desc: "🐛 Office wormery", amount: -47.53 },
-        { desc: "📹 Webcams for the team x4", amount: -199.96 },
-        { desc: "🪨 Hackathon rock tumbler", amount: -19.99 },
-        { desc: "🌸 Payment for a floral arrangement", monthly: true, amount: -15.50 },
-        { desc: "🧼 Purchase of eco-friendly soap for the club bathrooms", monthly: true, amount: -7.49 },
-        { desc: "💰 Donation from Dave from next door", monthly: true, amount: 250.00 },
-        { desc: "💰 Donation from Old Greg down hill", amount: 500.00 },
-      ]
+      @transactions = MockTransactionEngineService::GenerateMockTransaction.new.run
 
-      mock_transaction_descriptions.shuffle.slice(0, rand(6..10)).each do |trans|
-        @transactions << OpenStruct.new(
-          amount: trans[:amount],
-          amount_cents: rand(1000),
-          fee_payment: true,
-          date: Faker::Date.backward(days: 365 * 2),
-          local_hcb_code: OpenStruct.new(
-            memo: trans[:desc],
-            receipts: Array.new(rand(9) > 1 ? 0 : rand(1..2)),
-            comments: Array.new(rand(9) > 1 ? 0 : rand(1..2)),
-            donation?: !trans[:amount].negative?,
-            donation: !trans[:amount].negative? ? nil : OpenStruct.new(recurring?: trans[:monthly]),
-            tags: []
-          )
-        )
-      end
-      @transactions.sort_by!(&:date).reverse!
       @transactions = Kaminari.paginate_array(@transactions).page(params[:page]).per(params[:per] || 75)
-      @mock_total = @transactions.reduce(0) { |sum, obj| sum + obj.amount * 100 }.to_i
+      @mock_total = @transactions.sum(&:amount_cents)
     end
 
     if flash[:popover]
@@ -235,24 +260,26 @@ class EventsController < ApplicationController
     if helpers.show_mock_data?
       @session_user_stripe_cards = []
 
-      # The user's cards
-      (0..rand(1..3)).each do |_|
-        state = rand > 0.5
-        name = current_user.name
-        virtual = rand > 0.5
-        card = OpenStruct.new(
-          virtual?: virtual,
-          physical?: !virtual,
-          remote_shipping_status: rand > 0.5 ? "PENDING" : "SHIPPED",
-          created_at: Faker::Time.between(from: 1.year.ago, to: Time.now),
-          state: state ? "success" : "muted",
-          state_text: state ? "Active" : "Cancelled",
-          stripe_name: name,
-          user: current_user,
-          formatted_card_number: Faker::Finance.credit_card(:mastercard),
-          hidden_card_number: "•••• •••• •••• ••••",
-        )
-        @session_user_stripe_cards << card
+      if organizer_signed_in?
+        # The user's cards
+        (0..rand(1..3)).each do |_|
+          state = rand > 0.5
+          name = current_user.name
+          virtual = rand > 0.5
+          card = OpenStruct.new(
+            virtual?: virtual,
+            physical?: !virtual,
+            remote_shipping_status: rand > 0.5 ? "PENDING" : "SHIPPED",
+            created_at: Faker::Time.between(from: 1.year.ago, to: Time.now),
+            state: state ? "success" : "muted",
+            state_text: state ? "Active" : "Cancelled",
+            stripe_name: name,
+            user: current_user,
+            formatted_card_number: Faker::Finance.credit_card(:mastercard),
+            hidden_card_number: "•••• •••• •••• ••••",
+          )
+          @session_user_stripe_cards << card
+        end
       end
       # Sort by date issued
       @session_user_stripe_cards.sort_by! { |card| card.created_at }.reverse!
@@ -261,6 +288,11 @@ class EventsController < ApplicationController
       # they're not instances of the right dohickey whatsitcalled. Not having
       # the grid view is a wee bummer but it's not the end of the world.
     end
+
+    page = (params[:page] || 1).to_i
+    per_page = (params[:per] || 20).to_i
+
+    @paginated_stripe_cards = Kaminari.paginate_array(@stripe_cards).page(page).per(per_page)
 
   end
 
@@ -446,6 +478,9 @@ class EventsController < ApplicationController
     @checks = @event.checks.includes(:lob_address)
     @increase_checks = @event.increase_checks
     @disbursements = @transfers_enabled ? @event.outgoing_disbursements.includes(:destination_event) : Disbursement.none
+    @card_grants = @event.card_grants.includes(:user, :subledger, :stripe_card)
+
+    @disbursements = @disbursements.not_card_grant_related if Flipper.enabled?(:card_grants_2023_05_25, @event)
 
     @stats = {
       deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @increase_checks.increase_deposited.or(@increase_checks.in_transit).sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum,
@@ -467,6 +502,8 @@ class EventsController < ApplicationController
     @increase_checks = @increase_checks.increase_deposited if params[:filter] == "deposited"
     @increase_checks = @increase_checks.canceled if params[:filter] == "canceled"
 
+    @card_grants = @card_grants.search_recipient(params[:q]) if params[:q].present?
+
     if @transfers_enabled
       @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
       @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
@@ -474,7 +511,7 @@ class EventsController < ApplicationController
       @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
     end
 
-    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
+    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements + @card_grants).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
 
     # Generate mock data
     if helpers.show_mock_data?
@@ -626,6 +663,8 @@ class EventsController < ApplicationController
       :hidden,
       :donation_page_enabled,
       :donation_page_message,
+      :donation_thank_you_message,
+      :donation_reply_to_email,
       :is_public,
       :is_indexable,
       :holiday_features,
@@ -634,7 +673,13 @@ class EventsController < ApplicationController
       :donation_header_image,
       :logo,
       :website,
-      :background_image
+      :background_image,
+      :stripe_card_shipping_type,
+      card_grant_setting_attributes: [
+        :merchant_lock,
+        :category_lock,
+        :invite_message
+      ]
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend
@@ -655,6 +700,8 @@ class EventsController < ApplicationController
       :end,
       :donation_page_enabled,
       :donation_page_message,
+      :donation_thank_you_message,
+      :donation_reply_to_email,
       :is_public,
       :is_indexable,
       :holiday_features,
@@ -663,7 +710,12 @@ class EventsController < ApplicationController
       :donation_header_image,
       :logo,
       :website,
-      :background_image
+      :background_image,
+      card_grant_setting_attributes: [
+        :merchant_lock,
+        :category_lock,
+        :invite_message
+      ]
     )
 
     # convert whatever the user inputted into something that is a legal slug

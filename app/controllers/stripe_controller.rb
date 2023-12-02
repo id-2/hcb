@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-class StripeController < ApplicationController
-  protect_from_forgery except: :webhook # ignore csrf checks
-  skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:webhook] # do not require logged in user
+class StripeController < ActionController::Base
+  protect_from_forgery except: :webhook
 
   def webhook
     payload = request.body.read
@@ -12,7 +10,8 @@ class StripeController < ApplicationController
     begin
       event = StripeService.construct_webhook_event(payload, sig_header)
       method = "handle_" + event["type"].tr(".", "_")
-      self.send method, event
+
+      StatsD.measure("StripeController.#{method}") { self.send method, event }
     rescue JSON::ParserError => e
       head 400
       notify_airbrake(e)
@@ -31,6 +30,9 @@ class StripeController < ApplicationController
   private
 
   def handle_issuing_authorization_request(event)
+    # fire-and-forget update to grafana dashboard
+    StatsD.increment("stripe_webhook_authorization", 1)
+
     approved = ::StripeAuthorizationService::Webhook::HandleIssuingAuthorizationRequest.new(stripe_event: event).run
 
     response.set_header "Stripe-Version", "2022-08-01"
@@ -43,9 +45,6 @@ class StripeController < ApplicationController
   def handle_issuing_authorization_created(event)
     auth_id = event[:data][:object][:id]
 
-    # DEPRECATED: put the transaction on the v1 ledger
-    ::StripeAuthorizationJob::Deprecated::CreateFromWebhook.perform_later(auth_id)
-
     # put the transaction on the pending ledger in almost realtime
     ::StripeAuthorizationJob::CreateFromWebhook.perform_later(auth_id)
 
@@ -53,12 +52,10 @@ class StripeController < ApplicationController
   end
 
   def handle_issuing_authorization_updated(event)
-    # This is to listen for edge-cases like multi-capture TXs
-    # https://stripe.com/docs/issuing/purchases/transactions
-    auth = event[:data][:object]
-    sa = StripeAuthorization.find_or_initialize_by(stripe_id: auth[:id])
-    sa.sync_from_stripe!
-    sa.save
+    is_closed = event[:data][:object][:status] == "closed"
+    has_timeout = event[:data][:object][:request_history].pluck(:reason).include?("webhook_timeout")
+
+    StatsD.increment("stripe_webhook_timeout", 1) if is_closed && has_timeout
 
     head 200
   end
@@ -197,8 +194,6 @@ class StripeController < ApplicationController
     donation.set_fields_from_stripe_payment_intent(pi)
     donation.save!
 
-    DonationService::Queue.new(donation_id: donation.id).run # queues/crons payout. DEPRECATE. most is unnecessary if we just run in a cron
-
     donation.send_receipt!
 
     # Import the donation onto the ledger
@@ -231,5 +226,17 @@ class StripeController < ApplicationController
       ach_payment:
     )
   end
+
+  def handle_payout_updated(event)
+    payout = DonationPayout.find_by(stripe_payout_id: event.data.object.id) || InvoicePayout.find_by(stripe_payout_id: event.data.object.id)
+    return unless payout
+
+    payout.set_fields_from_stripe_payout(event.data.object)
+    payout.save!
+  end
+
+  alias_method :handle_payout_canceled, :handle_payout_updated
+  alias_method :handle_payout_failed, :handle_payout_updated
+  alias_method :handle_payout_paid, :handle_payout_updated
 
 end

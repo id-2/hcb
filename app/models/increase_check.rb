@@ -13,6 +13,8 @@
 #  address_zip     :string
 #  amount          :integer
 #  approved_at     :datetime
+#  check_number    :string
+#  increase_object :jsonb
 #  increase_state  :string
 #  increase_status :string
 #  memo            :string
@@ -26,8 +28,9 @@
 #
 # Indexes
 #
-#  index_increase_checks_on_event_id  (event_id)
-#  index_increase_checks_on_user_id   (user_id)
+#  index_increase_checks_on_event_id        (event_id)
+#  index_increase_checks_on_transaction_id  ((((increase_object -> 'deposit'::text) ->> 'transaction_id'::text)))
+#  index_increase_checks_on_user_id         (user_id)
 #
 # Foreign Keys
 #
@@ -35,6 +38,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class IncreaseCheck < ApplicationRecord
+  has_paper_trail
+
   include AASM
 
   belongs_to :event
@@ -53,6 +58,9 @@ class IncreaseCheck < ApplicationRecord
     state :rejected
 
     event :mark_approved do
+      after do
+        canonical_pending_transaction.update(fronted: true)
+      end
       transitions from: :pending, to: :approved
     end
 
@@ -67,8 +75,9 @@ class IncreaseCheck < ApplicationRecord
   validates :amount, numericality: { greater_than: 0, message: "can't be zero!" }
   validates :memo, length: { in: 1..73 }
   validates :recipient_name, length: { in: 1..250 }
-  validates_presence_of :memo, :payment_for, :recipient_name, :address_line1, :address_city, :address_state, :address_zip
-  validates :address_state, inclusion: { in: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"], message: "This isn't a valid US state abbreviation!" }
+  validates_presence_of :memo, :payment_for, :recipient_name, :address_line1, :address_city, :address_zip
+  validates_presence_of :address_state, message: "Please select a state!"
+  validates :address_state, inclusion: { in: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"], message: "This isn't a valid US state!", allow_blank: true }
   validates :address_zip, format: { with: /\A\d{5}(?:[-\s]\d{4})?\z/, message: "This isn't a valid ZIP code." }
 
   validate on: :create do
@@ -148,14 +157,23 @@ class IncreaseCheck < ApplicationRecord
 
     increase_check = Increase::CheckTransfers.create(
       account_id: IncreaseService::AccountIds::FS_MAIN,
-      address_city:,
-      address_line1:,
-      address_line2: address_line2.presence,
-      address_state:,
-      address_zip:,
-      amount:,
-      message: memo,
-      recipient_name:,
+      source_account_number_id: event.increase_account_number_id,
+      # Increase will print and mail the physical check for us
+      fulfillment_method: "physical_check",
+      physical_check: {
+        memo:,
+        note: "Check from #{event.name}",
+        recipient_name:,
+        mailing_address: {
+          line1: address_line1,
+          line2: address_line2.presence,
+          city: address_city,
+          state: address_state,
+          postal_code: address_zip,
+        }
+      },
+      unique_identifier: self.id.to_s,
+      amount:
     )
 
     update!(increase_id: increase_check["id"], increase_status: increase_check["status"])
