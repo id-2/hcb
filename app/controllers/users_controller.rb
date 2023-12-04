@@ -303,8 +303,7 @@ class UsersController < ApplicationController
                                  .accessible
                                  .group(:application_id)
                                  .includes(:application)
-    @all_sessions = (@sessions + @oauth_authorizations).sort_by { |s| s.created_at }.reverse!
-
+    @all_sessions = (@sessions + @oauth_authorizations).sort_by { |s| s.updated_at }.reverse!
     authorize @user
   end
 
