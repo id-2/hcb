@@ -56,6 +56,9 @@
       "url": "https://github.com/maxwofford/heroku-buildpack-sourceversion"
     },
     {
+      "url": "https://github.com/drnic/heroku-buildpack-imagemagick-webp"
+    },
+    {
       "url": "https://github.com/nickrivadeneira/heroku-buildpack-apt#gobject-introspection-support"
     },
     {
