@@ -401,13 +401,6 @@ $('[data-behavior~=ctrl_enter_submit]').keydown(function (event) {
   }
 })
 
-$('[data-behavior~=submit_form]').click(function (e) {
-  e.preventDefault()
-
-  const formId = $(this).data('form')
-  $(`#${formId}`).submit()
-})
-
 $(document).on('click', '[data-behavior~=expand_receipt]', function (e) {
   const controlOrCommandClick = e.ctrlKey || e.metaKey;
   if ($(this).attr('href') || $(e.target).attr('href')) {
@@ -427,8 +420,8 @@ function unexpandReceipt(){
   document.querySelector('.modal--popover.modal--popover--receipt-expanded')?.classList?.remove('modal--popover--receipt-expanded');
 }
 
-window.onload = function() {
+document.addEventListener("turbo:load", () => {
   if (window.self === window.top) {
-     document.body.classList.remove('embedded');
+    document.body.classList.remove('embedded');
   }
-}
+})
