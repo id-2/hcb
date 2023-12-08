@@ -280,7 +280,10 @@ class UsersController < ApplicationController
       ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] },
       ISO3166::Country.new("CA").subdivisions.values.map { |s| [s.translations["en"], s.code] }
     ].flatten(1)
-    redirect_to edit_user_path(@user) unless @user.stripe_cardholder
+    unless @user.stripe_cardholder
+      flash[:info] = "Billing addresses can configured once you've order a card (virtual or physical)."
+      redirect_to edit_user_path(@user) and return
+    end
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
