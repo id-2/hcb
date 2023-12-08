@@ -78,6 +78,8 @@ class UsersController < ApplicationController
 
     @webauthn_available = User.find_by(email: @email)&.webauthn_credentials&.any?
 
+    render status: :unprocessable_entity
+
   rescue ActionController::ParameterMissing
     flash[:error] = "Please enter an email address."
     redirect_to auth_users_path
@@ -226,7 +228,8 @@ class UsersController < ApplicationController
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
     turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
     sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
-    hcb_code_popovers_2023_06_16: nil
+    hcb_code_popovers_2023_06_16: nil,
+    rename_on_homepage_2023_12_06: %w[🖊️ ⚡ ⌨️]
   }.freeze
 
   def enable_feature
@@ -407,10 +410,6 @@ class UsersController < ApplicationController
       svc.enroll_sms_auth
     end
     redirect_back_or_to security_user_path(current_user)
-  end
-
-  def wrapped
-    redirect_to "https://bank-wrapped.hackclub.com/wrapped?user_id=#{current_user.public_id}&org_ids=#{current_user.events.transparent.map(&:public_id).join(",")}", allow_other_host: true
   end
 
   private
