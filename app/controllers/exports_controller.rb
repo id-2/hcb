@@ -13,40 +13,32 @@ class ExportsController < ApplicationController
     end
 
     respond_to do |format|
-      format.csv do
-        handle_export_request(ExportJob::Csv, stream_transactions_csv, "csv") and return
-      end
-
-      format.json do
-        handle_export_request(ExportJob::Json, stream_transactions_json, "json") and return
-      end
-
-      format.ledger do
-        handle_export_request(ExportJob::Ledger, stream_transactions_ledger, "ledger") and return
-      end
+      format.csv { handle_export("csv") }
+      format.json { handle_export("json") }
+      format.ledger { handle_export("ledger") }
     end
   end
 
-  def handle_export_request(job, stream, file_extension)
+  def handle_export(file_extension)
     should_queue = @event.canonical_transactions.size > 300
     if should_queue
       if current_user
-        job.perform_later(event_id: @event.id, email: current_user.email)
+        ExportJob.const_get(file_extension.capitalize).perform_later(event_id: @event.id, email: current_user.email)
         flash[:success] = "This export is too big, so we'll send you an email when it's ready."
-        redirect_back fallback_location: @event
+        redirect_back fallback_location: @event and return
       elsif params[:email]
         # this handles the second stage of large transparent exports
-        job.perform_later(event_id: @event.id, email: params[:email])
+        ExportJob.const_get(file_extension.capitalize).perform_later(event_id: @event.id, email: params[:email])
         flash[:success] = "We'll send you an email when your export is ready."
-        redirect_to @event
+        redirect_to @event and return
       else
-        # handles when large exports are requested by the non-signed-in users viewing transparent orgs
-        # this redirects them to a form that collects their email and then goes to the above statement
-        redirect_to collect_email_exports_path(file_extension:, event_slug: params[:event])
+        # handles when large exports are requested by non-signed-in users viewing transparent orgs
+        # redirects them to a form that collects their email and then goes to the above statement
+        redirect_to collect_email_exports_path(file_extension:, event_slug: params[:event]) and return
       end
-    else
-      stream
     end
+
+    send("stream_transactions_#{file_extension}")
   end
 
   def collect_email
