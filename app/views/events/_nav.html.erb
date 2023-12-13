@@ -60,7 +60,7 @@
         tooltip: "Deposit checks",
         disabled: !organizer_signed_in?,
         icon: "cheque",
-        selected: local_assigns[:selected] == :deposit_check if Flipper.enabled?(:check_deposits_2023_04_17, @event) %>
+        selected: local_assigns[:selected] == :deposit_check %>
       <h4 class="mb0 h5 muted">Spend</h4>
       <hr>
       <%= dock_item "Cards",
@@ -137,7 +137,7 @@
           <%= link_to "Donations", event_donation_overview_path(@event) %>
           <%= link_to "Invoices", event_invoices_path(@event) %>
           <%= link_to "Account & routing number", account_number_event_path(@event) if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) %>
-          <%= link_to "Deposit a check", event_check_deposits_path(@event) if Flipper.enabled?(:check_deposits_2023_04_17, @event) %>
+          <%= link_to "Deposit a check", event_check_deposits_path(@event) %>
         </div>
       </button>
       <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:cards, :transfers] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="spend">
