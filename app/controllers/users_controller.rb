@@ -11,9 +11,11 @@ class UsersController < ApplicationController
   def impersonate
     authorize current_user
 
-    impersonate_user(User.find(params[:user_id]))
+    user = User.find(params[:id])
 
-    redirect_to(params[:return_to] || root_path)
+    impersonate_user(user)
+
+    redirect_to params[:return_to] || root_path, flash: { info: "You're now impersonating #{user.name}." }
   end
 
   # view to log in
@@ -39,6 +41,7 @@ class UsersController < ApplicationController
 
   def choose_login_preference
     @email = session[:auth_email]
+    @user = User.find_by_email(@email)
     @return_to = params[:return_to]
     return redirect_to auth_users_path if @email.nil?
 
@@ -76,6 +79,8 @@ class UsersController < ApplicationController
     @user_id = resp[:id]
 
     @webauthn_available = User.find_by(email: @email)&.webauthn_credentials&.any?
+
+    render status: :unprocessable_entity
 
   rescue ActionController::ParameterMissing
     flash[:error] = "Please enter an email address."
@@ -225,7 +230,8 @@ class UsersController < ApplicationController
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
     turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
     sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
-    hcb_code_popovers_2023_06_16: nil
+    hcb_code_popovers_2023_06_16: nil,
+    rename_on_homepage_2023_12_06: %w[🖊️ ⚡ ⌨️]
   }.freeze
 
   def enable_feature
@@ -264,6 +270,7 @@ class UsersController < ApplicationController
   def edit
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.onboarding?
+    @mailbox_address = @user.active_mailbox_address
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     authorize @user
@@ -363,7 +370,7 @@ class UsersController < ApplicationController
   end
 
   def delete_profile_picture
-    @user = User.friendly.find(params[:user_id])
+    @user = User.friendly.find(params[:id])
     authorize @user
 
     @user.profile_picture.purge_later
@@ -386,6 +393,7 @@ class UsersController < ApplicationController
     params.require(:code)
     svc = UserService::EnrollSmsAuth.new(current_user)
     svc.complete_verification(params[:code])
+    svc.enroll_sms_auth if params[:enroll_sms_auth]
     # flash[:success] = "Completed verification"
     # redirect_to edit_user_path(current_user)
     render json: { message: "completed verification successfully" }, status: :ok
@@ -404,10 +412,6 @@ class UsersController < ApplicationController
       svc.enroll_sms_auth
     end
     redirect_back_or_to security_user_path(current_user)
-  end
-
-  def wrapped
-    redirect_to "https://bank-wrapped.hackclub.com/wrapped?user_id=#{current_user.public_id}&org_ids=#{current_user.events.transparent.map(&:public_id).join(",")}", allow_other_host: true
   end
 
   private

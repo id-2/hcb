@@ -10,7 +10,8 @@ class StripeController < ActionController::Base
     begin
       event = StripeService.construct_webhook_event(payload, sig_header)
       method = "handle_" + event["type"].tr(".", "_")
-      self.send method, event
+
+      StatsD.measure("StripeController.#{method}") { self.send method, event }
     rescue JSON::ParserError => e
       head 400
       notify_airbrake(e)
@@ -55,6 +56,9 @@ class StripeController < ActionController::Base
     has_timeout = event[:data][:object][:request_history].pluck(:reason).include?("webhook_timeout")
 
     StatsD.increment("stripe_webhook_timeout", 1) if is_closed && has_timeout
+
+    rpst = PendingTransactionEngine::RawPendingStripeTransactionService::Stripe::ImportSingle.new(remote_stripe_transaction: event[:data][:object]).run
+    PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Stripe.new(raw_pending_stripe_transaction: rpst).run
 
     head 200
   end

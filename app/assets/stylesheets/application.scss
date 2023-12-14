@@ -251,7 +251,7 @@ summary {
 }
 
 #HW_frame_cont {
-  transform: translateY(30px);
+  transform: translateY(35px) translateX(0.75rem);
 }
 
 .admin-tools {
@@ -400,5 +400,6 @@ summary {
 
 @import 'basscss';
 @import 'space';
+@import 'kbar';
 @import 'utilities';
 @import 'dark';

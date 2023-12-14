@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
+ActiveRecord::Schema[7.0].define(version: 2023_12_01_193105) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1067,7 +1067,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["code"], name: "index_login_codes_on_code", unique: true, where: "(used_at IS NULL)"
+    t.index ["code"], name: "index_login_codes_on_code"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
 
@@ -1087,6 +1087,27 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
     t.index ["token"], name: "index_login_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
+  end
+
+  create_table "metrics", force: :cascade do |t|
+    t.string "type", null: false
+    t.jsonb "metric"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
+  end
+
+  create_table "mailbox_addresses", force: :cascade do |t|
+    t.string "address", null: false
+    t.string "aasm_state"
+    t.bigint "user_id", null: false
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["address"], name: "index_mailbox_addresses_on_address", unique: true
+    t.index ["user_id"], name: "index_mailbox_addresses_on_user_id"
   end
 
   create_table "mfa_codes", force: :cascade do |t|
@@ -1263,6 +1284,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
     t.string "api_key_bidx"
     t.index ["api_key_bidx"], name: "index_partners_on_api_key_bidx", unique: true
     t.index ["representative_id"], name: "index_partners_on_representative_id"
+  end
+
+  create_table "raw_column_transactions", force: :cascade do |t|
+    t.string "column_report_id"
+    t.integer "transaction_index"
+    t.jsonb "column_transaction"
+    t.text "description"
+    t.date "date_posted"
+    t.integer "amount_cents"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "raw_csv_transactions", force: :cascade do |t|
@@ -1802,6 +1834,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_25_005204) do
   add_foreign_key "login_codes", "users"
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
+  add_foreign_key "mailbox_addresses", "users"
   add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "ops_checkins", "users", column: "point_of_contact_id"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"

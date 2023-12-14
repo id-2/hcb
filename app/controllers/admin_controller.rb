@@ -40,22 +40,6 @@ class AdminController < ApplicationController
     render json: { elapsed:, size: }, status: 200
   end
 
-  def search
-    # allows the same URL to easily be used for form and GET
-    return if request.method == "GET"
-
-    # removing dashes to deal with phone number
-    query = params[:q].gsub("-", "").strip
-
-    users = []
-
-    users.push(User.where("full_name ilike ?", "%#{query.downcase}%").includes(:events))
-    users.push(User.where(email: query).includes(:events))
-    users.push(User.where(phone_number: query).includes(:events))
-
-    @result = users.flatten.compact
-  end
-
   def negative_events
     @negative_events = Event.negatives
   end
@@ -200,7 +184,7 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
 
-    @events = filtered_events.page(@page).per(@per).reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    @events = filtered_events.page(@page).per(@per)
     @count = @events.count
 
     render layout: "admin"
@@ -1030,11 +1014,7 @@ class AdminController < ApplicationController
       flash[:info] = "Do you really want the Start Date to be after the End Date?"
     end
 
-    relation = filtered_events.reorder("events.id asc")
-    # Omit orgs if they were created after the end date
-    relation = relation.where("events.created_at <= ?", @end_date) if @end_date
-
-    @events = relation
+    @events = filtered_events
 
     render_balance = ->(event, type) {
       ApplicationController.helpers.render_money(event.send(type, start_date: @start_date, end_date: @end_date))
@@ -1147,9 +1127,12 @@ class AdminController < ApplicationController
       @country = params[:country].present? ? params[:country] : "all"
     end
     @activity_since_date = params[:activity_since]
+    @sort_by = params[:sort_by].present? ? params[:sort_by] : "date_desc"
 
     relation = events
 
+    # Omit orgs if they were created after the end date
+    relation = relation.where("events.created_at <= ?", @end_date) if @end_date
     relation = relation.search_name(@q) if @q
     relation = relation.transparent if @transparent == "transparent"
     relation = relation.not_transparent if @transparent == "not_transparent"
@@ -1183,6 +1166,16 @@ class AdminController < ApplicationController
     states << "approved" if @approved
     states << "rejected" if @rejected
     relation = relation.where("aasm_state in (?)", states)
+
+    # Sorting
+    case @sort_by
+    when "balance_asc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents))
+    when "balance_desc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents).reverse!)
+    else # Default sort is "date_desc"
+      relation = relation.reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    end
   end
 
   include StaticPagesHelper # for airtable_info

@@ -16,9 +16,35 @@ class EventsController < ApplicationController
   # GET /events
   def index
     authorize Event
+    respond_to do |format|
+      format.json do
+        events = @current_user.events.with_attached_logo.reorder("organizer_positions.sort_index ASC", "events.id ASC").map { |x|
+          {
+            name: x.name,
+            slug: x.slug,
+            logo: x.logo.attached? ? Rails.application.routes.url_helpers.url_for(x.logo) : "none",
+            member: true
+          }
+        }
 
-    @event_ids_with_transactions_cache = FeeRelationship.distinct.pluck(:event_id) # for performance reasons - until we build proper counter caching and modify schemas a bit for easier calculations
-    @events = Event.all
+        if admin_signed_in?
+          events.concat(
+            Event.all.excluding(@current_user.events).with_attached_logo.select([:slug, :name]).map { |e|
+              {
+                slug: e.slug,
+                name: e.name,
+                logo: e.logo.attached? ? Rails.application.routes.url_helpers.url_for(e.logo) : "none",
+                member: false
+              }
+            }
+          )
+        end
+
+        response.content_type = "text/json"
+
+        render json: events
+      end
+    end
   end
 
   # GET /events/1
@@ -260,31 +286,32 @@ class EventsController < ApplicationController
     if helpers.show_mock_data?
       @session_user_stripe_cards = []
 
-      # The user's cards
-      (0..rand(1..3)).each do |_|
-        state = rand > 0.5
-        name = current_user.name
-        virtual = rand > 0.5
-        card = OpenStruct.new(
-          virtual?: virtual,
-          physical?: !virtual,
-          remote_shipping_status: rand > 0.5 ? "PENDING" : "SHIPPED",
-          created_at: Faker::Time.between(from: 1.year.ago, to: Time.now),
-          state: state ? "success" : "muted",
-          state_text: state ? "Active" : "Cancelled",
-          stripe_name: name,
-          user: current_user,
-          formatted_card_number: Faker::Finance.credit_card(:mastercard),
-          hidden_card_number: "•••• •••• •••• ••••",
-        )
-        @session_user_stripe_cards << card
+      if organizer_signed_in?
+        # The user's cards
+        (0..rand(1..3)).each do |_|
+          state = Faker::Boolean.boolean
+          virtual = rand > 0.5
+          card = OpenStruct.new(
+            id: Faker::Number.number(digits: 1),
+            virtual?: virtual,
+            physical?: !virtual,
+            remote_shipping_status: rand > 0.5 ? "PENDING" : "SHIPPED",
+            created_at: Faker::Time.between(from: 1.year.ago, to: Time.now),
+            state: state ? "success" : "muted",
+            state_text: state ? "Active" : "Frozen",
+            status_text: state ? "Active" : "Frozen",
+            stripe_name: current_user.name,
+            user: current_user,
+            formatted_card_number: Faker::Finance.credit_card(:mastercard),
+            hidden_card_number: "•••• •••• •••• ••••",
+            hidden_card_number_with_last_four: "•••• •••• •••• #{Faker::Number.number(digits: 4)}",
+            to_partial_path: "stripe_cards/stripe_card",
+          )
+          @session_user_stripe_cards << card
+        end
       end
       # Sort by date issued
       @session_user_stripe_cards.sort_by! { |card| card.created_at }.reverse!
-
-      # @ma1ted: Org cards are refusing to render (in the grid view) because
-      # they're not instances of the right dohickey whatsitcalled. Not having
-      # the grid view is a wee bummer but it's not the end of the world.
     end
 
     page = (params[:page] || 1).to_i

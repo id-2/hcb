@@ -296,6 +296,8 @@ class Event < ApplicationRecord
   has_one_attached :background_image
   has_one_attached :logo
 
+  include HasMetrics
+
   validate :point_of_contact_is_admin
 
   include ::UserService::CanOpenDemoMode
@@ -376,7 +378,7 @@ class Event < ApplicationRecord
   end
 
   def disbursement_dropdown_description
-    "#{name} (#{ApplicationController.helpers.render_money balance})"
+    "#{name} (#{ApplicationController.helpers.render_money balance_available})"
   end
 
   # displayed on /negative_events
@@ -534,6 +536,12 @@ class Event < ApplicationRecord
   def plan_name
     if unapproved?
       "pending approval"
+    elsif hack_club_hq?
+      "hack club affiliated project"
+    elsif salary?
+      "salary account"
+    elsif sponsorship_fee == 0
+      "full fiscal sponsorship (fee waived)"
     else
       "full fiscal sponsorship"
     end

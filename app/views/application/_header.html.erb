@@ -1,18 +1,22 @@
 <header class="header <%= "mt3" unless content_for?(:nav) %>">
   <div class="header-left line-height-0 flex items-center justify-end">
-    <action
-      role="button"
+    <button
       data-behavior="toggle_theme"
       class="muted pointer no-select tooltipped tooltipped--s"
       aria-label="Toggle dark mode"
       tabindex="0">
       <%= inline_icon "moon", size: home_action_size %>
       <%= inline_icon "moon-fill", size: home_action_size, style: "display: none;" %>
-    </action>
+    </button>
     <% if signed_in? %>
-      <div class="ml2 relative muted pointer tooltipped tooltipped--s" aria-label="See what’s new with HCB" id="changelog-icon">
+      <a
+        href="https://changelog.hcb.hackclub.com"
+        target="_blank"
+        class="ml2 relative muted pointer tooltipped tooltipped--s"
+        aria-label="See what’s new with HCB"
+        id="changelog-icon">
         <%= inline_icon "rep", size: home_action_size %>
-      </div>
+      </a>
     <% end %>
   </div>
 
@@ -66,7 +70,7 @@
           'aria-label': "View transactions awaiting receipts" do %>
             <%= inline_icon "payment-docs", size: home_action_size %>
       <% end %>
-      <%= link_to logout_users_path,
+      <%= button_to logout_users_path,
           method: :delete,
           class: "muted tooltipped tooltipped--s",
           'aria-label': "Sign out" do %>
@@ -80,4 +84,27 @@
       <% end %>
     <% end %>
   </div>
+
+  <% if admin_signed_in? %>
+    <% @admin_urls = current_user&.admin? ? {
+         "Applications"              => "https://airtable.com/tblctmRFEeluG4do7/viwGhv19cV1ZRj61a",
+         "OnBoard ID"                => "https://airtable.com/app4Bs8Tjwvk5qcD4/tblVZwB8QMUSDAd41/viwJ15CT6VHCZ0UZ4",
+         "Wires"                     => "https://airtable.com/tbloFbH16HI7t3mfG/viwzgt8VLHOC82m8n",
+         "PayPal"                    => "https://airtable.com/tbloGiW2jhja8ivtV/viwzhAnWYhpFNhvmC",
+         "Disputes"                  => "https://airtable.com/appEzv7w2IBMoxxHe/tblTqbwz5AUkzOcVb",
+         "Feedback"                  => "https://airtable.com/tblOmqLjWtJZWXn4O/viwuk2j4xsKJo5EqA",
+         "FIRST Grants"              => "https://airtable.com/tblnNB5iMbidfB552/viwjF8iDPU3gAiXJU",
+         "Stickers"                  => "https://airtable.com/tblyhkntth4OyQxiO/viwHcxhOKMZnPXUUU",
+         "Wallets"                   => "https://airtable.com/tblJtjtY9qAOG3FS8/viwUz9aheNAvXwzjg",
+         "Hackathons"                => "https://dash.hackathons.hackclub.com/sign_in",
+         "Sendy"                     => "https://airtable.com/tbl1MRaNpF4KphbOd/viwb7ELYyxpuAz6gQ",
+         "1Password"                 => "https://airtable.com/tblcHEZyos3V9DoeI/viwSapKZ8C4ByBuqT",
+         "Domains"                   => "https://airtable.com/tbl22cXd3Bo9uo0wp/viwcnZyoctJTFGVY2",
+         "PVSA"                      => "https://airtable.com/tbl4ffIbyaEa2fIYW/viw2OPTziXEqOpaLA",
+         "The Event Helper"          => "https://airtable.com/tblWlQxkf6L7mEjC4/viwzbku7oWsw5GFEa",
+         "Google Workspace Waitlist" => "https://airtable.com/appEzv7w2IBMoxxHe/tbl9CkfZHKZYrXf1T/viwgfJvrrD9Jn9VLj"
+       } : {} %>
+    <%= react_component "command_bar/CommandBar", { admin: current_user&.admin?, adminUrls: @admin_urls }, { camelize_props: false } %>
+  <% end %>
+
 </header>

@@ -91,21 +91,22 @@
 
 <h2 class="heading">
   Transactions
-  <% if organizer_signed_in? && @event.canonical_transactions.exists? %>
-    <button
-      type="button"
-      <%= organizer_signed_in? ? "data-behavior=menu_toggle aria-expanded=false tabindex=0" : "disabled=disabled" %>
-      class="btn bg-info menu__toggle overflow-visible z2">
-        <%= inline_icon "download", size: 16 %>
-        Export
-        <% if organizer_signed_in? %>
-          <div class="menu__content h5" data-behavior="menu_content">
-            <%= link_to "All transactions (CSV)", export_transactions_path(event: @event, format: :csv), target: :_blank %>
-            <%= link_to "All transactions (JSON)", export_transactions_path(event: @event, format: :json), target: :_blank %>
-            <%= link_to "All transactions (Ledger)", export_transactions_path(event: @event, format: :ledger), target: :_blank %>
-          </div>
-        <% end %>
-    </button>
+  <% if @event.canonical_transactions.exists? %>
+    <div data-controller="menu" data-menu-placement-value="bottom-end" class="ml-auto">
+      <button
+        type="button"
+        class="btn bg-info menu__toggle menu__toggle--arrowless overflow-visible z1"
+        data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
+        data-menu-target="toggle">
+          <%= inline_icon "download", size: 16 %>
+          Export
+      </button>
+      <div class="menu__content menu__content--2 h5" data-menu-target="content">
+        <%= link_to "All transactions (CSV)", transactions_exports_path(event: @event, format: :csv), target: :_blank %>
+        <%= link_to "All transactions (JSON)", transactions_exports_path(event: @event, format: :json), target: :_blank %>
+        <%= link_to "All transactions (Ledger)", transactions_exports_path(event: @event, format: :ledger), target: :_blank %>
+      </div>
+    </div>
   <% end %>
 </h2>
 

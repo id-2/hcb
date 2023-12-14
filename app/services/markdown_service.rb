@@ -35,8 +35,12 @@ class MarkdownService
 
         return nil unless event
 
+        Pundit.authorize(@current_user, event, :show?)
+
         link_to event.slug.to_s, link, target: "_blank", class: "autolink"
       end
+    rescue Pundit::NotAuthorizedError
+      return nil
     end
 
     def try_card_autolink(link)
@@ -48,22 +52,29 @@ class MarkdownService
         event = card&.event
         return nil unless card && event
 
+        Pundit.authorize(@current_user, card, :show?)
+
         link_to "#{card.status_text.downcase} card (#{card.user.first_name})",
                 link,
                 target: "_blank",
                 class: "tooltipped tooltipped--e autolink",
                 "aria-label" => card.status_text.to_s
       end
+    rescue Pundit::NotAuthorizedError
+      return nil
     end
 
     def try_hcb_autolink(link)
-      found_link = link.match(/(#{app_hosts.join('|')})\/hcb\/(\w{5,6})\#comment-(\w{5,6})/)
-      found_link ||= link.match(/(#{app_hosts.join('|')})\/hcb\/(\w{5,6})/)
+      found_link = link.match(/(#{app_hosts.join('|')})\/hcb\/(\w+)\#comment-(\w+)/)
+      found_link ||= link.match(/(#{app_hosts.join('|')})\/hcb\/(\w+)/)
 
       if found_link
         hcb_code = found_link[2]
         comment = found_link[3]
         hcb = HcbCode.find_by_hashid hcb_code
+        return nil unless hcb
+
+        Pundit.authorize(@current_user, hcb, :show?)
         link_to "#{'comment on ' unless comment.blank?}#{hcb.humanized_type.downcase} (HCB-#{hcb.hashid})",
                 link,
                 target: "_blank",
@@ -72,6 +83,8 @@ class MarkdownService
       else
         return nil
       end
+    rescue Pundit::NotAuthorizedError
+      return nil
     end
 
     def app_hosts

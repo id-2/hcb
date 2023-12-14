@@ -19,7 +19,7 @@ module ReceiptService
 
         pairings = ::ReceiptService::Suggest.new(receipt:).run!
 
-        unless pairings.nil?
+        if pairings.present?
           pairs = pairings.map do |pairing|
             {
               receipt_id: receipt.id,
@@ -43,7 +43,7 @@ module ReceiptService
         file: attachment,
         uploader: @uploader,
         upload_method: @upload_method,
-        receiptable: @receiptable   # Receiptable may be nil
+        receiptable: @receiptable # Receiptable may be nil
       }
     end
 
