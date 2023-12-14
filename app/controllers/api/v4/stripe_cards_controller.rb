@@ -7,7 +7,7 @@ module Api
         if params[:event_id].present?
           require_scope! "read:org:cards"
 
-          @event = authorize(Event.find_by_public_id(params[:event_id]) || Event.friendly.find(params[:event_id]), :card_overview?)
+          @event = authorize(Event.find_by_public_id(params[:event_id]) || Event.friendly.find(params[:event_id]), :show?)
           @stripe_cards = @event.stripe_cards.includes(:user, :event).order(created_at: :desc)
         else
           require_scope! "read:user:cards"
@@ -22,7 +22,7 @@ module Api
       end
 
       def transactions
-        @stripe_card = authorize StripeCard.find_by_public_id!(params[:id])
+        @stripe_card = authorize StripeCard.find_by_public_id!(params[:id]), :show?
         @hcb_codes = @stripe_card.hcb_codes.order(created_at: :desc)
 
         @total_count = @hcb_codes.size

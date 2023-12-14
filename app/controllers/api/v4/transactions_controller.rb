@@ -5,7 +5,7 @@ module Api
     class TransactionsController < ApplicationController
       skip_after_action :verify_authorized, only: [:missing_receipt]
 
-      before_action(only: [:show]) { require_scope! "read:transactions" }
+      before_action(only: [:show]) { require_scope! "read:org:transactions", "read:user:cards" }
       before_action(only: [:update, :memo_suggestions]) { require_scope! "write:transactions" }
       before_action(only: [:missing_receipt]) { require_scope! "read:user:cards" }
 

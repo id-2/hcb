@@ -13,7 +13,7 @@ module Api
       before_action :authenticate!
 
       rescue_from Pundit::NotAuthorizedError do |e|
-        render json: { error: "not_authorized" }, status: :forbidden
+        render json: { error: "not_authorized", description: "You may be missing a scope, or this user may not have access to this resource." }, status: :forbidden
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
@@ -26,6 +26,13 @@ module Api
 
       rescue_from MissingScopeError do |e|
         render json: { error: "missing_scope", description: e }, status: :forbidden
+      end
+
+      unless Rails.env.development?
+        rescue_from StandardError do |e|
+          notify_airbrake(e)
+          render json: { error: "internal_server_error", description: "Something went wrong. Sorry about that!" }, status: :internal_server_error
+        end
       end
 
       def not_found
@@ -51,6 +58,14 @@ module Api
       end
 
       attr_reader :current_token, :current_user
+
+      def pundit_user
+        @current_token
+      end
+
+      def authorize(record, query = nil)
+        super([:api, :v4, record], query)
+      end
 
     end
   end

@@ -3,13 +3,12 @@
 module Api
   module V4
     class EventsController < ApplicationController
-      skip_after_action :verify_authorized, only: [:index]
-
       before_action(only: [:index, :show]) { require_scope! "read:orgs" }
-      before_action(only: [:transactions]) { require_scope! "read:transactions" }
+      before_action(only: [:transactions]) { require_scope! "read:org:transactions" }
 
       def index
         @events = current_user.events.not_hidden.includes(:users).order("organizer_positions.created_at DESC")
+        authorize @events.first
       end
 
       def show

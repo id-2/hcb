@@ -154,7 +154,7 @@ en:
       read:user:cards: 'View info & transactions for your cards'
       read:org:cards: 'View cards in your organizations'
       read:orgs: 'View your organizations'
-      read:transactions: 'View transactions for your organizations'
+      read:org:transactions: 'View transactions for your organizations'
       write:transactions: 'Rename transactions in your organizations'
       read:user:invitations: 'View your pending invitations'
       write:user:invitations: 'Accept & reject invitations on your behalf'
