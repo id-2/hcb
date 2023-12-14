@@ -4,6 +4,7 @@ jobs:
   rubocop:
     name: Rubocop
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.base.repo.owner != "hackclub" }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -16,6 +17,7 @@ jobs:
   erblint:
     name: 'ERB Lint'
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.base.repo.owner != "hackclub" }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,6 +34,7 @@ jobs:
   eslint:
     name: ESLint
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.base.repo.owner != "hackclub" }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -45,6 +48,7 @@ jobs:
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.base.repo.owner != "hackclub" }}
     services:
       postgres:
         image: postgres:latest
@@ -101,6 +105,7 @@ jobs:
   zeitwerk:
     name: Zeitwerk
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.base.repo.owner != "hackclub" }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
