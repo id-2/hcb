@@ -45,6 +45,8 @@ const groupNameStyle = {
   opacity: 0.5,
 };
 
+const pageFilter = page => (e) => e.pages.includes(page)
+
 function ActionRegister() {
   const [actions, setActions] = useState([]);
 
@@ -74,14 +76,14 @@ function ActionRegister() {
               priority: !event.member ? Priority.LOW : Priority.HIGH,
               section: "Organizations",
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("transactions")).map((event) => ({
               id: `${event.slug}-home`,
               name: "Home",
               perform: () => (window.location.pathname = `/${event.slug}`),
               icon: <Icon glyph="home" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("donations")).map((event) => ({
               id: `${event.slug}-donations`,
               name: "Donations",
               perform: () =>
@@ -89,7 +91,7 @@ function ActionRegister() {
               icon: <Icon glyph="support" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("invoices")).map((event) => ({
               id: `${event.slug}-invoices`,
               name: "Invoices",
               perform: () =>
@@ -97,7 +99,7 @@ function ActionRegister() {
               icon: <Icon glyph="briefcase" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("account_number")).map((event) => ({
               id: `${event.slug}-account-number`,
               name: "Account & routing number",
               perform: () =>
@@ -105,7 +107,7 @@ function ActionRegister() {
               icon: <Icon glyph="bank-account" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("deposit_check")).map((event) => ({
               id: `${event.slug}-check-deposit`,
               name: "Check deposit",
               perform: () =>
@@ -113,7 +115,7 @@ function ActionRegister() {
               icon: <Icon glyph="attachment" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("cards")).map((event) => ({
               id: `${event.slug}-cards`,
               name: "Cards",
               perform: () =>
@@ -121,7 +123,7 @@ function ActionRegister() {
               icon: <Icon glyph="card" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("transfers")).map((event) => ({
               id: `${event.slug}-transfers`,
               name: "Transfers",
               perform: () =>
@@ -129,22 +131,22 @@ function ActionRegister() {
               icon: <Icon glyph="payment-transfer" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("team")).map((event) => ({
               id: `${event.slug}-team`,
               name: "Team",
               perform: () => (window.location.pathname = `/${event.slug}/team`),
               icon: <Icon glyph="leader" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
-              id: `${event.slug}-perks`,
+            ...data.filter(pageFilter("promotions")).map((event) => ({
+              id: `${event.slug}-promotions`,
               name: "Perks",
               perform: () =>
                 (window.location.pathname = `/${event.slug}/promotions`),
               icon: <Icon glyph="shirt" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("documentation")).map((event) => ({
               id: `${event.slug}-documentation`,
               name: "Documentation",
               perform: () =>
@@ -152,7 +154,7 @@ function ActionRegister() {
               icon: <Icon glyph="info" size={16} />,
               parent: event.slug,
             })),
-            ...data.map((event) => ({
+            ...data.filter(pageFilter("settings")).map((event) => ({
               id: `${event.slug}-settings`,
               name: "Settings",
               perform: () =>

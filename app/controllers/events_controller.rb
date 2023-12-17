@@ -23,7 +23,8 @@ class EventsController < ApplicationController
             name: x.name,
             slug: x.slug,
             logo: x.logo.attached? ? Rails.application.routes.url_helpers.url_for(x.logo) : "none",
-            member: true
+            member: true,
+            pages: x.navbar.map(&:to_s)
           }
         }
 
@@ -34,7 +35,8 @@ class EventsController < ApplicationController
                 slug: e.slug,
                 name: e.name,
                 logo: e.logo.attached? ? Rails.application.routes.url_helpers.url_for(e.logo) : "none",
-                member: false
+                member: false,
+                pages: e.navbar.map(&:to_s)
               }
             }
           )
