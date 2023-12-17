@@ -604,11 +604,11 @@ class Event < ApplicationRecord
       canonical_transactions.includes(:fees).where(fees: { reason: "HACK CLUB FEE" }).sum(:amount_cents).abs +
       canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
   end
-  
+
   def navbar
     navbar = [:transactions, :team, :settings]
     if outernet_guild?
-      navbar << :cards unless !approved?
+      navbar << :cards if approved?
     else
       navbar << :transfers
       navbar << :documentation
@@ -619,8 +619,8 @@ class Event < ApplicationRecord
       navbar << :account_number if Flipper.enabled?(:incoming_ach_payments_2023_02_17, self)
       navbar << :deposit_check if Flipper.enabled?(:check_deposits_2023_04_17, self)
       navbar << :grants if Flipper.enabled?(:grants_2023_06_21, self)
-      navbar << :google_workspace if Flipper.enabled?(:google_workspace_2023_07_12, self) 
-      navbar << :google_workspace if Flipper.enabled?(:google_workspace, self) 
+      navbar << :google_workspace if Flipper.enabled?(:google_workspace_2023_07_12, self)
+      navbar << :google_workspace if Flipper.enabled?(:google_workspace, self)
       navbar << :google_workspace if g_suites.exists?
     end
     navbar
