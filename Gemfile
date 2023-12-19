@@ -19,6 +19,7 @@ gem "sidekiq-cron", "~> 1.10" # run Sidekiq jobs at scheduled intervals
 gem "image_processing", "~> 1.2"
 gem "mini_magick"
 
+gem "ruby-openai"
 
 gem "jsbundling-rails", "~> 1.1"
 gem "terser", "~> 1.1" # JS compressor

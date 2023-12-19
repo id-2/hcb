@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require "openai"
+
 module ReceiptService
   class Extract
+    FEATURES = %i[amount_cents card_last_four date]
+
     def initialize(receipt:)
       @receipt = receipt.reload
     end
@@ -10,10 +14,35 @@ module ReceiptService
       @textual_content = @receipt.textual_content || @receipt.extract_textual_content!
       return nil if @textual_content.nil?
 
+      ai_responses
+    end
+
+    def ai_responses
+      @openai = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
+
+      response = JSON.parse(@openai.chat(parameters: {
+        model: "gpt-3.5-turbo-1106",
+        response_format: { type: "json_object" },
+        messages: [{
+          role: "user", content: <<~TEXT
+            You are a helpful assistant that extracts important features from receipts. You must extract the following features in JSON format:
+
+            amount_cents - an array of possible amounts, with the most likely amount first
+            card_last_four - an array of possible card last 4 numbers
+            date - an array of possible dates, with each individual date in YYYY-MM-DD format
+
+            Here is the receipt:
+
+            #{@textual_content}
+          TEXT
+        }],
+        temperature: 0.7,
+      }).dig("choices", 0, "message", "content"))
+
       {
-        amount_cents:,
-        card_last_four:,
-        date:,
+        amount_cents: response["amount_cents"],
+        card_last_four: response["card_last_four"],
+        date: response["date"].map { |date| Date.parse(date) },
         textual_content: @textual_content
       }
     end
