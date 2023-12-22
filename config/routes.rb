@@ -518,14 +518,15 @@ Rails.application.routes.draw do
   post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
   post "increase/webhook", to: "increase#webhook"
+  post "webhooks/column", to: "column/webhooks#webhook"
   get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"
 
   get "negative_events", to: "admin#negative_events"
 
   get "admin_tasks", to: "admin#tasks"
   get "admin_task_size", to: "admin#task_size"
-  get "admin_search", to: "admin#search"
-  post "admin_search", to: "admin#search"
+  get "admin_search", to: redirect("/admin/users")
+  post "admin_search", to: redirect("/admin/users")
 
   resources :ops_checkins, only: [:create]
 
@@ -625,6 +626,12 @@ Rails.application.routes.draw do
     end
 
     resources :grants, only: [:index, :new, :create]
+
+    resource :column_account_number, controller: "column/account_number", only: [:create], path: "account-number"
+
+    resources :organizer_positions, path: "team", as: "organizer", only: [] do
+      resources :organizer_position_deletion_requests, path: "removal-requests", as: "remove", only: [:new]
+    end
 
     member do
       post "disable_feature"

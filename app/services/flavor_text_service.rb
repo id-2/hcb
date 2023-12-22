@@ -33,7 +33,9 @@ class FlavorTextService
       "super secret admin mode",
       "Puts the 'dev' in 'financially devious'!",
       "Rails.env.fun?",
-      "Let's rewrite HCB in #{Faker::ProgrammingLanguage.name}!"
+      "Let's rewrite HCB in #{Faker::ProgrammingLanguage.name}!",
+      "Here's a secret: HCB stands for Hack Club Bonk",
+      "recommended by 100% of fraudsters"
     ]
   end
 
@@ -58,6 +60,7 @@ class FlavorTextService
       "where r my cookies?",
       "holiday edition",
       "santa edition",
+      "Walking in a winter hackerland...",
       "🎅🏻",
       "🦌🦌🦌🦌🦌🦌🦌🦌🛷🎅🎁",
       "fresh snow for $0.99!",
@@ -85,7 +88,9 @@ class FlavorTextService
       "Built with Ruby on Rails, React, and holiday cheer",
       "u seein' the snow outside?",
       "Dear Santa...",
-      "where's my gingerbread house"
+      "where's my gingerbread house",
+      "makin' that money snow",
+      "Merry Fourth Of July and have a jolly halloween!"
     ]
   end
 
@@ -97,7 +102,8 @@ class FlavorTextService
       "👻",
       "🧛",
       "🎃",
-      "Pumpkin spice is the pumpkin spice of life."
+      "Pumpkin spice is the pumpkin spice of life.",
+      "Happy Easter - Oh wait wrong holiday."
     ]
   end
 
@@ -257,6 +263,7 @@ class FlavorTextService
       "Open on weekdays!",
       "Open on #{Date.today.strftime("%A")}s",
       "??? profit!",
+      "Made with Rails, Ruby and did I forget to mention Rails?",
       "Did you see the price of #{%w[Ðogecoin ₿itcoin Ξtherium].sample(random: @random)}?!",
       "Guess how much it costs to run this thing!",
       "Bytes served fresh daily by Heroku",

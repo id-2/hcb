@@ -406,6 +406,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_044933) do
     t.index ["lob_address_id"], name: "index_checks_on_lob_address_id"
   end
 
+  create_table "column_account_numbers", force: :cascade do |t|
+    t.text "account_number_ciphertext"
+    t.text "routing_number_ciphertext"
+    t.text "bic_code_ciphertext"
+    t.text "column_id"
+    t.bigint "event_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_column_account_numbers_on_event_id"
+  end
+
   create_table "comments", force: :cascade do |t|
     t.string "commentable_type"
     t.bigint "commentable_id"
@@ -520,6 +531,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_044933) do
     t.bigint "recurring_donation_id"
     t.text "user_agent"
     t.inet "ip_address"
+    t.datetime "in_transit_at"
     t.index ["event_id"], name: "index_donations_on_event_id"
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
     t.index ["payout_id"], name: "index_donations_on_payout_id"
@@ -1065,7 +1077,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_044933) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["code"], name: "index_login_codes_on_code", unique: true, where: "(used_at IS NULL)"
+    t.index ["code"], name: "index_login_codes_on_code"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
 
@@ -1282,6 +1294,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_044933) do
     t.string "api_key_bidx"
     t.index ["api_key_bidx"], name: "index_partners_on_api_key_bidx", unique: true
     t.index ["representative_id"], name: "index_partners_on_representative_id"
+  end
+
+  create_table "raw_column_transactions", force: :cascade do |t|
+    t.string "column_report_id"
+    t.integer "transaction_index"
+    t.jsonb "column_transaction"
+    t.text "description"
+    t.date "date_posted"
+    t.integer "amount_cents"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "raw_csv_transactions", force: :cascade do |t|
@@ -1773,6 +1796,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_044933) do
   add_foreign_key "check_deposits", "events"
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"
+  add_foreign_key "column_account_numbers", "events"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
   add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
