@@ -290,6 +290,9 @@ class Event < ApplicationRecord
   has_one :stripe_ach_payment_source
   has_one :increase_account_number
 
+  has_one :column_account_number, class_name: "Column::AccountNumber"
+  delegate :account_number, :routing_number, to: :column_account_number, allow_nil: true
+
   has_many :grants
 
   has_one_attached :donation_header_image
@@ -326,6 +329,16 @@ class Event < ApplicationRecord
     if outernet_guild? && donation_page_enabled?
       errors.add(:donation_page_enabled, "donation page can't be enabled for Outernet guilds")
     end
+  end
+
+  comma do
+    id
+    name
+    sponsorship_fee
+    slug "url" do |slug| "https://hcb.hackclub.com/#{slug}" end
+    country
+    is_public "transparent"
+    category
   end
 
   CUSTOM_SORT = Arel.sql(
@@ -534,8 +547,16 @@ class Event < ApplicationRecord
   alias fee_balance fee_balance_v2_cents
 
   def plan_name
-    if unapproved?
+    if demo_mode?
+      "playground mode"
+    elsif unapproved?
       "pending approval"
+    elsif hack_club_hq?
+      "hack club affiliated project"
+    elsif salary?
+      "salary account"
+    elsif sponsorship_fee == 0
+      "full fiscal sponsorship (fee waived)"
     else
       "full fiscal sponsorship"
     end
@@ -564,14 +585,6 @@ class Event < ApplicationRecord
 
   def total_fees_v2_cents
     @total_fees_v2_cents ||= fees.sum(:amount_cents_as_decimal).ceil
-  end
-
-  def account_number
-    (increase_account_number || create_increase_account_number)&.account_number || "••••••••••"
-  end
-
-  def routing_number
-    (increase_account_number || create_increase_account_number)&.routing_number || "•••••••••"
   end
 
   def increase_account_number_id
