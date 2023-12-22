@@ -184,10 +184,16 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
 
-    @events = filtered_events.page(@page).per(@per)
+    @events = filtered_events
     @count = @events.count
 
-    render layout: "admin"
+    respond_to do |format|
+      format.html do
+        @events = @events.page(@page).per(@per)
+        render layout: "admin"
+      end
+      format.csv { render csv: @events }
+    end
   end
 
   def event_process
@@ -423,7 +429,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
@@ -465,7 +471,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -558,7 +564,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -653,7 +659,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
         relation = relation.where("payout_amount_cents = ? or payout_amount_cents = ?", @q, -@q)
       else
@@ -695,7 +701,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -755,7 +761,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -848,7 +854,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount_due = ? or amount_due = ?", @q, -@q)
