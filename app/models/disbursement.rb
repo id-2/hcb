@@ -122,7 +122,7 @@ class Disbursement < ApplicationRecord
         update(fulfilled_by:)
         canonical_pending_transactions.update_all(fronted: true)
       end
-      transitions from: :reviewing, to: [:pending, :scheduled]
+      transitions from: [:reviewing, :scheduled], to: :pending
     end
 
     event :mark_in_transit do
@@ -245,7 +245,7 @@ class Disbursement < ApplicationRecord
     elsif rejected?
       "rejected"
     elsif scheduled?
-      "scheduled for #{scheduled_on.strftime("%B %-d, %Y")}"
+      "scheduled"
     elsif errored?
       "errored"
     elsif reviewing?

@@ -48,7 +48,7 @@ disbursement_nightly_job:
   class: "DisbursementJob::Nightly"
   queue: "default"
 
-  disbursement_daily_job:
+disbursement_daily_job:
   cron: "0 13 * * *" # runs at 9am ET
   class: "DisbursementJob::Daily"
   queue: "default"
