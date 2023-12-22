@@ -71,8 +71,8 @@
         <strong>Created at</strong>
         <%= format_datetime @disbursement.created_at %>
       </p>
-      
-      <% if @hcb_code.disbursement.scheduled_on.present? %> 
+
+      <% if @hcb_code.disbursement.scheduled_on.present? %>
         <% admin_tools("", "p") do %>
           <strong>Scheduled for</strong>
           <%= format_datetime @disbursement.scheduled_on %>
@@ -91,7 +91,7 @@
       <% end %>
 
     </section>
-    
+
     <% if @disbursement.scheduled? %>
       <% admin_tools("mt2") do %>
         <section class="card__banner card__darker border-top overflow-hidden">

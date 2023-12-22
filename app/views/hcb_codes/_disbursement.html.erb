@@ -53,7 +53,7 @@
         <%= format_datetime @hcb_code.disbursement.created_at %>
       <% end %>
     </p>
-    
+
     <% admin_tools("", "p") do %>
       <% if @hcb_code.disbursement.scheduled_on.present? && !@hcb_code.disbursement.processed? %>
         <strong>Scheduled at</strong>
