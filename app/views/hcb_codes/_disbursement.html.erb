@@ -109,6 +109,7 @@
           </span>
       </p>
     <% end %>
+
   </section>
 
   <% if @event.can_front_balance? %>
@@ -120,3 +121,11 @@
   <% end %>
 
 </article>
+
+<% admin_tools do %>
+  <% if @hcb_code.disbursement.scheduled? %>
+    <section class="card__banner card__darker border-top overflow-hidden">
+      <%= button_to "Cancel transfer", cancel_disbursement_path(@hcb_code.disbursement), class: "btn bg-error" %>
+    </section>
+  <% end %>
+<% end %>

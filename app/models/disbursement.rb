@@ -145,7 +145,7 @@ class Disbursement < ApplicationRecord
         update(fulfilled_by:)
         canonical_pending_transactions.each { |cpt| cpt.decline! }
       end
-      transitions from: [:reviewing, :pending], to: :rejected
+      transitions from: [:scheduled, :reviewing, :pending], to: :rejected
     end
 
     event :mark_scheduled do
@@ -154,7 +154,7 @@ class Disbursement < ApplicationRecord
       end
       transitions from: [:pending, :reviewing, :in_review], to: :scheduled
     end
-    
+
   end
 
   # Eagerly create HcbCode object

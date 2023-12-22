@@ -77,7 +77,7 @@ class DisbursementsController < ApplicationController
       destination_event_id: disbursement_params[:event_id],
       source_event_id: disbursement_params[:source_event_id],
       amount: disbursement_params[:amount],
-      scheduled_on: scheduled_on,
+      scheduled_on:,
       requested_by_id: current_user.id
     ).run
 
@@ -100,6 +100,13 @@ class DisbursementsController < ApplicationController
 
   def update
     authorize @disbursement
+  end
+
+  def cancel
+    @disbursement = Disbursement.find(params[:id])
+    authorize @disbursement
+    @disbursement.mark_rejected!
+    redirect_to @disbursement.local_hcb_code
   end
 
   def mark_fulfilled

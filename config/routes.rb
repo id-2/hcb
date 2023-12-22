@@ -320,6 +320,9 @@ Rails.application.routes.draw do
   end
 
   resources :disbursements, only: [:index, :new, :create, :show, :edit, :update] do
+    member do
+      post "cancel"
+    end
     post "mark_fulfilled"
     post "reject"
   end
