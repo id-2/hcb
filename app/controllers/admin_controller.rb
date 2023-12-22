@@ -538,7 +538,7 @@ class AdminController < ApplicationController
   def disbursement_approve
     disbursement = Disbursement.find(params[:id])
 
-    if disbursement.schedule_on.present?
+    if disbursement.scheduled_on.present?
       disbursement.mark_scheduled!(current_user)
     else
       disbursement.mark_approved!(current_user)

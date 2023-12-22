@@ -5,7 +5,7 @@ module DisbursementService
     include ::Shared::AmpleBalance
 
     def initialize(source_event_id:, destination_event_id:,
-                   name:, amount:, requested_by_id:, fulfilled_by_id: nil, destination_subledger_id: nil, schedule_on: nil, source_subledger_id: nil)
+                   name:, amount:, requested_by_id:, fulfilled_by_id: nil, destination_subledger_id: nil, scheduled_on: nil, source_subledger_id: nil)
       @source_event_id = source_event_id
       @source_event = Event.friendly.find(@source_event_id)
       @destination_event_id = destination_event_id
@@ -16,7 +16,7 @@ module DisbursementService
       @amount = amount
       @requested_by_id = requested_by_id
       @fulfilled_by_id = fulfilled_by_id
-      @schedule_on = schedule_on
+      @scheduled_on = scheduled_on
     end
 
     def run
@@ -39,7 +39,7 @@ module DisbursementService
       ::PendingEventMappingEngine::Map::Single::OutgoingDisbursement.new(canonical_pending_transaction: o_cpt).run
 
       if requested_by&.admin? || disbursement.source_event == disbursement.destination_event # Auto-fulfill disbursements between subledgers in the same event
-        if disbursement.schedule_on.present?
+        if disbursement.scheduled_on.present?
           disbursement.mark_scheduled!(requested_by)
         else
           disbursement.mark_approved!(requested_by)
@@ -57,7 +57,7 @@ module DisbursementService
         event_id: destination_event.id,
         destination_subledger_id: @destination_subledger_id,
         source_subledger_id: @source_subledger_id,
-        schedule_on: @schedule_on,
+        scheduled_on: @scheduled_on,
         name: @name,
         amount: amount_cents,
         requested_by:,

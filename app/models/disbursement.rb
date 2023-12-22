@@ -152,7 +152,7 @@ class Disbursement < ApplicationRecord
       after do |fulfilled_by|
         update(fulfilled_by:)
       end
-      transitions from: [:pending, :in_review], to: :scheduled
+      transitions from: [:pending, :reviewing, :in_review], to: :scheduled
     end
     
   end
