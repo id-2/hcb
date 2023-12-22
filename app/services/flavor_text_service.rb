@@ -85,8 +85,7 @@ class FlavorTextService
       "Built with Ruby on Rails, React, and holiday cheer",
       "u seein' the snow outside?",
       "Dear Santa...",
-      "where's my gingerbread house",
-      "makin' that money snow"
+      "where's my gingerbread house"
     ]
   end
 
