@@ -538,7 +538,11 @@ class AdminController < ApplicationController
   def disbursement_approve
     disbursement = Disbursement.find(params[:id])
 
-    disbursement.mark_approved!(current_user)
+    if disbursement.schedule_on.present?
+      disbursement.mark_scheduled!(current_user)
+    else
+      disbursement.mark_approved!(current_user)
+    end
 
     redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
   rescue => e

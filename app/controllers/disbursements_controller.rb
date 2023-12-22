@@ -66,11 +66,18 @@ class DisbursementsController < ApplicationController
     authorize @source_event, policy_class: DisbursementPolicy
     authorize @destination_event, policy_class: DisbursementPolicy
 
+    if current_user.admin? && disbursement_params["scheduled_on(1i)"].present?
+      scheduled_on = Date.new(disbursement_params["scheduled_on(1i)"].to_i,
+                              ach_transfer_params["scheduled_on(2i)"].to_i,
+                              disbursement_params["scheduled_on(3i)"].to_i)
+    end
+
     disbursement = DisbursementService::Create.new(
       name: disbursement_params[:name],
       destination_event_id: disbursement_params[:event_id],
       source_event_id: disbursement_params[:source_event_id],
       amount: disbursement_params[:amount],
+      schedule_on: scheduled_on,
       requested_by_id: current_user.id
     ).run
 
@@ -131,7 +138,8 @@ class DisbursementsController < ApplicationController
       :source_event_id,
       :event_id,
       :amount,
-      :name
+      :name,
+      :schedule_on
     )
   end
 
