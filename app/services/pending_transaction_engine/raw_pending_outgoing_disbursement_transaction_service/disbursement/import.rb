@@ -14,9 +14,11 @@ module PendingTransactionEngine
 
         def disbursements
           ::Disbursement.where.missing :raw_pending_outgoing_disbursement_transaction
+          ::Disbursement.in_transit.or(::Disbursement.reviewing.where(scheduled__on: nil).where.missing :raw_pending_outgoing_disbursement_transaction)
         end
 
       end
     end
   end
 end
+
