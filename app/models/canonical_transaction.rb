@@ -86,7 +86,7 @@ class CanonicalTransaction < ApplicationRecord
   has_one :canonical_pending_settled_mapping
   has_one :canonical_pending_transaction, through: :canonical_pending_settled_mapping
   has_one :local_hcb_code, foreign_key: "hcb_code", primary_key: "hcb_code", class_name: "HcbCode"
-  has_many :fees, through: :canonical_event_mapping
+  has_one :fee, through: :canonical_event_mapping
 
   belongs_to :transaction_source, polymorphic: true, optional: true
 
@@ -236,7 +236,7 @@ class CanonicalTransaction < ApplicationRecord
   def fee_payment?
     return @fee_payment if defined?(@fee_payment)
 
-    @fee_payment ||= fees.hack_club_fee.exists?
+    @fee_payment ||= fee&.hack_club_fee?
   end
 
   def invoice
@@ -291,6 +291,10 @@ class CanonicalTransaction < ApplicationRecord
     memo.match(/BUSBILLPAY TRAN#(\d+)/)&.[](1)
   end
 
+  def likely_account_verification_related?
+    hcb_code.starts_with?("HCB-000-") && memo.downcase.include?("acctverify") && amount_cents.abs < 100
+  end
+
   def short_code
     memo[/HCB-(\w{5})/, 1]
   end
@@ -310,7 +314,7 @@ class CanonicalTransaction < ApplicationRecord
   end
 
   def fee_applies?
-    @fee_applies ||= fees.greater_than_0.exists?
+    @fee_applies ||= fee.present? && fee.amount_cents_as_decimal > 0
   end
 
   def emburse_transfer

@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -1731,7 +1729,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_044933) do
     t.text "email"
     t.string "full_name"
     t.text "phone_number"
-    t.datetime "admin_at", precision: nil
     t.string "slug"
     t.boolean "pretend_is_not_admin", default: false, null: false
     t.boolean "sessions_reported", default: false, null: false
