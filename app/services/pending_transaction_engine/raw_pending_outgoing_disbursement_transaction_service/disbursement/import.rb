@@ -20,4 +20,3 @@ module PendingTransactionEngine
     end
   end
 end
-
