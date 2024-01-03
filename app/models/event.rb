@@ -456,8 +456,8 @@ class Event < ApplicationRecord
       end
   end
 
-  def raised_v2_cents(start_date: nil, end_date: nil)
-    @raised_v2_cents ||=
+  def raised_cents(start_date: nil, end_date: nil)
+    @raised_cents ||=
       begin
         sum = settled_incoming_balance_cents(start_date:, end_date:, exclude_disbursements_without_fees: true)
         sum += pending_incoming_balance_v2_cents(start_date:, end_date:, exclude_disbursements_without_fees: true)
@@ -559,7 +559,7 @@ class Event < ApplicationRecord
 
   alias balance balance_v2_cents
 
-  alias raised raised_v2_cents
+  alias raised raised_cents
 
   # used for events with a pending ledger, this is the amount of money available
   # that isn't being transferred out by upcoming/floating transactions such as
