@@ -529,8 +529,6 @@ class Event < ApplicationRecord
 
   alias balance balance_v2_cents
 
-  alias raised raised_cents
-
   # used for events with a pending ledger, this is the amount of money available
   # that isn't being transferred out by upcoming/floating transactions such as
   # pending fees or checks awaiting deposit -tmb@hackclub
