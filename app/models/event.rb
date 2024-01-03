@@ -462,6 +462,7 @@ class Event < ApplicationRecord
         sum = settled_incoming_balance_cents(start_date:, end_date:)
         sum += pending_incoming_balance_v2_cents(start_date:, end_date:)
         sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
+        sum -= Disbursement.where(event_id: id, should_charge_fee: false).sum(:amount)
         sum
       end
   end
