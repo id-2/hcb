@@ -28,7 +28,7 @@
 #  fk_rails_...  (event_id => events.id)
 #
 class GSuite < ApplicationRecord
-  VALID_DOMAIN = /[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,24}(:[0-9]{1,5})?(\/.*)?\z/ix
+  VALID_DOMAIN = /[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,24}(:[0-9]{1,5})?(\/.*)?\z/ix
 
   acts_as_paranoid
   validates_as_paranoid
@@ -41,7 +41,7 @@ class GSuite < ApplicationRecord
   include Commentable
 
   belongs_to :event
-  belongs_to :created_by, class_name: "User", foreign_key: "created_by_id", optional: true
+  belongs_to :created_by, class_name: "User", optional: true
   has_many :accounts, class_name: "GSuiteAccount"
 
   aasm do

@@ -1,5 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
-import { autoUpdate, computePosition, flip, offset } from '@floating-ui/dom'
+import {
+  autoUpdate,
+  computePosition,
+  flip,
+  offset,
+  size
+} from '@floating-ui/dom'
 import $ from 'jquery'
 import gsap from 'gsap'
 
@@ -31,6 +37,7 @@ export default class extends Controller {
 
   open() {
     this.content = this.contentTarget.cloneNode(true)
+    this.content.dataset.turboTemporary = true
     ;(
       (this.appendToValue && document.querySelector(this.appendToValue)) ||
       document.body
@@ -57,6 +64,8 @@ export default class extends Controller {
         e.target == this.toggleTarget ||
         $(this.toggleTarget).find(e.target).length
       )
+        return
+      if (e.target == this.content || $(this.content).find(e.target).length)
         return
       if (
         e.target.tagName.toLowerCase() == 'input' &&
@@ -92,7 +101,18 @@ export default class extends Controller {
   computePosition(firstTime = false) {
     computePosition(this.toggleTarget, this.content, {
       placement: this.placementValue,
-      middleware: [offset(5), flip({ padding: 5 })]
+      middleware: [
+        offset(5),
+        flip({ padding: 5 }),
+        size({
+          padding: 5,
+          apply({ availableHeight, elements }) {
+            Object.assign(elements.floating.style, {
+              maxHeight: `${availableHeight}px`
+            })
+          }
+        })
+      ]
     }).then(({ x, y, placement }) => {
       Object.assign(this.content.style, {
         top: `${y}px`,

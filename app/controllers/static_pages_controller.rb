@@ -44,7 +44,7 @@ class StaticPagesController < ApplicationController
   end
 
   def my_cards
-    flash[:success] = "Card activated!" if params[:activate]
+    flash.now[:success] = "Card activated!" if params[:activate]
     @stripe_cards = current_user.stripe_cards.includes(:event)
     @emburse_cards = current_user.emburse_cards.includes(:event)
   end
@@ -106,6 +106,8 @@ class StaticPagesController < ApplicationController
 
     @count = hcb_codes_missing.count # Total number of HcbCodes missing receipts
     @hcb_codes = hcb_codes_missing.page(params[:page]).per(params[:per] || 20)
+
+    @mailbox_address = current_user.active_mailbox_address
 
     @card_hcb_codes = @hcb_codes.group_by { |hcb| hcb.card.to_global_id.to_s }
     @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys)

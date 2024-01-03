@@ -11,9 +11,11 @@ class UsersController < ApplicationController
   def impersonate
     authorize current_user
 
-    impersonate_user(User.find(params[:user_id]))
+    user = User.find(params[:id])
 
-    redirect_to(params[:return_to] || root_path)
+    impersonate_user(user)
+
+    redirect_to params[:return_to] || root_path, flash: { info: "You're now impersonating #{user.name}." }
   end
 
   # view to log in
@@ -33,12 +35,14 @@ class UsersController < ApplicationController
       redirect_to login_code_users_path, status: 307
     else
       session[:auth_email] = @email
-      redirect_to choose_login_preference_users_path
+      redirect_to choose_login_preference_users_path(return_to: params[:return_to])
     end
   end
 
   def choose_login_preference
     @email = session[:auth_email]
+    @user = User.find_by_email(@email)
+    @return_to = params[:return_to]
     return redirect_to auth_users_path if @email.nil?
 
     session.delete :login_preference
@@ -75,6 +79,8 @@ class UsersController < ApplicationController
     @user_id = resp[:id]
 
     @webauthn_available = User.find_by(email: @email)&.webauthn_credentials&.any?
+
+    render status: :unprocessable_entity
 
   rescue ActionController::ParameterMissing
     flash[:error] = "Please enter an email address."
@@ -189,7 +195,7 @@ class UsersController < ApplicationController
 
   def logout_all
     sign_out_of_all_sessions
-    redirect_to edit_user_path(current_user), flash: { success: "Success" }
+    redirect_back_or_to security_user_path(current_user), flash: { success: "Success" }
   end
 
   def logout_session
@@ -209,6 +215,11 @@ class UsersController < ApplicationController
     redirect_to root_path
   end
 
+  def revoke_oauth_application
+    Doorkeeper::Application.revoke_tokens_and_grants_for(params[:id], current_user)
+    redirect_back_or_to security_user_path(current_user)
+  end
+
   def receipt_report
     ReceiptReportJob::Send.perform_later(current_user.id, force_send: true)
     flash[:success] = "Receipt report generating. Check #{current_user.email}"
@@ -219,7 +230,8 @@ class UsersController < ApplicationController
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
     turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
     sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
-    hcb_code_popovers_2023_06_16: nil
+    hcb_code_popovers_2023_06_16: nil,
+    rename_on_homepage_2023_12_06: %w[🖊️ ⚡ ⌨️]
   }.freeze
 
   def enable_feature
@@ -258,6 +270,7 @@ class UsersController < ApplicationController
   def edit
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.onboarding?
+    @mailbox_address = @user.active_mailbox_address
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     authorize @user
@@ -289,6 +302,14 @@ class UsersController < ApplicationController
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    @oauth_authorizations = @user.api_tokens
+                                 .where.not(application_id: nil)
+                                 .select("application_id, MAX(api_tokens.created_at) AS created_at, MIN(api_tokens.created_at) AS first_authorized_at, COUNT(*) AS authorization_count")
+                                 .accessible
+                                 .group(:application_id)
+                                 .includes(:application)
+    @all_sessions = (@sessions + @oauth_authorizations).sort_by { |s| s.created_at }.reverse!
+
     authorize @user
   end
 
@@ -372,6 +393,7 @@ class UsersController < ApplicationController
     params.require(:code)
     svc = UserService::EnrollSmsAuth.new(current_user)
     svc.complete_verification(params[:code])
+    svc.enroll_sms_auth if params[:enroll_sms_auth]
     # flash[:success] = "Completed verification"
     # redirect_to edit_user_path(current_user)
     render json: { message: "completed verification successfully" }, status: :ok
@@ -386,16 +408,10 @@ class UsersController < ApplicationController
     svc = UserService::EnrollSmsAuth.new(current_user)
     if current_user.use_sms_auth
       svc.disable_sms_auth
-      flash[:success] = "SMS sign-in turned off"
     else
       svc.enroll_sms_auth
-      flash[:success] = "SMS sign-in turned on"
     end
-    redirect_to edit_user_path(current_user)
-  end
-
-  def wrapped
-    redirect_to "https://bank-wrapped.hackclub.com/wrapped?user_id=#{current_user.public_id}&org_ids=#{current_user.events.transparent.map(&:public_id).join(",")}", allow_other_host: true
+    redirect_back_or_to security_user_path(current_user)
   end
 
   private

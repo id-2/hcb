@@ -73,20 +73,12 @@
     <% else %>
       <p>
         <strong>From</strong>
-        <% if @source.is_public? || organizer_signed_in?(@source) %>
-          <%= link_to @source.name, @source %>
-        <% else %>
-          <%= @source.name %>
-        <% end %>
+        <%= link_to @source.name, @source %>
       </p>
 
       <p>
         <strong>To</strong>
-        <% if @destination.is_public? || organizer_signed_in?(@destination) %>
-          <%= link_to @destination.name, @destination %>
-        <% else %>
-          <%= @destination.name %>
-        <% end %>
+        <%= link_to @destination.name, @destination %>
       </p>
     <% end %>
 
@@ -96,8 +88,13 @@
     </p>
 
     <p>
-      <strong>Memo</strong>
-      <%= organizer_signed_in? ? @hcb_code.disbursement.name : "Sign in to view" %>
+      <strong>Reason</strong>
+      <%= @hcb_code.disbursement.name %>
+    </p>
+
+    <p>
+      <strong>Transaction memo</strong>
+      <%= render "hcb_codes/memo", hcb_code: @hcb_code %>
     </p>
 
     <%= render "hcb_codes/tags", hcb_code: @hcb_code, event: (@event || @hcb_code.event) %>
@@ -107,7 +104,7 @@
         <strong>Confirmation letter</strong>
           <span class="muted">
             <a href="/disbursements/<%= @hcb_code.disbursement.id %>/confirmation.pdf" target="_blank">
-            <%= organizer_signed_in? ? "View confirmation letter" : "Sign in to view" %>
+            <%= "View confirmation letter" %>
             </a>
           </span>
       </p>

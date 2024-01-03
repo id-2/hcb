@@ -38,7 +38,6 @@ Rails.application.routes.draw do
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
 
   post "feedback", to: "static_pages#feedback"
-  get "wrapped", to: "users#wrapped"
 
   scope :my do
     get "/", to: redirect("/"), as: :my
@@ -57,6 +56,12 @@ Rails.application.routes.draw do
 
     get "cards", to: "static_pages#my_cards", as: :my_cards
     get "cards/shipping", to: "stripe_cards#shipping", as: :my_cards_shipping
+  end
+
+  resources :mailbox_addresses, only: [:create, :show] do
+    member do
+      post "activate"
+    end
   end
 
   resources :receipts, only: [] do
@@ -88,7 +93,6 @@ Rails.application.routes.draw do
 
   resources :users, only: [:edit, :update] do
     collection do
-      get "impersonate", to: "users#impersonate"
       get "auth", to: "users#auth"
       post "auth", to: "users#auth_submit"
       get "auth/login_preference", to: "users#choose_login_preference", as: :choose_login_preference
@@ -111,6 +115,7 @@ Rails.application.routes.draw do
       delete "logout", to: "users#logout"
       delete "logout_all", to: "users#logout_all"
       delete "logout_session", to: "users#logout_session"
+      delete "revoke/:id", to: "users#revoke_oauth_application", as: "revoke_oauth_application"
 
       # sometimes users refresh the login code page and get 404'd
       get "exchange_login_code", to: redirect("/users/auth", status: 301)
@@ -124,6 +129,8 @@ Rails.application.routes.draw do
       get "previews", to: "users#edit_featurepreviews"
       get "security", to: "users#edit_security"
       get "admin", to: "users#edit_admin"
+
+      post "impersonate"
     end
     post "delete_profile_picture", to: "users#delete_profile_picture"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
@@ -131,6 +138,13 @@ Rails.application.routes.draw do
     resources :webauthn_credentials, only: [:create, :destroy] do
       collection do
         get "register_options"
+      end
+    end
+  end
+  scope module: :users do
+    resources "wrapped", only: :index do
+      collection do
+        get "data"
       end
     end
   end
@@ -167,7 +181,6 @@ Rails.application.routes.draw do
       get "partner_donations", to: "admin#partner_donations"
       get "disbursements", to: "admin#disbursements"
       get "disbursement_new", to: "admin#disbursement_new"
-      post "disbursement_create", to: "admin#disbursement_create"
       get "invoices", to: "admin#invoices"
       get "sponsors", to: "admin#sponsors"
       get "google_workspaces", to: "admin#google_workspaces"
@@ -225,6 +238,7 @@ Rails.application.routes.draw do
     member do
       post "set_index"
       post "mark_visited"
+      post "toggle_signee_status"
     end
 
     resources :organizer_position_deletion_requests, only: [:new], as: "remove"
@@ -358,10 +372,14 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  resources :transactions, only: [:index, :show, :edit, :update] do
+  resources :exports do
     collection do
-      get "export"
+      get "collect_email", to: "exports#collect_email", as: "collect_email"
+      get ":event", to: "exports#transactions", as: "transactions"
     end
+  end
+
+  resources :transactions, only: [:index, :show, :edit, :update] do
     resources :comments
   end
 
@@ -415,6 +433,7 @@ Rails.application.routes.draw do
       post "start/:event_name", to: "donations#make_donation", as: "make_donation"
       get "qr/:event_name.png", to: "donations#qr_code", as: "qr_code"
       get ":event_name/:donation", to: "donations#finish_donation", as: "finish_donation"
+      get ":event_name/:donation/finished", to: "donations#finished", as: "finished_donation"
       get "export"
     end
 
@@ -432,7 +451,7 @@ Rails.application.routes.draw do
   end
 
   use_doorkeeper scope: "api/v4/oauth" do
-    skip_controllers :applications, :authorized_applications
+    skip_controllers :authorized_applications
   end
 
   namespace :api do
@@ -492,20 +511,23 @@ Rails.application.routes.draw do
   get "partnered_signups/:public_id", to: "partnered_signups#edit", as: :edit_partnered_signups
   patch "partnered_signups/:public_id", to: "partnered_signups#update", as: :update_partnered_signups
 
+  post "api/v1/users/find", to: "api#user_find"
   get "api/v1/events/find", to: "api#event_find" # to be deprecated
   post "api/v1/disbursements", to: "api#disbursement_new" # to be deprecated
   post "api/v1/events/create_demo", to: "api#create_demo_event"
 
+  post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
   post "increase/webhook", to: "increase#webhook"
+  post "webhooks/column", to: "column/webhooks#webhook"
   get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"
 
   get "negative_events", to: "admin#negative_events"
 
   get "admin_tasks", to: "admin#tasks"
   get "admin_task_size", to: "admin#task_size"
-  get "admin_search", to: "admin#search"
-  post "admin_search", to: "admin#search"
+  get "admin_search", to: redirect("/admin/users")
+  post "admin_search", to: redirect("/admin/users")
 
   resources :ops_checkins, only: [:create]
 
@@ -605,6 +627,12 @@ Rails.application.routes.draw do
     end
 
     resources :grants, only: [:index, :new, :create]
+
+    resource :column_account_number, controller: "column/account_number", only: [:create], path: "account-number"
+
+    resources :organizer_positions, path: "team", as: "organizer", only: [] do
+      resources :organizer_position_deletion_requests, path: "removal-requests", as: "remove", only: [:new]
+    end
 
     member do
       post "disable_feature"

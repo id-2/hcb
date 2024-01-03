@@ -36,7 +36,7 @@ gem "faraday" # web requests
 
 gem "increase", "~> 0.3.1"
 gem "stripe", "8.5.0"
-gem "plaid", "~> 22.0"
+gem "plaid", "~> 23.0"
 
 gem "aws-sdk-s3", require: false
 
@@ -58,7 +58,7 @@ gem "blind_index" # needed to query and/or guarantee uniqueness for encrypted fi
 gem "aasm" # state machine
 
 gem "paper_trail" # track changes to models
-gem "acts_as_paranoid", "~> 0.8.1" # enables soft deletions
+gem "acts_as_paranoid", "~> 0.9.0" # enables soft deletions
 
 gem "friendly_id", "~> 5.2.0" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
@@ -157,11 +157,13 @@ end
 
 group :test do
   gem "factory_bot_rails" # Test data
+  gem "simplecov", require: false # Code coverage
 end
 
 group :development, :test do
   gem "erb_lint", require: false
   gem "rubocop"
+  gem "rubocop-rails", "~> 2.22"
   gem "relaxed-rubocop"
 
   gem "rspec-rails", "~> 6.0.3"

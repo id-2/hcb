@@ -73,7 +73,7 @@
     <% end %>
     <p>
       <strong>Donated at</strong>
-      <%= format_datetime @donation.created_at %>
+      <%= format_datetime @donation.donated_at %>
     </p>
     <% admin_tools do %>
       <%= donation_payout_datetime %>
@@ -87,6 +87,10 @@
       <% else %>
         <strong>Sign in to view</strong>
       <% end %>
+    </p>
+    <p>
+      <strong>Transaction memo</strong>
+      <%= render "hcb_codes/memo", hcb_code: @hcb_code %>
     </p>
     <p>
       <strong>Amount</strong>

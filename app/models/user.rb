@@ -6,7 +6,6 @@
 #
 #  id                       :bigint           not null, primary key
 #  access_level             :integer          default("user"), not null
-#  admin_at                 :datetime
 #  birthday                 :date
 #  email                    :text
 #  full_name                :string
@@ -32,8 +31,6 @@
 #  index_users_on_slug   (slug) UNIQUE
 #
 class User < ApplicationRecord
-  self.ignored_columns = ["seen_platinum_announcement"]
-
   include PublicIdentifiable
   set_public_id_prefix :usr
 
@@ -68,6 +65,8 @@ class User < ApplicationRecord
   has_many :organizer_position_deletion_requests, inverse_of: :submitted_by
   has_many :organizer_position_deletion_requests, inverse_of: :closed_by
   has_many :webauthn_credentials
+  has_many :mailbox_addresses
+  has_many :api_tokens
 
   has_many :events, through: :organizer_positions
 
@@ -96,6 +95,8 @@ class User < ApplicationRecord
 
   has_one :partner, inverse_of: :representative
 
+  include HasMetrics
+
   before_create :format_number
   before_save :on_phone_number_update
 
@@ -104,8 +105,7 @@ class User < ApplicationRecord
   validates_presence_of :full_name, if: -> { full_name_in_database.present? }
   validates_presence_of :birthday, if: -> { birthday_in_database.present? }
 
-  alias_attribute :legal_name, :full_name
-  validates :legal_name, format: {
+  validates :full_name, format: {
     with: /\A[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,'-]+ [a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,' -]+\z/,
     message: "must contain your first and last name, and can't contain special characters.", allow_blank: true,
   }
@@ -215,6 +215,10 @@ class User < ApplicationRecord
 
   def onboarding?
     full_name.blank?
+  end
+
+  def active_mailbox_address
+    self.mailbox_addresses.activated.first
   end
 
   private

@@ -65,7 +65,8 @@ class AchTransfersController < ApplicationController
   end
 
   def validate_routing_number
-    return render json: { valid: false, hint: "Bank not found for this routing number." } unless params[:value].size == 9
+    return render json: { valid: true } if params[:value].empty?
+    return render json: { valid: false, hint: "Bank not found for this routing number." } unless /\A\d{9}\z/.match?(params[:value])
 
     banks = Increase::RoutingNumbers.list(routing_number: params[:value])
 
@@ -73,8 +74,11 @@ class AchTransfersController < ApplicationController
 
     render json: {
       valid:,
-      hint: valid ? banks.first&.dig("name") : "Bank not found for this routing number.",
+      hint: valid ? banks.first&.dig("name")&.titleize : "Bank not found for this routing number.",
     }
+  rescue => e
+    notify_airbrake(e)
+    render json: { valid: true }
   end
 
   private

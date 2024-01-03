@@ -55,6 +55,7 @@ class CanonicalTransaction < ApplicationRecord
   scope :increase_transaction, -> { joins("INNER JOIN raw_increase_transactions ON transaction_source_type = 'RawIncreaseTransaction' AND raw_increase_transactions.id = transaction_source_id") }
   scope :stripe_transaction,   -> { joins("INNER JOIN raw_stripe_transactions   ON transaction_source_type = 'RawStripeTransaction'   AND raw_stripe_transactions.id   = transaction_source_id") }
   scope :emburse_transaction,  -> { joins("INNER JOIN raw_emburse_transactions  ON transaction_source_type = 'RawEmburseTransaction'  AND raw_emburse_transactions.id  = transaction_source_id") }
+  scope :column_transaction,   -> { joins("INNER JOIN raw_column_transactions   ON transaction_source_type = 'RawColumnTransaction'   AND raw_column_transactions.id  =  transaction_source_id") }
 
   scope :likely_hack_club_bank_issued_cards, -> { where("memo ilike 'Hack Club Bank Issued car%' or memo ilike 'HCKCLB Issued car%'") }
   scope :likely_fee_reimbursement, -> { where(memo: "Stripe fee reimbursement") }
@@ -68,12 +69,15 @@ class CanonicalTransaction < ApplicationRecord
   scope :likely_increase_account_number, -> { increase_transaction.joins("INNER JOIN increase_account_numbers ON increase_account_number_id = increase_route_id") }
   scope :likely_increase_check_deposit, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'check_deposit_acceptance'") }
   scope :increase_interest, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'interest_payment'") }
+  scope :likely_column_account_number, -> { column_transaction.joins("INNER JOIN column_account_numbers ON column_transaction->>'account_number_id' = column_account_numbers.column_id") }
   scope :likely_hack_club_fee, -> { where("memo ilike '%Hack Club Bank Fee TO ACCOUNT%'") }
   scope :old_likely_hack_club_fee, -> { where("memo ilike '% Fee TO ACCOUNT REDACTED%'") }
   scope :stripe_top_up, -> { where("memo ilike '%Hack Club Bank Stripe Top%' or memo ilike '%HACKC Stripe Top%' or memo ilike '%HCKCLB Stripe Top%'") }
   scope :not_stripe_top_up, -> { where("(memo not ilike '%Hack Club Bank Stripe Top%' and memo not ilike '%HACKC Stripe Top%' and memo not ilike '%HCKCLB Stripe Top%') or memo is null") }
   scope :mapped_by_human, -> { includes(:canonical_event_mapping).where("canonical_event_mappings.user_id is not null").references(:canonical_event_mapping) }
   scope :included_in_stats, -> { includes(canonical_event_mapping: :event).where(events: { omit_stats: false }) }
+
+  scope :with_column_transaction_type, ->(type) { column_transaction.where("raw_column_transactions.column_transaction->>'transaction_type' LIKE ?", "#{sanitize_sql_like(type)}%") }
 
   monetize :amount_cents
 
@@ -84,7 +88,7 @@ class CanonicalTransaction < ApplicationRecord
   has_one :canonical_pending_settled_mapping
   has_one :canonical_pending_transaction, through: :canonical_pending_settled_mapping
   has_one :local_hcb_code, foreign_key: "hcb_code", primary_key: "hcb_code", class_name: "HcbCode"
-  has_many :fees, through: :canonical_event_mapping
+  has_one :fee, through: :canonical_event_mapping
 
   belongs_to :transaction_source, polymorphic: true, optional: true
 
@@ -154,6 +158,14 @@ class CanonicalTransaction < ApplicationRecord
 
   def raw_increase_transaction
     transaction_source if transaction_source_type == RawIncreaseTransaction.name
+  end
+
+  def raw_column_transaction
+    transaction_source if transaction_source_type == RawColumnTransaction.name
+  end
+
+  def column_transaction_type
+    raw_column_transaction&.transaction_type
   end
 
   def stripe_cardholder
@@ -230,7 +242,7 @@ class CanonicalTransaction < ApplicationRecord
   def fee_payment?
     return @fee_payment if defined?(@fee_payment)
 
-    @fee_payment ||= fees.hack_club_fee.exists?
+    @fee_payment ||= fee&.hack_club_fee?
   end
 
   def invoice
@@ -285,6 +297,14 @@ class CanonicalTransaction < ApplicationRecord
     memo.match(/BUSBILLPAY TRAN#(\d+)/)&.[](1)
   end
 
+  def likely_account_verification_related?
+    hcb_code.starts_with?("HCB-000-") && memo.downcase.include?("acctverify") && amount_cents.abs < 100
+  end
+
+  def short_code
+    memo[/HCB-(\w{5})/, 1]
+  end
+
   def partner_donation
     nil # TODO: implement
   end
@@ -300,7 +320,7 @@ class CanonicalTransaction < ApplicationRecord
   end
 
   def fee_applies?
-    @fee_applies ||= fees.greater_than_0.exists?
+    @fee_applies ||= fee.present? && fee.amount_cents_as_decimal > 0
   end
 
   def emburse_transfer
