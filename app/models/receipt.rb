@@ -60,17 +60,19 @@ class Receipt < ApplicationRecord
     receipts_page_drag_and_drop: 3,
     attach_receipt_page: 4,
     attach_receipt_page_drag_and_drop: 5,
-    email: 6,
+    email_hcb_code: 6,
     receipt_center: 7,
     receipt_center_drag_and_drop: 8,
     api: 9,
+    email_receipt_bin: 10,
+    sms: 11
   }
 
   def url
     Rails.application.routes.url_helpers.rails_blob_url(file)
   end
 
-  def preview(resize: "512x512", only_path: true)
+  def preview(resize: "1024x1024", only_path: true)
     if file.previewable?
       Rails.application.routes.url_helpers.rails_representation_url(file.preview(resize:).processed, only_path:)
     elsif file.variable?
@@ -108,6 +110,10 @@ class Receipt < ApplicationRecord
     extract_textual_content.tap do |text|
       update!(textual_content: text)
     end
+  end
+
+  def has_textual_content?
+    !!(textual_content || extract_textual_content!)
   end
 
   private

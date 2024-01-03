@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class HcbCodesController < ApplicationController
+  include TagsHelper
+
   skip_before_action :signed_in_user, only: [:receipt, :attach_receipt, :show]
   skip_after_action :verify_authorized, only: [:receipt]
 
@@ -72,6 +74,10 @@ class HcbCodesController < ApplicationController
 
     authorize @hcb_code
 
+    if params[:inline].present?
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: true, prepended_to_memo: params[:prepended_to_memo] }
+    end
+
     @frame = turbo_frame_request?
     @suggested_memos = [::HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run].compact + ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
   end
@@ -80,11 +86,15 @@ class HcbCodesController < ApplicationController
     @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
 
     authorize @hcb_code
-    hcb_code_params = params.require(:hcb_code).permit(:memo)
+    hcb_code_params = params.require(:hcb_code).permit(:memo, :prepended_to_memo)
     hcb_code_params[:memo] = hcb_code_params[:memo].presence
 
     @hcb_code.canonical_transactions.each { |ct| ct.update!(custom_memo: hcb_code_params[:memo]) }
     @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo: hcb_code_params[:memo]) }
+
+    if params[:hcb_code][:inline].present?
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo] }
+    end
 
     redirect_to @hcb_code
   end
@@ -117,10 +127,7 @@ class HcbCodesController < ApplicationController
     authorize @hcb_code
 
   rescue Pundit::NotAuthorizedError
-    raise unless (
-      HcbCodeService::Receipt::SigningEndpoint.new.valid_url?(@hcb_code.hashid, @secret) ||
-      HcbCode.find_signed(@secret, purpose: :receipt_upload) == @hcb_code
-    )
+    raise unless HcbCode.find_signed(@secret, purpose: :receipt_upload) == @hcb_code
   end
 
   def send_receipt_sms
@@ -153,19 +160,32 @@ class HcbCodesController < ApplicationController
   def toggle_tag
     hcb_code = HcbCode.find(params[:id])
     tag = Tag.find(params[:tag_id])
+    @event = tag.event
 
     authorize hcb_code
     authorize tag
 
     raise Pundit::NotAuthorizedError unless hcb_code.events.include?(tag.event)
 
+    removed = false
+
     if hcb_code.tags.exists?(tag.id)
+      removed = true
       hcb_code.tags.destroy(tag)
     else
       hcb_code.tags << tag
     end
 
-    redirect_back fallback_location: @event
+    respond_to do |format|
+      format.turbo_stream do
+        if removed
+          render turbo_stream: turbo_stream.remove(tag_dom_id(hcb_code, tag)) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), tag.label)
+        else
+          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ " + tag.label)
+        end
+      end
+      format.any { redirect_back fallback_location: @event }
+    end
   end
 
 end

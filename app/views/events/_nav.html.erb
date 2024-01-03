@@ -92,14 +92,12 @@
         data: { tour_step: "perks" },
         disabled: @event.hardware_grant?,
         selected: local_assigns[:selected] == :promotions unless !@event.approved? %>
-      <% if Flipper.enabled?(:google_workspace_2023_07_12, @event) || (!Flipper.enabled?(:google_workspace_2023_07_12, @event) && (@event.g_suites.exists? || Flipper.enabled?(:google_workspace, @event))) %>
-        <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
-          event_g_suite_overview_path(event_id: @event.slug),
-          tooltip: (@event.hardware_grant? ? "Not available for Winter Hardware Wonderland accounts" : @event.outernet_guild? ? "Not available for Outernet Guilds" : @event.demo_mode? ? "Not available for Demo Mode accounts" : @event.g_suites.exists? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
-          icon: "google",
-          disabled: @event.hardware_grant? || @event.demo_mode? || !organizer_signed_in?,
-          selected: local_assigns[:selected] == :google_workspace %>
-      <% end %>
+      <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
+        event_g_suite_overview_path(event_id: @event.slug),
+        tooltip: (@event.hardware_grant? ? "Not available for Winter Hardware Wonderland accounts" : @event.outernet_guild? ? "Not available for Outernet Guilds" : @event.demo_mode? ? "Not available for Demo Mode accounts" : @event.g_suites.exists? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
+        icon: "google",
+        disabled: @event.hardware_grant? || @event.demo_mode? || !organizer_signed_in?,
+        selected: local_assigns[:selected] == :google_workspace %>
       <%= dock_item "Documentation",
         event_documentation_path(event_id: @event.slug),
         tooltip: "Commonly asked questions and how-tos",
@@ -125,8 +123,9 @@
     <% else %>
       <%= dock_item "Home",
         event_path(id: @event.slug),
-        icon: "home" %>
-      <button class="dock__item bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="receive">
+        icon: "home",
+        selected: local_assigns[:selected] == :transactions %>
+      <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:donations, :invoices, :account_number, :deposit_check] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="receive">
         <div class="line-height-0 relative"><%= inline_icon "support", size: 32, class: "primary" %></div>
         <span class="line-height-3">Receive</span>
 
@@ -139,7 +138,7 @@
           <%= link_to "Deposit a check", event_check_deposits_path(@event) if Flipper.enabled?(:check_deposits_2023_04_17, @event) %>
         </div>
       </button>
-      <button class="dock__item bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="spend">
+      <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:cards, :transfers] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="spend">
         <div class="line-height-0 relative"><%= inline_icon "card", size: 32, class: "primary" %></div>
         <span class="line-height-3">Spend</span>
 

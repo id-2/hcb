@@ -37,8 +37,8 @@ module ApplicationHelper
 
   def render_address(obj)
     content = []
-    content << [obj.address_line1, tag(:br)].join("")
-    content << [obj.address_line2 + tag(:br)].join("") if obj.address_line2.present?
+    content << [obj.address_line1, tag.br].join("")
+    content << [obj.address_line2 + tag.br].join("") if obj.address_line2.present?
     content << [obj.address_city, obj.address_state, obj.address_postal_code].join(", ")
     content_tag(:span, content.join.html_safe)
   end
@@ -111,7 +111,7 @@ module ApplicationHelper
       end
     end
 
-    content_tag :div, class: "error-card" do
+    content_tag :div, class: "error-card", data: { turbo_temporary: true } do
       content_tag(:h2, "#{prefix} #{name} because of #{pluralize(model.errors.size, 'error')}.") +
         errors_list
     end
@@ -339,6 +339,12 @@ module ApplicationHelper
   def fillout_form(id, params = {}, prefix: "")
     query = params.transform_keys { |k| prefix + k }
     "https://forms.hackclub.com/t/#{id}?#{URI.encode_www_form(query)}"
+  end
+
+  def redacted_amount
+    tag.span class: "tooltipped tooltipped--w", style: "cursor: default", "aria-label": "Hidden for security" do
+      tag.span(style: "filter: blur(5px)") { "$0.00" }
+    end
   end
 
 end
