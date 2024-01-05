@@ -92,7 +92,7 @@ class HcbCodeReceiptsMailbox < ApplicationMailbox
   end
 
   def extract_text_inside_quotes(text)
-    match = text.force_encoding(Encoding::UTF_8).match(/['"‘’“”`](.*?)['"‘’“”`]/)
+    match = text&.force_encoding(Encoding::UTF_8)&.match(/['"‘’“”`](.*?)['"‘’“”`]/)
     match[1] if match
   end
 
