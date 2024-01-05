@@ -29,18 +29,14 @@ class HcbCodeReceiptsMailbox < ApplicationMailbox
     return bounce_error if result.empty?
 
     text = if mail.multipart?
-             mail.text_part ? mail.text_part.body.decoded : nil
+             mail.text_part&.body&.decoded
            else
              mail.body.decoded
            end
 
-    custom_memo = nil
+    custom_memo = extract_text_inside_quotes(text)&.strip
 
-    rename_to = text&.lines&.find { |line| line.start_with?("Rename to:") }
-
-    if rename_to
-      rename_to.slice!("Rename to:")
-      custom_memo = rename_to.strip
+    if custom_memo
       @hcb_code.canonical_transactions.each { |ct| ct.update!(custom_memo:) }
       @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo:) }
     end
@@ -93,6 +89,11 @@ class HcbCodeReceiptsMailbox < ApplicationMailbox
 
   def pundit_user
     @user
+  end
+
+  def extract_text_inside_quotes(text)
+    match = text.force_encoding(Encoding::UTF_8).match(/['"‘’“”`](.*?)['"‘’“”`]/)
+    match[1] if match
   end
 
 end
