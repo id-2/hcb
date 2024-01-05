@@ -30,6 +30,8 @@ class HcbCodeReceiptsMailbox < ApplicationMailbox
     
     text = mail.multipart? ? (mail.text_part ? mail.text_part.body.decoded : nil) : mail.body.decoded
     
+    custom_memo = nil
+    
     rename_to = text.lines.find { |line| line.start_with?("Rename to:") }
     
     if rename_to
@@ -42,6 +44,7 @@ class HcbCodeReceiptsMailbox < ApplicationMailbox
     HcbCodeReceiptsMailer.with(
       mail: inbound_email,
       reply_to: @hcb_code.receipt_upload_email,
+      renamed_to: custom_memo,
       receipts_count: result.size
     ).bounce_success.deliver_now
   end
