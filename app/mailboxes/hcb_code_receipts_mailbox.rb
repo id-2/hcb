@@ -32,7 +32,7 @@ class HcbCodeReceiptsMailbox < ApplicationMailbox
     
     custom_memo = nil
     
-    rename_to = text.lines.find { |line| line.start_with?("Rename to:") }
+    rename_to = text&.lines.find { |line| line.start_with?("Rename to:") }
     
     if rename_to
       rename_to.slice!('Rename to:')
