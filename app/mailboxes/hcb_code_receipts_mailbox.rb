@@ -27,6 +27,17 @@ class HcbCodeReceiptsMailbox < ApplicationMailbox
     ).run!
 
     return bounce_error if result.empty?
+    
+    text = mail.multipart? ? (mail.text_part ? mail.text_part.body.decoded : nil) : mail.body.decoded
+    
+    rename_to = text.lines.find { |line| line.start_with?("Rename to:") }
+    
+    if rename_to
+      rename_to.slice!('Rename to:')
+      custom_memo = rename_to.strip
+      @hcb_code.canonical_transactions.each { |ct| ct.update!(custom_memo:) }
+      @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo:) }
+    end
 
     HcbCodeReceiptsMailer.with(
       mail: inbound_email,
