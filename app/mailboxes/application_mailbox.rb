@@ -10,6 +10,9 @@ class ApplicationMailbox < ActionMailbox::Base
   # ie. "animal.1234" for Users
   routing /#{MailboxAddress::VALIDATION_REGEX}/i => :receipt_bin
 
+  # fallback
+  routing all: :fallback
+
   # Helper methods
   private
 
@@ -19,6 +22,10 @@ class ApplicationMailbox < ActionMailbox::Base
 
   def text
     mail.text_part&.body&.decoded
+  end
+
+  def body
+    mail.body&.decoded&.presence
   end
 
 end

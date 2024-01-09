@@ -27,21 +27,49 @@ class Metric < ApplicationRecord
 
   def populate
     self.metric = calculate
+    touch if persisted? # Shows that the metric is update to date; even if value hasn't changed
   end
 
   def calculate
     raise UnimplementedError
   end
 
+  def geocode(location)
+    loc_array = location.split(" - ")
+    zip = loc_array.last
+    unless zip == "000000"
+      geocode = Geocoder.search(location)[0]
+      if geocode.present? && (address = Geocoder.search(location)[0]&.data&.[]("address"))
+        if address["town"]
+          return "#{loc_array[0, loc_array.length - 1].join(" - ")} - #{address["town"]}"
+        elsif address["city"]
+          return "#{loc_array[0, loc_array.length - 1].join(" - ")} - #{address["city"]}"
+        elsif address["county"]
+          return "#{loc_array[0, loc_array.length - 1].join(" - ")} - #{address["county"]}"
+        end
+
+      end
+    end
+    return loc_array[0, loc_array.length - 1].join(" - ")
+  end
+
   def self.from(subject, repopulate: false)
-    metric = self.find_by(subject:)
-    return self.create(subject:) if metric.nil?
+    metric = self.where(subject:).order(updated_at: :desc).first_or_initialize(subject:)
+
+    # If creating, save and return the new record
+    if metric.new_record?
+      unless metric.save
+        Airbrake.notify("Failed to save metric #{metric.inspect}")
+        return nil
+      end
+      return metric
+    end
 
     if repopulate
       metric.populate
       unless metric.save
-        metric.reload
         Airbrake.notify("Failed to save metric #{metric.inspect}")
+        metric.reload
       end
     end
 

@@ -7,7 +7,9 @@ class HcbCodeReceiptsMailer < ApplicationMailer
 
   default to: -> { @to },
           reply_to: -> { @reply_to },
-          subject: -> { @inbound_mail&.mail&.subject }
+          subject: -> { @inbound_mail&.mail&.subject },
+          in_reply_to: -> { @inbound_mail&.message_id },
+          references: -> { [@inbound_mail&.mail&.header&.[]("References")&.value, @inbound_mail&.message_id].compact.join(" ") }
 
   def bounce_missing_user
     mail subject: "Unknown email address"

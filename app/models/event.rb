@@ -247,7 +247,7 @@ class Event < ApplicationRecord
 
   has_many :ach_transfers
   has_many :disbursements
-  has_many :incoming_disbursements, class_name: "Disbursement", foreign_key: :event_id
+  has_many :incoming_disbursements, class_name: "Disbursement"
   has_many :outgoing_disbursements, class_name: "Disbursement", foreign_key: :source_event_id
   has_many :donations
   has_many :donation_payouts, through: :donations, source: :payout
@@ -290,6 +290,9 @@ class Event < ApplicationRecord
   has_one :stripe_ach_payment_source
   has_one :increase_account_number
 
+  has_one :column_account_number, class_name: "Column::AccountNumber"
+  delegate :account_number, :routing_number, to: :column_account_number, allow_nil: true
+
   has_many :grants
 
   has_one_attached :donation_header_image
@@ -326,6 +329,16 @@ class Event < ApplicationRecord
     if outernet_guild? && donation_page_enabled?
       errors.add(:donation_page_enabled, "donation page can't be enabled for Outernet guilds")
     end
+  end
+
+  comma do
+    id
+    name
+    sponsorship_fee
+    slug "url" do |slug| "https://hcb.hackclub.com/#{slug}" end
+    country
+    is_public "transparent"
+    category
   end
 
   CUSTOM_SORT = Arel.sql(
@@ -518,11 +531,9 @@ class Event < ApplicationRecord
                        .fronted
                        .not_waived
                        .not_declined
-                       .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
 
     feed_fronted_balance = sum_fronted_amount(feed_fronted_pts)
 
-    # TODO: make sure this has the same rounding error has the rest of the codebase
     fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee).ceil
   end
 
@@ -534,8 +545,16 @@ class Event < ApplicationRecord
   alias fee_balance fee_balance_v2_cents
 
   def plan_name
-    if unapproved?
+    if demo_mode?
+      "playground mode"
+    elsif unapproved?
       "pending approval"
+    elsif hack_club_hq?
+      "hack club affiliated project"
+    elsif salary?
+      "salary account"
+    elsif sponsorship_fee == 0
+      "full fiscal sponsorship (fee waived)"
     else
       "full fiscal sponsorship"
     end
@@ -566,14 +585,6 @@ class Event < ApplicationRecord
     @total_fees_v2_cents ||= fees.sum(:amount_cents_as_decimal).ceil
   end
 
-  def account_number
-    (increase_account_number || create_increase_account_number)&.account_number || "••••••••••"
-  end
-
-  def routing_number
-    (increase_account_number || create_increase_account_number)&.routing_number || "•••••••••"
-  end
-
   def increase_account_number_id
     (increase_account_number || create_increase_account_number).increase_account_number_id
   end
@@ -593,7 +604,7 @@ class Event < ApplicationRecord
 
   def total_fee_payments_v2_cents
     @total_fee_payments_v2_cents ||=
-      canonical_transactions.includes(:fees).where(fees: { reason: "HACK CLUB FEE" }).sum(:amount_cents).abs +
+      canonical_transactions.includes(:fee).where(fee: { reason: "HACK CLUB FEE" }).sum(:amount_cents).abs +
       canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
   end
 

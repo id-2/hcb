@@ -45,11 +45,19 @@ class AchTransfersController < ApplicationController
 
   # POST /ach_transfers
   def create
-    @ach_transfer = @event.ach_transfers.build(ach_transfer_params.merge(creator: current_user))
+    @ach_transfer = @event.ach_transfers.build(ach_transfer_params.except(:file).merge(creator: current_user))
 
     authorize @ach_transfer
 
     if @ach_transfer.save
+      if ach_transfer_params[:file]
+        ::ReceiptService::Create.new(
+          uploader: current_user,
+          attachments: ach_transfer_params[:file],
+          upload_method: :transfer_create_page,
+          receiptable: @ach_transfer.local_hcb_code
+        ).run!
+      end
       redirect_to event_transfers_path(@event), flash: { success: "ACH transfer successfully submitted." }
     else
       render :new, status: :unprocessable_entity
@@ -65,7 +73,8 @@ class AchTransfersController < ApplicationController
   end
 
   def validate_routing_number
-    return render json: { valid: false, hint: "Bank not found for this routing number." } unless params[:value].size == 9
+    return render json: { valid: true } if params[:value].empty?
+    return render json: { valid: false, hint: "Bank not found for this routing number." } unless /\A\d{9}\z/.match?(params[:value])
 
     banks = Increase::RoutingNumbers.list(routing_number: params[:value])
 
@@ -73,8 +82,11 @@ class AchTransfersController < ApplicationController
 
     render json: {
       valid:,
-      hint: valid ? banks.first&.dig("name") : "Bank not found for this routing number.",
+      hint: valid ? banks.first&.dig("name")&.titleize : "Bank not found for this routing number.",
     }
+  rescue => e
+    notify_airbrake(e)
+    render json: { valid: true }
   end
 
   private
@@ -89,7 +101,7 @@ class AchTransfersController < ApplicationController
   end
 
   def ach_transfer_params
-    params.require(:ach_transfer).permit(:routing_number, :account_number, :bank_name, :recipient_name, :amount_money, :payment_for, :scheduled_on)
+    params.require(:ach_transfer).permit(:routing_number, :account_number, :bank_name, :recipient_name, :amount_money, :payment_for, :scheduled_on, file: [])
   end
 
 end

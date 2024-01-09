@@ -93,7 +93,6 @@ Rails.application.routes.draw do
 
   resources :users, only: [:edit, :update] do
     collection do
-      get "impersonate", to: "users#impersonate"
       get "auth", to: "users#auth"
       post "auth", to: "users#auth_submit"
       get "auth/login_preference", to: "users#choose_login_preference", as: :choose_login_preference
@@ -130,6 +129,8 @@ Rails.application.routes.draw do
       get "previews", to: "users#edit_featurepreviews"
       get "security", to: "users#edit_security"
       get "admin", to: "users#edit_admin"
+
+      post "impersonate"
     end
     post "delete_profile_picture", to: "users#delete_profile_picture"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
@@ -169,7 +170,7 @@ Rails.application.routes.draw do
       get "stripe_cards", to: "admin#stripe_cards"
       get "pending_ledger", to: "admin#pending_ledger"
       get "ach", to: "admin#ach"
-      get "check", to: "admin#check"
+      get "checks", to: "admin#checks"
       get "increase_checks", to: "admin#increase_checks"
       get "partner_organizations", to: "admin#partner_organizations"
       get "events", to: "admin#events"
@@ -180,7 +181,6 @@ Rails.application.routes.draw do
       get "partner_donations", to: "admin#partner_donations"
       get "disbursements", to: "admin#disbursements"
       get "disbursement_new", to: "admin#disbursement_new"
-      post "disbursement_create", to: "admin#disbursement_create"
       get "invoices", to: "admin#invoices"
       get "sponsors", to: "admin#sponsors"
       get "google_workspaces", to: "admin#google_workspaces"
@@ -208,10 +208,6 @@ Rails.application.routes.draw do
       get "disbursement_process", to: "admin#disbursement_process"
       post "disbursement_approve", to: "admin#disbursement_approve"
       post "disbursement_reject", to: "admin#disbursement_reject"
-      get "check_process", to: "admin#check_process"
-      get "check_positive_pay_csv", to: "admin#check_positive_pay_csv"
-      post "check_send", to: "admin#check_send"
-      post "check_mark_in_transit_and_processed", to: "admin#check_mark_in_transit_and_processed"
       get "increase_check_process", to: "admin#increase_check_process"
       get "google_workspace_process", to: "admin#google_workspace_process"
       post "google_workspace_approve", to: "admin#google_workspace_approve"
@@ -237,6 +233,7 @@ Rails.application.routes.draw do
     member do
       post "set_index"
       post "mark_visited"
+      post "toggle_signee_status"
     end
 
     resources :organizer_position_deletion_requests, only: [:new], as: "remove"
@@ -286,13 +283,6 @@ Rails.application.routes.draw do
 
   resources :checks, only: [:show] do
     get "view_scan"
-    post "cancel"
-    get "positive_pay_csv"
-
-    get "start_void"
-    post "void"
-    get "refund", to: "checks#refund_get"
-    post "refund", to: "checks#refund"
 
     resources :comments
   end
@@ -346,6 +336,7 @@ Rails.application.routes.draw do
       get "attach_receipt"
       get "memo_frame"
       get "dispute"
+      post "invoice_as_personal_transaction"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
     end
@@ -517,16 +508,15 @@ Rails.application.routes.draw do
   post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
   post "increase/webhook", to: "increase#webhook"
+  post "webhooks/column", to: "column/webhooks#webhook"
   get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"
 
   get "negative_events", to: "admin#negative_events"
 
   get "admin_tasks", to: "admin#tasks"
   get "admin_task_size", to: "admin#task_size"
-  get "admin_search", to: "admin#search"
-  post "admin_search", to: "admin#search"
-
-  resources :ops_checkins, only: [:create]
+  get "admin_search", to: redirect("/admin/users")
+  post "admin_search", to: redirect("/admin/users")
 
   get "/integrations/frankly" => "integrations#frankly"
 
@@ -548,6 +538,7 @@ Rails.application.routes.draw do
   resources :card_grants, only: [:show], path: "grants" do
     member do
       post "activate"
+      get "spending"
     end
   end
 
@@ -625,12 +616,19 @@ Rails.application.routes.draw do
 
     resources :grants, only: [:index, :new, :create]
 
+    resource :column_account_number, controller: "column/account_number", only: [:create], path: "account-number"
+
+    resources :organizer_positions, path: "team", as: "organizer", only: [] do
+      resources :organizer_position_deletion_requests, path: "removal-requests", as: "remove", only: [:new]
+    end
+
     member do
       post "disable_feature"
       post "enable_feature"
       post "test_ach_payment"
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
+      get "audit_log"
     end
   end
 

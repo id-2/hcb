@@ -33,7 +33,9 @@ class FlavorTextService
       "super secret admin mode",
       "Puts the 'dev' in 'financially devious'!",
       "Rails.env.fun?",
-      "Let's rewrite HCB in #{Faker::ProgrammingLanguage.name}!"
+      "Let's rewrite HCB in #{Faker::ProgrammingLanguage.name}!",
+      "Here's a secret: HCB stands for Hack Club Bonk",
+      "recommended by 100% of fraudsters"
     ]
   end
 
@@ -58,6 +60,7 @@ class FlavorTextService
       "where r my cookies?",
       "holiday edition",
       "santa edition",
+      "Walking in a winter hackerland...",
       "🎅🏻",
       "🦌🦌🦌🦌🦌🦌🦌🦌🛷🎅🎁",
       "fresh snow for $0.99!",
@@ -71,7 +74,7 @@ class FlavorTextService
       "<a href='https://santatracker.google.com/' target='_blank' style='color: inherit'>Santa's on the way!</a>".html_safe,
       "dashing through the snow",
       "defrosting...",
-      "send snow photos to bank@hackclub.com",
+      "send snow photos to hcb@hackclub.com",
       "Dasher, Dancer, Prancer, Vixen,<br/>Comet, Cupid, Donner, Blitzen".html_safe,
       "Recommended by Santa",
       "Recommended by Santa's elves",
@@ -85,7 +88,9 @@ class FlavorTextService
       "Built with Ruby on Rails, React, and holiday cheer",
       "u seein' the snow outside?",
       "Dear Santa...",
-      "where's my gingerbread house"
+      "where's my gingerbread house",
+      "makin' that money snow",
+      "Merry Fourth Of July and have a jolly halloween!"
     ]
   end
 
@@ -97,7 +102,8 @@ class FlavorTextService
       "👻",
       "🧛",
       "🎃",
-      "Pumpkin spice is the pumpkin spice of life."
+      "Pumpkin spice is the pumpkin spice of life.",
+      "Happy Easter - Oh wait wrong holiday."
     ]
   end
 
@@ -172,7 +178,7 @@ class FlavorTextService
       "#{@random.rand 1..4}0% fewer bugs!",
       "Ask your doctor if HCB is right for you",
       "Now with an&nbsp;<a href='https://hcb.hackclub.com/docs/api/v3'>API</a>!".html_safe,
-      "<a href='https://bank.hackclub.com/docs/api/v3'>README</a>".html_safe,
+      "<a href='https://hcb.hackclub.com/docs/api/v3'>README</a>".html_safe,
       "Read the&nbsp;<a href='https://hcb.hackclub.com/docs/api/v3'>docs</a>!".html_safe,
       'Now with "code"',
       "Closed source!",
@@ -257,6 +263,7 @@ class FlavorTextService
       "Open on weekdays!",
       "Open on #{Date.today.strftime("%A")}s",
       "??? profit!",
+      "Made with Rails, Ruby and did I forget to mention Rails?",
       "Did you see the price of #{%w[Ðogecoin ₿itcoin Ξtherium].sample(random: @random)}?!",
       "Guess how much it costs to run this thing!",
       "Bytes served fresh daily by Heroku",
@@ -392,7 +399,7 @@ class FlavorTextService
       "TODO: come up with some actual jokes for this box",
       "asdgfhjdk I'm out of jokes",
       "asdgfhjdk I'm out of #{%w[money cash bank finance financial].sample(random: @random)} puns",
-      "Send your jokes to bank@hackclub.com",
+      "Send your jokes to hcb@hackclub.com",
       "Cha-ching!",
       "Hey there cutie!",
       "You're looking great today :)",

@@ -6,8 +6,7 @@
 #
 #  id                       :bigint           not null, primary key
 #  access_level             :integer          default("user"), not null
-#  admin_at                 :datetime
-#  birthday                 :date
+#  birthday_ciphertext      :text
 #  email                    :text
 #  full_name                :string
 #  locked_at                :datetime
@@ -32,7 +31,7 @@
 #  index_users_on_slug   (slug) UNIQUE
 #
 class User < ApplicationRecord
-  self.ignored_columns = ["seen_platinum_announcement"]
+  self.ignored_columns = ["birthday"]
 
   include PublicIdentifiable
   set_public_id_prefix :usr
@@ -73,7 +72,6 @@ class User < ApplicationRecord
 
   has_many :events, through: :organizer_positions
 
-  has_many :ops_checkins, inverse_of: :point_of_contact
   has_many :managed_events, inverse_of: :point_of_contact
 
   has_many :g_suite_accounts, inverse_of: :fulfilled_by
@@ -98,6 +96,8 @@ class User < ApplicationRecord
 
   has_one :partner, inverse_of: :representative
 
+  has_encrypted :birthday, type: :date
+
   include HasMetrics
 
   before_create :format_number
@@ -106,10 +106,9 @@ class User < ApplicationRecord
   after_update :update_stripe_cardholder, if: -> { phone_number_previously_changed? || email_previously_changed? }
 
   validates_presence_of :full_name, if: -> { full_name_in_database.present? }
-  validates_presence_of :birthday, if: -> { birthday_in_database.present? }
+  validates_presence_of :birthday, if: -> { birthday_ciphertext_in_database.present? }
 
-  alias_attribute :legal_name, :full_name
-  validates :legal_name, format: {
+  validates :full_name, format: {
     with: /\A[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,'-]+ [a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,' -]+\z/,
     message: "must contain your first and last name, and can't contain special characters.", allow_blank: true,
   }

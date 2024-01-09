@@ -11,9 +11,11 @@ class UsersController < ApplicationController
   def impersonate
     authorize current_user
 
-    impersonate_user(User.find(params[:user_id]))
+    user = User.find(params[:id])
 
-    redirect_to(params[:return_to] || root_path)
+    impersonate_user(user)
+
+    redirect_to params[:return_to] || root_path, flash: { info: "You're now impersonating #{user.name}." }
   end
 
   # view to log in
@@ -30,7 +32,7 @@ class UsersController < ApplicationController
     login_preference = session[:login_preference]
 
     if !has_webauthn_enabled || login_preference == "email"
-      redirect_to login_code_users_path, status: 307
+      redirect_to login_code_users_path, status: :temporary_redirect
     else
       session[:auth_email] = @email
       redirect_to choose_login_preference_users_path(return_to: params[:return_to])
@@ -53,7 +55,7 @@ class UsersController < ApplicationController
     case params[:login_preference]
     when "email"
       session[:login_preference] = "email" if remember
-      redirect_to login_code_users_path, status: 307
+      redirect_to login_code_users_path, status: :temporary_redirect
     when "webauthn"
       # This should never happen, because WebAuthn auth is handled on the frontend
       redirect_to choose_login_preference_users_path
@@ -228,7 +230,8 @@ class UsersController < ApplicationController
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
     turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
     sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
-    hcb_code_popovers_2023_06_16: nil
+    hcb_code_popovers_2023_06_16: nil,
+    rename_on_homepage_2023_12_06: %w[🖊️ ⚡ ⌨️]
   }.freeze
 
   def enable_feature
@@ -352,6 +355,9 @@ class UsersController < ApplicationController
         redirect_to root_path
       else
         flash[:success] = @user == current_user ? "Updated your profile!" : "Updated #{@user.first_name}'s profile!"
+
+        ::StripeCardholderService::Update.new(current_user: @user).run
+
         redirect_back_or_to edit_user_path(@user)
       end
     else

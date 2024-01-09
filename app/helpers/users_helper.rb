@@ -18,7 +18,7 @@ module UsersHelper
     # so this method shows Gravatars/intials for non-registered and allows showing of uploaded profile pictures for registered users.
     if user.nil?
       src = "https://cloud-80pd8aqua-hack-club-bot.vercel.app/0image-23.png"
-    elsif Rails.env.production? && (user.is_a?(User) && user&.profile_picture.attached?)
+    elsif Rails.env.production? && (user.is_a?(User) && user&.profile_picture&.attached?)
       src = Rails.application.routes.url_helpers.url_for(user.profile_picture.variant(
                                                            thumbnail: "#{size * 2}x#{size * 2}^",
                                                            gravity: "center",
@@ -99,14 +99,12 @@ module UsersHelper
   end
 
   def admin_tools(class_name = "", element = "div", override_pretend: false, **options, &block)
-    if options[:if] == false
+    if options.delete(:if) == false
       yield
     else
       return unless current_user&.admin? || (override_pretend && current_user&.admin_override_pretend?)
 
-      concat("<#{element} class='admin-tools #{class_name}'>".html_safe)
-      yield
-      concat("</#{element}>".html_safe)
+      concat content_tag(element, class: "admin-tools #{class_name}", **options, &block)
     end
   end
 

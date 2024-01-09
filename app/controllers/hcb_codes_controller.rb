@@ -74,6 +74,10 @@ class HcbCodesController < ApplicationController
 
     authorize @hcb_code
 
+    if params[:inline].present?
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: true, prepended_to_memo: params[:prepended_to_memo] }
+    end
+
     @frame = turbo_frame_request?
     @suggested_memos = [::HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run].compact + ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
   end
@@ -82,11 +86,15 @@ class HcbCodesController < ApplicationController
     @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
 
     authorize @hcb_code
-    hcb_code_params = params.require(:hcb_code).permit(:memo)
+    hcb_code_params = params.require(:hcb_code).permit(:memo, :prepended_to_memo)
     hcb_code_params[:memo] = hcb_code_params[:memo].presence
 
     @hcb_code.canonical_transactions.each { |ct| ct.update!(custom_memo: hcb_code_params[:memo]) }
     @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo: hcb_code_params[:memo]) }
+
+    if params[:hcb_code][:inline].present?
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo] }
+    end
 
     redirect_to @hcb_code
   end
@@ -119,10 +127,7 @@ class HcbCodesController < ApplicationController
     authorize @hcb_code
 
   rescue Pundit::NotAuthorizedError
-    raise unless (
-      HcbCodeService::Receipt::SigningEndpoint.new.valid_url?(@hcb_code.hashid, @secret) ||
-      HcbCode.find_signed(@secret, purpose: :receipt_upload) == @hcb_code
-    )
+    raise unless HcbCode.find_signed(@secret, purpose: :receipt_upload) == @hcb_code
   end
 
   def send_receipt_sms
@@ -181,6 +186,49 @@ class HcbCodesController < ApplicationController
       end
       format.any { redirect_back fallback_location: @event }
     end
+  end
+
+  def invoice_as_personal_transaction
+    hcb_code = HcbCode.find(params[:id])
+    event = hcb_code.event
+    spender = hcb_code.stripe_cardholder.user
+
+    authorize hcb_code
+
+    return render plain: "404 Not found", status: :not_found if !event&.hack_club_hq? || spender.nil?
+
+    @invoice = ::InvoiceService::Create.new(
+      event_id: event.id,
+      due_date: 1.month.from_now,
+      item_description: "Reimbursing personal transaction: #{hcb_code.memo}",
+      item_amount: hcb_code.amount.abs,
+      current_user:,
+      sponsor_id: nil,
+      sponsor_name: spender.name,
+      sponsor_email: spender.email,
+      sponsor_address_line1: spender.stripe_cardholder.stripe_billing_address_line1,
+      sponsor_address_line2: spender.stripe_cardholder.stripe_billing_address_line2,
+      sponsor_address_city: spender.stripe_cardholder.stripe_billing_address_city,
+      sponsor_address_state: spender.stripe_cardholder.stripe_billing_address_state,
+      sponsor_address_postal_code: spender.stripe_cardholder.stripe_billing_address_postal_code,
+      sponsor_address_country: spender.stripe_cardholder.stripe_billing_address_country
+    ).run
+
+    ::HcbCodeService::Comment::Create.new(
+      hcb_code_id: @invoice.local_hcb_code.id,
+      content: "#{hcb_code_url(hcb_code)} was marked as an accidental misuse.",
+      current_user:
+    ).run
+
+    ::HcbCodeService::Comment::Create.new(
+      hcb_code_id: hcb_code.id,
+      content: "This transaction was marked as an accidental misuse. Reimbursement requested at #{hcb_code_url(@invoice.local_hcb_code)}.",
+      current_user:
+    ).run
+
+    flash[:success] = "We've sent an invoice for repayment to #{@invoice.sponsor.contact_email}."
+
+    redirect_to @invoice
   end
 
 end

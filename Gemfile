@@ -141,6 +141,7 @@ gem "dry-validation"
 
 gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching; required in config/boot.rb
 
+gem "appsignal" # error tracking + performance monitoring
 gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # For reporting to HC Grafana
 
 gem "mrsk" # deployments
@@ -163,6 +164,7 @@ end
 group :development, :test do
   gem "erb_lint", require: false
   gem "rubocop"
+  gem "rubocop-rails", "~> 2.22"
   gem "relaxed-rubocop"
 
   gem "rspec-rails", "~> 6.0.3"

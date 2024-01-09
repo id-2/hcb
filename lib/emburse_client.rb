@@ -23,7 +23,7 @@ module EmburseClient
     result = []
     while !next_url.nil?
       resp = self.request next_url
-      result += resp[:results] unless resp[:results].blank?
+      result += resp[:results] if resp[:results].present?
       if resp[:next].nil?
         next_url = nil
       else
@@ -33,8 +33,6 @@ module EmburseClient
 
     result
   end
-
-  private
 
   def self.access_token
     Rails.application.credentials.emburse[:access_token]
