@@ -9,10 +9,17 @@ module Column
       if @event.column_account_number.nil?
         column_account_number = authorize @event.build_column_account_number
         column_account_number.save!
+
+        @animated = true
+        render "events/account_number", status: :unprocessable_entity
       else
         skip_authorization
+        redirect_to account_number_event_path(@event)
       end
-      redirect_to account_number_event_path(@event)
+
+    rescue Faraday::Error => e
+      notify_airbrake(e)
+      redirect_to account_number_event_path(@event), flash: { error: "Something went wrong: #{e.response_body["message"]}" }
 
     end
 

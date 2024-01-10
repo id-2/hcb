@@ -5,14 +5,20 @@ class ColumnService
 
   module Accounts
     FS_MAIN = Rails.application.credentials.column.dig(ENVIRONMENT, :fs_main_account_id)
+    FS_OPERATING = Rails.application.credentials.column.dig(ENVIRONMENT, :fs_operating_account_id)
+  end
+
+  module AchCodes
+    INSUFFICIENT_BALANCE = "R01"
+    STOP_PAYMENT = "R08"
   end
 
   def self.conn
     @conn ||= Faraday.new url: "https://api.column.com" do |f|
       f.request :basic_auth, "", Rails.application.credentials.column.dig(ENVIRONMENT, :api_key)
       f.request :url_encoded
-      f.response :json
       f.response :raise_error
+      f.response :json
     end
   end
 
@@ -21,7 +27,8 @@ class ColumnService
   end
 
   def self.post(url, params = {})
-    conn.post(url, params).body
+    idempotency_key = params.delete(:idempotency_key)
+    conn.post(url, params, { "Idempotency-Key" => idempotency_key }.compact_blank).body
   end
 
   def self.transactions(from_date: 1.week.ago, to_date: Date.today, bank_account: Accounts::FS_MAIN)
@@ -42,13 +49,14 @@ class ColumnService
 
       [report["id"], transactions]
     end
-
-  rescue => e
-    puts e.response_body
   end
 
   def self.ach_transfer(id)
     get("/transfers/ach/#{id}")
+  end
+
+  def self.return_ach(id, with:)
+    post("/transfers/ach/#{id}/return", return_code: with)
   end
 
 end

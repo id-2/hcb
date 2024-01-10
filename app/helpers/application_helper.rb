@@ -37,8 +37,8 @@ module ApplicationHelper
 
   def render_address(obj)
     content = []
-    content << [obj.address_line1, tag(:br)].join("")
-    content << [obj.address_line2 + tag(:br)].join("") if obj.address_line2.present?
+    content << [obj.address_line1, tag.br].join("")
+    content << [obj.address_line2 + tag.br].join("") if obj.address_line2.present?
     content << [obj.address_city, obj.address_state, obj.address_postal_code].join(", ")
     content_tag(:span, content.join.html_safe)
   end
@@ -339,6 +339,22 @@ module ApplicationHelper
   def fillout_form(id, params = {}, prefix: "")
     query = params.transform_keys { |k| prefix + k }
     "https://forms.hackclub.com/t/#{id}?#{URI.encode_www_form(query)}"
+  end
+
+  def redacted_amount
+    tag.span class: "tooltipped tooltipped--w", style: "cursor: default", "aria-label": "Hidden for security" do
+      tag.span(style: "filter: blur(5px)") { "$0.00" }
+    end
+  end
+
+  def copy_to_clipboard(clipboard_value, tooltip_direction: "n", **options, &block)
+    # If block is not given, use clipboard_value as the rendered content
+    block ||= ->(_) { clipboard_value }
+    return yield if options.delete(:if) == false
+
+    tag.span "data-controller": "clipboard", "data-clipboard-text-value": clipboard_value do
+      tag.span class: "pointer tooltipped tooltipped--#{tooltip_direction}", "aria-label": "Click to copy", "data-action": "click->clipboard#copy", **options, &block
+    end
   end
 
 end

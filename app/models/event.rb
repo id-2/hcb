@@ -247,7 +247,7 @@ class Event < ApplicationRecord
 
   has_many :ach_transfers
   has_many :disbursements
-  has_many :incoming_disbursements, class_name: "Disbursement", foreign_key: :event_id
+  has_many :incoming_disbursements, class_name: "Disbursement"
   has_many :outgoing_disbursements, class_name: "Disbursement", foreign_key: :source_event_id
   has_many :donations
   has_many :donation_payouts, through: :donations, source: :payout
@@ -531,11 +531,9 @@ class Event < ApplicationRecord
                        .fronted
                        .not_waived
                        .not_declined
-                       .where(raw_pending_incoming_disbursement_transaction_id: nil) # We don't charge fees on disbursements
 
     feed_fronted_balance = sum_fronted_amount(feed_fronted_pts)
 
-    # TODO: make sure this has the same rounding error has the rest of the codebase
     fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee).ceil
   end
 
@@ -606,7 +604,7 @@ class Event < ApplicationRecord
 
   def total_fee_payments_v2_cents
     @total_fee_payments_v2_cents ||=
-      canonical_transactions.includes(:fees).where(fees: { reason: "HACK CLUB FEE" }).sum(:amount_cents).abs +
+      canonical_transactions.includes(:fee).where(fee: { reason: "HACK CLUB FEE" }).sum(:amount_cents).abs +
       canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
   end
 

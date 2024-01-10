@@ -25,7 +25,7 @@ class OrganizerPositionsController < ApplicationController
     # get all the organizer positions as an array
     organizer_positions = StaticPageService::Index.new(current_user:).organizer_positions.not_hidden.to_a
 
-    return render status: :bad_request if index < 0 || index >= organizer_positions.size
+    return head status: :bad_request if index < 0 || index >= organizer_positions.size
 
     # switch the position *in the in-memory array*
     organizer_positions.delete organizer_position
@@ -56,6 +56,13 @@ class OrganizerPositionsController < ApplicationController
     end
 
     redirect_to organizer_position.event
+  end
+
+  def toggle_signee_status
+    organizer_position = OrganizerPosition.find(params[:id])
+    authorize organizer_position
+    organizer_position.toggle!(:is_signee)
+    redirect_back(fallback_location: event_team_path(organizer_position.event))
   end
 
 end

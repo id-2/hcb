@@ -37,7 +37,17 @@ class AdminController < ApplicationController
     size = pending_task params[:task_name].to_sym
     ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     elapsed = ending - starting
-    render json: { elapsed:, size: }, status: 200
+
+    respond_to do |format|
+      format.json { render json: { elapsed:, size: } }
+      format.html do
+        color = size == 0 ? "muted" : "accent"
+
+        render html: helpers.turbo_frame_tag(params[:task_name]) {
+          helpers.badge_for size, class: "pr2 bg-#{color}"
+        }
+      end
+    end
   end
 
   def negative_events
@@ -490,7 +500,10 @@ class AdminController < ApplicationController
     relation = relation.pending if @pending
 
     @count = relation.count
-    @ach_transfers = relation.page(@page).per(@per).order("created_at desc")
+    @ach_transfers = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
   end
@@ -506,6 +519,8 @@ class AdminController < ApplicationController
     ach_transfer.approve!(current_user)
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
+  rescue Faraday::Error => e
+    redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: "Something went wrong: #{e.response_body["message"]}" }
   rescue => e
     redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
   end
@@ -547,7 +562,7 @@ class AdminController < ApplicationController
     redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
-  def check
+  def checks
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
@@ -583,53 +598,21 @@ class AdminController < ApplicationController
     relation = relation.in_transit if @in_transit
 
     @count = relation.count
-    @checks = relation.page(@page).per(@per).order("created_at desc")
+    @checks = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
-  end
-
-  def check_process
-    @check = Check.find(params[:id])
-
-    render layout: "admin"
-  end
-
-  def check_positive_pay_csv
-    @check = Check.find(params[:id])
-
-    headers["Content-Type"] = "text/csv"
-    headers["Content-disposition"] = "attachment; filename=check-#{@check.id}-#{@check.check_number}.csv"
-    headers["X-Accel-Buffering"] = "no"
-    headers["Cache-Control"] ||= "no-cache"
-    headers.delete("Content-Length")
-
-    response.status = 200
-
-    self.response_body = ::CheckService::PositivePay::Csv.new(check_id: @check.id).run
-  end
-
-  def check_send
-    check = ::CheckService::Send.new(
-      check_id: params[:id]
-    ).run
-
-    redirect_to check_process_admin_path(check), flash: { success: "Success" }
-  end
-
-  def check_mark_in_transit_and_processed
-    check = CheckService::MarkInTransitAndProcessed.new(
-      check_id: params[:id]
-    ).run
-
-    redirect_to check_process_admin_path(check), flash: { success: "Success" }
-  rescue => e
-    redirect_to check_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
   def increase_checks
     @page = params[:page] || 1
     @per = params[:per] || 20
-    @checks = IncreaseCheck.page(@page).per(@per).order(created_at: :desc)
+    @checks = IncreaseCheck.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
   end
@@ -775,27 +758,16 @@ class AdminController < ApplicationController
     relation = relation.processing if @processing
 
     @count = relation.count
-    @disbursements = relation.page(@page).per(@per).order("created_at desc")
+    @disbursements = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'reviewing' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
   end
 
   def disbursement_new
-    render layout: "admin"
-  end
-
-  def disbursement_create
-    ::DisbursementService::Create.new(
-      source_event_id: params[:source_event_id],
-      destination_event_id: params[:event_id],
-      name: params[:name],
-      amount: params[:amount],
-      requested_by_id: current_user.id
-    ).run
-
-    redirect_to disbursements_admin_index_path, flash: { success: "Success" }
-  rescue => e
-    redirect_to disbursement_new_admin_index_path, flash: { error: e.message }
+    redirect_to new_disbursement_path
   end
 
   def hcb_codes
@@ -1200,7 +1172,7 @@ class AdminController < ApplicationController
 
   def hackathons_task_size
     hackathons = Faraday
-                 .new { |c| c.response :json }
+                 .new(ssl: { verify: false }) { |c| c.response :json }
                  .get("https://dash.hackathons.hackclub.com/api/v1/stats/hackathons")
                  .body
 

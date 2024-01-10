@@ -142,7 +142,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def account_number?
-    is_public || user_or_admin
+    user_or_admin
   end
 
   def toggle_event_tag?
@@ -151,6 +151,10 @@ class EventPolicy < ApplicationPolicy
 
   def receive_grant?
     record.users.include?(user)
+  end
+
+  def audit_log?
+    user.admin?
   end
 
   private

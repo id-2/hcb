@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_05_193655) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -50,6 +50,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.bigint "processor_id"
     t.text "increase_id"
     t.date "scheduled_on"
+    t.text "column_id"
+    t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
     t.index ["increase_id"], name: "index_ach_transfers_on_increase_id", unique: true
@@ -417,6 +419,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.bigint "event_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "deposit_only", default: true, null: false
     t.index ["event_id"], name: "index_column_account_numbers_on_event_id"
   end
 
@@ -451,6 +454,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.datetime "deposited_at", precision: nil
     t.bigint "destination_subledger_id"
     t.bigint "source_subledger_id"
+    t.boolean "should_charge_fee", default: false
     t.index ["destination_subledger_id"], name: "index_disbursements_on_destination_subledger_id"
     t.index ["event_id"], name: "index_disbursements_on_event_id"
     t.index ["fulfilled_by_id"], name: "index_disbursements_on_fulfilled_by_id"
@@ -1167,13 +1171,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
 
-  create_table "ops_checkins", force: :cascade do |t|
-    t.bigint "point_of_contact_id"
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.index ["point_of_contact_id"], name: "index_ops_checkins_on_point_of_contact_id"
-  end
-
   create_table "organizer_position_deletion_requests", force: :cascade do |t|
     t.bigint "organizer_position_id"
     t.bigint "submitted_by_id"
@@ -1487,6 +1484,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.text "last4_ciphertext"
     t.datetime "canceled_at"
     t.boolean "migrated_from_legacy_stripe_account", default: false
+    t.text "message"
     t.index ["event_id"], name: "index_recurring_donations_on_event_id"
     t.index ["stripe_subscription_id"], name: "index_recurring_donations_on_stripe_subscription_id", unique: true
     t.index ["url_hash"], name: "index_recurring_donations_on_url_hash", unique: true
@@ -1583,6 +1581,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.string "name"
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
+    t.boolean "lost_in_shipping", default: false
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
     t.index ["stripe_cardholder_id"], name: "index_stripe_cards_on_stripe_cardholder_id"
@@ -1730,7 +1729,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.text "email"
     t.string "full_name"
     t.text "phone_number"
-    t.datetime "admin_at", precision: nil
     t.string "slug"
     t.boolean "pretend_is_not_admin", default: false, null: false
     t.boolean "sessions_reported", default: false, null: false
@@ -1738,13 +1736,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
     t.boolean "use_sms_auth", default: false
     t.string "webauthn_id"
     t.integer "session_duration_seconds", default: 2592000, null: false
-    t.date "birthday"
     t.boolean "seasonal_themes_enabled", default: true, null: false
     t.datetime "locked_at", precision: nil
     t.boolean "running_balance_enabled", default: false, null: false
     t.integer "receipt_report_option", default: 0, null: false
     t.string "preferred_name"
     t.integer "access_level", default: 0, null: false
+    t.text "birthday_ciphertext"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
@@ -1849,7 +1847,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_19_175938) do
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
   add_foreign_key "mfa_requests", "mfa_codes"
-  add_foreign_key "ops_checkins", "users", column: "point_of_contact_id"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"

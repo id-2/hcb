@@ -13,6 +13,7 @@
 #  name                     :string
 #  pending_at               :datetime
 #  rejected_at              :datetime
+#  should_charge_fee        :boolean          default(FALSE)
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
 #  destination_subledger_id :bigint
@@ -108,7 +109,7 @@ class Disbursement < ApplicationRecord
   aasm timestamps: true, whiny_persistence: true do
     state :reviewing, initial: true # Being reviewed by an admin
     state :pending                  # Waiting to be processed by the TX engine
-    state :in_transit               # Transfer started on SVB
+    state :in_transit               # Transfer started on remote bank
     state :deposited                # Transfer completed!
     state :rejected                 # Rejected by admin
     state :errored                  # oh no! an error!
@@ -271,6 +272,10 @@ class Disbursement < ApplicationRecord
 
   def special_appearance_memo
     special_appearance&.[](:memo)
+  end
+
+  def fee_waived?
+    !should_charge_fee?
   end
 
   private

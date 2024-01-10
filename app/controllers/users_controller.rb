@@ -32,7 +32,7 @@ class UsersController < ApplicationController
     login_preference = session[:login_preference]
 
     if !has_webauthn_enabled || login_preference == "email"
-      redirect_to login_code_users_path, status: 307
+      redirect_to login_code_users_path, status: :temporary_redirect
     else
       session[:auth_email] = @email
       redirect_to choose_login_preference_users_path(return_to: params[:return_to])
@@ -55,7 +55,7 @@ class UsersController < ApplicationController
     case params[:login_preference]
     when "email"
       session[:login_preference] = "email" if remember
-      redirect_to login_code_users_path, status: 307
+      redirect_to login_code_users_path, status: :temporary_redirect
     when "webauthn"
       # This should never happen, because WebAuthn auth is handled on the frontend
       redirect_to choose_login_preference_users_path
@@ -355,6 +355,9 @@ class UsersController < ApplicationController
         redirect_to root_path
       else
         flash[:success] = @user == current_user ? "Updated your profile!" : "Updated #{@user.first_name}'s profile!"
+
+        ::StripeCardholderService::Update.new(current_user: @user).run
+
         redirect_back_or_to edit_user_path(@user)
       end
     else
@@ -370,7 +373,7 @@ class UsersController < ApplicationController
   end
 
   def delete_profile_picture
-    @user = User.friendly.find(params[:id])
+    @user = User.friendly.find(params[:user_id])
     authorize @user
 
     @user.profile_picture.purge_later

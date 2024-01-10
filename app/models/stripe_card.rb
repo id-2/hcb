@@ -9,6 +9,7 @@
 #  card_type                           :integer          default("virtual"), not null
 #  is_platinum_april_fools_2023        :boolean
 #  last4                               :text
+#  lost_in_shipping                    :boolean          default(FALSE)
 #  name                                :string
 #  purchased_at                        :datetime
 #  spending_limit_amount               :integer
@@ -85,6 +86,8 @@ class StripeCard < ApplicationRecord
   enum card_type: { virtual: 0, physical: 1 }
   enum spending_limit_interval: { daily: 0, weekly: 1, monthly: 2, yearly: 3, per_authorization: 4, all_time: 5 }
 
+  delegate :stripe_name, to: :stripe_cardholder
+
   validates_uniqueness_of :stripe_id
 
   validates_presence_of :stripe_shipping_address_city,
@@ -103,6 +106,8 @@ class StripeCard < ApplicationRecord
                         :last4,
                         :stripe_status,
                         if: -> { self.stripe_id.present? }
+
+  validate :only_physical_cards_can_be_lost_in_shipping
 
   def full_card_number
     secret_details[:number]
@@ -130,10 +135,6 @@ class StripeCard < ApplicationRecord
     "•••• •••• •••• #{last4}"
   end
 
-  def stripe_name
-    stripe_cardholder.stripe_name
-  end
-
   def total_spent
     # pending authorizations + settled transactions
     RawPendingStripeTransaction
@@ -149,9 +150,7 @@ class StripeCard < ApplicationRecord
     stripe_status.humanize
   end
 
-  def state_text
-    status_text
-  end
+  alias :state_text :status_text
 
   def status_badge_type
     s = stripe_status.to_sym
@@ -215,13 +214,13 @@ class StripeCard < ApplicationRecord
   alias_attribute :address_postal_code, :stripe_shipping_address_postal_code
 
   def stripe_obj
-    @stripe_obj ||= ::Partners::Stripe::Issuing::Cards::Show.new(id: stripe_id).run
+    @stripe_obj ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id)
   rescue => e
     { number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered" } }
   end
 
   def secret_details
-    @secret_details ||= ::Partners::Stripe::Issuing::Cards::Show.new(id: stripe_id, expand: ["cvc", "number"]).run
+    @secret_details ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id, expand: ["cvc", "number"])
   rescue => e
     { number: "XXXX", cvc: "XXX" }
   end
@@ -259,6 +258,18 @@ class StripeCard < ApplicationRecord
     end
 
     if stripe_obj[:shipping]
+      if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?
+        self.lost_in_shipping = true
+        StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
+
+        # force a refresh of the cache; otherwise, the card will be marked as
+        # lost in shipping again since stripe_obj is cached
+        @stripe_obj = nil
+        self.cancel!
+
+        # `cancel!` calls `sync_from_stripe!`, so there is no need to continue
+        return self
+      end
       self.stripe_shipping_address_city = stripe_obj[:shipping][:address][:city]
       self.stripe_shipping_address_country = stripe_obj[:shipping][:address][:country]
       self.stripe_shipping_address_line1 = stripe_obj[:shipping][:address][:line1]
@@ -352,7 +363,7 @@ class StripeCard < ApplicationRecord
   end
 
   def issued?
-    !stripe_id.blank?
+    stripe_id.present?
   end
 
   def pay_for_issuing
@@ -376,6 +387,12 @@ class StripeCard < ApplicationRecord
     end
 
     @auths
+  end
+
+  def only_physical_cards_can_be_lost_in_shipping
+    if !physical? && lost_in_shipping?
+      errors.add(:lost_in_shipping, "can only be true for physical cards")
+    end
   end
 
 end
