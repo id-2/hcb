@@ -7,5 +7,7 @@ module InvoiceJob
         invoice.mark_deposited!
       end
     end
+
   end
+  
 end
