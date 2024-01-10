@@ -58,6 +58,10 @@ donation_nightly_job:
   cron: "*/30 * * * *" # run every 30 minutes
   class: "DonationJob::Nightly"
 
+invoice_nightly_job:
+  cron: "*/30 * * * *" # run every 30 minutes
+  class: "InvoiceJob::Nightly"
+
 payout_nightly_job:
   cron: "0 0 * * *" # run every 1 day
   class: "PayoutJob::Nightly"
