@@ -211,10 +211,6 @@ class Invoice < ApplicationRecord
     (payout_transaction && !self&.fee_reimbursement) || (payout_transaction && self&.fee_reimbursement&.t_transaction) || manually_marked_as_paid?
   end
 
-  def deposited? # TODO move to aasm
-    canonical_transactions.count >= 2 || manually_marked_as_paid? || completed_deprecated?
-  end
-
   def archived?
     archived_v2? || archived_and_paid_v2? || archived_and_deposited_v2? || archived_and_void_v2?
   end
