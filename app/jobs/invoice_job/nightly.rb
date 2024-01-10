@@ -9,5 +9,5 @@ module InvoiceJob
     end
 
   end
-  
+
 end
