@@ -152,7 +152,7 @@ class Invoice < ApplicationRecord
       transitions from: :open_v2, to: :void_v2
       transitions from: :archived_v2, to: :archived_and_void_v2
     end
-    
+
     event :mark_deposited do
       transitions from: :paid_v2, to: :deposited_v2
       transitions from: :archived_and_paid_v2, to: :archived_and_deposited_v2
@@ -164,7 +164,7 @@ class Invoice < ApplicationRecord
       transitions from: :void_v2, to: :archived_and_void_v2
       transitions from: :deposited_v2, to: :archived_and_deposited_v2
     end
-    
+
     event :unarchive do
       transitions from: :archived_v2, to: :open_v2
       transitions from: :archived_and_paid_v2, to: :paid_v2
@@ -214,7 +214,7 @@ class Invoice < ApplicationRecord
   def deposited? # TODO move to aasm
     canonical_transactions.count >= 2 || manually_marked_as_paid? || completed_deprecated?
   end
-  
+
   def archived?
     archived_v2? || archived_and_paid_v2? || archived_and_deposited_v2? || archived_and_void_v2?
   end
