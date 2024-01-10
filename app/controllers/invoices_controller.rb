@@ -29,14 +29,14 @@ class InvoicesController < ApplicationController
       total: relation.sum(:item_amount) - archived_unpaid,
       # "paid" status invoices include manually paid invoices and
       # Stripe invoices that are paid, but for which the funds are in transit
-      paid: relation.paid_v2.sum(:item_amount) - amount_in_transit,
+      paid: relation.paid_or_deposited.sum(:item_amount) - amount_in_transit,
       pending: amount_in_transit,
       unpaid: relation.unpaid.sum(:item_amount) - archived_unpaid,
     }
 
     case params[:filter]
     when "paid"
-      relation = relation.paid_v2
+      relation = relation.paid_or_deposited
     when "unpaid"
       relation = relation.unpaid
     when "archived"
@@ -153,6 +153,8 @@ class InvoicesController < ApplicationController
     @invoice.archived_at = DateTime.now
     @invoice.archived_by = current_user
 
+    @invoice.mark_archived!
+
     if @invoice.save
       redirect_to @invoice
     else
@@ -168,6 +170,8 @@ class InvoicesController < ApplicationController
 
     @invoice.archived_at = nil
     @invoice.archived_by = nil
+
+    @invoice.unarchive!
 
     if @invoice.save
       flash[:success] = "Invoice has been un-archived."

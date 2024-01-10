@@ -19,7 +19,7 @@ module PendingTransactionEngine
 
         def pending_invoice_transactions
           ::Invoice
-            .paid_v2
+            .paid_or_deposited
             .not_manually_marked_as_paid
             .missing_raw_pending_invoice_transaction
             .where("amount_due > 0")

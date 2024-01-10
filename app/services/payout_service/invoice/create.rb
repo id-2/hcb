@@ -17,6 +17,7 @@ module PayoutService
           fee_reimbursement.save!
           invoice.update_column(:payout_id, payout.id)
           invoice.update_column(:fee_reimbursement_id, fee_reimbursement.id)
+          invoice.mark_deposited!
 
           payout
         end

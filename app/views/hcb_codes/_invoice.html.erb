@@ -43,7 +43,7 @@
   </section>
   <!-- recipient info -->
   <section class="details details--wide pt2 pb2 details--tall">
-    <% unless @invoice.paid_v2? or @invoice.deposited? %>
+    <% unless @invoice.paid_v2? or @invoice.deposited_v2? %>
       <p>
         <strong>Due date</strong>
         <span>
@@ -148,7 +148,7 @@
   </section>
 </article>
 
-<% if @invoice.paid_v2? or @invoice.deposited? %>
+<% if @invoice.paid_v2? or @invoice.deposited_v2? %>
   <article class="card pb0 mt3 mb3">
     <h2 class="h2 mt0 border-none">
       <%= @sponsor.name %>

@@ -836,7 +836,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.open_v2 if @open
-    relation = relation.paid_v2 if @paid
+    relation = relation.paid_or_deposited if @paid
     relation = relation.missing_payout if @missing_payout
     relation = relation.missing_fee_reimbursement if @missing_fee_reimbursement
     relation = relation.past_due if @past_due

@@ -105,10 +105,11 @@ class Invoice < ApplicationRecord
   pg_search_scope :search_description, associated_against: { sponsor: :name }, against: [:item_description, :item_amount], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "invoices.created_at"
 
   scope :unarchived, -> { where(archived_at: nil) }
-  scope :archived, -> { where.not(archived_at: nil) }
+  scope :archived, -> { where("aasm_state LIKE 'archived%'") }
   scope :missing_fee_reimbursement, -> { where(fee_reimbursement_id: nil) }
   scope :missing_payout, -> { where("payout_id is null and payout_creation_balance_net is not null") } # some invoices are missing a payout but it is ok because they were paid by check. that is why we additionally check on payout_creation_balance_net
-  scope :unpaid, -> { where("aasm_state != 'paid_v2'") }
+  scope :unpaid, -> { where("aasm_state != 'paid_v2' AND aasm_state != 'deposited_v2'") }
+  scope :paid_or_deposited, -> { where("aasm_state = 'paid_v2' OR aasm_state = 'deposited_v2'") }
   scope :past_due, -> { where("due_date < ?", Time.current) }
   scope :not_manually_marked_as_paid, -> { where(manually_marked_as_paid_at: nil) }
   scope :missing_raw_pending_invoice_transaction, -> { joins("LEFT JOIN raw_pending_invoice_transactions ON raw_pending_invoice_transactions.invoice_transaction_id = invoices.id::text").where(raw_pending_invoice_transactions: { id: nil }) }
@@ -135,14 +136,40 @@ class Invoice < ApplicationRecord
   aasm do
     state :open_v2, initial: true
     state :paid_v2
+    state :deposited_v2
     state :void_v2
+    state :archived_v2
+    state :archived_and_paid_v2
+    state :archived_and_deposited_v2
+    state :archived_and_void_v2
 
     event :mark_paid do
       transitions from: :open_v2, to: :paid_v2
+      transitions from: :archived_v2, to: :archived_and_paid_v2
     end
 
     event :mark_void do
       transitions from: :open_v2, to: :void_v2
+      transitions from: :archived_v2, to: :archived_and_void_v2
+    end
+    
+    event :mark_deposited do
+      transitions from: :paid_v2, to: :deposited_v2
+      transitions from: :archived_and_paid_v2, to: :archived_and_deposited_v2
+    end
+
+    event :mark_archived do
+      transitions from: :open_v2, to: :archived_v2
+      transitions from: :paid_v2, to: :archived_and_paid_v2
+      transitions from: :void_v2, to: :archived_and_void_v2
+      transitions from: :deposited_v2, to: :archived_and_deposited_v2
+    end
+    
+    event :unarchive do
+      transitions from: :archived_v2, to: :open_v2
+      transitions from: :archived_and_paid_v2, to: :paid_v2
+      transitions from: :archived_and_void_v2, to: :void_v2
+      transitions from: :archived_and_deposited_v2, to: :deposited_v2
     end
   end
 
@@ -184,16 +211,16 @@ class Invoice < ApplicationRecord
     (payout_transaction && !self&.fee_reimbursement) || (payout_transaction && self&.fee_reimbursement&.t_transaction) || manually_marked_as_paid?
   end
 
-  def archived?
-    archived_at.present?
-  end
-
   def deposited? # TODO move to aasm
     canonical_transactions.count >= 2 || manually_marked_as_paid? || completed_deprecated?
   end
+  
+  def archived?
+    archived_v2? || archived_and_paid_v2? || archived_and_deposited_v2? || archived_and_void_v2?
+  end
 
   def state
-    return :success if paid_v2? && deposited?
+    return :success if deposited_v2?
     return :success if paid_v2? && event.can_front_balance?
     return :info if paid_v2?
     return :muted if archived?
@@ -205,9 +232,9 @@ class Invoice < ApplicationRecord
   end
 
   def state_text
-    return "Deposited" if paid_v2? && (event.can_front_balance? || deposited?)
+    return "Deposited" if deposited_v2? || (paid_v2? && event.can_front_balance?)
     return "In Transit" if paid_v2?
-    return "Archived" if archived?
+    return "Archived" if archived_v2?
     return "Voided" if void_v2?
     return "Overdue" if due_date < Time.current
     return "Due soon" if due_date < 3.days.from_now
@@ -216,7 +243,7 @@ class Invoice < ApplicationRecord
   end
 
   def state_icon
-    return "checkmark" if deposited? || (paid_v2? && event.can_front_balance?)
+    return "checkmark" if deposited_v2? || (paid_v2? && event.can_front_balance?)
   end
 
   def filter_data

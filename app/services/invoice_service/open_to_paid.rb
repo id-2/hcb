@@ -7,7 +7,7 @@ module InvoiceService
     end
 
     def run
-      return if invoice.paid_v2? # return if already marked paid
+      return if invoice.paid_or_deposited? # return if already marked paid or deposited
       return unless invoice.remote_paid? && invoice.remote_invoice.charge.present? # only process if invoice was paid and was paid with a remote charge. check paid invoices are handled differently
 
       ::ActiveRecord::Base.transaction do
