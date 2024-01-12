@@ -131,6 +131,7 @@ class Invoice < ApplicationRecord
   belongs_to :fee_reimbursement, required: false
   belongs_to :archived_by, class_name: "User", required: false
 
+  has_one :personal_transaction, class_name: "HcbCode::PersonalTransaction", required: false
   has_one_attached :manually_marked_as_paid_attachment
 
   aasm do
@@ -230,7 +231,7 @@ class Invoice < ApplicationRecord
   def state_text
     return "Deposited" if deposited_v2? || (paid_v2? && event.can_front_balance?)
     return "In Transit" if paid_v2?
-    return "Archived" if archived_v2?
+    return "Archived" if archived?
     return "Voided" if void_v2?
     return "Overdue" if due_date < Time.current
     return "Due soon" if due_date < 3.days.from_now
