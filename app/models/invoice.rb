@@ -215,6 +215,11 @@ class Invoice < ApplicationRecord
   def archived?
     archived_v2? || archived_and_paid_v2? || archived_and_deposited_v2? || archived_and_void_v2?
   end
+  
+  def deposited? # Remove after switch to AASM
+    canonical_transactions.count >= 2 || manually_marked_as_paid? || completed_deprecated?
+    archived_v2? || archived_and_paid_v2? || archived_and_deposited_v2? || archived_and_void_v2?
+  end
 
   def state
     return :success if deposited_v2?
