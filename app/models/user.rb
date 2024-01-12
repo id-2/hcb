@@ -194,7 +194,7 @@ class User < ApplicationRecord
   end
 
   def birthday?
-    Date.today
+    birthday.present? && birthday.month == Date.today.month && birthday.day == Date.today.day
   end
 
   def seasonal_themes_disabled?
