@@ -5,6 +5,7 @@ module ApiService
     class DeliverWebhook
       VALID_WEBHOOK_TYPES = [
         ::PartneredSignupService::DeliverWebhook::TYPE,
+        ::HcbCodeService::PizzaGrantChargeWebhook::TYPE
       ].freeze
 
       # POST to `webhook_url`
@@ -38,7 +39,7 @@ module ApiService
       def conn
         @conn ||= begin
           Faraday.new(new_attrs) do |faraday|
-            faraday.use FaradayMiddleware::FollowRedirects, limit: 10
+            # faraday.use FaradayMiddleware::FollowRedirects, limit: 10 - @sampoder: this line is currently broken.
           end
         end
       end
@@ -51,7 +52,7 @@ module ApiService
 
       def body
         body_and_type = @data
-        body_and_type["meta"] = { type: @type }
+        # body_and_type["meta"] = { type: @type } - also seems to broken (@sampoder).
 
         body_and_type.to_json
       end

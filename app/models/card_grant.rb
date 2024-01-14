@@ -137,6 +137,10 @@ class CardGrant < ApplicationRecord
   def allowed_categories
     (category_lock + (setting&.category_lock || [])).uniq
   end
+  
+  def url
+    "/grants/#{hashid}"
+  end
 
   private
 
