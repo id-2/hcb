@@ -1,9 +1,9 @@
 <turbo-frame id="organization-profile">
   <%= form_with(model: event, local: true, class: "mb3", data: { turbo: true }) do |form| %>
     <%= form_errors event, "organization" %>
-  
+
     <h3 class="mb1">Organization profile</h3>
-  
+
     <div class="card">
       <div class="field">
         <%= form.label :logo %>
@@ -20,12 +20,12 @@
           <%= form.label :logo, "Choose File", class: "field--fileupload__label" %>
           <%= form.file_field :logo, accept: "image/*,image/heic", class: "field--fileupload__field" %>
         </div>
-  
+
         <% if @event.logo.attached? %>
           <%= link_to "Remove logo", event_remove_logo_path(@event), class: "block mt1", method: :post %>
         <% end %>
       </div>
-  
+
       <div class="field mt3">
         <%= form.label :background_image %>
         <p class="h5 muted mt0 mb1">
@@ -38,12 +38,12 @@
           <%= form.label :background_image, "Choose File", class: "field--fileupload__label" %>
           <%= form.file_field :background_image, accept: "image/*,image/heic", class: "field--fileupload__field" %>
         </div>
-  
+
         <% if @event.background_image.attached? %>
           <%= link_to "Remove background", event_remove_background_image_path(@event), class: "block mt1", method: :post %>
         <% end %>
       </div>
-  
+
       <div class="field mt3">
         <%= form.label :description, "Mission Statement" %>
         <p class="h5 muted mt0 mb1">
@@ -51,25 +51,25 @@
         </p>
         <%= form.text_area :description, placeholder: "Focusing on...", class: "w-100 fit" %>
       </div>
-  
+
       <div class="field mt2">
         <%= form.label :website, "Website URL" %>
         <%= form.text_field :website, type: :url, placeholder: "https://hackclub.com", class: "w-100 fit" %>
       </div>
-  
+
       <%= form.submit "Update" %>
     </div>
-  
+
   <% end %>
 </turbo-frame>
 
 <turbo-frame id="card-grant">
   <%= form_with(model: event, local: true, class: "mb3", data: { turbo: true }) do |form| %>
-  
+
     <% if @event.card_grant_setting.present? %>
-  
+
       <h3 class="mb1" id="card-grants">Card Grants</h3>
-  
+
       <div class="card">
         <%= form.fields_for :card_grant_setting, @event.card_grant_setting do |card_grant_setting_fields| %>
           <%= card_grant_setting_fields.hidden_field :id, value: @event.card_grant_setting.id %>
@@ -80,13 +80,13 @@
               Provide a comma-separated list of merchant network IDs to lock all card grants issued from this event to.
             </p>
           </div>
-  
+
           <div class="field">
             <%= card_grant_setting_fields.label :category_lock, "Update Category Lock" %>
             <%= card_grant_setting_fields.text_field :category_lock, placeholder: "fast_food_restaurants", value: @event.card_grant_setting.category_lock.join(", ") %>
             <p class="h5 muted mt0 mb1">Provide a comma-separated list of <a href="https://stripe.com/docs/issuing/categories">merchant categories</a> to lock all card grants issued from this event to.</p>
           </div>
-  
+
           <div class="field">
             <%= card_grant_setting_fields.label :invite_message, "Update Invite Message" %>
             <%= card_grant_setting_fields.text_area :invite_message, placeholder: "It's pizza time!", value: @event.card_grant_setting.invite_message %>
@@ -97,12 +97,12 @@
             </p>
           </div>
         <% end %>
-  
+
         <%= form.submit "Update" %>
       </div>
-  
+
     <% end %>
-    
+
   <% end %>
 </turbo-frame>
 
@@ -116,7 +116,7 @@
           <span class="badge nowrap bg-warning">Beta</span>
           <span class="badge nowrap ml1 bg-<%= @color %>"><%= @flavor %></span>
         </h3>
-  
+
         <div class="card">
           <p class="mt0">To customize the styling on your dashboard, paste a <strong>link to a CSS file</strong> below. Here are a few of the class names you might find helpful to spice up your dashboard:</p>
           <ul class="mt0 pl2 mb2">
@@ -137,7 +137,7 @@
         </div>
       <% end %>
     <% end %>
-  <% end %>  
+  <% end %>
 </turbo-frame>
 
 <turbo-frame id="event-dates">
@@ -166,7 +166,7 @@
   <% if !@event.unapproved? %>
     <%= form_with(model: event, local: true, class: "mb3", data: { turbo: true }) do |form| %>
       <h3 class="mb1" id="donations">Donations</h3>
-  
+
       <div class="card">
         <div class="field field--checkbox">
           <%= form.check_box :donation_page_enabled %>
@@ -191,11 +191,11 @@
     <% end %>
   <% end %>
 </turbo-frame>
-  
+
 <turbo-frame id="transparency-mode">
   <%= form_with(model: event, local: true, class: "mb3", data: { turbo: true }) do |form| %>
     <h3 class="mb1" id="transparency_mode_heading">Transparency Mode</h3>
-  
+
     <div class="card mb3">
       <ul class="mt0 pl2 mb2">
         <li>Unauthenticated users will be able to access a <strong>read-only</strong> version of your account.</li>
@@ -233,7 +233,7 @@
     </div>
   <% end %>
 </turbo-frame>
-  
+
 <turbo-frame id="danger-zone">
   <%= form_with(model: event, local: true, class: "mb3", data: { turbo: true }) do |form| %>
     <h3 class="mb1">Danger Zone</h3>
@@ -266,7 +266,7 @@
     </div>
   <% end %>
 </turbo-frame>
-      
+
 <turbo-frame id="admin-zone">
   <%= form_with(model: event, local: true, class: "mb3", data: { turbo: true }) do |form| %>
     <% admin_tools do %>
@@ -276,58 +276,58 @@
                   "data-confirm": "Do you really want to #{event.hidden? ? "un-hide" : "hide"} #{event.name}?",
                   class: "btn bg-success" if event.persisted? %>
     <% end %>
-  
+
     <% admin_tools do %>
       <div class="field" id="admin_settings">
         <%= form.label :name %>
         <%= form.text_field :name %>
       </div>
-  
+
       <div class="field">
         <%= form.label :sponsorship_fee, "Sponsorship fee (as fraction of revenue)" %>
         <%= form.text_field :sponsorship_fee, value: event.sponsorship_fee || 0.07, placeholder: "0.07", required: true %>
       </div>
-  
+
       <div class="field">
         <%= form.label :stripe_card_shipping_type, "Card shipping method" %>
         <%= form.collection_select :stripe_card_shipping_type, Event.stripe_card_shipping_types, :first, :first %>
       </div>
-  
+
       <div class="field">
         <%= form.label :country %>
         <%= form.collection_select :country, Event.countries.map{ |c| [c.first, get_country_name_from_alpha2(c.first)] }, :first, :last, { include_blank: "Select a country" } %>
       </div>
-  
+
       <div class="field">
         <%= form.label :category %>
         <%= form.collection_select :category, Event.categories, :first, :first, { include_blank: "Select a category" } %>
       </div>
-  
+
       <div class="field">
         <%= form.label :point_of_contact_id, "Point of contact" %>
         <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email %>
       </div>
-  
+
       <div class="field field--checkbox">
         <%= form.check_box :demo_mode %>
         <%= form.label :demo_mode, "Is in Playground Mode?" %>
       </div>
-  
+
       <div class="field field--checkbox">
         <%= form.check_box :omit_stats %>
         <%= form.label :omit_stats, "Omit from public stats?" %>
       </div>
-  
+
       <div class="field field--checkbox">
         <%= form.check_box :beta_features_enabled %>
         <%= form.label :beta_features_enabled, "Turn on beta (features in development) for this event?" %>
       </div>
-  
+
       <div class="field field--checkbox">
         <%= form.check_box :can_front_balance %>
         <%= form.label :can_front_balance, "Front incoming transactions?" %>
       </div>
-  
+
       <div class="action">
         <%= form.submit "Update" %>
       </div>
