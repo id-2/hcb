@@ -330,23 +330,8 @@ $(document).on('turbo:load', function () {
       if (e.target.checked) shippingInputs.hide()
     })
   }
-
-  if (BK.thereIs('additional_transparency_settings')) {
-    const additionalTransparencySettings = BK.s(
-      'additional_transparency_settings'
-    )
-    const transparencyToggle = $('#event_is_public')
-    $(transparencyToggle).on('change', e => {
-      if (e.target.checked) {
-        // When transparency mode is enabled, also enable indexing by default
-        $('#event_is_indexable').prop('checked', true)
-
-        additionalTransparencySettings.slideDown()
-      } else {
-        additionalTransparencySettings.slideUp()
-      }
-    })
-  }
+  
+  setUpAdditionalTransparencySettingsToggle()
 
   const tiltElement = $('[data-behavior~=hover_tilt]')
   const enableTilt = () =>
@@ -402,6 +387,31 @@ document.addEventListener("turbo:load", () => {
     document.body.classList.remove('embedded');
   }
 })
+
+document.addEventListener("turbo:frame-load", () => {
+  setUpAdditionalTransparencySettingsToggle()
+})
+
+function setUpAdditionalTransparencySettingsToggle(){
+  if (BK.thereIs('additional_transparency_settings')) {
+    const additionalTransparencySettings = BK.s(
+      'additional_transparency_settings'
+    )
+    const transparencyToggle = $('#event_is_public')
+    $(transparencyToggle).on('change', e => {
+      console.log(e.target.checked)
+      if (e.target.checked) {
+        // When transparency mode is enabled, also enable indexing by default
+        $('#event_is_indexable').prop('checked', true)
+  
+        additionalTransparencySettings.slideDown()
+      } else {
+        additionalTransparencySettings.slideUp()
+      }
+    })
+  }
+  BK.s('autohide').hide()
+}
 
 let hankIndex = 0
 $(document).on('keydown', function (e) {
