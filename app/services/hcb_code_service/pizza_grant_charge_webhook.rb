@@ -16,7 +16,7 @@ module HcbCodeService
         ::ApiService::V2::DeliverWebhook.new(
           type: TYPE,
           webhook_url: "https://example.com", # needs to be updated, waiting for @jdogcoder.
-          data: JSON.generate(
+          data: {
             "url": "https://hcb.hackclub.com#{@hcb_code.url}",
             "amount_cents": @hcb_code.amount_cents,
             "merchant": {
@@ -31,7 +31,7 @@ module HcbCodeService
             "grant": {
               "url": "https://hcb.hackclub.com#{grant.url}"
             }
-          ),
+          },
           secret: "bbqOFdinosaurs" # how do we want to do this? this is just a filler secret.
         ).run
       end
