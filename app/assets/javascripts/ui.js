@@ -173,6 +173,10 @@ $(document).keydown(function (e) {
 
 $(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
+$(document).on('turbo:frame-load', function () {
+  BK.s('autohide').hide()
+})
+
 $(document).on('turbo:load', function () {
   if (window.location !== window.parent.location) {
     $('[data-behavior~=hide_iframe]').hide()
@@ -336,6 +340,9 @@ $(document).on('turbo:load', function () {
       'additional_transparency_settings'
     )
     $(document).on("change", "#event_is_public", e => {
+      let additionalTransparencySettings = BK.s(
+        'additional_transparency_settings'
+      )
       if (e.target.checked) {
         // When transparency mode is enabled, also enable indexing by default
         $('#event_is_indexable').prop('checked', true)
