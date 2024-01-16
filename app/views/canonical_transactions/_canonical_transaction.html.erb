@@ -15,7 +15,11 @@
       dragleave->file-drop#dragleave
     "
   <% end %>>
-    <% if ct.fee_payment? %>
+    <% if ct.pinned %>
+      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Pinned transaction">
+        <%= inline_icon "pin" %>
+      </td>
+    <% elsif ct.fee_payment? %>
       <td class="transaction__icon tooltipped tooltipped--e" aria-label="Fiscal sponsorship payment">
         <%= inline_icon "minus-fill" %>
       </td>
@@ -147,6 +151,8 @@
             </div>
           <% end %>
         </div>
+
+        <%= link_to "[pin]", toggle_pinned_status_canonical_transaction_path(ct.canonical_transactions.first.id), method: :post %>
 
         <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && !@event&.demo_mode? %>
           <div class="flex flex-wrap" style="gap: 0.25rem" id="hcb_code_<%= ct.local_hcb_code.hashid %>_tags">

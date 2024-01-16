@@ -365,6 +365,7 @@ Rails.application.routes.draw do
     member do
       post "waive_fee"
       post "unwaive_fee"
+      post "toggle_pinned_status"
       post "mark_bank_fee"
       post "set_custom_memo"
     end

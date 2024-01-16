@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_16_224845) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -353,15 +351,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.text "hcb_code"
     t.string "transaction_source_type"
     t.bigint "transaction_source_id"
+    t.boolean "pinned", default: false
     t.index ["date"], name: "index_canonical_transactions_on_date"
     t.index ["hcb_code"], name: "index_canonical_transactions_on_hcb_code"
     t.index ["transaction_source_type", "transaction_source_id"], name: "index_canonical_transactions_on_transaction_source"
   end
 
   create_table "card_grant_settings", force: :cascade do |t|
+    t.bigint "event_id", null: false
     t.string "merchant_lock"
     t.string "category_lock"
-    t.bigint "event_id", null: false
     t.string "invite_message"
     t.index ["event_id"], name: "index_card_grant_settings_on_event_id"
   end
@@ -727,9 +726,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.string "increase_account_id", null: false
     t.string "website"
     t.text "description"
+    t.integer "stripe_card_shipping_type", default: 0, null: false
     t.text "donation_thank_you_message"
     t.text "donation_reply_to_email"
-    t.integer "stripe_card_shipping_type", default: 0, null: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -883,7 +882,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.index ["raw_plaid_transaction_id"], name: "index_hashed_transactions_on_raw_plaid_transaction_id"
     t.index ["raw_stripe_transaction_id"], name: "index_hashed_transactions_on_raw_stripe_transaction_id"
   end
-  
+
   create_table "hcb_code_personal_transactions", force: :cascade do |t|
     t.bigint "hcb_code_id"
     t.bigint "invoice_id"
@@ -1134,16 +1133,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
   end
 
-  create_table "metrics", force: :cascade do |t|
-    t.string "type", null: false
-    t.jsonb "metric"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "subject_type"
-    t.bigint "subject_id"
-    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
-  end
-
   create_table "mailbox_addresses", force: :cascade do |t|
     t.string "address", null: false
     t.string "aasm_state"
@@ -1153,6 +1142,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.datetime "updated_at", null: false
     t.index ["address"], name: "index_mailbox_addresses_on_address", unique: true
     t.index ["user_id"], name: "index_mailbox_addresses_on_user_id"
+  end
+
+  create_table "metrics", force: :cascade do |t|
+    t.string "type", null: false
+    t.jsonb "metric"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
   create_table "mfa_codes", force: :cascade do |t|
@@ -1198,6 +1197,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
+  end
+
+  create_table "ops_checkins", force: :cascade do |t|
+    t.bigint "point_of_contact_id"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["point_of_contact_id"], name: "index_ops_checkins_on_point_of_contact_id"
   end
 
   create_table "organizer_position_deletion_requests", force: :cascade do |t|
@@ -1882,6 +1888,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
   add_foreign_key "mfa_requests", "mfa_codes"
+  add_foreign_key "ops_checkins", "users", column: "point_of_contact_id"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"

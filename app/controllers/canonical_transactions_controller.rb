@@ -61,6 +61,18 @@ class CanonicalTransactionsController < ApplicationController
 
     redirect_to transaction_url(params[:id])
   end
+  
+  def toggle_pinned_status
+    authorize CanonicalTransaction
+  
+    ct = CanonicalTransaction.find(params[:id])
+
+    ct.pinned = !ct.pinned
+
+    ct.save!
+
+    redirect_to transaction_url(params[:id])
+  end
 
   def mark_bank_fee
     authorize CanonicalTransaction

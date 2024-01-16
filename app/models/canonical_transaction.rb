@@ -11,6 +11,7 @@
 #  friendly_memo           :text
 #  hcb_code                :text
 #  memo                    :text             not null
+#  pinned                  :boolean          default(FALSE)
 #  transaction_source_type :string
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
@@ -95,6 +96,7 @@ class CanonicalTransaction < ApplicationRecord
 
   validates :friendly_memo, presence: true, allow_nil: true
   validates :custom_memo, presence: true, allow_nil: true
+  before_validation :validate_max_pinned_transactions, if: :pinned_changed?
 
   before_validation { self.custom_memo = custom_memo.presence&.strip }
 
@@ -376,6 +378,17 @@ class CanonicalTransaction < ApplicationRecord
   def write_system_event
     safely do
       ::SystemEventService::Write::SettledTransactionCreated.new(canonical_transaction: self).run
+    end
+  end
+  
+  def validate_max_pinned_transactions
+    return unless event.present?
+  
+    max_pinned_transactions = 4
+    pinned_count = event.canonical_transactions.where(pinned: true).count
+  
+    if pinned_count >= max_pinned_transactions
+      errors.add(:base, "Event can have at most #{max_pinned_transactions} pinned transactions")
     end
   end
 

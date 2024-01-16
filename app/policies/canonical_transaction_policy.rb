@@ -24,6 +24,10 @@ class CanonicalTransactionPolicy < ApplicationPolicy
   def unwaive_fee?
     user&.admin?
   end
+  
+  def toggle_pinned_status?
+    admin_or_teammember
+  end
 
   def mark_bank_fee?
     user&.admin?
