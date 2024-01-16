@@ -33,7 +33,7 @@ module HcbCodeService
               "url": "https://hcb.hackclub.com#{grant.url}"
             }
           },
-          secret: "bbqOFdinosaurs" # how do we want to do this? this is just a filler secret.
+          secret: Rails.application.credentials[:pizza]
         ).run
       end
     end
