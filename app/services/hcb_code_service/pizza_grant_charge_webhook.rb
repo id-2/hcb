@@ -2,6 +2,8 @@
 
 module HcbCodeService
   class PizzaGrantChargeWebhook
+
+  include Rails.application.routes.url_helpers
     TYPE = "pizza_grant.charge"
     def initialize(hcb_code:)
       @hcb_code = hcb_code
