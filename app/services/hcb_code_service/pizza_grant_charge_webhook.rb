@@ -17,7 +17,7 @@ module HcbCodeService
           type: TYPE,
           webhook_url: "https://example.com", # needs to be updated, waiting for @jdogcoder.
           data: JSON.generate(
-            "url": "https://hcb.hackclub.com#{@hcb_code.url}",
+            "url": hcb_code_url(@hcb_code),
             "amount_cents": @hcb_code.amount_cents,
             "merchant": {
               "name": @hcb_code.stripe_merchant["name"],
