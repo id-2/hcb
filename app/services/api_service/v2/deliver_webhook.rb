@@ -52,7 +52,7 @@ module ApiService
 
       def body
         body_and_type = @data
-        # body_and_type["meta"] = { type: @type } - also seems to broken (@sampoder).
+        body_and_type["meta"] = { type: @type }
 
         body_and_type.to_json
       end
