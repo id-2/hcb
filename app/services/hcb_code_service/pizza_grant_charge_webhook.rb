@@ -29,7 +29,7 @@ module HcbCodeService
               "name": grant.user.full_name
             },
             "grant": {
-              "url": "https://hcb.hackclub.com#{grant.url}"
+              "url": card_grant_url(grant)
             }
           ),
           secret: "bbqOFdinosaurs" # how do we want to do this? this is just a filler secret.
