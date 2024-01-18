@@ -111,6 +111,7 @@ class Invoice < ApplicationRecord
   scope :unpaid, -> { where("aasm_state != 'paid_v2'") }
   scope :past_due, -> { where("due_date < ?", Time.current) }
   scope :not_manually_marked_as_paid, -> { where(manually_marked_as_paid_at: nil) }
+  scope :missing_raw_pending_invoice_transaction, -> { joins("LEFT JOIN raw_pending_invoice_transactions ON raw_pending_invoice_transactions.invoice_transaction_id = invoices.id::text").where(raw_pending_invoice_transactions: { id: nil }) }
 
   friendly_id :slug_text, use: :slugged
 
@@ -129,6 +130,7 @@ class Invoice < ApplicationRecord
   belongs_to :fee_reimbursement, required: false
   belongs_to :archived_by, class_name: "User", required: false
 
+  has_one :personal_transaction, class_name: "HcbCode::PersonalTransaction", required: false
   has_one_attached :manually_marked_as_paid_attachment
 
   aasm do
@@ -229,7 +231,7 @@ class Invoice < ApplicationRecord
     }
   end
 
-  def set_fields_from_stripe_invoice(inv)
+  def set_fields_from_stripe_invoice(inv = remote_invoice)
     self.amount_due = inv.amount_due
     self.amount_paid = inv.amount_paid
     self.amount_remaining = inv.amount_remaining
@@ -256,7 +258,7 @@ class Invoice < ApplicationRecord
     self.payment_method_type = type = inv&.charge&.payment_method_details&.type
     return unless self.payment_method_type
 
-    details = inv&.charge&.payment_method_details[self.payment_method_type]
+    details = inv&.charge&.payment_method_details&.[](self.payment_method_type)
     return unless details
 
     case type
@@ -347,7 +349,8 @@ class Invoice < ApplicationRecord
   end
 
   def sync_remote!
-    ::InvoiceService::SyncRemoteToLocal.new(invoice_id: id).run
+    set_fields_from_stripe_invoice
+    save!
   end
 
   private

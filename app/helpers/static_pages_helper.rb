@@ -4,12 +4,18 @@ module StaticPagesHelper
   extend ActionView::Helpers::NumberHelper
 
   def card_to(name, path, options = {})
-    return "" if options[:badge] == 0
-
-    badge = options[:badge].to_i > 0 ? badge_for(options[:badge]) : ""
+    badge = if options[:badge].present?
+              badge_for(options[:badge], class: options[:subtle_badge].present? || options[:badge] == 0 ? "bg-muted pr2 h-fit-content" : "bg-accent pr2 h-fit-content")
+            elsif options[:async_badge].present?
+              turbo_frame_tag options[:async_badge], src: admin_task_size_path(task_name: options[:async_badge]) do
+                badge_for "⏳", class: "bg-muted pr2"
+              end
+            else
+              ""
+            end
     link_to content_tag(:li,
                         [content_tag(:strong, name), badge].join.html_safe,
-                        class: "card card--item card--hover relative overflow-visible line-height-3"),
+                        class: "card card--item card--hover flex justify-between overflow-visible line-height-3 items-center"),
             path, method: options[:method]
   end
 
@@ -36,7 +42,7 @@ module StaticPagesHelper
       onboard_id: {
         url: "https://airbridge.hackclub.com/v0.1/OnBoard/Verifications",
         query: { filterByFormula: "Status='Pending'", fields: [] },
-        destination: "https://airtable.com/tblVZwB8QMUSDAd41/viwJ15CT6VHCZ0UZ4"
+        destination: "https://airtable.com/app4Bs8Tjwvk5qcD4/tblVZwB8QMUSDAd41/viwJ15CT6VHCZ0UZ4"
       },
       bank_applications: {
         url: "https://airbridge.hackclub.com/v0.1/Bank%20Applications%20Database/Events",

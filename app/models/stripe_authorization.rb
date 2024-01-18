@@ -123,7 +123,7 @@ class StripeAuthorization < ApplicationRecord
     stripe_card_id = stripe_obj[:card][:id]
     self.stripe_card = StripeCard.find_by(stripe_id: stripe_card_id)
 
-    # (max@maxwofford.com) https://github.com/hackclub/bank/issues/1031
+    # (max@maxwofford.com) https://github.com/hackclub/hcb/issues/1031
     # This is a chaotic way of solving #1031 (tl;dr, stripe doesn't
     # consistently tell us if a tx was refunded). We're going to deviate from
     # the status stripe is telling us and mark it as 'refunded' if all the
@@ -167,13 +167,13 @@ class StripeAuthorization < ApplicationRecord
   def remote_stripe_transactions
     @remote_stripe_transactions ||= begin
       remote_stripe_authorization["transactions"].map do |t|
-        ::Partners::Stripe::Issuing::Transactions::Show.new(id: t.id).run
+        ::Stripe::Issuing::Transaction.retrieve(t.id)
       end
     end
   end
 
   def remote_stripe_authorization
-    @remote_stripe_authorization ||= ::Partners::Stripe::Issuing::Authorizations::Show.new(id: stripe_id).run
+    @remote_stripe_authorization ||= ::StripeService::Issuing::Authorization.retrieve(stripe_id)
   end
 
 end

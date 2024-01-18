@@ -24,7 +24,7 @@ class PartneredSignupsController < ApplicationController
 
   # PATCH /partnered_signups/:public_id
   def update
-    @partnered_signup.update_attributes(partnered_signup_params)
+    @partnered_signup.update(partnered_signup_params)
     authorize @partnered_signup
 
     @partnered_signup.mark_submitted! unless @partnered_signup.submitted?
@@ -50,7 +50,7 @@ class PartneredSignupsController < ApplicationController
       @partnered_signup.mark_applicant_signed!
 
       # Airbrake.notify("Partner ##{@partner.id} is missing a 'docusign_template_id'. Error creating docusign contract for SUP ##{@partnered_signup.id}")
-      # flash[:error] = "Something went wrong, please contact bank@hackclub.com for help"
+      # flash[:error] = "Something went wrong, please contact hcb@hackclub.com for help"
       # render "edit"
       # TODO: error when there's no template ID, this is temporary until all partners have docusign templates
       return true
@@ -65,7 +65,7 @@ class PartneredSignupsController < ApplicationController
       if @partnered_signup.save
         redirect_to data[:signing_url], allow_other_host: true
       else
-        flash.now[:error] = "Something went wrong, please contact bank@hackclub.com for help"
+        flash.now[:error] = "Something went wrong, please contact hcb@hackclub.com for help"
         render :edit, status: :unprocessable_entity
       end
       return false

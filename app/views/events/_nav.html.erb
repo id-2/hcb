@@ -6,17 +6,17 @@
   <% end %>
   <div>
     <% admin_tools("m0 p0 badge mb2", "span") do %>
-      <span class="m0 badge bg-muted pointer" onClick="navigator.clipboard.writeText(<%= @event.name.to_json %>);">
+      <span class="m0 badge bg-muted pointer" data-controller="clipboard" data-clipboard-text-value="<%= @event.name %>" data-action="click->clipboard#copy">
         copy event name
       </span>
     <% end %>
   </div>
   <nav class="dock dock--desktop mt2">
     <% if @event.outernet_guild? %>
-      <%= dock_item "Home",
+      <%= dock_item "Transactions",
         event_path(id: @event.slug),
         tooltip: "View your transactions",
-        icon: "home",
+        icon: "transactions",
         selected: local_assigns[:selected] == :transactions %>
       <%= dock_item "Cards",
         event_cards_overview_path(event_id: @event.slug),
@@ -31,16 +31,16 @@
           selected: local_assigns[:selected] == :settings %>
       <% end %>
     <% else %>
-      <%= dock_item "Home",
+      <%= dock_item "Transactions",
         event_path(id: @event.slug),
         tooltip: "View your transactions",
-        icon: "home",
+        icon: "transactions",
         selected: local_assigns[:selected] == :transactions %>
       <h4 class="mb0 h5 muted">Receive</h4>
       <hr>
       <%= dock_item "Donations",
         @event&.partner&.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
-        event_donation_overview_path(event_id: @event.slug),
+          event_donation_overview_path(event_id: @event.slug),
         tooltip: "Receive donations online",
         icon: "support",
         data: { tour_step: "donations" },
@@ -54,10 +54,13 @@
         account_number_event_path(@event),
         tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
         icon: "bank-account",
-        selected: local_assigns[:selected] == :account_number if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) %>
-      <%= dock_item "Deposit a check",
+        selected: local_assigns[:selected] == :account_number,
+        disabled: !organizer_signed_in? if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) %>
+      <%= dock_item "Check deposit",
         event_check_deposits_path(@event),
-        icon: "payment-docs",
+        tooltip: "Deposit checks",
+        disabled: !organizer_signed_in?,
+        icon: "cheque",
         selected: local_assigns[:selected] == :deposit_check if Flipper.enabled?(:check_deposits_2023_04_17, @event) %>
       <h4 class="mb0 h5 muted">Spend</h4>
       <hr>
@@ -70,7 +73,7 @@
       <%= dock_item "Transfers",
         event_transfers_path(event_id: @event.slug),
         tooltip: "Send & transfer money",
-        icon: "transactions",
+        icon: "payment-transfer",
         selected: local_assigns[:selected] == :transfers %>
       <%= dock_item "Grants",
         event_grants_path(@event),
@@ -78,6 +81,11 @@
         icon: "idea",
         selected: local_assigns[:selected] == :grants if Flipper.enabled?(:grants_2023_06_21, @event) %>
       <hr>
+      <%= dock_item "Team",
+        event_team_path(event_id: @event.slug),
+        tooltip: "Manage your team",
+        icon: "leader",
+        selected: local_assigns[:selected] == :team %>
       <%= dock_item "Perks",
         event_promotions_path(event_id: @event.slug),
         tooltip: (@event.hardware_grant? ? "Not available for Winter Hardware Wonderland accounts" : "Receive promos & discounts"),
@@ -85,14 +93,12 @@
         data: { tour_step: "perks" },
         disabled: @event.hardware_grant?,
         selected: local_assigns[:selected] == :promotions unless !@event.approved? %>
-      <% if Flipper.enabled?(:google_workspace_2023_07_12, @event) || (!Flipper.enabled?(:google_workspace_2023_07_12, @event) && (@event.g_suites.exists? || Flipper.enabled?(:google_workspace, @event))) %>
-        <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
-          event_g_suite_overview_path(event_id: @event.slug),
-          tooltip: (@event.hardware_grant? ? "Not available for Winter Hardware Wonderland accounts" : @event.outernet_guild? ? "Not available for Outernet Guilds" : @event.demo_mode? ? "Not available for Demo Mode accounts" : @event.g_suites.exists? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
-          icon: "google",
-          disabled: @event.hardware_grant? || @event.demo_mode?,
-          selected: local_assigns[:selected] == :google_workspace %>
-      <% end %>
+      <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
+        event_g_suite_overview_path(event_id: @event.slug),
+        tooltip: (@event.hardware_grant? ? "Not available for Winter Hardware Wonderland accounts" : @event.outernet_guild? ? "Not available for Outernet Guilds" : @event.demo_mode? ? "Not available for Demo Mode accounts" : @event.g_suites.exists? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
+        icon: "google",
+        disabled: @event.hardware_grant? || @event.demo_mode? || !organizer_signed_in?,
+        selected: local_assigns[:selected] == :google_workspace %>
       <%= dock_item "Documentation",
         event_documentation_path(event_id: @event.slug),
         tooltip: "Commonly asked questions and how-tos",
@@ -100,25 +106,27 @@
         selected: local_assigns[:selected] == :documentation %>
       <%= dock_item "Settings",
         edit_event_path(@event),
-        tooltip: "Edit project settings",
+        tooltip: "Edit organization settings",
         icon: "project-settings",
+        disabled: !organizer_signed_in?,
         selected: local_assigns[:selected] == :settings %>
     <% end %>
   </nav>
   <nav class="dock dock--mobile">
     <% if @event.outernet_guild? %>
-      <%= dock_item "Home",
+      <%= dock_item "Transactions",
         event_path(id: @event.slug),
-        icon: "home" %>
+        icon: "transactions" %>
       <%= dock_item "Cards",
         event_cards_overview_path(@event),
         icon: "card",
         data: { tour_step: "spend" } %>
     <% else %>
-      <%= dock_item "Home",
+      <%= dock_item "Transactions",
         event_path(id: @event.slug),
-        icon: "home" %>
-      <button class="dock__item bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="receive">
+        icon: "transactions",
+        selected: local_assigns[:selected] == :transactions %>
+      <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:donations, :invoices, :account_number, :deposit_check] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="receive">
         <div class="line-height-0 relative"><%= inline_icon "support", size: 32, class: "primary" %></div>
         <span class="line-height-3">Receive</span>
 
@@ -131,7 +139,7 @@
           <%= link_to "Deposit a check", event_check_deposits_path(@event) if Flipper.enabled?(:check_deposits_2023_04_17, @event) %>
         </div>
       </button>
-      <button class="dock__item bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="spend">
+      <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:cards, :transfers] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="spend">
         <div class="line-height-0 relative"><%= inline_icon "card", size: 32, class: "primary" %></div>
         <span class="line-height-3">Spend</span>
 
@@ -155,7 +163,6 @@
       </div>
     <% end %>
   </nav>
-  <%= render "events/public_message" %>
 <% end %>
 <% content_for(:container) do %>
 <% end %>
@@ -166,3 +173,6 @@
     <%= stylesheet_link_tag "https://scrapbook.hackclub.com/api/css?url=#{@event.custom_css_url}" %>
   <% end %>
 <% end %>
+
+<%# Web component used for donation QR codes %>
+<script src="https://unpkg.com/@bitjson/qr-code@1.0.2/dist/qr-code.js"></script>

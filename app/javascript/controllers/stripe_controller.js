@@ -10,7 +10,7 @@ export default class extends Controller {
     clientSecret: String,
     returnUrl: String,
     type: { type: String, default: 'payment' }, // "payment" or "setup",
-    theme: { type: String, default: 'card' }
+    theme: { type: String, default: 'card' },
   }
 
   async connect() {
@@ -21,14 +21,14 @@ export default class extends Controller {
       appearance:
         themes[this.themeValue][
           localStorage.getItem('dark') === 'true' ? 'dark' : 'light'
-        ]
+        ],
     })
 
     const paymentElement = this.elements.create('payment', {
       business: {
-        name: 'Hack Club Bank'
+        name: 'HCB',
       },
-      terms: { card: 'never' }
+      terms: { card: 'never' },
     })
     paymentElement.mount(this.elementTarget)
   }
@@ -40,9 +40,9 @@ export default class extends Controller {
 
     const result = await this.confirm()
 
-    if (result.error) {
-      e.submitter.disabled = false
+    e.submitter.disabled = false
 
+    if (result.error) {
       if (result.error.type != 'validation_error') {
         if (this.hasErrorsTarget) {
           const flash = document.createElement('p')
@@ -59,7 +59,7 @@ export default class extends Controller {
 
   themeToggle({ detail: dark }) {
     this.elements.update({
-      appearance: themes[this.themeValue][dark ? 'dark' : 'light']
+      appearance: themes[this.themeValue][dark ? 'dark' : 'light'],
     })
   }
 
@@ -68,15 +68,15 @@ export default class extends Controller {
       return await this.stripe.confirmPayment({
         elements: this.elements,
         confirmParams: {
-          return_url: this.returnUrlValue
-        }
+          return_url: this.returnUrlValue,
+        },
       })
     } else {
       return await this.stripe.confirmSetup({
         elements: this.elements,
         confirmParams: {
-          return_url: this.returnUrlValue
-        }
+          return_url: this.returnUrlValue,
+        },
       })
     }
   }

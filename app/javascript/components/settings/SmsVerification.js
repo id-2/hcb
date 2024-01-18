@@ -1,8 +1,8 @@
-import HttpClient from "../../common/http";
-import React, { useEffect, useRef, useState } from 'react';
-import PropTypes from "prop-types"
+import csrf from '../../common/csrf'
+import React, { useEffect, useRef, useState } from 'react'
+import PropTypes from 'prop-types'
 
-const SmsVerification = ({ phoneNumber }) => {
+const SmsVerification = ({ phoneNumber, enrollSmsAuth = false }) => {
   const [errors, setErrors] = useState([])
   const [validationSent, setValidationSent] = useState(false)
   const [validationSuccess, setValidationSuccess] = useState(false)
@@ -10,18 +10,23 @@ const SmsVerification = ({ phoneNumber }) => {
   const [code, setCode] = useState('')
   const verificationCodeInput = useRef(null)
 
-  const handleClick = async (e) => {
+  const handleClick = async e => {
     e.preventDefault()
-    if (loading) { return }
+    if (loading) {
+      return
+    }
     setLoading(true)
     try {
-      const resp = await HttpClient.post('/users/start_sms_auth_verification');
+      const resp = await fetch('/users/start_sms_auth_verification', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrf() },
+      })
 
-      if (resp.status === 200) {
+      if (resp.ok) {
         setErrors([])
         setValidationSent(true)
       } else {
-        setErrors(["something went wrong!"])
+        setErrors(['something went wrong!'])
       }
     } finally {
       setLoading(false)
@@ -29,30 +34,34 @@ const SmsVerification = ({ phoneNumber }) => {
   }
 
   useEffect(() => {
-    if(validationSent) {
+    if (validationSent) {
       verificationCodeInput.current.focus()
     }
   }, [validationSent])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     console.log('submitting...')
     if (e) {
       e.preventDefault()
     }
     setLoading(true)
-    await HttpClient.post(
-      '/users/complete_sms_auth_verification',
-      { code },
-    ).then(() => {
+    const resp = await fetch('/users/complete_sms_auth_verification', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrf(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, enroll_sms_auth: enrollSmsAuth }),
+    })
+
+    if (resp.ok) {
       setErrors([])
       setValidationSuccess(true)
-    }).catch(() => {
-      setErrors(["⚠️ Invalid code. Did you type it in correctly?"])
-    })
+    } else {
+      setErrors(['⚠️ Invalid code. Did you type it in correctly?'])
+    }
+
     setLoading(false)
   }
 
-  const handleInput = (e) => {
+  const handleInput = e => {
     setCode(e.target.value)
     if (e.key === 'Enter' || e.keyCode === 13) {
       handleSubmit(e)
@@ -65,35 +74,67 @@ const SmsVerification = ({ phoneNumber }) => {
 
   return (
     <>
-      {(errors.length > 0) && (
-        <ul className="list-reset bg-error p1 rounded" style={{ color: 'white' }}>
+      {errors.length > 0 && (
+        <ul
+          className="list-reset bg-error p1 rounded"
+          style={{ color: 'white' }}
+        >
           {errors.map((e, i) => (
             <li key={i}>{e}</li>
           ))}
         </ul>
       )}
-      {(validationSuccess) && (
+      {validationSuccess && (
         <>
-          <p>✅ Verified! Next time you sign in your login code will go to {phoneNumber}.</p>
-          <button className="btn btn-success" onClick={refresh}>Refresh to continue</button>
+          <p>
+            ✅ Verified!{' '}
+            {enrollSmsAuth &&
+              `Next time you sign in your login code will go to ${phoneNumber}.`}
+          </p>
+          <button className="btn btn-success" onClick={refresh}>
+            Refresh to continue
+          </button>
         </>
       )}
-      {(!validationSuccess) && (
+      {!validationSuccess && (
         <>
-          {(validationSent) && (
+          {validationSent && (
             <>
-              <p>We&apos;ve just sent a code to {phoneNumber}. It should arrive in the next 5 to 30 seconds depending on your connection.</p>
+              <p>
+                We&apos;ve just sent a code to {phoneNumber}. It should arrive
+                in the next 5 to 30 seconds depending on your connection.
+              </p>
               <div className="flex">
                 <form onSubmit={handleSubmit}>
-                  <input type="tel" ref={verificationCodeInput} autoComplete="off" onSubmit={handleSubmit} onInput={handleInput} placeholder="XXX-XXX" value={code} className="mb1" required />
-                  <input className={loading ? 'muted wait disabled' : 'pointer'} onSubmit={handleSubmit} type="submit" value="Verify" />
+                  <input
+                    type="tel"
+                    ref={verificationCodeInput}
+                    autoComplete="off"
+                    onSubmit={handleSubmit}
+                    onInput={handleInput}
+                    placeholder="XXX-XXX"
+                    value={code}
+                    className="mb1"
+                    required
+                  />
+                  <input
+                    className={loading ? 'muted wait disabled' : 'pointer'}
+                    onSubmit={handleSubmit}
+                    type="submit"
+                    value="Verify"
+                  />
                 </form>
               </div>
             </>
           )}
           <p>
-            <a href="#" onClick={handleClick} className={loading ? 'muted wait' : 'pointer'}>{validationSent ? 'Resend code' : 'Send verification code'}</a>
-            {' '}
+            <a
+              href="#"
+              onClick={handleClick}
+              className={loading ? 'muted wait' : 'pointer'}
+            >
+              {validationSent ? 'Resend code' : 'Send verification code'}
+            </a>{' '}
             to {phoneNumber}.
           </p>
         </>
@@ -104,6 +145,7 @@ const SmsVerification = ({ phoneNumber }) => {
 
 SmsVerification.propTypes = {
   phoneNumber: PropTypes.string.isRequired,
-};
+  enrollSmsAuth: PropTypes.bool,
+}
 
-export default SmsVerification;
+export default SmsVerification

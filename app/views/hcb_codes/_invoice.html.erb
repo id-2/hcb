@@ -25,9 +25,18 @@
       <span class="regular"><%= render_money @invoice.item_amount %></span>
     </span>
 
-    <span class="badge md-right h4 bg-<%= @invoice.state %>">
-      <%= @invoice.state_text %>
-      <%= inline_icon @invoice.state_icon, size: 20 if @invoice.state_icon %>
+    <span class="md-right">
+      <% if @invoice.personal_transaction.present? %>
+        <span class="badge h4 bg-warning">
+          Repayment for Personal Transaction
+          <%= inline_icon :info, size: 20 %>
+        </span>
+      <% end %>
+
+      <span class="badge h4 bg-<%= @invoice.state %>">
+        <%= @invoice.state_text %>
+        <%= inline_icon @invoice.state_icon, size: 20 if @invoice.state_icon %>
+      </span>
     </span>
   </h2>
 
@@ -59,6 +68,16 @@
       </p>
     <% end %>
     <p>
+      <strong>Transaction memo</strong>
+      <%= render "hcb_codes/memo", hcb_code: @hcb_code %>
+    </p>
+    <% if @invoice.personal_transaction.present? %>
+      <p>
+        <strong>Repayment for</strong>
+        <%= link_to @invoice.personal_transaction.hcb_code.memo, @invoice.personal_transaction.hcb_code.url %>
+      </p>
+    <% end %>
+    <p>
       <strong>Billed to</strong>
       <% if organizer_signed_in? %>
         <span><%= mail_to @sponsor.contact_email.downcase %></span>
@@ -85,7 +104,8 @@
         <% if @sponsor.address_line2.present? %>
           <%= @sponsor.address_line2 %><br>
         <% end %>
-        <%= @sponsor.address_city %>, <%= @sponsor.address_state %> <%= @sponsor.address_postal_code %>
+        <%= @sponsor.address_city %>, <%= @sponsor.address_state %> <%= @sponsor.address_postal_code %> <br>
+        <%= get_country_name_from_alpha2(@sponsor.address_country) %>
         </span>
       <% else %>
         <span><strong>Sign in to view</strong></span>
@@ -225,7 +245,7 @@
             +<%= invoice_payment_processor_fee %>
             <span class="muted">
               <% "Pending " unless @invoice&.fee_reimbursement&.t_transaction %>
-              (<%= link_to "learn more", "https://headwayapp.co/bank-changelog/we're-making-payment-processing-fees-disappear-101088" %>)
+              (<%= link_to "learn more", "https://changelog.hcb.hackclub.com/we're-making-payment-processing-fees-disappear-101088" %>)
             </span>
           </span>
         </p>
@@ -238,7 +258,7 @@
         <section class="card__banner card__darker secondary border-top">
           <p class="my0 italic">
             The funds from this invoice payment are immediately reflected in your account balance.
-            (<a href="https://changelog.bank.hackclub.com/instant-deposits-238700">learn more</a>)
+            (<a href="https://changelog.hcb.hackclub.com/instant-deposits-238700">learn more</a>)
           </p>
         </section>
       <% end %>

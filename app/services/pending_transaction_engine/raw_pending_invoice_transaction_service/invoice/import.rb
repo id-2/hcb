@@ -8,7 +8,7 @@ module PendingTransactionEngine
         end
 
         def run
-          pending_invoice_transactions.each do |pit|
+          pending_invoice_transactions.find_each(batch_size: 100) do |pit|
             ::PendingTransactionEngine::RawPendingInvoiceTransactionService::Invoice::ImportSingle.new(invoice: pit).run
           end
 
@@ -18,7 +18,11 @@ module PendingTransactionEngine
         private
 
         def pending_invoice_transactions
-          @pending_invoice_transactions ||= ::Invoice.paid_v2.not_manually_marked_as_paid.where("amount_due > 0")
+          ::Invoice
+            .paid_v2
+            .not_manually_marked_as_paid
+            .missing_raw_pending_invoice_transaction
+            .where("amount_due > 0")
         end
 
       end

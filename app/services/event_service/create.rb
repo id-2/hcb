@@ -58,7 +58,7 @@ module EventService
         can_front_balance: @can_front_balance,
         expected_budget: 100.0,
         point_of_contact_id: @point_of_contact_id,
-        partner_id: partner.id,
+        partner:,
         organization_identifier:,
         demo_mode: @demo_mode
       }
@@ -69,11 +69,11 @@ module EventService
     end
 
     def partner
-      @partner ||= ::Partner.find_by!(slug: "bank")
+      @partner ||= ::Partner.find_by(slug: "bank")
     end
 
     def organization_identifier
-      @organization_identifier ||= "bank_#{SecureRandom.hex}"
+      @organization_identifier ||= "hcb_#{SecureRandom.hex}"
     end
 
   end

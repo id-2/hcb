@@ -26,6 +26,11 @@ class IncreaseAccountNumber < ApplicationRecord
 
   has_encrypted :account_number, :routing_number
 
+  has_many :raw_increase_transactions,
+           foreign_key: :increase_route_id,
+           primary_key: :increase_account_number_id,
+           inverse_of: :increase_account_number
+
   before_create :create_increase_account_number
 
   validate do
@@ -40,11 +45,15 @@ class IncreaseAccountNumber < ApplicationRecord
     end
   end
 
+  def used?
+    raw_increase_transactions.any?
+  end
+
   private
 
   def create_increase_account_number
     increase_account_number = Increase::AccountNumbers.create(
-      account_id: IncreaseService::AccountIds::FS_MAIN,
+      account_id: event.increase_account_id,
       name: "##{event.id} (#{event.name})"
     )
 

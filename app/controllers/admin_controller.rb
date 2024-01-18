@@ -37,23 +37,17 @@ class AdminController < ApplicationController
     size = pending_task params[:task_name].to_sym
     ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     elapsed = ending - starting
-    render json: { elapsed:, size: }, status: 200
-  end
 
-  def search
-    # allows the same URL to easily be used for form and GET
-    return if request.method == "GET"
+    respond_to do |format|
+      format.json { render json: { elapsed:, size: } }
+      format.html do
+        color = size == 0 ? "muted" : "accent"
 
-    # removing dashes to deal with phone number
-    query = params[:q].gsub("-", "").strip
-
-    users = []
-
-    users.push(User.where("full_name ilike ?", "%#{query.downcase}%").includes(:events))
-    users.push(User.where(email: query).includes(:events))
-    users.push(User.where(phone_number: query).includes(:events))
-
-    @result = users.flatten.compact
+        render html: helpers.turbo_frame_tag(params[:task_name]) {
+          helpers.badge_for size, class: "pr2 bg-#{color}"
+        }
+      end
+    end
   end
 
   def negative_events
@@ -200,10 +194,16 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 100
 
-    @events = filtered_events.page(@page).per(@per).reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    @events = filtered_events
     @count = @events.count
 
-    render layout: "admin"
+    respond_to do |format|
+      format.html do
+        @events = @events.page(@page).per(@per)
+        render layout: "admin"
+      end
+      format.csv { render csv: @events }
+    end
   end
 
   def event_process
@@ -318,7 +318,11 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
 
-    @cards = StripeCard.includes(:stripe_cardholder).page(@page).per(@per).order("created_at desc")
+    @q = params[:q].presence
+
+    @cards = StripeCard.includes(stripe_cardholder: :user).page(@page).per(@per).order("stripe_cards.created_at desc")
+
+    @cards = @cards.joins(stripe_cardholder: :user).where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.last4 ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
 
     render layout: "admin"
   end
@@ -371,6 +375,7 @@ class AdminController < ApplicationController
     @q = params[:q].present? ? params[:q] : nil
     @unmapped = params[:unmapped] != "0"
     @exclude_top_ups = params[:exclude_top_ups] == "1" ? true : nil
+    @exclude_spending = params[:exclude_spending] == "1" ? true : nil
     @mapped_by_human = params[:mapped_by_human] == "1" ? true : nil
     @event_id = params[:event_id].present? ? params[:event_id] : nil
     @user_id = params[:user_id].present? ? params[:user_id] : nil
@@ -384,9 +389,8 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.match /\A\d+(\.\d{1,2})?\z/
         @q = Monetize.parse(@q).cents
-
         relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
       else
         case @q.delete(" ")
@@ -401,6 +405,7 @@ class AdminController < ApplicationController
     end
 
     relation = relation.unmapped if @unmapped
+    relation = relation.where("amount_cents >= 0") if @exclude_spending
     relation = relation.not_stripe_top_up if @exclude_top_ups
     relation = relation.mapped_by_human if @mapped_by_human
 
@@ -434,7 +439,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount_cents = ? or amount_cents = ?", @q, -@q)
@@ -476,7 +481,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -495,7 +500,10 @@ class AdminController < ApplicationController
     relation = relation.pending if @pending
 
     @count = relation.count
-    @ach_transfers = relation.page(@page).per(@per).order("created_at desc")
+    @ach_transfers = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
   end
@@ -511,6 +519,8 @@ class AdminController < ApplicationController
     ach_transfer.approve!(current_user)
 
     redirect_to ach_start_approval_admin_path(ach_transfer), flash: { success: "Success" }
+  rescue Faraday::Error => e
+    redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: "Something went wrong: #{e.response_body["message"]}" }
   rescue => e
     redirect_to ach_start_approval_admin_path(params[:id]), flash: { error: e.message }
   end
@@ -552,7 +562,7 @@ class AdminController < ApplicationController
     redirect_to disbursement_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
-  def check
+  def checks
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
@@ -569,7 +579,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -588,53 +598,21 @@ class AdminController < ApplicationController
     relation = relation.in_transit if @in_transit
 
     @count = relation.count
-    @checks = relation.page(@page).per(@per).order("created_at desc")
+    @checks = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
-  end
-
-  def check_process
-    @check = Check.find(params[:id])
-
-    render layout: "admin"
-  end
-
-  def check_positive_pay_csv
-    @check = Check.find(params[:id])
-
-    headers["Content-Type"] = "text/csv"
-    headers["Content-disposition"] = "attachment; filename=check-#{@check.id}-#{@check.check_number}.csv"
-    headers["X-Accel-Buffering"] = "no"
-    headers["Cache-Control"] ||= "no-cache"
-    headers.delete("Content-Length")
-
-    response.status = 200
-
-    self.response_body = ::CheckService::PositivePay::Csv.new(check_id: @check.id).run
-  end
-
-  def check_send
-    check = ::CheckService::Send.new(
-      check_id: params[:id]
-    ).run
-
-    redirect_to check_process_admin_path(check), flash: { success: "Success" }
-  end
-
-  def check_mark_in_transit_and_processed
-    check = CheckService::MarkInTransitAndProcessed.new(
-      check_id: params[:id]
-    ).run
-
-    redirect_to check_process_admin_path(check), flash: { success: "Success" }
-  rescue => e
-    redirect_to check_process_admin_path(params[:id]), flash: { error: e.message }
   end
 
   def increase_checks
     @page = params[:page] || 1
     @per = params[:per] || 20
-    @checks = IncreaseCheck.page(@page).per(@per).order(created_at: :desc)
+    @checks = IncreaseCheck.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
   end
@@ -664,7 +642,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
         relation = relation.where("payout_amount_cents = ? or payout_amount_cents = ?", @q, -@q)
       else
@@ -687,6 +665,8 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
+    @ip_address = params[:ip_address].present? ? params[:ip_address] : nil
+    @user_agent = params[:user_agent].present? ? params[:user_agent] : nil
     @deposited = params[:deposited] == "1" ? true : nil
     @in_transit = params[:in_transit] == "1" ? true : nil
     @failed = params[:failed] == "1" ? true : nil
@@ -704,7 +684,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -713,6 +693,8 @@ class AdminController < ApplicationController
       end
     end
 
+    relation = relation.where(ip_address: @ip_address) if @ip_address
+    relation = relation.where("user_agent ILIKE ?", "%#{Donation.sanitize_sql_like(@user_agent)}%") if @user_agent
     relation = relation.deposited if @deposited
     relation = relation.in_transit if @in_transit
     relation = relation.failed if @failed
@@ -762,7 +744,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount = ? or amount = ?", @q, -@q)
@@ -776,27 +758,16 @@ class AdminController < ApplicationController
     relation = relation.processing if @processing
 
     @count = relation.count
-    @disbursements = relation.page(@page).per(@per).order("created_at desc")
+    @disbursements = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'reviewing' DESC"),
+      "created_at desc"
+    )
 
     render layout: "admin"
   end
 
   def disbursement_new
-    render layout: "admin"
-  end
-
-  def disbursement_create
-    ::DisbursementService::Create.new(
-      source_event_id: params[:source_event_id],
-      destination_event_id: params[:event_id],
-      name: params[:name],
-      amount: params[:amount],
-      requested_by_id: current_user.id
-    ).run
-
-    redirect_to disbursements_admin_index_path, flash: { success: "Success" }
-  rescue => e
-    redirect_to disbursement_new_admin_index_path, flash: { error: e.message }
+    redirect_to new_disbursement_path
   end
 
   def hcb_codes
@@ -855,7 +826,7 @@ class AdminController < ApplicationController
     end
 
     if @q
-      if @q.to_f != 0.0
+      if @q.to_f.nonzero?
         @q = (@q.to_f * 100).to_i
 
         relation = relation.where("amount_due = ? or amount_due = ?", @q, -@q)
@@ -1021,11 +992,7 @@ class AdminController < ApplicationController
       flash[:info] = "Do you really want the Start Date to be after the End Date?"
     end
 
-    relation = filtered_events.reorder("events.id asc")
-    # Omit orgs if they were created after the end date
-    relation = relation.where("events.created_at <= ?", @end_date) if @end_date
-
-    @events = relation
+    @events = filtered_events
 
     render_balance = ->(event, type) {
       ApplicationController.helpers.render_money(event.send(type, start_date: @start_date, end_date: @end_date))
@@ -1138,9 +1105,12 @@ class AdminController < ApplicationController
       @country = params[:country].present? ? params[:country] : "all"
     end
     @activity_since_date = params[:activity_since]
+    @sort_by = params[:sort_by].present? ? params[:sort_by] : "date_desc"
 
     relation = events
 
+    # Omit orgs if they were created after the end date
+    relation = relation.where("events.created_at <= ?", @end_date) if @end_date
     relation = relation.search_name(@q) if @q
     relation = relation.transparent if @transparent == "transparent"
     relation = relation.not_transparent if @transparent == "not_transparent"
@@ -1174,6 +1144,16 @@ class AdminController < ApplicationController
     states << "approved" if @approved
     states << "rejected" if @rejected
     relation = relation.where("aasm_state in (?)", states)
+
+    # Sorting
+    case @sort_by
+    when "balance_asc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents))
+    when "balance_desc"
+      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents).reverse!)
+    else # Default sort is "date_desc"
+      relation = relation.reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
+    end
   end
 
   include StaticPagesHelper # for airtable_info
@@ -1192,7 +1172,7 @@ class AdminController < ApplicationController
 
   def hackathons_task_size
     hackathons = Faraday
-                 .new { |c| c.response :json }
+                 .new(ssl: { verify: false }) { |c| c.response :json }
                  .get("https://dash.hackathons.hackclub.com/api/v1/stats/hackathons")
                  .body
 
@@ -1252,8 +1232,6 @@ class AdminController < ApplicationController
         0
       when :ach_transfers
         AchTransfer.pending.size
-      when :pending_fees
-        Event.pending_fees.size
       when :negative_events
         Event.negatives.size
       when :fee_reimbursements
@@ -1299,7 +1277,6 @@ class AdminController < ApplicationController
     pending_task :emburse_card_requests
     pending_task :checks
     pending_task :ach_transfers
-    pending_task :pending_fees
     pending_task :negative_events
     pending_task :fee_reimbursements
     pending_task :emburse_transfers

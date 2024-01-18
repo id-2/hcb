@@ -84,11 +84,12 @@ $(document).on('change', '[name="invoice[sponsor]"]', function (e) {
     'address_city',
     'address_state',
     'address_postal_code',
+    'address_country',
     'id'
   ]
 
   return fields.forEach(field =>
-    $(`input#invoice_sponsor_attributes_${field}`).val(sponsor[field])
+    $(`#invoice_sponsor_attributes_${field}`).val(sponsor[field])
   )
 })
 
@@ -126,7 +127,7 @@ const updateAmountPreview = function () {
     const feeAmount = BK.money(feePercent * amount * 100)
     const revenue = BK.money((1 - feePercent) * amount * 100)
     BK.s('amount-preview').text(
-      `${lAmount} - ${feeAmount} (${lFeePercent}% Bank fee) = ${revenue}`
+      `${lAmount} - ${feeAmount} (${lFeePercent}% fiscal sponsorship fee) = ${revenue}`
     )
     BK.s('amount-preview').show()
     return BK.s('amount-preview').data('amount', amount)
@@ -170,9 +171,9 @@ $(document).keydown(function (e) {
   }
 })
 
-$(document).on('turbo:load', function () {
-  $('[data-behavior~=toggle_theme]').on('click', () => BK.toggleDark())
+$(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
+$(document).on('turbo:load', function () {
   if (window.location !== window.parent.location) {
     $('[data-behavior~=hide_iframe]').hide()
   }
@@ -222,8 +223,7 @@ $(document).on('turbo:load', function () {
   }
 
   // login code sanitization
-  const loginCodeInput = $("input[name='login_code']")
-  loginCodeInput.on('keyup change', function (event) {
+  $(document).on('keyup change', "input[name='login_code']", function() {
     const currentVal = $(this).val()
     let newVal = currentVal.replace(/[^0-9]+/g, '')
 
@@ -245,28 +245,6 @@ $(document).on('turbo:load', function () {
     }
 
     $(this).val(newVal)
-  })
-
-  loginCodeInput.closest('form').on('submit', function (event) {
-    // Ignore double submissions.
-    // Since we are auto-submitting the form, the user may attempt to submit at
-    // the same time. Let's prevent this.
-    const submittedAt = $(this).data('submittedAt')
-
-    // Theoretically, we only need to check for `submittedAt` since the form
-    // will reset on submitting; meaning the `submittedAt` data will be cleared.
-    // However, in the case of strange network issues, i'm not sure if that's
-    // always the case.
-    const recentlySubmitted = submittedAt && new Date() - submittedAt < 5000
-    if (recentlySubmitted) {
-      // The form was recently submitted. Don't submit form again
-      event.preventDefault()
-      console.log('Login form was recently submitted')
-    } else {
-      // Go ahead and submit, but also set `autoSubmittedAt`
-      $(this).data('submittedAt', new Date().getTime())
-      return true
-    }
   })
 
   // if you add the money behavior to an input, it'll add commas, only allow two numbers for cents,
@@ -400,9 +378,39 @@ $('[data-behavior~=ctrl_enter_submit]').keydown(function (event) {
   }
 })
 
-$('[data-behavior~=submit_form]').click(function (e) {
-  e.preventDefault()
+$(document).on('click', '[data-behavior~=expand_receipt]', function (e) {
+  const controlOrCommandClick = e.ctrlKey || e.metaKey;
+  if ($(this).attr('href') || $(e.target).attr('href')) {
+    if (controlOrCommandClick) return;
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  $(e.target).parents(".modal--popover").addClass("modal--popover--receipt-expanded");
+  let selected_receipt = document.querySelectorAll(`.hidden_except_${e.originalEvent.target.dataset.receiptId}`)[0]
+  selected_receipt.style.display = "flex";
+  selected_receipt.style.setProperty("--receipt-size", "100%");
+  selected_receipt.classList.add("receipt--expanded")
+})
 
-  const formId = $(this).data('form')
-  $(`#${formId}`).submit()
+function unexpandReceipt(){
+  document.querySelectorAll(`.receipt--expanded`)[0]?.classList?.remove('receipt--expanded'); 
+  document.querySelector('.modal--popover.modal--popover--receipt-expanded')?.classList?.remove('modal--popover--receipt-expanded');
+}
+
+document.addEventListener("turbo:load", () => {
+  if (window.self === window.top) {
+    document.body.classList.remove('embedded');
+  }
+})
+
+let hankIndex = 0
+$(document).on('keydown', function (e) {
+  if (e.originalEvent.key === 'hank'[hankIndex]) {
+    hankIndex++
+    if (hankIndex === 4) {
+      return $('[name="header-logo"]').attr('src', '/hank.png')
+    }
+  } else {
+    return (hankIndex = 0)
+  }
 })

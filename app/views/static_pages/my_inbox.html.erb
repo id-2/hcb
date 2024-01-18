@@ -1,5 +1,5 @@
 <% title "My receipts" %>
-<% page_xl %>
+<% page_md %>
 <%= render "users/nav", selected: :receipts %>
 
 <h1 class="heading">
@@ -9,6 +9,15 @@
 <p class="muted h3">Manage your receipts and transactions awaiting receipts.</p>
 
 <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
+
+  <p class="muted h3">
+    Alternatively, text your receipts to <%= sms_to "+1-864-548-4225", class: "break-none" %>
+    <% if @mailbox_address %>
+      or email them to <%= mail_to @mailbox_address.address, class: "break-none" %>.
+    <% else %>
+      or configure an email for receipt uploads in <%= link_to "your settings", my_settings_path %>.
+    <% end %>
+  </p>
 
   <% if @pairings.any? %>
 
@@ -30,7 +39,7 @@
       </div>
 
       <%= carousel @pairings do |pairing, i| %>
-        <p>Bank thinks that one of your receipts, <strong><%= pairing.receipt.file.blob.filename %></strong>, belongs to a transaction in <strong><%= pairing.hcb_code.event.name %></strong>.</p>
+        <p>HCB thinks that one of your receipts, <strong><%= pairing.receipt.file.blob.filename %></strong>, belongs to a transaction in <strong><%= pairing.hcb_code.event.name %></strong>.</p>
         <div class="flex p1 justify-center">
 
           <div class="xs-hide sm-hide" style="user-drag: none; -webkit-user-drag: none; -moz-user-drag: none;">
@@ -57,11 +66,11 @@
                   <tbody data-behavior="transactions">
                     <% if pairing.hcb_code.canonical_transactions.any? %>
                       <% pairing.hcb_code.canonical_transactions.each do |ct| %>
-                        <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct:, force_display_details: true, hide_tags: true, show_event_name: true } %>
+                        <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct:, force_display_details: true, hide_tags: true, disable_rename: true, show_event_name: true } %>
                       <% end %>
                     <% else %>
                       <% pairing.hcb_code.canonical_pending_transactions.each do |pt| %>
-                        <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt:, force_display_details: true, hide_tags: true, show_event_name: true } %>
+                        <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", locals: { pt:, force_display_details: true, hide_tags: true, disable_rename: true, show_event_name: true } %>
                       <% end %>
                     <% end %>
                   </tbody>
@@ -164,7 +173,7 @@
 </h2>
 
 <% @cards.each do |card| %>
-  <section class="mb3 card p0">
+  <section class="mb3 card p0 receipt-card">
     <h2 class="heading line-height-4 p1 pl2 mt0 ml0 flex justify-between items-center">
       <%= card.event.name %>
 
@@ -197,5 +206,13 @@
 <% if @count == 0 %>
   <%= blankslate "No missing receipts!" %>
 <% end %>
+
+<style>
+  @media (min-width: 72em) {
+    .receipt-card {
+      max-width: calc(100vw - 20rem);
+    }
+  }
+</style>
 
 <%= paginate @hcb_codes %>

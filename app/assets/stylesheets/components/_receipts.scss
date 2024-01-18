@@ -121,3 +121,33 @@
 .receipt__icon--star, .receipt__icon--check {
   display: none;
 }
+
+.modal--popover--receipt-expanded > :not(.receipt--expanded):not(header) {
+  display: none;
+}
+
+.receipt--expanded > span > .receipt--image {
+  width: 100%;
+  cursor: default;
+}
+
+.receipt--expanded > span > .receipt__pdf-preview {
+  display: none;
+}
+
+.receipt--expanded > iframe {
+  display: block!important;
+}
+
+.receipt--expanded > span > .receipt__minimize {
+  display: inline-flex!important;
+}
+
+.receipt__minimize {
+  cursor: pointer;
+  display: none;
+  margin-right: 4px;
+  border: none;
+  height: 24px;
+  width: 24px;
+}

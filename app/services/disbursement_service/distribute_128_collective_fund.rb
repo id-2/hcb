@@ -4,9 +4,9 @@ module DisbursementService
   # Hack Club has partnered with 128 Collective (https://128collective.org/) to
   # build a directory featuring climate-focused organizations that run on HCB.
   #
-  # Hack Club Bank Climate Directory: https://hackclub.com/bank/climate/
+  # HCB Climate Directory: https://hackclub.com/hcb/climate/
   #
-  # The directory include an option to donate to Hack Club Bank' Climate Fund.
+  # The directory include an option to donate to HCB's Climate Fund.
   # This fund is distributed evenly to all 128 Collective's recommended
   # organizations on HCB on a monthly basis.
   class Distribute128CollectiveFund
@@ -15,7 +15,7 @@ module DisbursementService
       return if distributed_amount_cents <= 0
 
       ActiveRecord::Base.transaction do
-        recommended_organizations.each do |org|
+        recommended_organizations.find_each(batch_size: 100) do |org|
           DisbursementService::Create.new(
             source_event_id: fund.id, destination_event_id: org.id,
             name: "128 Collective Climate Fund (#{month})",

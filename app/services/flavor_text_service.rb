@@ -28,12 +28,14 @@ class FlavorTextService
 
   def development_flavor_texts
     [
-      "Hack the Bank Mode",
+      "<s>Hack the Bank Mode</s>",
       "Development Mode",
       "super secret admin mode",
       "Puts the 'dev' in 'financially devious'!",
       "Rails.env.fun?",
-      "Let's rewrite Bank in #{Faker::ProgrammingLanguage.name}!"
+      "Let's rewrite HCB in #{Faker::ProgrammingLanguage.name}!",
+      "Here's a secret: HCB stands for Hack Club Bonk",
+      "recommended by 100% of fraudsters"
     ]
   end
 
@@ -58,6 +60,7 @@ class FlavorTextService
       "where r my cookies?",
       "holiday edition",
       "santa edition",
+      "Walking in a winter hackerland...",
       "🎅🏻",
       "🦌🦌🦌🦌🦌🦌🦌🦌🛷🎅🎁",
       "fresh snow for $0.99!",
@@ -71,7 +74,7 @@ class FlavorTextService
       "<a href='https://santatracker.google.com/' target='_blank' style='color: inherit'>Santa's on the way!</a>".html_safe,
       "dashing through the snow",
       "defrosting...",
-      "send snow photos to bank@hackclub.com",
+      "send snow photos to hcb@hackclub.com",
       "Dasher, Dancer, Prancer, Vixen,<br/>Comet, Cupid, Donner, Blitzen".html_safe,
       "Recommended by Santa",
       "Recommended by Santa's elves",
@@ -85,7 +88,9 @@ class FlavorTextService
       "Built with Ruby on Rails, React, and holiday cheer",
       "u seein' the snow outside?",
       "Dear Santa...",
-      "where's my gingerbread house"
+      "where's my gingerbread house",
+      "makin' that money snow",
+      "Merry Fourth Of July and have a jolly halloween!"
     ]
   end
 
@@ -97,7 +102,8 @@ class FlavorTextService
       "👻",
       "🧛",
       "🎃",
-      "Pumpkin spice is the pumpkin spice of life."
+      "Pumpkin spice is the pumpkin spice of life.",
+      "Happy Easter - Oh wait wrong holiday."
     ]
   end
 
@@ -115,14 +121,14 @@ class FlavorTextService
       "Did you bring enough #{%w[zip-ties ductape].sample(random: @random)}?",
       "Duct tape, ductape, duck tape",
       "🦆 📼",
-      "Build season? Bank season!",
+      "Build season? HCB season!",
       "Build season already?"
     ]
   end
 
   def flavor_texts
     [
-      "The hivemind known as Bank",
+      "The hivemind known as HCB",
       "How often does time happen?",
       "To an extent",
       "A cloud full of money",
@@ -148,7 +154,7 @@ class FlavorTextService
       "HCB– Hydrofoils Chartered by Bandits",
       "The best thing since sliced bread",
       "Hack Club Bink",
-      "Hack 👏 Club 👏 Bank 👏",
+      "Hack 👏 Club 👏 B--- 👏",
       "💻 ♣ 🏦",
       "aka Hack Bank",
       "aka Hank",
@@ -158,7 +164,7 @@ class FlavorTextService
       "From the makers of Hack Club",
       "Now in color!",
       "Filmed on location",
-      "From the makers of Hack Club Bank",
+      "From the makers of HCB",
       "Soon to be a major cryptocurrency!",
       "As seen on the internet",
       "👏 KEEP 👏 YOUR 👏 RECEIPTS 👏",
@@ -170,10 +176,10 @@ class FlavorTextService
       "B O N K",
       "#{@random.rand 4..9}0% bug free!",
       "#{@random.rand 1..4}0% fewer bugs!",
-      "Ask your doctor if Hack Club Bank is right for you",
-      "Now with an&nbsp;<a href='https://bank.hackclub.com/docs/api/v3'>API</a>!".html_safe,
-      "<a href='https://bank.hackclub.com/docs/api/v3'>README</a>".html_safe,
-      "Read the&nbsp;<a href='https://bank.hackclub.com/docs/api/v3'>docs</a>!".html_safe,
+      "Ask your doctor if HCB is right for you",
+      "Now with an&nbsp;<a href='https://hcb.hackclub.com/docs/api/v3'>API</a>!".html_safe,
+      "<a href='https://hcb.hackclub.com/docs/api/v3'>README</a>".html_safe,
+      "Read the&nbsp;<a href='https://hcb.hackclub.com/docs/api/v3'>docs</a>!".html_safe,
       'Now with "code"',
       "Closed source!",
       "Finally complete!",
@@ -206,7 +212,7 @@ class FlavorTextService
       "it protec, and also attac, but most importantly it pay fees back",
       "it secures the bag",
       "Protec but also attac",
-      "As seen on bank.hackclub.com",
+      "As seen on hcb.hackclub.com",
       "As seen on hackclub.com",
       "2 cool 4 scool",
       "Now running in production!",
@@ -257,6 +263,7 @@ class FlavorTextService
       "Open on weekdays!",
       "Open on #{Date.today.strftime("%A")}s",
       "??? profit!",
+      "Made with Rails, Ruby and did I forget to mention Rails?",
       "Did you see the price of #{%w[Ðogecoin ₿itcoin Ξtherium].sample(random: @random)}?!",
       "Guess how much it costs to run this thing!",
       "Bytes served fresh daily by Heroku",
@@ -348,7 +355,7 @@ class FlavorTextService
       "Receipts are kinda like a recipe for money",
       "Receipts are kinda like a recipe for a nonprofit",
       "Receipts are kinda like a recipe for losing money",
-      "Check the back of this page for an exclusive promo code!<!--\n\n\n\n\n\n\n\n          Use promo code STICKERSNOW for free Hack Club Bank stickers.\n\n          (Alternatively, you could just get some here: https://hack.af/hcb-stickers)\n\n\n\n\n\n\n\n          -->".html_safe,
+      "Check the back of this page for an exclusive promo code!<!--\n\n\n\n\n\n\n\n          Use promo code STICKERSNOW for free HCB stickers.\n\n          (Alternatively, you could just get some here: https://hack.af/hcb-stickers)\n\n\n\n\n\n\n\n          -->".html_safe,
       "You've found the 5th easter egg on the site!",
       "Happiness > Wealthiness, but I didn't tell you that",
       "A wallet is fine too",
@@ -392,7 +399,7 @@ class FlavorTextService
       "TODO: come up with some actual jokes for this box",
       "asdgfhjdk I'm out of jokes",
       "asdgfhjdk I'm out of #{%w[money cash bank finance financial].sample(random: @random)} puns",
-      "Send your jokes to bank@hackclub.com",
+      "Send your jokes to hcb@hackclub.com",
       "Cha-ching!",
       "Hey there cutie!",
       "You're looking great today :)",
@@ -470,7 +477,6 @@ class FlavorTextService
       "not available offline!",
       "as seen online",
       "online only!",
-      "Hack Club Bank? More like Wack Club Jank.",
       "hello fellow kids!",
       "we hope you enjoyed your flight with us today!",
       "new strawberry flavor!",
@@ -481,7 +487,7 @@ class FlavorTextService
       "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>good enough for us to use!</a>".html_safe,
       "<a href='https://assemble.hackclub.com' target='_blank' style='color: inherit'>dogfooded by us!</a>".html_safe,
       "<strike>Runs on Airtable™</strike>".html_safe,
-      "Got a hankering for some Bankering?",
+      "Got a hankering for some bankering?",
       "<marquee scrollamount='5'>💸💸💸</marquee>".html_safe,
       "Wow, that’s a lot of money. Need some help carrying it?",
       "I would rather check my Facebook than face my checkbook.",

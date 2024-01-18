@@ -15,6 +15,44 @@ RSpec.describe User, type: :model do
     expect(user).to be_admin
   end
 
+  context "birthday validations" do
+    it "fails validation when birthday is removed" do
+      user = create(:user, full_name: "Caleb Denio")
+      expect(user).to be_valid
+
+      user.update(birthday: 13.years.ago)
+      expect(user).to be_valid
+
+      user.update(birthday: nil)
+      expect(user).to_not be_valid
+    end
+
+    it "can change it from nil when it's valid" do
+      user = create(:user)
+      dob = 13.years.ago
+
+      user.update(birthday: dob)
+      expect(user).to be_valid
+    end
+
+    it "can still update other attributes if it's nil" do
+      user = create(:user, full_name: "Turing, Alan")
+
+      user.update(full_name: "Turing Alan")
+      expect(user).to be_valid
+    end
+  end
+
+  context "when full_name is removed" do
+    it "fails validation" do
+      user = create(:user, full_name: "Caleb Denio")
+      expect(user.full_name).to eq("Caleb Denio")
+
+      user.update(full_name: "")
+      expect(user).to_not be_valid
+    end
+  end
+
   describe "#initials" do
     context "when missing name" do
       it "returns initials from email" do
@@ -94,18 +132,20 @@ RSpec.describe User, type: :model do
     end
 
     context "when first name is missing" do
-      it "returns" do
-        user = create(:user, full_name: "Last")
+      it "is invalid" do
+        user = build(:user, full_name: "Last")
 
-        expect(user.initial_name).to eql("Last")
+        expect(user).not_to be_valid
+        expect(user.errors[:full_name]).not_to be_empty
       end
     end
 
     context "when last name is missing" do
-      it "returns" do
-        user = create(:user, full_name: "First")
+      it "is invalid" do
+        user = build(:user, full_name: "First")
 
-        expect(user.initial_name).to eql("First")
+        expect(user).not_to be_valid
+        expect(user.errors[:full_name]).not_to be_empty
       end
     end
 
@@ -153,46 +193,38 @@ RSpec.describe User, type: :model do
   describe "#private" do
     describe "#namae" do
       context "when brackets in name" do
-        it "can parse the name" do
-          user = create(:user, full_name: "Zach Latta [Dev]")
-          result = user.send(:namae)
+        it "can't parse the name" do
+          user = build(:user, full_name: "Zach Latta [Dev]")
 
-          expect(result).to_not eql(nil)
-          expect(result.given).to eql("Zach Latta")
-          expect(result.family).to eql("Dev")
+          expect(user).not_to be_valid
+          expect(user.errors[:full_name]).not_to be_empty
         end
       end
 
       context "when parentheses" do
-        it "can parse the name" do
-          user = create(:user, full_name: "Max (test) Wofford")
-          result = user.send(:namae)
+        it "can't parse the name" do
+          user = build(:user, full_name: "Max (test) Wofford")
 
-          expect(result).to_not eql(nil)
-          expect(result.given).to eql("Max")
-          expect(result.family).to eql("Wofford")
+          expect(user).not_to be_valid
+          expect(user.errors[:full_name]).not_to be_empty
         end
       end
 
       context "when emojis in name" do
-        it "can parse the name" do
-          user = create(:user, full_name: "Melody ✨")
-          result = user.send(:namae)
+        it "can't parse the name" do
+          user = build(:user, full_name: "Melody ✨")
 
-          expect(result).to_not eql(nil)
-          expect(result.given).to eql("Melody")
-          expect(result.family).to eql(nil)
+          expect(user).not_to be_valid
+          expect(user.errors[:full_name]).not_to be_empty
         end
       end
 
       context "when a number" do
-        it "can parse the name" do
-          user = create(:user, full_name: "5512700050241863")
-          result = user.send(:namae)
+        it "can't parse the name" do
+          user = build(:user, full_name: "5512700050241863")
 
-          expect(result).to_not eql(nil)
-          expect(result.given).to eql("5512700050241863")
-          expect(result.family).to eql(nil)
+          expect(user).not_to be_valid
+          expect(user.errors[:full_name]).not_to be_empty
         end
       end
     end

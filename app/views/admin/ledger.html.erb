@@ -18,6 +18,12 @@
   <% end %>
   |
 
+  <%= form.label :exclude_spending do %>
+    <%= form.check_box :exclude_spending, checked: @exclude_spending %>
+    Exclude Spending
+  <% end %>
+  |
+
   <%= form.label :mapped_by_human do %>
     <%= form.check_box :mapped_by_human, checked: @mapped_by_human %>
     Mapped by Human
@@ -46,6 +52,7 @@
       <th class="w-32">ID</th>
       <th class="w-32">Date</th>
       <th>Memo</th>
+      <th>Bank account</th>
       <th class="w-24">Amount</th>
       <th clas="w-64">HCB Code</th>
       <th class="w-24">Event</th>
@@ -58,7 +65,8 @@
         <td><%= ct.id %></td>
         <td><%= ct.date %></td>
         <td><%= link_to ct.memo, transaction_path(ct) %></td>
-        <td><%= ct.amount %></td>
+        <td><%= ct.bank_account_name %></td>
+        <td class="nowrap"><%= ct.amount.format %></td>
         <td><%= ct.hcb_code %></td>
         <td><%= link_to ct.canonical_event_mapping.event.id, ct.canonical_event_mapping.event if ct.canonical_event_mapping.try(:event) %></td>
         <td>

@@ -7,13 +7,13 @@ ruby File.read(File.join(File.dirname(__FILE__), ".ruby-version")).strip
 
 gem "dotenv-rails", groups: [:development, :test]
 
-gem "rails", "~> 7.0.4"
+gem "rails", "~> 7.0.8"
 
-gem "puma", "~> 4.3" # app server
+gem "puma", "~> 6.4" # app server
 
 gem "pg", ">= 0.18", "< 2.0" # database
 gem "redis", "~> 5.0" # for caching, jobs, etc.
-gem "sidekiq", "~> 6.5.5" # background jobs
+gem "sidekiq", "~> 7.1.3" # background jobs
 gem "sidekiq-cron", "~> 1.10" # run Sidekiq jobs at scheduled intervals
 
 gem "image_processing", "~> 1.2"
@@ -36,7 +36,7 @@ gem "faraday" # web requests
 
 gem "increase", "~> 0.3.1"
 gem "stripe", "8.5.0"
-gem "plaid", "~> 6.0"
+gem "plaid", "~> 23.0"
 
 gem "aws-sdk-s3", require: false
 
@@ -48,7 +48,7 @@ gem "lob"
 
 gem "docusign_esign", "~> 3.24" # DocuSign API
 
-gem "google-apis-admin_directory_v1", "~> 0.43.0" # GSuite
+gem "google-apis-admin_directory_v1", "~> 0.45.0" # GSuite
 
 gem "pg_search" # full-text search
 
@@ -58,7 +58,7 @@ gem "blind_index" # needed to query and/or guarantee uniqueness for encrypted fi
 gem "aasm" # state machine
 
 gem "paper_trail" # track changes to models
-gem "acts_as_paranoid", "~> 0.8.1" # enables soft deletions
+gem "acts_as_paranoid", "~> 0.9.0" # enables soft deletions
 
 gem "friendly_id", "~> 5.2.0" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
@@ -141,6 +141,8 @@ gem "dry-validation"
 
 gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching; required in config/boot.rb
 
+gem "appsignal" # error tracking + performance monitoring
+gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # For reporting to HC Grafana
 
 gem "mrsk" # deployments
 
@@ -156,11 +158,13 @@ end
 
 group :test do
   gem "factory_bot_rails" # Test data
+  gem "simplecov", require: false # Code coverage
 end
 
 group :development, :test do
   gem "erb_lint", require: false
   gem "rubocop"
+  gem "rubocop-rails", "~> 2.22"
   gem "relaxed-rubocop"
 
   gem "rspec-rails", "~> 6.0.3"
@@ -181,12 +185,12 @@ group :development do
   gem "annotate" # comment models with database schema
 
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  gem "listen", "~> 3.2"
+  gem "listen", "~> 3.8"
   gem "web-console", ">= 3.3.0"
 
   gem "letter_opener_web" # preview emails
 
-  gem "wkhtmltopdf-binary", "0.12.3" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
+  gem "wkhtmltopdf-binary", "0.12.6.6" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
 
   # Ruby language server
   gem "solargraph", require: false
@@ -198,3 +202,6 @@ group :development do
 end
 
 gem "jbuilder", "~> 2.11"
+
+gem "libledger"
+gem "doorkeeper", "~> 5.6"

@@ -8,13 +8,14 @@ class RecurringDonationsController < ApplicationController
   before_action :set_recurring_donation_by_url_hash, only: [:show, :edit, :update, :cancel]
 
   skip_before_action :signed_in_user
+  skip_before_action :redirect_to_onboarding
 
   invisible_captcha only: [:create], honeypot: :subtitle
 
   def create
     params[:recurring_donation][:amount] = Monetize.parse(params[:recurring_donation][:amount]).cents
 
-    @recurring_donation = RecurringDonation.new(params.require(:recurring_donation).permit(:name, :email, :amount).merge(event: @event))
+    @recurring_donation = RecurringDonation.new(params.require(:recurring_donation).permit(:name, :email, :amount, :message).merge(event: @event))
 
     authorize @recurring_donation
 

@@ -29,7 +29,7 @@ class StripeCardsController < ApplicationController
 
     if @card.freeze!
       flash[:success] = "Card frozen"
-      redirect_to @card
+      redirect_back_or_to @card
     else
       render :show, status: :unprocessable_entity
     end
@@ -41,7 +41,7 @@ class StripeCardsController < ApplicationController
 
     if @card.defrost!
       flash[:success] = "Card defrosted"
-      redirect_to @card
+      redirect_back_or_to @card
     else
       render :show, status: :unprocessable_entity
     end
@@ -70,11 +70,10 @@ class StripeCardsController < ApplicationController
   def show
     @card = StripeCard.includes(:event, :user).find(params[:id])
 
-
     authorize @card
 
     if @card.card_grant.present? && !current_user&.admin?
-      redirect_to @card.card_grant
+      return redirect_to @card.card_grant
     end
 
     if params[:show_details] == "true"
@@ -87,11 +86,6 @@ class StripeCardsController < ApplicationController
     @hcb_codes = @card.hcb_codes
                       .includes(canonical_pending_transactions: [:raw_pending_stripe_transaction], canonical_transactions: :transaction_source)
                       .page(params[:page]).per(25)
-
-    if flash[:popover]
-      @popover = flash[:popover]
-      flash.delete(:popover)
-    end
   end
 
   def new
@@ -104,8 +98,14 @@ class StripeCardsController < ApplicationController
     event = Event.friendly.find(params[:stripe_card][:event_id])
     authorize event, :user_or_admin?, policy_class: EventPolicy
 
-    sc = params[:stripe_card]
+    sc = stripe_card_params
 
+    if current_user.birthday.nil?
+      user_params = sc.slice("birthday(1i)", "birthday(2i)", "birthday(3i)")
+      current_user.update(user_params)
+    end
+
+    return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Birthday is required" } if current_user.birthday.nil?
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Event is in Playground Mode" } if event.demo_mode?
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Invalid country" } unless %w(US CA).include? sc[:stripe_shipping_address_country]
 
@@ -191,7 +191,9 @@ class StripeCardsController < ApplicationController
       :stripe_shipping_address_line1,
       :stripe_shipping_address_postal_code,
       :stripe_shipping_address_line2,
-      :stripe_shipping_address_state
+      :stripe_shipping_address_state,
+      :stripe_shipping_address_country,
+      :birthday
     )
   end
 

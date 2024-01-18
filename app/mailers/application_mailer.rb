@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 class ApplicationMailer < ActionMailer::Base
-  OPERATIONS_EMAIL = "bank@hackclub.com"
+  OPERATIONS_EMAIL = "hcb@hackclub.com"
 
-  default from: "Hack Club Bank <bank@hackclub.com>"
+  DOMAIN = Rails.env.production? ? "hackclub.com" : "staging.hcb.hackclub.com"
+  default from: "HCB <hcb@#{DOMAIN}>"
   layout "mailer/default"
 
   # allow usage of application helper

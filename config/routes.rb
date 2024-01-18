@@ -38,7 +38,6 @@ Rails.application.routes.draw do
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
 
   post "feedback", to: "static_pages#feedback"
-  get "wrapped", to: "users#wrapped"
 
   scope :my do
     get "/", to: redirect("/"), as: :my
@@ -47,20 +46,22 @@ Rails.application.routes.draw do
     get "settings/previews", to: "users#edit_featurepreviews"
     get "settings/security", to: "users#edit_security"
     get "settings/admin", to: "users#edit_admin"
-    resources :stripe_authorizations, only: [:index, :show], path: "transactions" do
-      resources :comments
-    end
     get "inbox", to: "static_pages#my_inbox", as: :my_inbox
     post "receipts/upload", to: "static_pages#receipt", as: :my_receipts_upload
     get "missing_receipts", to: "static_pages#my_missing_receipts_list", as: :my_missing_receipts_list
     get "missing_receipts_icon", to: "static_pages#my_missing_receipts_icon", as: :my_missing_receipts_icon
     get "receipts", to: redirect("/my/inbox")
-    get "receipts/:id", to: "stripe_authorizations#receipt", as: :my_receipt
 
     post "receipt_report", to: "users#receipt_report", as: :trigger_receipt_report
 
     get "cards", to: "static_pages#my_cards", as: :my_cards
     get "cards/shipping", to: "stripe_cards#shipping", as: :my_cards_shipping
+  end
+
+  resources :mailbox_addresses, only: [:create, :show] do
+    member do
+      post "activate"
+    end
   end
 
   resources :receipts, only: [] do
@@ -92,7 +93,6 @@ Rails.application.routes.draw do
 
   resources :users, only: [:edit, :update] do
     collection do
-      get "impersonate", to: "users#impersonate"
       get "auth", to: "users#auth"
       post "auth", to: "users#auth_submit"
       get "auth/login_preference", to: "users#choose_login_preference", as: :choose_login_preference
@@ -115,6 +115,7 @@ Rails.application.routes.draw do
       delete "logout", to: "users#logout"
       delete "logout_all", to: "users#logout_all"
       delete "logout_session", to: "users#logout_session"
+      delete "revoke/:id", to: "users#revoke_oauth_application", as: "revoke_oauth_application"
 
       # sometimes users refresh the login code page and get 404'd
       get "exchange_login_code", to: redirect("/users/auth", status: 301)
@@ -128,6 +129,8 @@ Rails.application.routes.draw do
       get "previews", to: "users#edit_featurepreviews"
       get "security", to: "users#edit_security"
       get "admin", to: "users#edit_admin"
+
+      post "impersonate"
     end
     post "delete_profile_picture", to: "users#delete_profile_picture"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
@@ -135,6 +138,13 @@ Rails.application.routes.draw do
     resources :webauthn_credentials, only: [:create, :destroy] do
       collection do
         get "register_options"
+      end
+    end
+  end
+  scope module: :users do
+    resources "wrapped", only: :index do
+      collection do
+        get "data"
       end
     end
   end
@@ -160,7 +170,7 @@ Rails.application.routes.draw do
       get "stripe_cards", to: "admin#stripe_cards"
       get "pending_ledger", to: "admin#pending_ledger"
       get "ach", to: "admin#ach"
-      get "check", to: "admin#check"
+      get "checks", to: "admin#checks"
       get "increase_checks", to: "admin#increase_checks"
       get "partner_organizations", to: "admin#partner_organizations"
       get "events", to: "admin#events"
@@ -171,7 +181,6 @@ Rails.application.routes.draw do
       get "partner_donations", to: "admin#partner_donations"
       get "disbursements", to: "admin#disbursements"
       get "disbursement_new", to: "admin#disbursement_new"
-      post "disbursement_create", to: "admin#disbursement_create"
       get "invoices", to: "admin#invoices"
       get "sponsors", to: "admin#sponsors"
       get "google_workspaces", to: "admin#google_workspaces"
@@ -183,6 +192,7 @@ Rails.application.routes.draw do
         post "approve"
         post "additional_info_needed"
         post "reject"
+        post "mark_fulfilled"
       end
     end
 
@@ -198,10 +208,6 @@ Rails.application.routes.draw do
       get "disbursement_process", to: "admin#disbursement_process"
       post "disbursement_approve", to: "admin#disbursement_approve"
       post "disbursement_reject", to: "admin#disbursement_reject"
-      get "check_process", to: "admin#check_process"
-      get "check_positive_pay_csv", to: "admin#check_positive_pay_csv"
-      post "check_send", to: "admin#check_send"
-      post "check_mark_in_transit_and_processed", to: "admin#check_mark_in_transit_and_processed"
       get "increase_check_process", to: "admin#increase_check_process"
       get "google_workspace_process", to: "admin#google_workspace_process"
       post "google_workspace_approve", to: "admin#google_workspace_approve"
@@ -213,6 +219,16 @@ Rails.application.routes.draw do
       post "partnered_signups_accept", to: "admin#partnered_signups_accept"
       post "partnered_signups_reject", to: "admin#partnered_signups_reject"
     end
+  end
+
+  namespace :admin do
+    namespace :ledger_audits do
+      resources :tasks, only: [:index, :show] do
+        post :reviewed
+        post :flagged
+      end
+    end
+    resources :ledger_audits, only: [:index, :show]
   end
 
   post "set_event/:id", to: "admin#set_event", as: :set_event
@@ -227,6 +243,7 @@ Rails.application.routes.draw do
     member do
       post "set_index"
       post "mark_visited"
+      post "toggle_signee_status"
     end
 
     resources :organizer_position_deletion_requests, only: [:new], as: "remove"
@@ -264,9 +281,6 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  resources :stripe_authorizations, only: [:show, :index] do
-    resources :comments
-  end
   resources :stripe_cardholders, only: [:new, :create, :update]
   resources :stripe_cards, only: %i[create index show] do
     get "edit"
@@ -279,13 +293,6 @@ Rails.application.routes.draw do
 
   resources :checks, only: [:show] do
     get "view_scan"
-    post "cancel"
-    get "positive_pay_csv"
-
-    get "start_void"
-    post "void"
-    get "refund", to: "checks#refund_get"
-    post "refund", to: "checks#refund"
 
     resources :comments
   end
@@ -339,6 +346,8 @@ Rails.application.routes.draw do
       get "attach_receipt"
       get "memo_frame"
       get "dispute"
+      get "breakdown"
+      post "invoice_as_personal_transaction"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
     end
@@ -363,10 +372,14 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  resources :transactions, only: [:index, :show, :edit, :update] do
+  resources :exports do
     collection do
-      get "export"
+      get "collect_email", to: "exports#collect_email", as: "collect_email"
+      get ":event", to: "exports#transactions", as: "transactions"
     end
+  end
+
+  resources :transactions, only: [:index, :show, :edit, :update] do
     resources :comments
   end
 
@@ -379,8 +392,8 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  get "branding", to: redirect("brand_guidelines")
-  get "brand_guidelines", to: "static_pages#brand_guidelines"
+  get "brand_guidelines", to: redirect("branding")
+  get "branding", to: "static_pages#branding"
   get "faq", to: "static_pages#faq"
   get "audit", to: "admin#audit"
 
@@ -420,6 +433,7 @@ Rails.application.routes.draw do
       post "start/:event_name", to: "donations#make_donation", as: "make_donation"
       get "qr/:event_name.png", to: "donations#qr_code", as: "qr_code"
       get ":event_name/:donation", to: "donations#finish_donation", as: "finish_donation"
+      get ":event_name/:donation/finished", to: "donations#finished", as: "finished_donation"
       get "export"
     end
 
@@ -434,6 +448,10 @@ Rails.application.routes.draw do
     collection do
       get "export"
     end
+  end
+
+  use_doorkeeper scope: "api/v4/oauth" do
+    skip_controllers :authorized_applications
   end
 
   namespace :api do
@@ -454,16 +472,36 @@ Rails.application.routes.draw do
         resource :user do
           resources :events, path: "organizations", only: [:index]
           resources :stripe_cards, path: "cards", only: [:index]
+          resources :invitations, only: [:index, :show] do
+            member do
+              post "accept"
+              post "reject"
+            end
+          end
+
+          get "transactions/missing_receipt", to: "transactions#missing_receipt"
         end
 
         resources :events, path: "organizations", only: [:show] do
           resources :stripe_cards, path: "cards", only: [:index]
+          resources :transactions, only: [:show, :update] do
+            resources :receipts, only: [:create, :index]
+
+            member do
+              get "memo_suggestions"
+            end
+          end
+
           member do
             get "transactions"
           end
         end
 
-        resources :stripe_cards, path: "cards", only: [:show]
+        resources :stripe_cards, path: "cards", only: [:show, :update] do
+          member do
+            get "transactions"
+          end
+        end
 
         match "*path" => "application#not_found", via: [:get, :post]
       end
@@ -473,24 +511,23 @@ Rails.application.routes.draw do
   get "partnered_signups/:public_id", to: "partnered_signups#edit", as: :edit_partnered_signups
   patch "partnered_signups/:public_id", to: "partnered_signups#update", as: :update_partnered_signups
 
+  post "api/v1/users/find", to: "api#user_find"
   get "api/v1/events/find", to: "api#event_find" # to be deprecated
   post "api/v1/disbursements", to: "api#disbursement_new" # to be deprecated
   post "api/v1/events/create_demo", to: "api#create_demo_event"
 
+  post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
   post "increase/webhook", to: "increase#webhook"
+  post "webhooks/column", to: "column/webhooks#webhook"
   get "docusign/signing_complete_redirect", to: "docusign#signing_complete_redirect"
 
   get "negative_events", to: "admin#negative_events"
 
   get "admin_tasks", to: "admin#tasks"
   get "admin_task_size", to: "admin#task_size"
-  get "admin_search", to: "admin#search"
-  post "admin_search", to: "admin#search"
-
-  resources :ops_checkins, only: [:create]
-
-  get "/integrations/frankly" => "integrations#frankly"
+  get "admin_search", to: redirect("/admin/users")
+  post "admin_search", to: redirect("/admin/users")
 
   post "twilio/messaging", to: "admin#twilio_messaging"
 
@@ -510,6 +547,7 @@ Rails.application.routes.draw do
   resources :card_grants, only: [:show], path: "grants" do
     member do
       post "activate"
+      get "spending"
     end
   end
 
@@ -567,9 +605,6 @@ Rails.application.routes.draw do
     resources :documents, only: [:index]
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
     resources :invoices, only: [:new, :create, :index]
-    resources :stripe_authorizations, only: [:show] do
-      resources :comments
-    end
     resources :tags, only: [:create, :destroy]
     resources :event_tags, only: [:create, :destroy]
 
@@ -582,9 +617,19 @@ Rails.application.routes.draw do
 
     resources :check_deposits, only: [:index, :create], path: "check-deposits"
 
-    resources :card_grants, only: [:new, :create], path: "card-grants"
+    resources :card_grants, only: [:new, :create], path: "card-grants" do
+      member do
+        post "cancel"
+      end
+    end
 
     resources :grants, only: [:index, :new, :create]
+
+    resource :column_account_number, controller: "column/account_number", only: [:create], path: "account-number"
+
+    resources :organizer_positions, path: "team", as: "organizer", only: [] do
+      resources :organizer_position_deletion_requests, path: "removal-requests", as: "remove", only: [:new]
+    end
 
     member do
       post "disable_feature"
@@ -592,6 +637,7 @@ Rails.application.routes.draw do
       post "test_ach_payment"
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
+      get "audit_log"
     end
   end
 

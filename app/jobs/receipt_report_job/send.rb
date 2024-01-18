@@ -2,6 +2,7 @@
 
 module ReceiptReportJob
   class Send < ApplicationJob
+    queue_as :default
     def perform(user_id, force_send: false)
       @user = User.includes(:stripe_cards).find user_id
 
@@ -21,7 +22,7 @@ module ReceiptReportJob
       @hcb_ids ||= begin
         ids = []
         @user.stripe_cards.each do |card|
-          card.hcb_codes.missing_receipt.each do |hcb_code|
+          card.hcb_codes.missing_receipt.find_each(batch_size: 100) do |hcb_code|
             next unless hcb_code.receipt_required?
 
             ids << hcb_code.id

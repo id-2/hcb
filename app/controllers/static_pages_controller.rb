@@ -4,8 +4,8 @@ require "net/http"
 
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:branding, :brand_guidelines, :faq]
-  skip_before_action :redirect_to_onboarding, only: [:branding, :brand_guidelines, :faq]
+  skip_before_action :signed_in_user, only: [:branding, :faq]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :faq]
 
   def index
     if signed_in?
@@ -16,13 +16,16 @@ class StaticPagesController < ApplicationController
       @invites = @service.invites
 
       @show_event_reorder_tip = current_user.organizer_positions.where.not(sort_index: nil).none?
+
+      @hcb_expansion = Rails.cache.read("hcb_acronym_expansions")&.sample || "Hack Club Buckaroos"
+
     end
     if admin_signed_in?
       @transaction_volume = CanonicalTransaction.included_in_stats.sum("@amount_cents")
     end
   end
 
-  def brand_guidelines
+  def branding
     @logos = [
       { name: "Original Light", criteria: "For white or light colored backgrounds.", background: "smoke" },
       { name: "Original Dark", criteria: "For black or dark colored backgrounds.", background: "black" },
@@ -30,8 +33,8 @@ class StaticPagesController < ApplicationController
       { name: "Outlined White", criteria: "For black or dark colored backgrounds.", background: "black" }
     ]
     @icons = [
-      { name: "Icon Original", criteria: "The original Hack Club Bank logo.", background: "smoke" },
-      { name: "Icon Dark", criteria: "Hack Club Bank logo in dark mode.", background: "black" }
+      { name: "Icon Original", criteria: "The original HCB logo.", background: "smoke" },
+      { name: "Icon Dark", criteria: "HCB logo in dark mode.", background: "black" }
     ]
     @event_name = signed_in? && current_user.events.first&.name || "Hack Pennsylvania"
     @event_slug = signed_in? && current_user.events.first&.slug || "hack-pennsylvania"
@@ -41,7 +44,7 @@ class StaticPagesController < ApplicationController
   end
 
   def my_cards
-    flash[:success] = "Card activated!" if params[:activate]
+    flash.now[:success] = "Card activated!" if params[:activate]
     @stripe_cards = current_user.stripe_cards.includes(:event)
     @emburse_cards = current_user.emburse_cards.includes(:event)
   end
@@ -94,34 +97,40 @@ class StaticPagesController < ApplicationController
   end
 
   def my_inbox
-    user_cards = current_user.stripe_cards + current_user.emburse_cards
+    user_cards = current_user.stripe_cards.includes(:event) + current_user.emburse_cards.includes(:emburse_transactions)
     user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
     user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
 
-    hcb_codes_missing_ids = user_hcb_codes.missing_receipt.filter(&:receipt_required?).pluck(:id)
+    hcb_codes_missing_ids = user_hcb_codes.missing_receipt
+                                          # Includes association for `HcbCode#receipt_required?`
+                                          .includes(:canonical_transactions, canonical_pending_transactions: :canonical_pending_declined_mapping)
+                                          .filter(&:receipt_required?).pluck(:id)
     hcb_codes_missing = HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
 
     @count = hcb_codes_missing.count # Total number of HcbCodes missing receipts
-    @hcb_codes = hcb_codes_missing.page(params[:page]).per(params[:per] || 20)
+    @hcb_codes = hcb_codes_missing.page(params[:page]).per(params[:per] || 15)
 
-    @card_hcb_codes = @hcb_codes.group_by { |hcb| hcb.card.to_global_id.to_s }
-    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys)
-    # Ideally we'd preload (includes) events for @cards, but that isn't
-    # supported yet: https://github.com/rails/globalid/pull/139
+    @card_hcb_codes = @hcb_codes.includes(:canonical_transactions, canonical_pending_transactions: :raw_pending_stripe_transaction) # HcbCode#card uses CT and PT
+                                .group_by { |hcb| hcb.card.to_global_id.to_s }
+    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys, includes: :event)
+                              # Order by cards with least transactions first
+                              .sort_by { |card| @card_hcb_codes[card.to_global_id.to_s].count }
 
     if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
-      @receipts = Receipt.where(user: current_user, receiptable: nil)
+      @mailbox_address = current_user.active_mailbox_address
 
-      @pairings = @receipts.map do |receipt|
-        pairings = receipt.suggested_pairings.order(distance: :asc)
-        next if pairings.ignored.count > 2
+      @receipts = Receipt.in_receipt_bin.where(user: current_user)
 
-        pairing = pairings.unreviewed.first
-        next if pairing.nil?
-        next if pairing.distance > 3000
+      # Don't suggest receipts ignored more than twice
+      ineligible_receipt_ids = SuggestedPairing.ignored.group("receipt_id").having("COUNT(*) >= 2").pluck(:receipt_id)
 
-        pairing
-      end.compact
+      @pairings = SuggestedPairing
+                  .unreviewed
+                  .where(receipt_id: @receipts.ids - ineligible_receipt_ids)
+                  .where("distance <= ?", 1500) # With at least a certain confidence level
+                  # Only get the closest pairing for each receipt
+                  .order(:receipt_id, distance: :asc)
+                  .select("DISTINCT ON (receipt_id) suggested_pairings.*")
     end
 
     if flash[:popover]

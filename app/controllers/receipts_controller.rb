@@ -56,7 +56,7 @@ class ReceiptsController < ApplicationController
   def link_modal
     authorize @receiptable, policy_class: ReceiptablePolicy
 
-    @receipts = Receipt.where(user: current_user, receiptable: nil).order(created_at: :desc)
+    @receipts = Receipt.in_receipt_bin.where(user: current_user).order(created_at: :desc)
     @show_link = params[:show_link]
     @suggested_receipt_ids = []
 
@@ -86,10 +86,7 @@ class ReceiptsController < ApplicationController
         authorize @receiptable, policy_class: ReceiptablePolicy
       end
     rescue Pundit::NotAuthorizedError
-      raise unless @receiptable.is_a?(HcbCode) && (
-        HcbCodeService::Receipt::SigningEndpoint.new.valid_url?(@receiptable.hashid, params[:s]) ||
-        HcbCode.find_signed(params[:s], purpose: :receipt_upload) == @receiptable
-      )
+      raise unless @receiptable.is_a?(HcbCode) && HcbCode.find_signed(params[:s], purpose: :receipt_upload) == @receiptable
     end
 
     if params[:file] # Ignore if no files were uploaded

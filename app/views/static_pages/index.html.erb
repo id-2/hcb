@@ -5,14 +5,14 @@
 
 <h1 class="heading items-center md-items-baseline justify-center md-justify-between center md-left-align w-auto">
   <div>
-    <span class="h3 caps secondary block">Welcome to</span>
-    <span class="primary <%= "nowrap" unless fall? %> <%= "warning" if fall? %>">
-      <% if fall? %>
-        <span class="warning strikethrough"><span class="primary">Hack</span></span>
-        Spook&nbsp;Club Bank
-      <% else %>
-        Hack&nbsp;Club Bank
-      <% end %>
+    <a
+      class="h4 caps muted block text-decoration-none"
+      href="https://github.com/hackclub/hcb-expansions/tree/main#hcb-what-does-it-stand-for"
+      target="_blank">
+      <%= @hcb_expansion %>
+    </a>
+    <span class="<%= "nowrap" unless fall? %> <%= "warning" if fall? %>">
+      Welcome to <span class="primary">HCB</span>
     </span>
   </div>
   <span class="badge ml0 h5 caps <%= Rails.env.development? ? "bg-success" : by_season("", fall: "bg-warning") %>" id="flavor-text" data-turbo-permanent><%= flavor_text %></span>
@@ -22,7 +22,7 @@
   <% current_user.card_grants.not_activated.each do |grant| %>
     <div class="card border b--info container--sm mx-auto mb4 center">
       <p class="mt0 h3">You have a grant invitation from <strong><%= grant.event.name %></strong>!</p>
-      <%= link_to "Activate your grant", grant, class: "btn" %>
+      <%= link_to "Activate my grant", grant, class: "btn" %>
     </div>
   <% end %>
 <% end %>
@@ -40,16 +40,16 @@
 <main class="flex flex-column items-center center pb3">
   <% if signed_in? %>
     <% if @events.any? %>
-      <% if @show_event_reorder_tip && Flipper.enabled?(:event_reordering_2022_10_10, current_user) %>
+      <% if @show_event_reorder_tip %>
         <% if @events.size > 1 %>
-          <%= link_to "https://changelog.bank.hackclub.com/re-order-your-homepage-247413", class: "muted flex items-center justify-end h6 mb1", style: "align-self: baseline", target: "_blank" do %>
+          <%= link_to "https://changelog.hcb.hackclub.com/re-order-your-homepage-247413", class: "muted flex items-center justify-end h6 mb1", style: "align-self: baseline", target: "_blank" do %>
             <%= inline_icon "hand-pointer-solid", size: 18, class: "mr1" %> Drag to reorder
           <% end %>
         <% end %>
       <% end %>
       <ul
         class="grid grid--medium-narrow left-align w-100 mt0"
-        data-controller="<%= "sortable event-sort" if Flipper.enabled?(:event_reordering_2022_10_10, current_user) %>"
+        data-controller="sortable event-sort"
         data-sortable-append-to-value="body"
         data-event-sort-organizer-positions-value="<%= @organizer_positions.pluck(:id).to_json %>"
         data-action="sortable:stop->event-sort#sort">
@@ -57,24 +57,30 @@
           <%= link_to event, style: "max-width: 90vw", class: "draggable text-decoration-none" do %>
             <li class="card card--hover flex flex-column justify-between h-100 mx-auto <%= "card--background-image" if event.background_image.attached? %>" style="<%= "--bg-image: url(#{url_for(event.background_image).dump})" if event.background_image.attached? %>">
               <div id="event-<%= event.id %>-title" class="flex mb2">
-                <strong class="brand-sans h3 line-height-2 display-inline">
-                  <% if event.logo.attached? %>
+                <% if event.logo.attached? %>
+                  <div style="display: flex; gap: 8px; align-items: center;">
                     <%= image_tag event.logo, height: 24, width: 24, class: "rounded display-inline align-bottom" %>
-                  <% end %>
-                  <%= event.name %>
-                </strong>
+                    <strong class="brand-sans h3 line-height-2 display-inline">
+                      <%= event.name %>
+                    </strong>
+                  </div>
+                <% else %>
+                  <strong class="brand-sans h3 line-height-2 display-inline">
+                    <%= event.name %>
+                  </strong>
+                <% end %>
               </div>
               <% if event.demo_mode? %>
                 <div class="badge bg-info ml0 mb2" style="width: fit-content;">Playground Mode</div>
               <% end %>
-              <div class="brand-sans h4 line-height-2 mb2 flex justify-between">
-                <span style="white-space: nowrap;">
+              <div class="brand-sans h4 line-height-2 mb2 flex justify-between item-center">
+                <span style="white-space: nowrap; gap: 4px;" class="flex items-center">
                   <%= inline_icon "payment", size: 16, class: "muted align-middle", 'aria-label': "Dollar sign", style: "transform: scale(2)" %>
-                  <%= async_frame_to event_async_balance_path(event), as: :span do %>
+                  <%= turbo_frame_tag "event_balance_#{event.public_id}", src: event_async_balance_path(event), data: { turbo_permanent: true } do %>
                     <strong>-</strong>
                   <% end %>
                 </span>
-                <span>
+                <span style="gap: 4px;" class="flex items-center">
                   <%= inline_icon "card", size: 20, class: "muted align-middle", 'aria-label': "Cards", style: "transform: scale(1.2)" %>
                   <strong><%= event.stripe_cards.active.count %></strong>
                 </span>
@@ -88,7 +94,7 @@
           <% end %>
         <% end %>
 
-        <%= link_to "https://hackclub.com/bank/apply/?#{URI.encode_www_form(userEmail: current_user.email, firstName: current_user.first_name, lastName: current_user.last_name, returningUser: "Yes, I have used Hack Club Bank before", userPhone: current_user.phone_number)}" do %>
+        <%= link_to "https://hackclub.com/hcb/apply/?#{URI.encode_www_form(userEmail: current_user.email, firstName: current_user.first_name, lastName: current_user.last_name, returningUser: "Yes, I have used HCB before", userPhone: current_user.phone_number)}" do %>
           <li class="card card--hover bold brand-sans flex items-center justify-center align-center h-100" style="max-width: 90vw">
             <div class="center">
               <div class="pop success mx-auto" style="display: flex; margin-bottom: 4px;">
@@ -136,7 +142,7 @@
     <% end %>
     <% if @events.empty? && @invites.empty? && !current_user.admin? %>
       <%= blankslate "No projects associated with your account yet." %>
-      <a href="https://hackclub.com/bank/apply/?userEmail=<%= current_user.email %>&firstName=<%= current_user.first_name %>&lastName=<%= current_user.last_name %>&returningUser=No,%20first%20time!&userPhone=<%= current_user.phone_number %>" class="btn bg-success">
+      <a href="https://hackclub.com/hcb/apply/?userEmail=<%= current_user.email %>&firstName=<%= current_user.first_name %>&lastName=<%= current_user.last_name %>&returningUser=No,%20first%20time!&userPhone=<%= current_user.phone_number %>" class="btn bg-success">
         <%= inline_icon "plus" %>
         New project
       </a>

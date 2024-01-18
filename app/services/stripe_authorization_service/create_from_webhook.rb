@@ -10,7 +10,7 @@ module StripeAuthorizationService
       cpt = nil
 
       # 1. fetch remote stripe transaction (authorization)
-      remote_stripe_transaction = ::Partners::Stripe::Issuing::Authorizations::Show.new(id: @stripe_transaction_id).run
+      remote_stripe_transaction = StripeService::Issuing::Authorization.retrieve(@stripe_transaction_id)
       return unless remote_stripe_transaction
 
       ActiveRecord::Base.transaction do
@@ -30,15 +30,17 @@ module StripeAuthorizationService
       end
 
       if cpt
+        user = cpt&.stripe_card&.user
+
         if remote_stripe_transaction.approved
           CanonicalPendingTransactionMailer.with(canonical_pending_transaction_id: cpt.id).notify_approved.deliver_later
-          user = cpt&.stripe_card&.user
           if Flipper.enabled?(:sms_receipt_notifications_2022_11_23, user)
-            CanonicalPendingTransactionJob::SendTwilioMessage.perform_later(cpt_id: cpt.id, user_id: user.id)
+            CanonicalPendingTransactionJob::SendTwilioReceiptMessage.perform_later(cpt_id: cpt.id, user_id: user.id)
           end
         else
           unless cpt&.stripe_card&.frozen?
             CanonicalPendingTransactionMailer.with(canonical_pending_transaction_id: cpt.id).notify_declined.deliver_later
+            CanonicalPendingTransactionJob::SendTwilioDeclinedMessage.perform_later(cpt_id: cpt.id, user_id: user.id)
           end
         end
       end

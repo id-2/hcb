@@ -38,18 +38,19 @@
     </button>
   </h1>
 
-  <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="order_card">
-    <%= modal_header "Order a card" %>
-    <%= render "stripe_cards/form", stripe_card: StripeCard.new %>
-  </section>
-
   <% if organizer_signed_in? %>
+
+    <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="order_card">
+      <%= modal_header "Order a card" %>
+      <%= render "stripe_cards/form", stripe_card: StripeCard.new %>
+    </section>
+
     <h4>Your Cards</h4>
     <% if @session_user_stripe_cards.blank? %>
       <%= blankslate "You haven’t requested any cards yet." %>
     <% else %>
 
-      <% if params[:view] == "list" || @event.demo_mode %> <!-- Grim hack -->
+      <% if params[:view] == "list" %>
         <%= render "event_cards_table", stripe_cards: @session_user_stripe_cards %>
       <% else %>
         <article class="mixed-grid grid--spacious">
@@ -81,11 +82,13 @@
   <h4>Organization Cards</h4>
 
   <% if params[:view] == "list" %>
-    <%= render "event_cards_table", stripe_cards: @stripe_cards %>
+    <%= render "event_cards_table", stripe_cards: @paginated_stripe_cards %>
   <% else %>
     <article class="mixed-grid grid--spacious">
-      <%= render @stripe_cards %>
+      <%= render @paginated_stripe_cards %>
     </article>
   <% end %>
+
+  <%= paginate @paginated_stripe_cards %>
 
 <% end %>

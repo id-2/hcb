@@ -1,5 +1,9 @@
 name: CI
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 jobs:
   rubocop:
     name: Rubocop
@@ -12,8 +16,6 @@ jobs:
         with:
           bundler-cache: true
       - name: Run Rubocop
-        env:
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bundle exec rubocop
   erblint:
     name: 'ERB Lint'
@@ -44,6 +46,19 @@ jobs:
       - run: yarn install
       - name: Run ESLint
         run: yarn lint
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: yarn install
+      - name: Run Prettier
+        run: yarn format:check
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
@@ -94,13 +109,11 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bank_test
           RAILS_ENV: test
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bundler exec rails db:create db:schema:load RAILS_ENV=test
       - name: Run RSpec
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bank_test
           RAILS_ENV: test
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bundle exec rspec --tag ~skip
   zeitwerk:
     name: Zeitwerk
@@ -135,6 +148,5 @@ jobs:
           yarn install --pure-lockfile
       - name: Run zeitwerk:check
         env:
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           RAILS_ENV: test
         run: bundle exec rails zeitwerk:check

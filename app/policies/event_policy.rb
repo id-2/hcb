@@ -6,7 +6,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def index?
-    user&.admin?
+    user.present?
   end
 
   def toggle_hidden?
@@ -142,10 +142,18 @@ class EventPolicy < ApplicationPolicy
   end
 
   def account_number?
-    is_public || user_or_admin
+    user_or_admin
   end
 
   def toggle_event_tag?
+    user.admin?
+  end
+
+  def receive_grant?
+    record.users.include?(user)
+  end
+
+  def audit_log?
     user.admin?
   end
 

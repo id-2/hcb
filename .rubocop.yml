@@ -1,4 +1,11 @@
+require: rubocop-rails
 inherit_from: .rubocop_todo.yml
+
+AllCops:
+  Exclude:
+    - 'db/**/*'
+    - 'lib/tasks/**/*'
+    - 'vendor/**/*'
 
 # The "offical" rubocop style guide is indeed quite strict. So intead, we use
 # the Relaxed Ruby Style guide. https://relaxed.ruby.style/
@@ -11,6 +18,10 @@ Style/RedundantSelf:
 
 Style/RescueStandardError:
   EnforcedStyle: implicit
+
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - 'app/views/**/*.jbuilder'
 
 Lint/UselessAssignment:
   Enabled: false
@@ -141,4 +152,38 @@ Bundler/OrderedGems:
   Enabled: false
 
 Naming/AccessorMethodName:
+  Enabled: false
+
+Style/HashLikeCase:
+  Enabled: false
+
+Style/FormatStringToken:
+  EnforcedStyle: template
+
+Style/ClassAndModuleChildren:
+  Exclude:
+    - 'config/**/*.rb'
+    - 'app/models/ahoy/{event,visit}.rb'
+
+Rails/UnknownEnv:
+  Environments:
+    - production
+    - development
+    - test
+    - staging
+
+Rails/RequestReferer:
+  EnforcedStyle: referrer
+
+Rails/ApplicationController:
+  Exclude:
+    - 'app/controllers/docs_controller.rb'
+    - 'app/controllers/stripe_controller.rb'
+    - 'app/controllers/twilio_controller.rb'
+    - 'app/controllers/column/webhooks_controller.rb'
+
+Rails/HasAndBelongsToMany:
+  Enabled: false
+
+Rails/Validation:
   Enabled: false

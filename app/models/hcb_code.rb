@@ -26,6 +26,8 @@ class HcbCode < ApplicationRecord
   include Commentable
   include Receiptable
 
+  include Memo
+
   monetize :amount_cents
 
   has_and_belongs_to_many :tags
@@ -33,13 +35,17 @@ class HcbCode < ApplicationRecord
   has_many :suggested_pairings
   has_many :suggested_receipts, source: :receipt, through: :suggested_pairings
 
+  has_one :personal_transaction, required: false
+
   before_create :generate_and_set_short_code
+
+  delegate :likely_account_verification_related?, to: :ct, allow_nil: true
 
   comma do
     hcb_code "HCB Code"
     created_at "Created at"
     date "Transaction date"
-    url "URL" do |url| "https://bank.hackclub.com#{url}" end
+    url "URL" do |url| "https://hcb.hackclub.com#{url}" end
     memo
     receipts size: "Receipt count"
     receipts "Has receipt?" do |receipts| receipts.exists? end
@@ -57,7 +63,7 @@ class HcbCode < ApplicationRecord
     if Rails.env.development?
       "receipts+hcb-#{hashid}@bank-parse-dev.hackclub.com"
     else
-      "receipts+hcb-#{hashid}@bank-parse.hackclub.com"
+      "receipts+hcb-#{hashid}@hcb.hackclub.com"
     end
   end
 
@@ -73,22 +79,6 @@ class HcbCode < ApplicationRecord
 
   def date
     @date ||= ct.try(:date) || pt.try(:date)
-  end
-
-  def memo
-    return card_grant_memo if card_grant?
-    return disbursement_memo if disbursement?
-    return invoice_memo if invoice?
-    return donation_memo if donation?
-    return partner_donation_memo if partner_donation?
-    return ach_transfer_memo if ach_transfer?
-    return check_memo if check?
-    return increase_check_memo if increase_check?
-    return check_deposit_memo if check_deposit?
-    return fee_revenue_memo if fee_revenue?
-    return ach_payment_memo if ach_payment?
-
-    custom_memo || ct.try(:smart_memo) || pt.try(:smart_memo) || ""
   end
 
   def type
@@ -113,10 +103,6 @@ class HcbCode < ApplicationRecord
     t = :transaction if unknown?
 
     t.to_s.humanize
-  end
-
-  def custom_memo
-    ct.try(:custom_memo) || pt.try(:custom_memo)
   end
 
   def amount_cents
@@ -150,6 +136,7 @@ class HcbCode < ApplicationRecord
       begin
         ids = [].concat(canonical_pending_transactions.includes(:canonical_pending_event_mapping).pluck(:event_id))
                 .concat(canonical_transactions.includes(:canonical_event_mapping).pluck(:event_id))
+                .compact
                 .uniq
 
         return Event.where(id: ids) unless ids.empty?
@@ -163,6 +150,7 @@ class HcbCode < ApplicationRecord
           increase_check.try(:event).try(:id),
           disbursement.try(:event).try(:id),
           check_deposit.try(:event).try(:id),
+          bank_fee.try(:event).try(:id),
         ].compact.uniq)
 
         ids << EventMappingEngine::EventIds::INCOMING_FEES if incoming_bank_fee?
@@ -269,16 +257,12 @@ class HcbCode < ApplicationRecord
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::DISBURSEMENT_CODE
   end
 
-  def disbursement_memo
-    smartish_custom_memo || disbursement.special_appearance_memo || "Transfer from #{disbursement.source_event.name} to #{disbursement.destination_event.name}".strip.upcase
-  end
-
   def card_grant?
-    disbursement? && disbursement.card_grant.present?
+    disbursement? && disbursement&.card_grant.present?
   end
 
-  def card_grant_memo
-    smartish_custom_memo || "Grant to #{disbursement.card_grant.user.name}"
+  def grant?
+    canonical_pending_transactions.first&.grant.present?
   end
 
   def stripe_card?
@@ -293,48 +277,24 @@ class HcbCode < ApplicationRecord
     @invoice ||= Invoice.find_by(id: hcb_i2) if invoice?
   end
 
-  def invoice_memo
-    smartish_custom_memo || "INVOICE TO #{invoice.smart_memo}"
-  end
-
   def donation
     @donation ||= Donation.find_by(id: hcb_i2) if donation?
-  end
-
-  def donation_memo
-    smartish_custom_memo || "DONATION FROM #{donation.smart_memo}#{donation.refunded? ? " (REFUNDED)" : ""}"
   end
 
   def partner_donation
     @partner_donation ||= PartnerDonation.find_by(id: hcb_i2) if partner_donation?
   end
 
-  def partner_donation_memo
-    smartish_custom_memo || "DONATION FROM #{partner_donation.smart_memo}#{partner_donation.refunded? ? " (REFUNDED)" : ""}"
-  end
-
   def ach_transfer
     @ach_transfer ||= AchTransfer.find_by(id: hcb_i2) if ach_transfer?
-  end
-
-  def ach_transfer_memo
-    smartish_custom_memo || "ACH TO #{ach_transfer.smart_memo}"
   end
 
   def check
     @check ||= Check.find_by(id: hcb_i2) if check?
   end
 
-  def check_memo
-    smartish_custom_memo || "CHECK TO #{check.smart_memo}"
-  end
-
   def increase_check
     @increase_check ||= IncreaseCheck.find_by(id: hcb_i2) if increase_check?
-  end
-
-  def increase_check_memo
-    smartish_custom_memo || "Check to #{increase_check.recipient_name}".upcase
   end
 
   def disbursement
@@ -349,10 +309,6 @@ class HcbCode < ApplicationRecord
     @fee_revenue ||= FeeRevenue.find_by(id: hcb_i2) if fee_revenue?
   end
 
-  def fee_revenue_memo
-    "Fee revenue from #{fee_revenue.start.strftime("%b %e")} to #{fee_revenue.end.strftime("%b %e")}"
-  end
-
   def ach_payment?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::ACH_PAYMENT_CODE
   end
@@ -361,20 +317,16 @@ class HcbCode < ApplicationRecord
     @ach_payment ||= AchPayment.find(hcb_i2) if ach_payment?
   end
 
-  def ach_payment_memo
-    "Bank transfer"
-  end
-
   def check_deposit?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::CHECK_DEPOSIT_CODE
   end
 
-  def check_deposit
-    @check_deposit ||= CheckDeposit.find_by(id: hcb_i2) if check_deposit?
+  def outgoing_fee_reimbursement?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::OUTGOING_FEE_REIMBURSEMENT_CODE
   end
 
-  def check_deposit_memo
-    smartish_custom_memo || "CHECK DEPOSIT"
+  def check_deposit
+    @check_deposit ||= CheckDeposit.find_by(id: hcb_i2) if check_deposit?
   end
 
   def unknown?
@@ -417,16 +369,8 @@ class HcbCode < ApplicationRecord
     canonical_transactions.last
   end
 
-  def smartish_custom_memo
-    return nil unless ct&.custom_memo || pt&.custom_memo
-    return ct.custom_memo unless ct&.custom_memo.blank? || ct&.custom_memo.include?("FEE REFUND")
-    return pt.custom_memo unless pt&.custom_memo.blank?
-
-    ct2.custom_memo
-  end
-
   def receipt_required?
-    (type == :card_charge && !pt.declined? && !event&.salary?) || !!raw_emburse_transaction
+    (type == :card_charge && !pt&.declined? && !event&.salary?) || !!raw_emburse_transaction
   end
 
   def needs_receipt?
@@ -434,7 +378,7 @@ class HcbCode < ApplicationRecord
   end
 
   def local_hcb_code
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
+    self
   end
 
   def generate_and_set_short_code

@@ -21,31 +21,42 @@ module TransactionGroupingEngine
       BANK_FEE_CODE = "700"
       INCOMING_BANK_FEE_CODE = "701" # short-lived and deprecated
       FEE_REVENUE_CODE = "702"
-      ACH_PAYMENT_CODE = "800"
+      ACH_PAYMENT_CODE = "800" # ALSO short-lived and deprecated
+      OUTGOING_FEE_REIMBURSEMENT_CODE = "900" # Note: many old fee reimbursements are still grouped under HCB-000
 
       def initialize(canonical_transaction_or_canonical_pending_transaction:)
         @ct_or_cp = canonical_transaction_or_canonical_pending_transaction
       end
 
       def run
-        return unknown_hcb_code if @ct_or_cp.is_a?(CanonicalTransaction) && @ct_or_cp.raw_increase_transaction&.increase_account_number&.present? # Don't attempt to group transactions posted to an org's account/routing number
+        return increase_check_hcb_code if increase_check
+        return unknown_hcb_code if @ct_or_cp.is_a?(CanonicalTransaction) && @ct_or_cp.raw_increase_transaction&.increase_account_number.present? # Don't attempt to group transactions posted to an org's account/routing number
+        return short_code_hcb_code if has_short_code?
         return invoice_hcb_code if invoice
         return bank_fee_hcb_code if bank_fee
         return donation_hcb_code if donation
         return partner_donation_hcb_code if partner_donation
         return ach_transfer_hcb_code if ach_transfer
         return check_hcb_code if check
-        return increase_check_hcb_code if increase_check
         return check_deposit_hcb_code if check_deposit
         return disbursement_hcb_code if disbursement
         return stripe_card_hcb_code if raw_stripe_transaction
         return stripe_card_hcb_code_pending if raw_pending_stripe_transaction
         return ach_payment_hcb_code if ach_payment
+        return outgoing_fee_reimbursement_hcb_code if outgoing_fee_reimbursement?
 
         unknown_hcb_code
       end
 
       private
+
+      def has_short_code?
+        @ct_or_cp.try(:short_code).present?
+      end
+
+      def short_code_hcb_code
+        ::HcbCode.find_by(short_code: @ct_or_cp.short_code)&.hcb_code || unknown_hcb_code
+      end
 
       def invoice_hcb_code
         [
@@ -201,6 +212,18 @@ module TransactionGroupingEngine
 
       def ach_payment
         @ct_or_cp.try :ach_payment
+      end
+
+      def outgoing_fee_reimbursement_hcb_code
+        [
+          HCB_CODE,
+          OUTGOING_FEE_REIMBURSEMENT_CODE,
+          @ct_or_cp.date.strftime("%G_%V"),
+        ].join(SEPARATOR)
+      end
+
+      def outgoing_fee_reimbursement?
+        @ct_or_cp.memo.downcase.include?("stripe fee reimbursement")
       end
 
       def unknown_hcb_code

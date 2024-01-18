@@ -3,8 +3,10 @@
 module Api
   module V4
     class EventsController < ApplicationController
+      skip_after_action :verify_authorized, only: [:index]
+
       def index
-        @events = current_user.events.includes(:users)
+        @events = current_user.events.not_hidden.includes(:users).order("organizer_positions.created_at DESC")
       end
 
       def show
@@ -20,6 +22,23 @@ module Api
 
         @pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(event_id: @event.id).run
         PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions: @pending_transactions, event: @event).run!
+
+        @total_count = @pending_transactions.count + @settled_transactions.count
+        @transactions = paginate_transactions(@pending_transactions + @settled_transactions)
+      end
+
+      private
+
+      def paginate_transactions(transactions)
+        limit = params[:limit]&.to_i || 25
+        start_index = if params[:after]
+                        transactions.index { |tx| tx.local_hcb_code.public_id == params[:after] } + 1
+                      else
+                        0
+                      end
+        @has_more = transactions.length > start_index + limit
+
+        transactions.slice(start_index, limit)
       end
 
     end
