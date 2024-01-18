@@ -111,7 +111,7 @@
             <div class="flex items-center">
               <%= form_with url: event_tags_path(@event), data: { turbo: false }, class: "flex-auto" do |form| %>
                 <button class="menu__action" title="Apply this tag" type="submit"><%= tag.label %></button>
-                <%= form.hidden_field :hcb_code_ids, "data-transactions-target": "formField" %>
+                <%= form.hidden_field :"hcb_code_ids[]", "data-transactions-target": "formField" %>
                 <%= form.hidden_field :label, value: tag.label %>
               <% end %>
               <%= button_to event_tag_path(@event, tag), class: "menu__action", method: :delete, title: "Delete this tag", form: { "data-turbo" => "true", "data-turbo-confirm" => tag.removal_confirmation_message } do %>

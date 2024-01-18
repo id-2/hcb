@@ -4,7 +4,7 @@
   id="<%= pt.local_hcb_code.hashid %>"
   data-transactions-target="transaction"
   <% if defined?(multi_select) %>
-    data-action="click->transactions#trackClick"
+    data-action="click->transactions#multiselect"
     data-transactions-target="transaction"
   <% end %>
   <% if local_assigns[:receipt_upload_button] %>
@@ -19,7 +19,7 @@
       dragenter->file-drop#dragenter
       dragleave->file-drop#dragleave
       <% if defined?(multi_select) %>
-        click->transactions#trackClick
+        click->transactions#multiselect
       <% end %>
     "
   <% end %>>

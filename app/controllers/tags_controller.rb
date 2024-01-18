@@ -12,7 +12,7 @@ class TagsController < ApplicationController
 
     hcb_code_ids = params[:hcb_code_id] || params[:hcb_code_ids]&.split(",") || []
 
-    HcbCode.where(id: hcb_code_id).find_each do |hcb_code|
+    HcbCode.where(id: hcb_code_ids).find_each do |hcb_code|
       authorize hcb_code, :toggle_tag?
 
       suppress(ActiveRecord::RecordNotUnique) do

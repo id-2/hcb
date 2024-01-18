@@ -3,7 +3,7 @@
   class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
   id="<%= ct.local_hcb_code.hashid %>"
   <% if defined?(multi_select) %>
-    data-action="click->transactions#trackClick"
+    data-action="click->transactions#multiselect"
     data-transactions-target="transaction"
   <% end %>
   <% if local_assigns[:receipt_upload_button] %>
@@ -18,7 +18,7 @@
       dragenter->file-drop#dragenter
       dragleave->file-drop#dragleave
       <% if defined?(multi_select) %>
-        click->transactions#trackClick
+        click->transactions#multiselect
       <% end %>
     "
   <% end %>>
