@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: reimbursement_expenses
@@ -24,17 +26,20 @@
 #  fk_rails_...  (approved_by_id => users.id)
 #  fk_rails_...  (reimbursement_report_id => reimbursement_reports.id)
 #
-class Reimbursement::Expense < ApplicationRecord
-  belongs_to :reimbursement_report
+module Reimbursement
+  class Expense < ApplicationRecord
+    belongs_to :reimbursement_report
 
-  include AASM
+    include AASM
 
-  aasm do
-    state :pending, initial: true
-    state :approved
+    aasm do
+      state :pending, initial: true
+      state :approved
 
-    event :mark_approved do
-      transitions from: :pending, to: :approved
+      event :mark_approved do
+        transitions from: :pending, to: :approved
+      end
     end
+
   end
 end

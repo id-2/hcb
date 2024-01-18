@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: reimbursement_reports
@@ -30,39 +32,42 @@
 #  fk_rails_...  (invited_by_id => users.id)
 #  fk_rails_...  (user_id => users.id)
 #
-class Reimbursement::Report < ApplicationRecord
-  belongs_to :user
-  belongs_to :event
+module Reimbursement
+  class Report < ApplicationRecord
+    belongs_to :user
+    belongs_to :event
 
-  include AASM
-  include Commentable
+    include AASM
+    include Commentable
 
-  aasm do
-    state :pending, initial: true
-    state :submitted
-    state :organizer_approved
-    state :admin_approved
-    state :rejected
-    state :reimbursed
+    aasm do
+      state :pending, initial: true
+      state :submitted
+      state :organizer_approved
+      state :admin_approved
+      state :rejected
+      state :reimbursed
 
-    event :mark_submitted do
-      transitions from: [:pending, :organizer_approved], to: :submitted
+      event :mark_submitted do
+        transitions from: [:pending, :organizer_approved], to: :submitted
+      end
+
+      event :mark_organizer_approved do
+        transitions from: :submitted, to: :organizer_approved
+      end
+
+      event :mark_admin_approved do
+        transitions from: :organizer_approved, to: :admin_approved
+      end
+
+      event :mark_rejected do
+        transitions from: [:pending, :submitted, :organizer_approved], to: :rejected
+      end
+
+      event :mark_reimbursed do
+        transitions from: :admin_approved, to: :reimbursed
+      end
     end
 
-    event :mark_organizer_approved do
-      transitions from: :submitted, to: :organizer_approved
-    end
-
-    event :mark_admin_approved do
-      transitions from: :organizer_approved, to: :admin_approved
-    end
-
-    event :mark_rejected do
-      transitions from: [:pending, :submitted, :organizer_approved], to: :rejected
-    end
-
-    event :mark_reimbursed do
-      transitions from: :admin_approved, to: :reimbursed
-    end
   end
 end
