@@ -10,13 +10,7 @@ class TagsController < ApplicationController
 
     tag = @event.tags.find_or_create_by(label: params[:label].strip)
 
-    hcb_code_ids = if params[:hcb_code_id]
-                     [params[:hcb_code_id]]
-                   elsif params[:hcb_code_ids]
-                     params[:hcb_code_ids].split(",")
-                   else
-                     []
-                   end
+    hcb_code_ids = params[:hcb_code_id] || params[:hcb_code_ids]&.split(",") || []
 
     hcb_code_ids.each do |hcb_code_id|
       hcb_code = HcbCode.find(hcb_code_id)
