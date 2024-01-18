@@ -7,13 +7,13 @@ export default class extends Controller {
   multiselect(event) {
     const clickedElement = event.currentTarget
     if (event.metaKey || event.ctrlKey) {
-      this.selectHcbCode(clickedElement)
+      this.toggleHcbCode(clickedElement)
       this.updateTaggerVisbility()
       this.updateFormFieldValue()
     }
   }
   
-  selectHcbCode(clickedElement){
+  toggleHcbCode(clickedElement){
     if (!this.selectedHCBCodes.includes(clickedElement.id)) {
       this.selectedHCBCodes.push(clickedElement.id)
       clickedElement.classList.add('selected__transaction')
