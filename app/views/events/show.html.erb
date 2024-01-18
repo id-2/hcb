@@ -119,11 +119,6 @@
               <% end %>
             </div>
           <% end %>
-          <div class="menu__divider"></div>
-          <%= form_with url: event_tags_path(@event), data: { turbo: true } do |form| %>
-            <%= form.hidden_field :hcb_code_ids, "data-transactions-target": "formField" %>
-            <%= form.text_field :label, data: { "behavior" => @event.tags.none? ? "autofocus" : "" }, class: "menu__input", placeholder: "+ Create tag", autocomplete: "off", required: true %>
-          <% end %>
         </div>
       </div>
     <% end %>
