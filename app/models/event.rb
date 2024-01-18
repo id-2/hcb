@@ -37,7 +37,7 @@
 #  owner_email                     :string
 #  owner_name                      :string
 #  owner_phone                     :string
-#  pending_transaction_engine_at   :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
+#  pending_transaction_engine_at   :datetime         default(Sat, 13 Feb 2021 22:49:40.981965000 UTC +00:00)
 #  public_message                  :text
 #  redirect_url                    :string
 #  slug                            :text
@@ -260,6 +260,8 @@ class Event < ApplicationRecord
   has_many :sponsors
   has_many :invoices, through: :sponsors
   has_many :payouts, through: :invoices
+
+  has_many :reimbursement_reports, class_name: "Reimbursement::Report"
 
   has_many :documents
 

@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_18_054210) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -883,7 +881,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.index ["raw_plaid_transaction_id"], name: "index_hashed_transactions_on_raw_plaid_transaction_id"
     t.index ["raw_stripe_transaction_id"], name: "index_hashed_transactions_on_raw_stripe_transaction_id"
   end
-  
+
   create_table "hcb_code_personal_transactions", force: :cascade do |t|
     t.bigint "hcb_code_id"
     t.bigint "invoice_id"
@@ -1519,6 +1517,41 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.index ["url_hash"], name: "index_recurring_donations_on_url_hash", unique: true
   end
 
+  create_table "reimbursement_expenses", force: :cascade do |t|
+    t.bigint "reimbursement_report_id", null: false
+    t.bigint "approved_by_id"
+    t.text "memo"
+    t.integer "amount_cents"
+    t.integer "reimbursable_amount_cents"
+    t.text "description"
+    t.string "aasm_state"
+    t.datetime "approved_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["approved_by_id"], name: "index_reimbursement_expenses_on_approved_by_id"
+    t.index ["reimbursement_report_id"], name: "index_reimbursement_expenses_on_reimbursement_report_id"
+  end
+
+  create_table "reimbursement_reports", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "event_id", null: false
+    t.bigint "invited_by_id"
+    t.text "invite_message"
+    t.text "name"
+    t.integer "maximum_amount_cents"
+    t.string "aasm_state"
+    t.datetime "submitted_at"
+    t.datetime "organizer_approved_at"
+    t.datetime "admin_approved_at"
+    t.datetime "rejected_at"
+    t.datetime "reimbursed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_reimbursement_reports_on_event_id"
+    t.index ["invited_by_id"], name: "index_reimbursement_reports_on_invited_by_id"
+    t.index ["user_id"], name: "index_reimbursement_reports_on_user_id"
+  end
+
   create_table "sponsors", force: :cascade do |t|
     t.bigint "event_id"
     t.text "name"
@@ -1900,6 +1933,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
   add_foreign_key "receipts", "users"
   add_foreign_key "recurring_donations", "events"
+  add_foreign_key "reimbursement_expenses", "reimbursement_reports"
+  add_foreign_key "reimbursement_expenses", "users", column: "approved_by_id"
+  add_foreign_key "reimbursement_reports", "events"
+  add_foreign_key "reimbursement_reports", "users"
+  add_foreign_key "reimbursement_reports", "users", column: "invited_by_id"
   add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_ach_payment_sources", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"

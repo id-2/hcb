@@ -110,7 +110,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def reimbursements?
-    is_public || user_or_admin
+    user_or_admin
   end
 
   def donation_overview?

@@ -580,6 +580,7 @@ class EventsController < ApplicationController
 
   def reimbursements
     authorize @event
+    @reports = @event.reimbursement_reports
   end
 
   def toggle_hidden
