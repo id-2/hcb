@@ -9,7 +9,7 @@ module EventMappingEngine
     end
 
     def run
-      map_increase_account_number_transactions!
+      # map_increase_account_number_transactions!
       map_column_account_number_transactions!
 
       map_stripe_transactions!
