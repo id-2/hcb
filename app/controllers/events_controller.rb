@@ -75,8 +75,8 @@ class EventsController < ApplicationController
     @user = User.find(params[:user]) if params[:user]
 
     @type = params[:type]
-    @startDate = params[:start]
-    @endDate = params[:end]
+    @start_date = params[:start]
+    @end_date = params[:end]
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
