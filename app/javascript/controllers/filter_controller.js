@@ -53,7 +53,6 @@ export default class extends Controller {
   }
 
   selectDates(mouseEvent) {
-    console.log('triggered')
     this.datesLabelTarget.dataset.filterMenuLabelSelected = mouseEvent
       ? 'true'
       : 'false'
