@@ -33,12 +33,15 @@
           <%= @type.humanize.titleize.gsub("Ach", "ACH") %>
         </span>
       </span>
-      <% elsif @startDate %>
+      <% elsif @start_date || @end_date %>
         <span class="xs-hide sm-hide md-hide flex items-center">
-          <span class="nowrap">Between</span>
+          <span class="nowrap">
+            <%= @start_date != "" && @end_date != "" ? "Between" : @end_date != "" ? "After" : "Before" %>
+          </span>
           <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1">
-            <%= Date.parse(@startDate).strftime("%b %d, %Y") %> -
-            <%= Date.parse(@endDate).strftime("%b %d, %Y") %>
+            <%= @start_date || "" %>
+            <%= @end_date != "" && @start_date != "" ? " - " : "" %>
+            <%= @end_date || "" %>
           </span>
         </span>
       <% else %>
@@ -121,17 +124,17 @@
 
       <div data-filter-target="dates" data-filter-menu-selected="<%= @dates ? "true" : "false" %>">
         <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
-          <p class="bold mb0">Start date</p>
-          <%= form.date_field :start, required: true, class: "", value: @dates&.start %>
-          <p class="bold mb0">End date</p>
-          <%= form.date_field :end, required: true, class: " ", value: @dates&.end %>
+          <p class="bold mb0 mt1">Transactions before...</p>
+          <%= form.date_field :start, class: "border", value: @start_date %>
+          <p class="bold mb1">Transactions after...</p>
+          <%= form.date_field :end, class: "border", value: @end_date %>
           <div class="flex justify-end">
             <%= form.submit "Submit" %>
           </div>
         <% end %>
       </div>
 
-      <% if @tag || @user || @type || @startDate %>
+      <% if @tag || @user || @type || @start_date %>
         <div class="menu__divider"></div>
         <%= link_to do %>
           <%= inline_icon "view-close", size: 24 %>

@@ -92,9 +92,13 @@ class EventsController < ApplicationController
       @pending_transactions = @pending_transactions.select { |x| x.stripe_cardholder && x.stripe_cardholder.user.id == @user.id }
     end
 
-    if @startDate && @endDate
-      @all_transactions = @all_transactions.select { |t| t.date >= @startDate.to_datetime && t.date <= @endDate.to_datetime }
-      @pending_transactions = @pending_transactions.select { |x| x.date >= @startDate.to_datetime && x.date <= @endDate.to_datetime }
+    if @start_date && @end_date
+      @all_transactions = @all_transactions.select { |t| 
+        (!@start_date.to_datetime || t.date >= @start_date.to_datetime) && (!@end_date.to_datetime || t.date <= @end_date.to_datetime)
+      }
+      @pending_transactions = @pending_transactions.select { |x| 
+        (!@start_date.to_datetime || x.date >= @start_date.to_datetime) && (!@end_date.to_datetime || x.date <= @end_date.to_datetime) 
+      }
     end
 
     @type_filters = {
