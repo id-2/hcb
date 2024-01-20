@@ -82,4 +82,22 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
     self.save
   end
 
+  def organizer_missing_receipts
+    organizer_stripe_cards.map do |card|
+      card.hcb_codes.missing_receipt.reject do |hcb_code|
+        hcb_code.receipt_required?
+      end
+    end.flatten
+  end
+
+  def organizer_active_cards
+    organizer_stripe_cards.where(stripe_status: "active")
+  end
+
+  private
+
+  def organizer_stripe_cards
+    organizer_position.user.stripe_cards.where(event: organizer_position.event)
+  end
+
 end
