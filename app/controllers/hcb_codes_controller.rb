@@ -93,7 +93,7 @@ class HcbCodesController < ApplicationController
     @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo: hcb_code_params[:memo]) }
 
     if params[:hcb_code][:inline].present?
-      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo] }
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo], renamed: true }
     end
 
     redirect_to @hcb_code
@@ -191,44 +191,65 @@ class HcbCodesController < ApplicationController
   def invoice_as_personal_transaction
     hcb_code = HcbCode.find(params[:id])
     event = hcb_code.event
-    spender = hcb_code.stripe_cardholder.user
 
     authorize hcb_code
 
-    return render plain: "404 Not found", status: :not_found if !event&.hack_club_hq? || spender.nil?
+    if hcb_code.amount_cents >= -100
+      flash[:error] = "Invoices can only be generated for charges of $1.00 or more."
+      return redirect_to hcb_code
+    end
 
-    @invoice = ::InvoiceService::Create.new(
-      event_id: event.id,
-      due_date: 1.month.from_now,
-      item_description: "Reimbursing personal transaction: #{hcb_code.memo}",
-      item_amount: hcb_code.amount.abs,
-      current_user:,
-      sponsor_id: nil,
-      sponsor_name: spender.name,
-      sponsor_email: spender.email,
-      sponsor_address_line1: spender.stripe_cardholder.stripe_billing_address_line1,
-      sponsor_address_line2: spender.stripe_cardholder.stripe_billing_address_line2,
-      sponsor_address_city: spender.stripe_cardholder.stripe_billing_address_city,
-      sponsor_address_state: spender.stripe_cardholder.stripe_billing_address_state,
-      sponsor_address_postal_code: spender.stripe_cardholder.stripe_billing_address_postal_code,
-      sponsor_address_country: spender.stripe_cardholder.stripe_billing_address_country
-    ).run
+    personal_tx = HcbCode::PersonalTransaction.create(hcb_code:, reporter: current_user)
 
-    ::HcbCodeService::Comment::Create.new(
-      hcb_code_id: @invoice.local_hcb_code.id,
-      content: "#{hcb_code_url(hcb_code)} was marked as an accidental misuse.",
-      current_user:
-    ).run
+    flash[:success] = "We've sent an invoice for repayment to #{personal_tx.invoice.sponsor.contact_email}."
 
-    ::HcbCodeService::Comment::Create.new(
-      hcb_code_id: hcb_code.id,
-      content: "This transaction was marked as an accidental misuse. Reimbursement requested at #{hcb_code_url(@invoice.local_hcb_code)}.",
-      current_user:
-    ).run
+    redirect_to personal_tx.invoice
+  end
 
-    flash[:success] = "We've sent an invoice for repayment to #{@invoice.sponsor.contact_email}."
+  def breakdown
+    @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
+    authorize @hcb_code
 
-    redirect_to @invoice
+    unless @hcb_code.canonical_transactions.any? { |ct| ct.amount_cents.positive? }
+      return redirect_to @hcb_code
+    end
+
+    @event = @hcb_code.event
+    @event = @hcb_code.disbursement.destination_event if @hcb_code.disbursement?
+
+    @income = ::EventService::PairIncomeWithSpending.new(event: @event).run
+
+    @spent_on = []
+    @available = 0
+
+    # PairIncomeWithSpending is done on a per CanonicalTransaction basis
+    # This compute it for this specific HcbCode
+    @hcb_code.canonical_transactions.each do |ct|
+      if (ct[:amount_cents] > 0) && @income[ct[:id].to_s]
+        @spent_on.concat @income[ct[:id].to_s][:spent_on]
+        @available += @income[ct[:id].to_s][:available]
+      end
+    end
+
+    @spent_on = @spent_on.group_by { |hash| hash[:memo] }.map do |memo, group|
+      total_amount = group.sum(0) { |item| item[:amount] }
+      significant_transaction = group.max_by { |t| t[:amount] }
+      { id: significant_transaction[:id], memo:, amount: total_amount, url: significant_transaction[:url] }
+    end
+
+    @spent_on.sort_by! { |t| t[:id] }
+
+    respond_to do |format|
+
+      format.html do
+        redirect_to @hcb_code
+      end
+
+      format.pdf do
+        render pdf: "breakdown", page_height: "11in", page_width: "8.5in"
+      end
+
+    end
   end
 
 end

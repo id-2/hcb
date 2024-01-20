@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_05_193655) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -93,6 +93,24 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_05_193655) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "admin_ledger_audit_tasks", force: :cascade do |t|
+    t.bigint "hcb_code_id"
+    t.bigint "admin_ledger_audit_id"
+    t.bigint "reviewer_id"
+    t.string "status", default: "pending"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_ledger_audit_id"], name: "index_admin_ledger_audit_tasks_on_admin_ledger_audit_id"
+    t.index ["hcb_code_id"], name: "index_admin_ledger_audit_tasks_on_hcb_code_id"
+    t.index ["reviewer_id"], name: "index_admin_ledger_audit_tasks_on_reviewer_id"
+  end
+
+  create_table "admin_ledger_audits", force: :cascade do |t|
+    t.date "start"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "ahoy_events", force: :cascade do |t|
@@ -865,6 +883,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_05_193655) do
     t.index ["raw_plaid_transaction_id"], name: "index_hashed_transactions_on_raw_plaid_transaction_id"
     t.index ["raw_stripe_transaction_id"], name: "index_hashed_transactions_on_raw_stripe_transaction_id"
   end
+  
+  create_table "hcb_code_personal_transactions", force: :cascade do |t|
+    t.bigint "hcb_code_id"
+    t.bigint "invoice_id"
+    t.bigint "reporter_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hcb_code_id"], name: "index_hcb_code_personal_transactions_on_hcb_code_id", unique: true
+    t.index ["invoice_id"], name: "index_hcb_code_personal_transactions_on_invoice_id"
+    t.index ["reporter_id"], name: "index_hcb_code_personal_transactions_on_reporter_id"
+  end
 
   create_table "hcb_codes", force: :cascade do |t|
     t.text "hcb_code", null: false
@@ -1484,6 +1513,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_05_193655) do
     t.text "last4_ciphertext"
     t.datetime "canceled_at"
     t.boolean "migrated_from_legacy_stripe_account", default: false
+    t.text "message"
     t.index ["event_id"], name: "index_recurring_donations_on_event_id"
     t.index ["stripe_subscription_id"], name: "index_recurring_donations_on_stripe_subscription_id", unique: true
     t.index ["url_hash"], name: "index_recurring_donations_on_url_hash", unique: true
@@ -1774,6 +1804,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_05_193655) do
   add_foreign_key "ach_transfers", "users", column: "creator_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "admin_ledger_audit_tasks", "admin_ledger_audits"
+  add_foreign_key "admin_ledger_audit_tasks", "hcb_codes"
+  add_foreign_key "admin_ledger_audit_tasks", "users", column: "reviewer_id"
   add_foreign_key "api_tokens", "users"
   add_foreign_key "bank_fees", "events"
   add_foreign_key "canonical_event_mappings", "canonical_transactions"
@@ -1831,6 +1864,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_05_193655) do
   add_foreign_key "grants", "users", column: "processed_by_id"
   add_foreign_key "grants", "users", column: "submitted_by_id"
   add_foreign_key "hashed_transactions", "raw_plaid_transactions"
+  add_foreign_key "hcb_code_personal_transactions", "hcb_codes"
+  add_foreign_key "hcb_code_personal_transactions", "invoices"
+  add_foreign_key "hcb_code_personal_transactions", "users", column: "reporter_id"
   add_foreign_key "increase_account_numbers", "events"
   add_foreign_key "increase_checks", "events"
   add_foreign_key "increase_checks", "users"

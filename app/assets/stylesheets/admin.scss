@@ -5,6 +5,12 @@
 @import 'components/receipts';
 @import 'components/modals';
 
+$font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  'Fira Sans', Oxygen, Ubuntu, 'Helvetica Neue', sans-serif;
+$brand-font-family: ui-rounded, $font-family;
+
+@import 'components/buttons';
+
 // // https://raw.githubusercontent.com/waldyrious/downstyler/master/downstyler.css
 // /* ---------------------------------------------------------------------------------------------- */
 // /* Make HTML more responsive (adapted from https://fluidity.sexy ← note: dead link)               */
@@ -133,6 +139,20 @@ html[data-dark='true'] {
   --hcb-accent-transit: #005c5c;
   --hcb-accent-active: #008a00;
   --hcb-accent-tx: #070707;
+}
+
+:root {
+  --kbar-background: #ffffff;
+  --kbar-foreground: #252429;
+  --kbar-overlay: rgba(0 0 0 / 0.05);
+  --kbar-admin-overlay: rgba(241,196,15,0.125)
+}
+
+html[data-dark='true'] {
+  --kbar-background: #252429;
+  --kbar-foreground: #e0e6ed;
+  --kbar-overlay: rgba(255 255 255 / 0.05);
+  --kbar-admin-overlay: rgba(255,140,55,0.0625);
 }
 
 * {

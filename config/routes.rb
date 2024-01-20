@@ -221,6 +221,16 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :admin do
+    namespace :ledger_audits do
+      resources :tasks, only: [:index, :show] do
+        post :reviewed
+        post :flagged
+      end
+    end
+    resources :ledger_audits, only: [:index, :show]
+  end
+
   post "set_event/:id", to: "admin#set_event", as: :set_event
 
   resources :organizer_position_invites, only: [:show], path: "invites" do
@@ -336,6 +346,7 @@ Rails.application.routes.draw do
       get "attach_receipt"
       get "memo_frame"
       get "dispute"
+      get "breakdown"
       post "invoice_as_personal_transaction"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
@@ -381,8 +392,8 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  get "branding", to: redirect("brand_guidelines")
-  get "brand_guidelines", to: "static_pages#brand_guidelines"
+  get "brand_guidelines", to: redirect("branding")
+  get "branding", to: "static_pages#branding"
   get "faq", to: "static_pages#faq"
   get "audit", to: "admin#audit"
 
@@ -517,8 +528,6 @@ Rails.application.routes.draw do
   get "admin_task_size", to: "admin#task_size"
   get "admin_search", to: redirect("/admin/users")
   post "admin_search", to: redirect("/admin/users")
-
-  get "/integrations/frankly" => "integrations#frankly"
 
   post "twilio/messaging", to: "admin#twilio_messaging"
 
