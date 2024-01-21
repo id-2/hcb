@@ -56,9 +56,7 @@ export default class extends Controller {
     this.datesLabelTarget.dataset.filterMenuLabelSelected = mouseEvent
       ? 'true'
       : 'false'
-    console.log(this.datesLabelTarget)
     this.datesTarget.dataset.filterMenuSelected = mouseEvent ? 'true' : 'false'
-    console.log(this.datesTarget.dataset.filterMenuSelected)
     if (mouseEvent !== undefined) {
       this.selectTypes()
       this.selectUsers()
