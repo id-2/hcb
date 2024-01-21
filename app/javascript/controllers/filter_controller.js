@@ -9,7 +9,7 @@ export default class extends Controller {
     'tags',
     'users',
     'types',
-    'dates'
+    'dates',
   ]
 
   selectTags(mouseEvent) {
