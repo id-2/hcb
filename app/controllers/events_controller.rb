@@ -75,8 +75,8 @@ class EventsController < ApplicationController
     @user = User.find(params[:user]) if params[:user]
 
     @type = params[:type]
-    @start_date = params[:start]
-    @end_date = params[:end]
+    @start_date = params[:start].presence
+    @end_date = params[:end].presence
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
@@ -92,12 +92,12 @@ class EventsController < ApplicationController
       @pending_transactions = @pending_transactions.select { |x| x.stripe_cardholder && x.stripe_cardholder.user.id == @user.id }
     end
 
-    if @start_date && @end_date
+    if @start_date || @end_date
       @all_transactions = @all_transactions.select { |t| 
-        (!@start_date.to_datetime || t.date >= @start_date.to_datetime) && (!@end_date.to_datetime || t.date <= @end_date.to_datetime)
+        (!@start_date || t.date >= @start_date.to_datetime) && (!@end_date || t.date <= @end_date.to_datetime)
       }
       @pending_transactions = @pending_transactions.select { |x| 
-        (!@start_date.to_datetime || x.date >= @start_date.to_datetime) && (!@end_date.to_datetime || x.date <= @end_date.to_datetime) 
+        (!@start_date || x.date >= @start_date.to_datetime) && (!@end_date || x.date <= @end_date.to_datetime) 
       }
     end
 
