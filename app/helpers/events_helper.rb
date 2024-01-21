@@ -46,7 +46,7 @@ module EventsHelper
     prefill << "prefill_Submitter+Name=#{CGI.escape(user.full_name)}" if user
     prefill << "prefill_Submitter+Email=#{CGI.escape(user.email)}" if user
 
-    (embed ? embed_url : url) + "?" + prefill.join("&")
+    "#{embed ? embed_url : url}?#{prefill.join("&")}"
   end
 
   def transaction_memo(tx) # needed to handle mock data in playground mode
@@ -55,5 +55,30 @@ module EventsHelper
     else
       tx.local_hcb_code.memo(event: @event)
     end
+  end
+
+  def humanize_audit_log_value(field, value)
+    if field == "sponsorship_fee"
+      return number_to_percentage(value.to_f * 100, significant: true, strip_insignificant_zeros: true)
+    end
+
+    if field == "point_of_contact_id"
+      return User.find(value).email
+    end
+
+    if field == "category" && value.is_a?(Integer) || value.try(:match?, /\A\d+\z/)
+      return Event.categories.key(value.to_i)
+    end
+
+    return "Yes" if value == true
+    return "No" if value == false
+
+    return value
+  end
+
+  def render_audit_log_value(field, value, color:)
+    return tag.span "unset", class: "muted" if value.nil? || value.try(:empty?)
+
+    return tag.span humanize_audit_log_value(field, value), class: color
   end
 end

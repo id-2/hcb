@@ -4,15 +4,17 @@ module ApplicationHelper
   include ActionView::Helpers
 
   def render_money(amount, opts = {})
+    amount = amount.cents if amount.is_a?(Money)
+
     unit = opts[:unit] || "$"
     trunc = opts[:trunc] || false
 
     num = BigDecimal(amount || 0) / 100
     if trunc
       if num >= 1_000_000
-        number_to_currency(num / 1_000_000, precision: 1, unit:) + "m"
+        "#{number_to_currency(num / 1_000_000, precision: 1, unit:)}m"
       elsif num >= 1_000
-        number_to_currency(num / 1_000, precision: 1, unit:) + "k"
+        "#{number_to_currency(num / 1_000, precision: 1, unit:)}k"
       else
         number_to_currency(num, unit:)
       end
@@ -344,6 +346,16 @@ module ApplicationHelper
   def redacted_amount
     tag.span class: "tooltipped tooltipped--w", style: "cursor: default", "aria-label": "Hidden for security" do
       tag.span(style: "filter: blur(5px)") { "$0.00" }
+    end
+  end
+
+  def copy_to_clipboard(clipboard_value, tooltip_direction: "n", **options, &block)
+    # If block is not given, use clipboard_value as the rendered content
+    block ||= ->(_) { clipboard_value }
+    return yield if options.delete(:if) == false
+
+    tag.span "data-controller": "clipboard", "data-clipboard-text-value": clipboard_value do
+      tag.span class: "pointer tooltipped tooltipped--#{tooltip_direction}", "aria-label": "Click to copy", "data-action": "click->clipboard#copy", **options, &block
     end
   end
 

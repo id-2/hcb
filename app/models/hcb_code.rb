@@ -35,9 +35,11 @@ class HcbCode < ApplicationRecord
   has_many :suggested_pairings
   has_many :suggested_receipts, source: :receipt, through: :suggested_pairings
 
+  has_one :personal_transaction, required: false
+
   before_create :generate_and_set_short_code
 
-  delegate :likely_account_verification_related?, to: :ct, allow_nil: true
+  delegate :likely_account_verification_related?, :fee_payment?, to: :ct, allow_nil: true
 
   comma do
     hcb_code "HCB Code"
@@ -169,10 +171,6 @@ class HcbCode < ApplicationRecord
     title << event_preposition << event.name if show_event_name
 
     title.join(" ")
-  end
-
-  def fee_payment?
-    ct.fee_payment?
   end
 
   def raw_stripe_transaction
@@ -317,6 +315,10 @@ class HcbCode < ApplicationRecord
 
   def check_deposit?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::CHECK_DEPOSIT_CODE
+  end
+
+  def outgoing_fee_reimbursement?
+    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::OUTGOING_FEE_REIMBURSEMENT_CODE
   end
 
   def check_deposit

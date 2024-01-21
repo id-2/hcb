@@ -6,7 +6,7 @@
 #
 #  id                       :bigint           not null, primary key
 #  access_level             :integer          default("user"), not null
-#  birthday                 :date
+#  birthday_ciphertext      :text
 #  email                    :text
 #  full_name                :string
 #  locked_at                :datetime
@@ -31,6 +31,8 @@
 #  index_users_on_slug   (slug) UNIQUE
 #
 class User < ApplicationRecord
+  self.ignored_columns = ["birthday"]
+
   include PublicIdentifiable
   set_public_id_prefix :usr
 
@@ -70,7 +72,6 @@ class User < ApplicationRecord
 
   has_many :events, through: :organizer_positions
 
-  has_many :ops_checkins, inverse_of: :point_of_contact
   has_many :managed_events, inverse_of: :point_of_contact
 
   has_many :g_suite_accounts, inverse_of: :fulfilled_by
@@ -95,6 +96,8 @@ class User < ApplicationRecord
 
   has_one :partner, inverse_of: :representative
 
+  has_encrypted :birthday, type: :date
+
   include HasMetrics
 
   before_create :format_number
@@ -103,7 +106,7 @@ class User < ApplicationRecord
   after_update :update_stripe_cardholder, if: -> { phone_number_previously_changed? || email_previously_changed? }
 
   validates_presence_of :full_name, if: -> { full_name_in_database.present? }
-  validates_presence_of :birthday, if: -> { birthday_in_database.present? }
+  validates_presence_of :birthday, if: -> { birthday_ciphertext_in_database.present? }
 
   validates :full_name, format: {
     with: /\A[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,'-]+ [a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,' -]+\z/,
@@ -165,6 +168,10 @@ class User < ApplicationRecord
     preferred_name.presence || full_name || email_handle
   end
 
+  def possessive_name
+    "#{name}'s"
+  end
+
   def initials
     words = name.split(/[^[[:word:]]]+/)
     words.any? ? words.map(&:first).join.upcase : name
@@ -219,6 +226,21 @@ class User < ApplicationRecord
 
   def active_mailbox_address
     self.mailbox_addresses.activated.first
+  end
+
+  def transactions_missing_receipt
+    @transactions_missing_receipt ||= begin
+      user_cards = stripe_cards.includes(:event) + emburse_cards.includes(:emburse_transactions)
+      user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
+      user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
+
+      hcb_codes_missing_ids = user_hcb_codes.missing_receipt
+                                            # Includes association for `HcbCode#receipt_required?`
+                                            .includes(:canonical_transactions, canonical_pending_transactions: :canonical_pending_declined_mapping)
+                                            .filter(&:receipt_required?).pluck(:id)
+
+      HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
+    end
   end
 
   private

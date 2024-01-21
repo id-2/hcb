@@ -13,6 +13,7 @@ class HcbCode
         return invoice_memo if invoice?
         return donation_memo if donation?
         return partner_donation_memo if partner_donation?
+        return bank_fee_memo if bank_fee?
         return ach_transfer_memo if ach_transfer?
         return check_memo if check?
         return increase_check_memo if increase_check?
@@ -20,6 +21,7 @@ class HcbCode
         return fee_revenue_memo if fee_revenue?
         return ach_payment_memo if ach_payment?
         return grant_memo if grant?
+        return outgoing_fee_reimbursement_memo if outgoing_fee_reimbursement?
 
         ct.try(:smart_memo) || pt.try(:smart_memo) || ""
       end
@@ -57,6 +59,10 @@ class HcbCode
         "DONATION FROM #{partner_donation.smart_memo}#{partner_donation.refunded? ? " (REFUNDED)" : ""}"
       end
 
+      def bank_fee_memo
+        "FISCAL SPONSORSHIP"
+      end
+
       def ach_transfer_memo
         "ACH TO #{ach_transfer.smart_memo}"
       end
@@ -83,6 +89,10 @@ class HcbCode
 
       def grant_memo
         "Grant to #{canonical_pending_transactions.first.grant.recipient_organization}"
+      end
+
+      def outgoing_fee_reimbursement_memo
+        "🗂️ Stripe fee reimbursements for week of #{ct.date.beginning_of_week.strftime("%-m/%-d")}"
       end
 
     end

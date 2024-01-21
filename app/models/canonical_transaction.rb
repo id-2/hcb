@@ -58,7 +58,6 @@ class CanonicalTransaction < ApplicationRecord
   scope :column_transaction,   -> { joins("INNER JOIN raw_column_transactions   ON transaction_source_type = 'RawColumnTransaction'   AND raw_column_transactions.id  =  transaction_source_id") }
 
   scope :likely_hack_club_bank_issued_cards, -> { where("memo ilike 'Hack Club Bank Issued car%' or memo ilike 'HCKCLB Issued car%'") }
-  scope :likely_fee_reimbursement, -> { where(memo: "Stripe fee reimbursement") }
   scope :likely_github, -> { where("memo ilike '%github grant%'") }
   scope :likely_clearing_checks, -> { where("memo ilike '%Withdrawal - Inclearing Check #%' or memo ilike '%Withdrawal - On-Us Deposited Ite #%'") }
   scope :likely_checks, -> { where("memo ilike '%Check TO ACCOUNT REDACTED'") }
@@ -76,6 +75,8 @@ class CanonicalTransaction < ApplicationRecord
   scope :not_stripe_top_up, -> { where("(memo not ilike '%Hack Club Bank Stripe Top%' and memo not ilike '%HACKC Stripe Top%' and memo not ilike '%HCKCLB Stripe Top%') or memo is null") }
   scope :mapped_by_human, -> { includes(:canonical_event_mapping).where("canonical_event_mappings.user_id is not null").references(:canonical_event_mapping) }
   scope :included_in_stats, -> { includes(canonical_event_mapping: :event).where(events: { omit_stats: false }) }
+
+  scope :with_column_transaction_type, ->(type) { column_transaction.where("raw_column_transactions.column_transaction->>'transaction_type' LIKE ?", "#{sanitize_sql_like(type)}%") }
 
   monetize :amount_cents
 
@@ -160,6 +161,14 @@ class CanonicalTransaction < ApplicationRecord
 
   def raw_column_transaction
     transaction_source if transaction_source_type == RawColumnTransaction.name
+  end
+
+  def column_transaction_type
+    raw_column_transaction&.transaction_type
+  end
+
+  def bank_account_name
+    transaction_source.try(:bank_account_name) || transaction_source_type[/Raw(.+)Transaction/, 1]
   end
 
   def stripe_cardholder

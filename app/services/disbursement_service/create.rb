@@ -5,7 +5,7 @@ module DisbursementService
     include ::Shared::AmpleBalance
 
     def initialize(source_event_id:, destination_event_id:,
-                   name:, amount:, requested_by_id:, fulfilled_by_id: nil, destination_subledger_id: nil, scheduled_on: nil, source_subledger_id: nil)
+                   name:, amount:, requested_by_id:, fulfilled_by_id: nil, destination_subledger_id: nil, scheduled_on: nil, source_subledger_id: nil, should_charge_fee: false)
       @source_event_id = source_event_id
       @source_event = Event.friendly.find(@source_event_id)
       @destination_event_id = destination_event_id
@@ -17,6 +17,7 @@ module DisbursementService
       @requested_by_id = requested_by_id
       @fulfilled_by_id = fulfilled_by_id
       @scheduled_on = scheduled_on
+      @should_charge_fee = should_charge_fee
     end
 
     def run
@@ -63,6 +64,7 @@ module DisbursementService
         name: @name,
         amount: amount_cents,
         requested_by:,
+        should_charge_fee: @should_charge_fee,
       }
     end
 

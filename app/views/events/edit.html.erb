@@ -10,6 +10,16 @@
 
 <%= render partial: "admin_viewer", locals: { record: @event } %>
 
+<% admin_tools do %>
+  <details>
+    <summary>Audit log</summary>
+
+    <%= turbo_frame_tag :audit_log, src: audit_log_event_path(@event), loading: :lazy do %>
+      <p class="center muted mt3 h3">One moment...</p>
+    <% end %>
+  </details>
+<% end %>
+
 <h3 class="mb1 flex items-center">
   Account information
 </h3>
@@ -61,6 +71,10 @@
         <span class="btn bg-accent disabled">Shipped!</span>
       </div>
       <%# link_to "Shipped!", enable_feature_path(feature: :transfers_2022_04_21), method: :post, class: 'btn bg-accent' %>
+    <% elsif @event.demo_mode? %>
+      <div class="actions tooltipped tooltipped--w inline-block mt1" aria-label="Not available in demo mode.">
+        <span class="btn bg-accent disabled">Enable</span>
+      </div>
     <% elsif Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
       <%# Feature is enabled, let the user opt-out %>
       <%= link_to "Disable", disable_feature_event_path(feature: :transaction_tags_2022_07_29), method: :post, class: "btn bg-accent" %>

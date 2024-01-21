@@ -10,7 +10,7 @@
       <%= inline_icon "view-back", size: 24 %>
     </button>
     <span>
-      <strong>
+      <strong style="overflow-wrap: anywhere;">
         <% if defined?(link_to_file) && !defined?(selectable) %>
           <%= link_to file_path, target: "_blank", style: "text-decoration: none;" do %>
             <%= receipt.file.blob.filename %>
@@ -73,7 +73,7 @@
 
       <% if defined?(show_delete_button) %>
         <%= pop_icon_to "view-close",
-            { controller: :receipts, action: :destroy, id: receipt.id, popover: local_assigns[:popover] },
+            { controller: "/receipts", action: :destroy, id: receipt.id, popover: local_assigns[:popover] },
             method: :delete,
             data: { behavior: "modal_ignore" },
             size: 24,

@@ -93,7 +93,7 @@ class HcbCodesController < ApplicationController
     @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo: hcb_code_params[:memo]) }
 
     if params[:hcb_code][:inline].present?
-      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo] }
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo], renamed: true }
     end
 
     redirect_to @hcb_code
@@ -181,10 +181,74 @@ class HcbCodesController < ApplicationController
         if removed
           render turbo_stream: turbo_stream.remove(tag_dom_id(hcb_code, tag)) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), tag.label)
         else
-          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ " + tag.label)
+          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ #{tag.label}")
         end
       end
       format.any { redirect_back fallback_location: @event }
+    end
+  end
+
+  def invoice_as_personal_transaction
+    hcb_code = HcbCode.find(params[:id])
+    event = hcb_code.event
+
+    authorize hcb_code
+
+    if hcb_code.amount_cents >= -100
+      flash[:error] = "Invoices can only be generated for charges of $1.00 or more."
+      return redirect_to hcb_code
+    end
+
+    personal_tx = HcbCode::PersonalTransaction.create(hcb_code:, reporter: current_user)
+
+    flash[:success] = "We've sent an invoice for repayment to #{personal_tx.invoice.sponsor.contact_email}."
+
+    redirect_to personal_tx.invoice
+  end
+
+  def breakdown
+    @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
+    authorize @hcb_code
+
+    unless @hcb_code.canonical_transactions.any? { |ct| ct.amount_cents.positive? }
+      return redirect_to @hcb_code
+    end
+
+    @event = @hcb_code.event
+    @event = @hcb_code.disbursement.destination_event if @hcb_code.disbursement?
+
+    @income = ::EventService::PairIncomeWithSpending.new(event: @event).run
+
+    @spent_on = []
+    @available = 0
+
+    # PairIncomeWithSpending is done on a per CanonicalTransaction basis
+    # This compute it for this specific HcbCode
+    @hcb_code.canonical_transactions.each do |ct|
+      if (ct[:amount_cents] > 0) && @income[ct[:id].to_s]
+        @spent_on.concat @income[ct[:id].to_s][:spent_on]
+        @available += @income[ct[:id].to_s][:available]
+      end
+    end
+
+    @spent_on = @spent_on.group_by { |hash| hash[:memo] }.map do |memo, group|
+      total_amount = group.sum(0) { |item| item[:amount] }
+      significant_transaction = group.max_by { |t| t[:amount] }
+      { id: significant_transaction[:id], memo:, amount: total_amount, url: significant_transaction[:url] }
+    end
+
+    @spent_on.sort_by! { |t| t[:id] }
+
+    respond_to do |format|
+
+      format.html do
+        redirect_to @hcb_code
+      end
+
+      format.pdf do
+        render pdf: "breakdown", page_height: "11in", page_width: "8.5in"
+      end
+
     end
   end
 

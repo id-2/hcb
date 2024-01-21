@@ -4,8 +4,8 @@ require "net/http"
 
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:branding, :brand_guidelines, :faq]
-  skip_before_action :redirect_to_onboarding, only: [:branding, :brand_guidelines, :faq]
+  skip_before_action :signed_in_user, only: [:branding, :faq]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :faq]
 
   def index
     if signed_in?
@@ -25,7 +25,7 @@ class StaticPagesController < ApplicationController
     end
   end
 
-  def brand_guidelines
+  def branding
     @logos = [
       { name: "Original Light", criteria: "For white or light colored backgrounds.", background: "smoke" },
       { name: "Original Dark", criteria: "For black or dark colored backgrounds.", background: "black" },
@@ -51,17 +51,8 @@ class StaticPagesController < ApplicationController
 
   # async frame
   def my_missing_receipts_list
-    @missing_receipt_ids = []
+    @missing = current_user.transactions_missing_receipt
 
-    current_user.stripe_cards.map do |card|
-      card.hcb_codes.missing_receipt.each do |hcb_code|
-        next unless hcb_code.receipt_required?
-
-        @missing_receipt_ids << hcb_code.id
-        break unless @missing_receipt_ids.size < 5
-      end
-    end
-    @missing = HcbCode.where(id: @missing_receipt_ids)
     if @missing.any?
       render :my_missing_receipts_list, layout: !request.xhr?
     else
@@ -71,62 +62,44 @@ class StaticPagesController < ApplicationController
 
   # async frame
   def my_missing_receipts_icon
-    @missing_receipt_count ||= begin
-      count = 0
+    count = current_user.transactions_missing_receipt.count
 
-      stripe_cards = current_user.stripe_cards.includes(:event)
-      emburse_cards = current_user.emburse_cards.includes(:event)
+    emojis = {
+      "🤡": 300,
+      "💀": 200,
+      "😱": 100,
+    }
 
-      (stripe_cards + emburse_cards).each do |card|
-        card.hcb_codes.missing_receipt.each do |hcb_code|
-          next unless hcb_code.receipt_required?
-
-          count += 1
-        end
-      end
-
-      emojis = {
-        "🤡": 300,
-        "💀": 200,
-        "😱": 100,
-      }
-      emojis.find { |emoji, value| count >= value }&.first || count
-    end
+    @missing_receipt_count = emojis.find { |emoji, value| count >= value }&.first || count
 
     render :my_missing_receipts_icon, layout: false
   end
 
   def my_inbox
-    user_cards = current_user.stripe_cards + current_user.emburse_cards
-    user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
-    user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
+    @count = current_user.transactions_missing_receipt.count
+    @hcb_codes = current_user.transactions_missing_receipt.page(params[:page]).per(params[:per] || 15)
 
-    hcb_codes_missing_ids = user_hcb_codes.missing_receipt.filter(&:receipt_required?).pluck(:id)
-    hcb_codes_missing = HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
-
-    @count = hcb_codes_missing.count # Total number of HcbCodes missing receipts
-    @hcb_codes = hcb_codes_missing.page(params[:page]).per(params[:per] || 20)
-
-    @mailbox_address = current_user.active_mailbox_address
-
-    @card_hcb_codes = @hcb_codes.group_by { |hcb| hcb.card.to_global_id.to_s }
-    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys)
-    # Ideally we'd preload (includes) events for @cards, but that isn't
-    # supported yet: https://github.com/rails/globalid/pull/139
+    @card_hcb_codes = @hcb_codes.includes(:canonical_transactions, canonical_pending_transactions: :raw_pending_stripe_transaction) # HcbCode#card uses CT and PT
+                                .group_by { |hcb| hcb.card.to_global_id.to_s }
+    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys, includes: :event)
+                              # Order by cards with least transactions first
+                              .sort_by { |card| @card_hcb_codes[card.to_global_id.to_s].count }
 
     if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
-      @receipts = Receipt.where(user: current_user, receiptable: nil)
+      @mailbox_address = current_user.active_mailbox_address
 
-      @pairings = @receipts.map do |receipt|
-        pairings = receipt.suggested_pairings.order(distance: :asc)
-        next if pairings.ignored.count > 2
+      @receipts = Receipt.in_receipt_bin.where(user: current_user)
 
-        pairing = pairings.unreviewed.first
-        next if pairing.nil?
-        next if pairing.distance > 3000
+      # Don't suggest receipts ignored more than twice
+      ineligible_receipt_ids = SuggestedPairing.ignored.group("receipt_id").having("COUNT(*) >= 2").pluck(:receipt_id)
 
-        pairing
-      end.compact
+      @pairings = SuggestedPairing
+                  .unreviewed
+                  .where(receipt_id: @receipts.ids - ineligible_receipt_ids)
+                  .where("distance <= ?", 1500) # With at least a certain confidence level
+                  # Only get the closest pairing for each receipt
+                  .order(:receipt_id, distance: :asc)
+                  .select("DISTINCT ON (receipt_id) suggested_pairings.*")
     end
 
     if flash[:popover]

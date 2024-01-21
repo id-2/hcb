@@ -78,8 +78,8 @@
                 <%= inline_icon "bank-account" %>
               </span>
             <% elsif d.is_a?(CardGrant) %>
-              <span class="tooltipped tooltipped--e inline-block" aria-label="Grant card">
-                <%= inline_icon "card" %>
+              <span class="tooltipped tooltipped--e inline-block" aria-label="Card Grant">
+                <%= inline_icon "bag" %>
               </span>
             <% else %>
               <span class="tooltipped tooltipped--e inline-block" aria-label="HCB transfer">
@@ -105,7 +105,9 @@
               for
               <%= d.name %>
             <% elsif d.is_a? CardGrant %>
-              <%= d.user.name %> <% if organizer_signed_in? %>(<%= mail_to d.user.email %>)<% end %>
+              <strong>
+                <%= link_to d.user.name, organizer_signed_in? ? d : spending_card_grant_path(d) %>
+              </strong>
             <% else %>
               <%= d.name %>
             <% end %>

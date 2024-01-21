@@ -137,10 +137,7 @@ const updateAmountPreview = function () {
   }
 }
 
-$(document).on('keyup', '[name="invoice[item_amount]"]', () =>
-  updateAmountPreview()
-)
-$(document).on('change', '[name="invoice[item_amount]"]', () =>
+$(document).on('input', '[name="invoice[item_amount]"]', () =>
   updateAmountPreview()
 )
 
@@ -400,5 +397,17 @@ function unexpandReceipt(){
 document.addEventListener("turbo:load", () => {
   if (window.self === window.top) {
     document.body.classList.remove('embedded');
+  }
+})
+
+let hankIndex = 0
+$(document).on('keydown', function (e) {
+  if (e.originalEvent.key === 'hank'[hankIndex]) {
+    hankIndex++
+    if (hankIndex === 4) {
+      return $('[name="header-logo"]').attr('src', '/hank.png')
+    }
+  } else {
+    return (hankIndex = 0)
   }
 })
