@@ -1112,6 +1112,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "browser_token"
     t.index ["code"], name: "index_login_codes_on_code"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
@@ -1153,23 +1154,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
     t.datetime "updated_at", null: false
     t.index ["address"], name: "index_mailbox_addresses_on_address", unique: true
     t.index ["user_id"], name: "index_mailbox_addresses_on_user_id"
-  end
-
-  create_table "mfa_codes", force: :cascade do |t|
-    t.text "message"
-    t.string "code"
-    t.string "provider"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "mfa_requests", force: :cascade do |t|
-    t.string "provider"
-    t.bigint "mfa_code_id"
-    t.string "aasm_state"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
@@ -1881,7 +1865,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_200752) do
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
-  add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"

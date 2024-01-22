@@ -151,7 +151,6 @@ Rails.application.routes.draw do
 
   resources :admin, only: [] do
     collection do
-      get "twilio_messaging", to: "admin#twilio_messaging"
       get "transaction_csvs", to: "admin#transaction_csvs"
       post "upload", to: "admin#upload"
       get "bank_accounts", to: "admin#bank_accounts"
@@ -529,8 +528,6 @@ Rails.application.routes.draw do
   get "admin_search", to: redirect("/admin/users")
   post "admin_search", to: redirect("/admin/users")
 
-  post "twilio/messaging", to: "admin#twilio_messaging"
-
   resources :tours, only: [] do
     member do
       post "mark_complete"
@@ -638,6 +635,7 @@ Rails.application.routes.draw do
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
       get "audit_log"
+      post "validate_slug"
     end
   end
 
