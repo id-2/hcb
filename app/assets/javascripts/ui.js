@@ -173,11 +173,7 @@ $(document).keydown(function (e) {
 
 $(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
-$(document).on('turbo:frame-load', function () {
-  BK.s('autohide').hide()
-})
-
-$(document).on('turbo:load', function () {
+$(document).on('turbo:load turbo:frame-load', function () {
   if (window.location !== window.parent.location) {
     $('[data-behavior~=hide_iframe]').hide()
   }
@@ -292,10 +288,6 @@ $(document).on('turbo:load', function () {
         height: `${this.scrollHeight + 1}px`
       })
     })
-    .on('input', function () {
-      this.style.height = 'auto'
-      this.style.height = this.scrollHeight + 1 + 'px'
-    })
 
   // Popover menus
   BK.openMenuSelector = '[data-behavior~=menu_toggle][aria-expanded=true]'
@@ -376,6 +368,11 @@ $(document).on('turbo:load', function () {
   return window
     .matchMedia('(prefers-reduced-motion: reduce)')
     .addListener(() => setTilt())
+})
+
+$(document).on("input", "textarea:not([data-behavior~=no_autosize])", function() {
+  this.style.height = 'auto'
+  this.style.height = this.scrollHeight + 1 + 'px'
 })
 
 $('[data-behavior~=ctrl_enter_submit]').keydown(function (event) {
