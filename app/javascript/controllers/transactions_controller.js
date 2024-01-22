@@ -12,8 +12,8 @@ export default class extends Controller {
       this.updateFormFieldValue()
     }
   }
-  
-  toggleHcbCode(clickedElement){
+
+  toggleHcbCode(clickedElement) {
     if (!this.selectedHCBCodes.includes(clickedElement.id)) {
       this.selectedHCBCodes.push(clickedElement.id)
       clickedElement.classList.add('selected__transaction')
@@ -24,12 +24,12 @@ export default class extends Controller {
       clickedElement.classList.remove('selected__transaction')
     }
   }
-  
+
   updateTaggerVisbility() {
-    if(this.selectedHCBCodes.length == 0){
-      this.taggerTarget.classList.add("display-none")
+    if (this.selectedHCBCodes.length == 0) {
+      this.taggerTarget.classList.add('display-none')
     } else {
-      this.taggerTarget.classList.remove("display-none")
+      this.taggerTarget.classList.remove('display-none')
     }
   }
 
