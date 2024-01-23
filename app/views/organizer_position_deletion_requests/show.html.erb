@@ -60,7 +60,7 @@
     <% if @opdr.organizer_missing_receipts.any? %>
       ⚠️ <strong>
         <%= @opdr.organizer_missing_receipts.count %>
-        missing receipts on Stripe cards
+        missing receipt(s) on Stripe cards
       </strong>
     <% else %>
       ✅ <strong>No missing receipts on Stripe cards</strong>
@@ -70,7 +70,7 @@
   <p>
     <% if @opdr.organizer_active_cards.any? %>
       ⚠️ <strong>
-        <%= @opdr.organizer_missing_receipts.count %> active Stripe cards
+        <%= @opdr.organizer_active_cards.count %> active Stripe card(s)
       </strong>
     <% else %>
       ✅ <strong>No active Stripe cards</strong>

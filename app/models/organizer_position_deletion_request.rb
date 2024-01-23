@@ -83,8 +83,8 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
   end
 
   def organizer_missing_receipts
-    organizer_position.user.transactions_missing_receipt.reject do |transaction|
-      transaction.receipt_required? || transaction.event != organizer_position.event
+    organizer_position.user.transactions_missing_receipt.select do |hcb_code|
+      hcb_code.event == organizer_position.event
     end
   end
 
