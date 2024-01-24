@@ -87,6 +87,15 @@
     <article class="mixed-grid grid--spacious">
       <%= render @paginated_stripe_cards.reject(&:canceled?).reject(&:frozen?) %>
     </article>
+
+    <% if @paginated_stripe_cards.blank? %>
+      <% if organizer_signed_in? %>
+        <%= blankslate "Your teammates don't have any active cards." %>
+      <% else %>
+        <%= blankslate "This organization doesn't have any active cards" %>
+      <% end %>
+    <% end %>
+
   <% end %>
 
   <% if (@paginated_stripe_cards + @session_user_stripe_cards).any? { |card| card.canceled? || card.frozen? } %>
@@ -94,7 +103,6 @@
 
     <details>
       <summary><h4 class="inline-block">Frozen/Canceled Cards</h4></summary>
-
       <% if params[:view] == "list" %>
         <%= render "event_cards_table", stripe_cards: @frozen_or_canceled_cards %>
       <% else %>

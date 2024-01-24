@@ -272,7 +272,7 @@ class EventsController < ApplicationController
   def card_overview
     @stripe_cards = @event.stripe_cards.where.missing(:card_grant)
                           .includes(:stripe_cardholder, :user).order("stripe_status asc, created_at desc")
-    @session_user_stripe_card = []
+    @session_user_stripe_cards = []
 
     unless current_user.nil?
       @session_user_stripe_cards = @stripe_cards.filter { |card| card.user.id.eql?(current_user.id) }
