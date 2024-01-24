@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -13,6 +15,7 @@
 ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
+  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "ach_payments", force: :cascade do |t|
@@ -39,8 +42,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "recipient_tel"
     t.datetime "rejected_at", precision: nil
-    t.text "payment_for"
     t.datetime "scheduled_arrival_date", precision: nil
+    t.text "payment_for"
     t.string "aasm_state"
     t.text "confirmation_number"
     t.text "account_number_ciphertext"
@@ -312,11 +315,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.bigint "raw_pending_invoice_transaction_id"
     t.text "hcb_code"
     t.bigint "raw_pending_bank_fee_transaction_id"
+    t.bigint "raw_pending_partner_donation_transaction_id"
     t.text "custom_memo"
     t.bigint "raw_pending_incoming_disbursement_transaction_id"
     t.bigint "raw_pending_outgoing_disbursement_transaction_id"
     t.boolean "fronted", default: false
-    t.bigint "raw_pending_partner_donation_transaction_id"
     t.boolean "fee_waived", default: false
     t.bigint "ach_payment_id"
     t.bigint "increase_check_id"
@@ -356,9 +359,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
   end
 
   create_table "card_grant_settings", force: :cascade do |t|
-    t.bigint "event_id", null: false
     t.string "merchant_lock"
     t.string "category_lock"
+    t.bigint "event_id", null: false
     t.string "invite_message"
     t.index ["event_id"], name: "index_card_grant_settings_on_event_id"
   end
@@ -879,7 +882,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.index ["raw_plaid_transaction_id"], name: "index_hashed_transactions_on_raw_plaid_transaction_id"
     t.index ["raw_stripe_transaction_id"], name: "index_hashed_transactions_on_raw_stripe_transaction_id"
   end
-
+  
   create_table "hcb_code_personal_transactions", force: :cascade do |t|
     t.bigint "hcb_code_id"
     t.bigint "invoice_id"
@@ -1131,6 +1134,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
   end
 
+  create_table "metrics", force: :cascade do |t|
+    t.string "type", null: false
+    t.jsonb "metric"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
+  end
+
   create_table "mailbox_addresses", force: :cascade do |t|
     t.string "address", null: false
     t.string "aasm_state"
@@ -1140,16 +1153,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.datetime "updated_at", null: false
     t.index ["address"], name: "index_mailbox_addresses_on_address", unique: true
     t.index ["user_id"], name: "index_mailbox_addresses_on_user_id"
-  end
-
-  create_table "metrics", force: :cascade do |t|
-    t.string "type", null: false
-    t.jsonb "metric"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "subject_type"
-    t.bigint "subject_id"
-    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
