@@ -189,10 +189,6 @@ class User < ApplicationRecord
     self.partner
   end
 
-  def beta_features_enabled?
-    events.where(beta_features_enabled: true).any?
-  end
-
   def admin_dropdown_description
     "#{name} (#{email})"
   end
@@ -226,6 +222,21 @@ class User < ApplicationRecord
 
   def active_mailbox_address
     self.mailbox_addresses.activated.first
+  end
+
+  def transactions_missing_receipt
+    @transactions_missing_receipt ||= begin
+      user_cards = stripe_cards.includes(:event) + emburse_cards.includes(:emburse_transactions)
+      user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
+      user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
+
+      hcb_codes_missing_ids = user_hcb_codes.missing_receipt
+                                            # Includes association for `HcbCode#receipt_required?`
+                                            .includes(:canonical_transactions, canonical_pending_transactions: :canonical_pending_declined_mapping)
+                                            .filter(&:receipt_required?).pluck(:id)
+
+      HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
+    end
   end
 
   private
