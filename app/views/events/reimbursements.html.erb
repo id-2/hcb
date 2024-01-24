@@ -23,7 +23,7 @@
       </div>
     </div>
     <%= form.label :user_id, "Associated User", class: "mt1 bold" %>
-    <%= form.select :user_email, @event.users.map { |u| [ u.name, u.email] } + [["Non-Organizer", "other"]], id: "reimbursement_report_user"  %>
+    <%= form.select :user_email, @event.users.map { |u| [ u.name, u.email] } + [["Non-Organizer", "other"]], id: "reimbursement_report_user", selected: @current_user.email  %>
     <%= form.text_field :other_email, class: 'hidden', placeholder: "Enter this individual's email", class: "mt1", data: {"behavior": "reimbursement_report_email_input"}, required: false %>
     <%= form.hidden_field :event_id, value: @event.id %>
     <%= form.submit "Submit", class: "mt2" %>
