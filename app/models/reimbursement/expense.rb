@@ -28,7 +28,7 @@
 #
 module Reimbursement
   class Expense < ApplicationRecord
-    belongs_to :reimbursement_report
+    belongs_to :report
 
     include AASM
 
