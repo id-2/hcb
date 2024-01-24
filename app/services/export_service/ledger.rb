@@ -12,7 +12,7 @@ module ExportService
 
     def run
       entries = []
-      event.canonical_transactions.order("date desc").each do |ct|
+      event.canonical_transactions_including_subledgers.order("date desc").each do |ct|
         if ct.amount_cents <= 0
           entries.push(
             ::Ledger::Entry.new(

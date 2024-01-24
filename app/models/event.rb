@@ -267,6 +267,9 @@ class Event < ApplicationRecord
 
   has_many :canonical_event_mappings, -> { on_main_ledger }
   has_many :canonical_transactions, through: :canonical_event_mappings
+  
+  has_many :canonical_event_mappings_including_subledgers, class_name: 'CanonicalEventMapping'
+  has_many :canonical_transactions_including_subledgers, through: :canonical_event_mappings_including_subledgers, source: 'canonical_transaction'
 
   has_many :fees, through: :canonical_event_mappings
   has_many :bank_fees

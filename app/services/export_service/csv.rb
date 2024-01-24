@@ -14,7 +14,7 @@ module ExportService
       Enumerator.new do |y|
         y << header.to_s
 
-        event.canonical_transactions.order("date desc").each do |ct|
+        event.canonical_transactions_including_subledgers.order("date desc").each do |ct|
           y << row(ct).to_s
         end
       end

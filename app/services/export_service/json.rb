@@ -10,7 +10,7 @@ module ExportService
 
     # NOTE: technicall not streaming at this time
     def run
-      event.canonical_transactions.order("date desc").map do |ct|
+      event.canonical_transactions_including_subledgers.order("date desc").map do |ct|
         row(ct)
       end.to_json
     end
