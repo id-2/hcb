@@ -10,12 +10,7 @@ module ReceiptService
       @textual_content = @receipt.textual_content || @receipt.extract_textual_content!
       return nil if @textual_content.nil?
 
-      {
-        amount_cents:,
-        card_last_four:,
-        date:,
-        textual_content: @textual_content
-      }
+      fallback_features
     end
 
     private
@@ -43,62 +38,62 @@ module ReceiptService
       end
     end
 
-    def amount_cents
-      amount_cents_regex = /\$( ?[\d.,]+)(\s|\n|\\n)/
+    def fallback_features
+      {
+        amount_cents: begin
+          amount_cents_regex = /\$( ?[\d.,]+)(\s|\n|\\n)/
 
-      amounts = match_regex(amount_cents_regex, @textual_content) { |match| match.first }
-      amounts = amounts.map do |match|
-        match[:amount] = (match[:match].to_f * 100).to_i
+          amounts = match_regex(amount_cents_regex, @textual_content, &:first).map do |match|
+            match[:amount] = (match[:match].to_f * 100).to_i
 
-        match
-      end
+            match
+          end.reverse
 
-      amounts = amounts.reverse
+          amounts.each_with_index do |amount, index|
+            if amount[:before_fragment].downcase.include?("total")
+              amounts = [amount] + amounts[0...index] + amounts[index + 1..]
+            end
+          end
 
-      amounts.each_with_index do |amount, index|
-        if amount[:before_fragment].downcase.include?("total")
-          # TODO - Exclude "sub"total
-          amounts = [amount] + amounts[0...index] + amounts[index + 1..]
-        end
-      end
+          amounts.map do |amount|
+            0 - amount[:amount]
+          end
+        end,
 
-      amounts.map do |amount|
-        0 - amount[:amount]
-      end
-    end
+        card_last_four: begin
+          text_regex = /(?:(?:ending ?(?:in|with)?|visa|card|digits|account|credit|debit|number) ?[-–—]? ?:? ?(?:\\n)?)(?:\(?(?<last4>\d{4})\)?)(?:\s|\\n|[^\d]|$)/i # such as "Card ending in 1234"
+          x_regex = /[*x•·]{1,12}? ?(?:-|—)? ?(?<last4>\d{4})(?:\s|\\n|\)|$)/i # such as "**** 1234"
 
-    def card_last_four
-      text_regex = /(?:(?:ending ?(?:in|with)?|visa|card|digits|account|credit|debit|number) ?[-–—]? ?:? ?(?:\\n)?)(?:\(?(?<last4>\d{4})\)?)(?:\s|\\n|[^\d]|$)/i
-      x_regex = /[*x•·]{1,12}? ?(?:-|—)? ?(?<last4>\d{4})(?:\s|\\n|\)|$)/i
+          (match_regex(text_regex, @textual_content, &:first) + match_regex(x_regex, @textual_content, &:first)).pluck(:match)
+        end,
 
-      [
-        *match_regex(text_regex, @textual_content) { |match| match.first },
-        *match_regex(x_regex, @textual_content) { |match| match.first }
-      ].pluck(:match)
-    end
+        date: begin
+          slash_regex = /(?:(?<month>\d{1,2})\/(?<day>\d{1,2})\/(?<year>\d{2,4}))/i
+          dash_regex = /(?:(?<month>\d{1,2})-(?<day>\d{1,2})-(?<year>\d{2,4}))/i
 
-    def date
-      # TODO - Match written dates
+          dates = [*match_regex(slash_regex, @textual_content), *match_regex(dash_regex, @textual_content)].map do |match|
+            integer_values = match[:match].map(&:to_i)
 
-      slash_regex = /(?:(?<month>\d{1,2})\/(?<day>\d{1,2})\/(?<year>\d{2,4}))/i
-      dash_regex = /(?:(?<month>\d{1,2})-(?<day>\d{1,2})-(?<year>\d{2,4}))/i
+            month, day, year = integer_values
 
-      dates = [*match_regex(slash_regex, @textual_content), *match_regex(dash_regex, @textual_content)].map do |match|
-        integer_values = match[:match].map(&:to_i)
+            [
+              [month, day, year],
+              [day, month, year],
+              [year, month, day]
+            ]
+          end.flatten(1).map do |date|
+            month, day, year = date
 
-        month, day, year = integer_values
+            begin
+              Date.new(year, month, day)
+            rescue Date::Error => e
+              nil
+            end
+          end.sort { |a, b| Date.parse(b) <=> Date.parse(a) }.compact
+        end,
 
-        [
-          [month, day, year],
-          [day, month, year],
-          [year, month, day]
-        ]
-      end.flatten(1).reject do |date|
-        month, day, year = date
-
-        month > 12 || day > 31 || year < 1000 || year > Time.now.year + 1
-      end
-
+        textual_content: @textual_content
+      }
     end
 
   end
