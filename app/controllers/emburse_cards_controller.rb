@@ -17,32 +17,6 @@ class EmburseCardsController < ApplicationController
     @emburse_transactions = @emburse_card.emburse_transactions.order(transaction_time: :desc)
   end
 
-  # GET /emburse_cards/1/edit
-  def edit
-    authorize @emburse_card
-  end
-
-  # PATCH/PUT /emburse_cards/1
-  def update
-    authorize @emburse_card
-
-    if @emburse_card.update(emburse_card_params)
-      flash[:success] = "Card was successfully updated."
-      redirect_to @emburse_card
-    else
-      render :edit, status: :unprocessable_entity
-    end
-  end
-
-  # DELETE /emburse_cards/1
-  def destroy
-    authorize @emburse_card
-
-    @emburse_card.deleted_at = Time.now
-    flash[:success] = "Card was successfully destroyed."
-    redirect_to emburse_cards_url
-  end
-
   def status
     @event = Event.friendly.find(params[:event_id])
     @emburse_card_requests = @event.emburse_card_requests.under_review
