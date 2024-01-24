@@ -43,11 +43,14 @@ class CardGrantsController < ApplicationController
     @card_grant = CardGrant.find_by_hashid!(params[:id])
 
     if !signed_in?
-      return redirect_to auth_users_path(email: @card_grant.user.email, return_to: card_grant_path(@card_grant)), flash: { info: "Please sign in to continue." }
+      url_queries = { return_to: card_grant_path(@card_grant) }
+      url_queries[:email] = params[:email] if params[:email]
+      return redirect_to auth_users_path(url_queries), flash: { info: "To continue, please sign in with the email you received the grant." }
     end
 
     authorize @card_grant
 
+    @event = @card_grant.event
     @card = @card_grant.stripe_card
     @hcb_codes = @card&.hcb_codes
 
@@ -60,11 +63,17 @@ class CardGrantsController < ApplicationController
 
     authorize @card_grant
 
+    @event = @card_grant.event
     @card = @card_grant.stripe_card
     @hcb_codes = @card&.hcb_codes
 
     @frame = params[:frame].present?
     @force_no_popover = @frame
+
+    if organizer_signed_in? && !@frame
+      # If trying to view spending page outside a frame, redirect to the show page
+      return redirect_to @card_grant
+    end
 
     render :spending, layout: !@frame
   end

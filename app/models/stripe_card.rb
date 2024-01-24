@@ -193,6 +193,13 @@ class StripeCard < ApplicationRecord
     activated? && stripe_status == "inactive"
   end
 
+  def last_frozen_by
+    user_id = versions.where_object_changes_to(stripe_status: "inactive").last&.whodunnit
+    return nil unless user_id
+
+    User.find_by_id(user_id)
+  end
+
   def active?
     stripe_status == "active"
   end
@@ -304,19 +311,19 @@ class StripeCard < ApplicationRecord
     return 10 if virtual?
 
     cost = 300
-    cost_type = stripe_obj["shipping"]["type"] + "|" + stripe_obj["shipping"]["service"]
+    cost_type = [stripe_obj["shipping"]["type"], stripe_obj["shipping"]["service"]]
     case cost_type
-    when "individual|standard"
+    when ["individual", "standard"]
       cost += 50
-    when "individual|express"
+    when ["individual", "express"]
       cost += 1600
-    when "individual|priority"
+    when ["individual", "priority"]
       cost += 2200
-    when "bulk|standard"
+    when ["bulk", "standard"]
       cost += 2500
-    when "bulk|express"
+    when ["bulk", "express"]
       cost += 3000
-    when "bulk|priority"
+    when ["bulk", "priority"]
       cost += 4800
     end
 
