@@ -36,6 +36,9 @@ module Reimbursement
   class Report < ApplicationRecord
     belongs_to :user
     belongs_to :event
+    
+    monetize :maximum_amount_cents, as: "maximum_amount"
+    alias_attribute :report_name, :name
 
     include AASM
     include Commentable

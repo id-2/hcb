@@ -381,6 +381,10 @@ Rails.application.routes.draw do
   resources :transactions, only: [:index, :show, :edit, :update] do
     resources :comments
   end
+  namespace :reimbursement do
+    resources :reports, only: [:index, :create] do
+    end
+  end
 
   resources :fee_reimbursements, only: [:show, :edit, :update] do
     collection do
