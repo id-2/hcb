@@ -327,6 +327,17 @@ $(document).on('turbo:load', function () {
       if (e.target.checked) shippingInputs.hide()
     })
   }
+  
+  if (BK.s('reimbursement_report_email_input')) {
+    const emailInput = $('#reimbursement_report_other_email')
+    emailInput.hide()
+    const input = $('#reimbursement_report_user_email')
+    $(input).on('change', e => {
+      if (e.target.value == "other") emailInput.slideDown()
+      else emailInput.hide()
+      document.getElementById("reimbursement_report_other_email").required = e.target.value == "other" ? true : false
+    })
+  }
 
   if (BK.thereIs('additional_transparency_settings')) {
     const additionalTransparencySettings = BK.s(
