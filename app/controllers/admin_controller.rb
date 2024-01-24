@@ -2,21 +2,9 @@
 
 class AdminController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:twilio_messaging]
-  skip_before_action :verify_authenticity_token, only: [:twilio_messaging] # do not use CSRF token checking for API routes
-  before_action :signed_in_admin, except: [:twilio_messaging]
+  before_action :signed_in_admin
 
   layout "application"
-
-  def twilio_messaging
-    ::MfaCodeService::Create.new(message: params[:Body]).run
-
-    # Don't reply to incoming sms message
-    # https://support.twilio.com/hc/en-us/articles/223134127-Receive-SMS-and-MMS-Messages-without-Responding
-    respond_to do |format|
-      format.xml { render xml: "<Response></Response>" }
-    end
-  end
 
   def tasks
     @active = pending_tasks
@@ -241,7 +229,7 @@ class AdminController < ApplicationController
   end
 
   def event_balance
-    @event = Event.find(params[:id])
+    @event = Event.friendly.find(params[:id])
     @balance = Rails.cache.fetch("admin_event_balance_#{@event.id}", expires_in: 5.minutes) do
       @event.balance.to_i
     end
