@@ -47,14 +47,6 @@ module ReceiptService
       end
     end
 
-    def safe_date(month, day, year)
-      begin
-        Date.new(year, month, day)
-      rescue Date::Error => e
-        nil
-      end
-    end
-
     def distances_hash(txn)
       distances = {
         card_last_four: @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1,
@@ -90,7 +82,7 @@ module ReceiptService
         if @extracted[:date].empty?
           nil
         else
-          best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map { |d| safe_date(*d) }.reject { |d| d.nil? }.map{ |d| d.to_time.to_i / 86400 })
+          best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map{ |d| d.to_time.to_i / 86400 })
         end
 
       distances

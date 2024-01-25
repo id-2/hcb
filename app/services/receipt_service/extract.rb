@@ -89,7 +89,7 @@ module ReceiptService
             rescue Date::Error => e
               nil
             end
-          end.sort { |a, b| Date.parse(b) <=> Date.parse(a) }.compact
+          end.compact.sort { |a, b| Date.parse(b) <=> Date.parse(a) }
         end,
 
         textual_content: @textual_content

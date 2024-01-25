@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_24_214644) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -882,7 +882,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.index ["raw_plaid_transaction_id"], name: "index_hashed_transactions_on_raw_plaid_transaction_id"
     t.index ["raw_stripe_transaction_id"], name: "index_hashed_transactions_on_raw_stripe_transaction_id"
   end
-  
+
   create_table "hcb_code_personal_transactions", force: :cascade do |t|
     t.bigint "hcb_code_id"
     t.bigint "invoice_id"
@@ -1475,6 +1475,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.bigint "receiptable_id"
     t.integer "upload_method"
     t.text "textual_content_ciphertext"
+    t.string "suggested_memo"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["user_id"], name: "index_receipts_on_user_id"
   end

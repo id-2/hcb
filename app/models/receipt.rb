@@ -6,6 +6,7 @@
 #
 #  id                         :bigint           not null, primary key
 #  receiptable_type           :string
+#  suggested_memo             :string
 #  textual_content_ciphertext :text
 #  upload_method              :integer
 #  created_at                 :datetime         not null
