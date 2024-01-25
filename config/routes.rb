@@ -282,11 +282,16 @@ Rails.application.routes.draw do
 
   resources :stripe_cardholders, only: [:new, :create, :update]
   resources :stripe_cards, only: %i[create index show] do
-    get "edit"
-    post "update_name"
-    post "freeze"
-    post "defrost"
-    post "activate"
+    member do
+      get "edit"
+      post "update_name"
+      post "freeze"
+      post "defrost"
+    end
+
+    collection do
+      post "activate"
+    end
   end
   resources :emburse_cards, except: %i[new create]
 

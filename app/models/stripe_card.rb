@@ -118,7 +118,7 @@ class StripeCard < ApplicationRecord
   end
 
   def formatted_card_number
-    return "•••• •••• •••• #{last4}" unless virtual?
+    return hidden_card_number_with_last_four unless virtual?
 
     full_card_number.scan(/.{4}/).join(" ")
   end
@@ -132,6 +132,8 @@ class StripeCard < ApplicationRecord
   end
 
   def hidden_card_number_with_last_four
+    return hidden_card_number unless activated?
+
     "•••• •••• •••• #{last4}"
   end
 
