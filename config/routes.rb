@@ -382,7 +382,11 @@ Rails.application.routes.draw do
     resources :comments
   end
   namespace :reimbursement do
-    resources :reports, only: [:show, :create] do
+    resources :reports, only: [:show, :create, :edit, :update] do
+      post "submit"
+      post "draft"
+    end
+    resources :expenses, only: [:show, :create, :edit, :update] do
     end
   end
 

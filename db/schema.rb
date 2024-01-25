@@ -1504,7 +1504,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.bigint "reimbursement_report_id", null: false
     t.bigint "approved_by_id"
     t.text "memo"
-    t.integer "amount_cents"
+    t.integer "amount_cents", default: 0, null: false
     t.integer "reimbursable_amount_cents"
     t.text "description"
     t.string "aasm_state"

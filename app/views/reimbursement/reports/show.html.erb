@@ -1,0 +1,165 @@
+<% title @report.name %>
+<% page_md %>
+<%= render "events/nav", selected: :reimbursements %>
+
+<style>
+  html { scroll-behavior: smooth; }
+</style>
+
+<div class="mt4">
+    <h3 class="mt2 mb1 muted flex" style="font-weight: 400; gap: 4px;">
+      <span style="flex-grow: 1;">
+        <%= user_mention @user, class: "tooltipped--s align-top" %> is requesting <%= render_money [@report.maximum_amount_cents, @report.amount_cents].min %> for
+      </span>
+      <span class="ml0 badge bg-<%= @report.aasm_state %>"><%= @report.status_text %></span>
+      <%= link_to "#", class: "ml0 badge bg-info text-decoration-none", data: { behavior: "modal_trigger", modal: "edit" } do %>
+        Edit Details
+      <% end %>
+    </h3>
+    <h2 class="heading mt0 mb1 flex">
+      <span style="flex-grow: 1;"><%= @report.name %></span>
+    </h2>
+</div>
+
+<section data-behavior="modal" role="dialog" id="edit" class="modal modal--scroll bg-snow">
+  <%= modal_header "Edit Report" %>
+  <%= render "form" %>
+</section>
+
+<section class="flex items-start justify-center mt2 mb3" style="gap: 16px;">
+<article class="card max-width-2">
+  <p class="mt0">
+    HCB is able to reimburse you through either an ACH transfer or a check. To receive reimbursement, you'll need to submit each of your expenses to us through this report.
+  </p>
+  <p>
+    Begin by adding an expense to this report below; for each expense, you'll need to attach
+    a receipt, provide a memo describing the expense, and specify the amount you are seeking reimbursement for.
+  </p>
+  <p>
+    Once you've added all of your expenses to the report, click <i>Submit</i> to begin the review process.
+  </p>
+
+  <section class="card__banner card__banner--bottom card__darker pt2 pb2">
+    <p class="muted mt0 mb0">
+      There are some restrictions and limitations on what transactions can be reimbursed. Learn more in our <a href="#">FAQ</a>. 
+    </p>
+  </section>
+</article>
+
+<article class="max-width-2 mt3 p2">
+  <h2 class="mt0 heading">
+    <span class="flex-auto">
+      <%= render_money @report.amount_cents %> <span class="medium muted">Reimbursement Report</span>
+    </span>
+  </h2>
+  <section class="details mt2">
+
+      <p>
+        <strong>Created</strong>
+        <span class="flex items-baseline">
+          <%= format_date @report.created_at.to_date %>
+        </span>
+      </p>
+
+    <% if @report.submitted_at %>
+      <p>
+        <strong>Submitted</strong>
+        <span class="flex items-baseline">
+          <%= format_date @report.submitted_at.to_date %>
+        </span>
+      </p>
+    <% end %>
+
+    <% if @report.reimbursed_at %>
+      <p>
+        <strong>Reimbursed</strong>
+        <span class="flex items-baseline">
+          <%= format_date @report.reimbursed_at.to_date %>
+        </span>
+      </p>
+    <% end %>
+
+  </section>
+
+
+</article>
+
+
+</section>
+
+<h2 class="flex items-center">
+  <span style="flex-grow: 1">Expenses</span>
+</h2>
+
+<% @report.expenses.each do |expense| %>
+  <article class="card mt2" id="expense-<%= expense.id %>">
+    <section class="grid grid--split">
+      <div>
+
+        <%= form_with(model: expense, class: "mb3 flex flex-row items-center", style: "max-width: 600px;", local: true) do |form| %>
+          <div style="flex-grow: 1;">
+            <%= form.label :memo, "Memo", class: "bold" %>
+            <%= form.text_field :report_name, placeholder: "Meal at SFO Airport", required: true %>
+          </div>
+
+          <span class="bold muted flex self-end items-center justify-center ml1" style="width: 1rem; height: 48px;">$</span>
+
+          <div>
+            <%= form.label :amount_cents, "Amount", class: "bold" %>
+            <%= form.number_field :maximum_amount, placeholder: "500.00", step: 0.01, min: 0.01, max: [@report.maximum_amount_cents, 500_000].min, required: false, disabled: !(@current_user.admin? || @current_user != @report.user), data: { controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
+          </div>
+
+          <div class="ml1 self-end flex items-center justify-center" style="height: 48px;">
+            <button class="pop pointer">
+              <%= inline_icon "checkmark" %>
+            </button>
+          </div>
+
+        <% end %>
+
+        <p>This is an expense! No. <%= expense.id %></p>
+
+      </div>
+
+      <div style="background: #ddd;">
+        receipt land wahoo
+        <h1 style="font-size: 60px; margin: none;">🧾</h1>
+      </div>
+    </section>
+  </article>
+<% end %>
+
+<div class="flex items-center justify-between mt2 mb3" style="gap: 16px;">
+  <div style="flex-grow: 1;" class="flex justify-start">
+    <div <%= 'class="tooltipped tooltipped--n" aria-label="Expenses can\'t be added to locked reports"'.html_safe if @report.locked? %>>
+      <%= link_to reimbursement_expenses_path(report_id: @report.id), class: "btn bg-success #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), method: :post do %>
+        <%= inline_icon "docs" %>
+        Add An Expense
+      <% end %>
+    </div>
+  </div>
+  
+  <div style="flex-grow: 1;" class="flex justify-center items-center" style="gap: 4px;">
+    <% if @report.locked? %>
+      <%= inline_icon "private" %>
+      Expense Report Locked
+    <% end %>
+  </div>
+
+  <div style="flex-grow: 1;" class="flex justify-end">
+    <div <%= 'class="tooltipped tooltipped--n" aria-label="Locked reports can\'t be modified"'.html_safe if @report.locked? %>>
+      <% if @report.draft? %>
+        <%= link_to reimbursement_report_submit_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
+          <%= inline_icon "send" %>
+          Submit & Request Review
+        <% end %>
+      <% else %>
+        <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn bg-muted #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), method: :post do %>
+          <%= inline_icon "reply" %>
+          Mark As Draft
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+</div>

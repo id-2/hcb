@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Reimbursement
-  class ReportPolicy < ApplicationPolicy
+  class ExpensePolicy < ApplicationPolicy
     def index?
       user&.admin?
     end
@@ -11,7 +11,7 @@ module Reimbursement
     end
 
     def create?
-      admin_or_user && !record.event.demo_mode && !record.event.outernet_guild?
+      admin_or_user && !record.event.demo_mode
     end
 
     def show?
@@ -23,18 +23,6 @@ module Reimbursement
     end
 
     def update?
-      admin_or_user
-    end
-
-    def cancel?
-      admin_or_user
-    end
-
-    def submit?
-      admin_or_user
-    end
-
-    def draft?
       admin_or_user
     end
 

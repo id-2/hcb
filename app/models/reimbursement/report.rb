@@ -37,6 +37,8 @@ module Reimbursement
     belongs_to :user
     belongs_to :event
 
+    has_paper_trail
+
     monetize :maximum_amount_cents, as: "maximum_amount"
     has_many :expenses, foreign_key: "reimbursement_report_id"
     alias_attribute :report_name, :name
@@ -47,7 +49,7 @@ module Reimbursement
     include Commentable
 
     aasm do
-      state :pending, initial: true
+      state :draft, initial: true
       state :submitted
       state :organizer_approved
       state :admin_approved
@@ -55,7 +57,7 @@ module Reimbursement
       state :reimbursed
 
       event :mark_submitted do
-        transitions from: [:pending, :organizer_approved], to: :submitted
+        transitions from: [:draft, :organizer_approved], to: :submitted
       end
 
       event :mark_organizer_approved do
@@ -67,12 +69,54 @@ module Reimbursement
       end
 
       event :mark_rejected do
-        transitions from: [:pending, :submitted, :organizer_approved], to: :rejected
+        transitions from: [:draft, :submitted, :organizer_approved], to: :rejected
+      end
+
+      event :mark_draft do
+        transitions from: [:submitted], to: :draft
       end
 
       event :mark_reimbursed do
         transitions from: :admin_approved, to: :reimbursed
       end
+    end
+
+    def status_text
+      return "Draft" if draft?
+
+      aasm_state.humanize
+    end
+
+    def locked?
+      !draft?
+    end
+
+    def unlockable?
+      submitted? || organizer_approved?
+    end
+
+    def amount_cents
+      expenses.sum(&:amount_cents)
+    end
+
+    def last_organizer_approved_by
+      last_user_change_to(aasm_state: "organizer_approved")
+    end
+
+    def last_admin_approved_by
+      last_user_change_to(aasm_state: "admin_approved")
+    end
+
+    def last_rejected_by
+      last_user_change_to(aasm_state: "rejected")
+    end
+
+    private
+
+    def last_user_change_to(**query)
+      user_id = versions.where_object_changes_to(**query).last&.whodunnit
+
+      user_id && User.find(user_id)
     end
 
   end

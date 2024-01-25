@@ -46,7 +46,7 @@
   <div class="stat stat--small">
     <span class="stat__label">Pending</span>
     <span class="stat__value">
-      <%= render_money_amount @reports.pending.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
+      <%= render_money_amount @reports.draft.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
     </span>
   </div>
 </div>

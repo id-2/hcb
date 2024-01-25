@@ -6,7 +6,7 @@
 #
 #  id                        :bigint           not null, primary key
 #  aasm_state                :string
-#  amount_cents              :integer
+#  amount_cents              :integer          default(0), not null
 #  approved_at               :datetime
 #  description               :text
 #  memo                      :text
@@ -28,7 +28,7 @@
 #
 module Reimbursement
   class Expense < ApplicationRecord
-    belongs_to :report
+    belongs_to :report, foreign_key: "reimbursement_report_id"
 
     include AASM
 
@@ -39,6 +39,10 @@ module Reimbursement
       event :mark_approved do
         transitions from: :pending, to: :approved
       end
+    end
+
+    def event
+      self.report.event
     end
 
   end
