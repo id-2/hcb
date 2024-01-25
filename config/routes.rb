@@ -151,7 +151,6 @@ Rails.application.routes.draw do
 
   resources :admin, only: [] do
     collection do
-      get "twilio_messaging", to: "admin#twilio_messaging"
       get "transaction_csvs", to: "admin#transaction_csvs"
       post "upload", to: "admin#upload"
       get "bank_accounts", to: "admin#bank_accounts"
@@ -219,6 +218,16 @@ Rails.application.routes.draw do
       post "partnered_signups_accept", to: "admin#partnered_signups_accept"
       post "partnered_signups_reject", to: "admin#partnered_signups_reject"
     end
+  end
+
+  namespace :admin do
+    namespace :ledger_audits do
+      resources :tasks, only: [:index, :show] do
+        post :reviewed
+        post :flagged
+      end
+    end
+    resources :ledger_audits, only: [:index, :show]
   end
 
   post "set_event/:id", to: "admin#set_event", as: :set_event
@@ -336,6 +345,7 @@ Rails.application.routes.draw do
       get "attach_receipt"
       get "memo_frame"
       get "dispute"
+      get "breakdown"
       post "invoice_as_personal_transaction"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
@@ -381,8 +391,8 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  get "branding", to: redirect("brand_guidelines")
-  get "brand_guidelines", to: "static_pages#brand_guidelines"
+  get "brand_guidelines", to: redirect("branding")
+  get "branding", to: "static_pages#branding"
   get "faq", to: "static_pages#faq"
   get "audit", to: "admin#audit"
 
@@ -518,12 +528,6 @@ Rails.application.routes.draw do
   get "admin_search", to: redirect("/admin/users")
   post "admin_search", to: redirect("/admin/users")
 
-  resources :ops_checkins, only: [:create]
-
-  get "/integrations/frankly" => "integrations#frankly"
-
-  post "twilio/messaging", to: "admin#twilio_messaging"
-
   resources :tours, only: [] do
     member do
       post "mark_complete"
@@ -540,6 +544,7 @@ Rails.application.routes.draw do
   resources :card_grants, only: [:show], path: "grants" do
     member do
       post "activate"
+      get "spending"
     end
   end
 
@@ -629,6 +634,8 @@ Rails.application.routes.draw do
       post "test_ach_payment"
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
+      get "audit_log"
+      post "validate_slug"
     end
   end
 

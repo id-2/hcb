@@ -5,6 +5,7 @@ class UsersController < ApplicationController
   skip_before_action :redirect_to_onboarding, only: [:edit, :update, :logout]
   skip_after_action :verify_authorized, except: [:edit, :update]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
+  before_action :migrate_return_to, only: [:auth, :auth_submit, :choose_login_preference, :login_code, :exchange_login_code, :webauthn_auth]
 
   wrap_parameters format: :url_encoded_form
 
@@ -32,7 +33,7 @@ class UsersController < ApplicationController
     login_preference = session[:login_preference]
 
     if !has_webauthn_enabled || login_preference == "email"
-      redirect_to login_code_users_path, status: 307
+      redirect_to login_code_users_path, status: :temporary_redirect
     else
       session[:auth_email] = @email
       redirect_to choose_login_preference_users_path(return_to: params[:return_to])
@@ -55,7 +56,7 @@ class UsersController < ApplicationController
     case params[:login_preference]
     when "email"
       session[:login_preference] = "email" if remember
-      redirect_to login_code_users_path, status: 307
+      redirect_to login_code_users_path, status: :temporary_redirect
     when "webauthn"
       # This should never happen, because WebAuthn auth is handled on the frontend
       redirect_to choose_login_preference_users_path
@@ -76,6 +77,11 @@ class UsersController < ApplicationController
       flash[:error] = resp[:error]
       return redirect_to auth_users_path
     end
+
+    if resp[:login_code]
+      cookies.signed[:"browser_token_#{resp[:login_code].id}"] = { value: resp[:browser_token], expires: LoginCode::EXPIRATION.from_now }
+    end
+
     @user_id = resp[:id]
 
     @webauthn_available = User.find_by(email: @email)&.webauthn_credentials&.any?
@@ -162,7 +168,8 @@ class UsersController < ApplicationController
     user = UserService::ExchangeLoginCodeForUser.new(
       user_id: params[:user_id],
       login_code: params[:login_code],
-      sms: params[:sms]
+      sms: params[:sms],
+      cookies:
     ).run
 
     sign_in(user:, fingerprint_info:)
@@ -175,8 +182,15 @@ class UsersController < ApplicationController
     else
       redirect_to(params[:return_to] || root_path)
     end
-  rescue Errors::InvalidLoginCode => e
-    flash.now[:error] = "Invalid login code!"
+  rescue Errors::InvalidLoginCode, Errors::BrowserMismatch => e
+    message = case e
+              when Errors::InvalidLoginCode
+                "Invalid login code!"
+              when Errors::BrowserMismatch
+                "Looks like this isn't the browser that requested that code!"
+              end
+
+    flash.now[:error] = message
     # Propagate the to the login_code page on invalid code
     @user_id = params[:user_id]
     @email = params[:email]
@@ -228,7 +242,6 @@ class UsersController < ApplicationController
 
   FEATURES = { # the keys are current feature flags, the values are emojis that show when-enabled.
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
-    turbo_2023_01_23: %w[🚀 ⚡ 🏎️ 💨],
     sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
     hcb_code_popovers_2023_06_16: nil,
     rename_on_homepage_2023_12_06: %w[🖊️ ⚡ ⌨️]
@@ -464,6 +477,18 @@ class UsersController < ApplicationController
     if user&.use_sms_auth
       @use_sms_auth = true
       @phone_last_four = user.phone_number.last(4)
+    end
+  end
+
+  # HCB used to run on bank.hackclub.com— this ensures that any old references to `bank.` URLs are translated into `hcb.`
+  def migrate_return_to
+    if params[:return_to].present?
+      uri = URI(params[:return_to])
+
+      if uri&.host == "bank.hackclub.com"
+        uri.host = "hcb.hackclub.com"
+        params[:return_to] = uri.to_s
+      end
     end
   end
 

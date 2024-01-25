@@ -16,7 +16,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-<%= Rails.env %>-16x16.png">
     <%= yield(:head) if content_for?(:head) %>
   </head>
-  <body data-turbo="<%= Flipper.enabled?(:turbo_2023_01_23, current_user) %>">
+  <body>
     <% flash.each do |key, value| %>
       <% if key == "error" %>
         <p style="text-align:center;background:red;color:white;"><%= value %></p>
@@ -77,6 +77,8 @@
       <%= link_to "transaction csvs", transaction_csvs_admin_index_path %>
       |
       <%= link_to "stripe cards", stripe_cards_admin_index_url %>
+      |
+      <%= link_to "compliance checks (#{Admin::LedgerAudit.pending.count})", admin_ledger_audits_path %>
     </p>
 
     <hr>
@@ -86,5 +88,6 @@
     </div>
 
     <%= render "application/footer" unless (@no_app_shell || @hide_footer) %>
+    <%= render "application/command_bar" %>
   </body>
 </html>

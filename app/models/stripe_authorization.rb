@@ -53,6 +53,7 @@ class StripeAuthorization < ApplicationRecord
   alias_attribute :card, :stripe_card
   has_one :stripe_cardholder, through: :stripe_card, as: :cardholder
   alias_attribute :cardholder, :stripe_cardholder
+  has_one :user, through: :stripe_cardholder
   has_one :event, through: :stripe_card
 
   enum stripe_status: { pending: 0, closed: 1, reversed: 2 }
@@ -61,10 +62,6 @@ class StripeAuthorization < ApplicationRecord
   validates_uniqueness_of :stripe_id
 
   validates_presence_of :stripe_id, :stripe_status, :authorization_method, :amount, :name
-
-  def user
-    cardholder.user
-  end
 
   def filter_data
     {
@@ -167,13 +164,13 @@ class StripeAuthorization < ApplicationRecord
   def remote_stripe_transactions
     @remote_stripe_transactions ||= begin
       remote_stripe_authorization["transactions"].map do |t|
-        ::Partners::Stripe::Issuing::Transactions::Show.new(id: t.id).run
+        ::Stripe::Issuing::Transaction.retrieve(t.id)
       end
     end
   end
 
   def remote_stripe_authorization
-    @remote_stripe_authorization ||= ::Partners::Stripe::Issuing::Authorizations::Show.new(id: stripe_id).run
+    @remote_stripe_authorization ||= ::StripeService::Issuing::Authorization.retrieve(stripe_id)
   end
 
 end

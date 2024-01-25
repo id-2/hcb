@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -93,6 +93,24 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "admin_ledger_audit_tasks", force: :cascade do |t|
+    t.bigint "hcb_code_id"
+    t.bigint "admin_ledger_audit_id"
+    t.bigint "reviewer_id"
+    t.string "status", default: "pending"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_ledger_audit_id"], name: "index_admin_ledger_audit_tasks_on_admin_ledger_audit_id"
+    t.index ["hcb_code_id"], name: "index_admin_ledger_audit_tasks_on_hcb_code_id"
+    t.index ["reviewer_id"], name: "index_admin_ledger_audit_tasks_on_reviewer_id"
+  end
+
+  create_table "admin_ledger_audits", force: :cascade do |t|
+    t.date "start"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "ahoy_events", force: :cascade do |t|
@@ -676,7 +694,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
     t.integer "expected_budget"
     t.boolean "has_fiscal_sponsorship_document"
     t.text "club_airtable_id"
-    t.boolean "beta_features_enabled"
     t.datetime "hidden_at", precision: nil
     t.boolean "donation_page_enabled", default: true
     t.text "donation_page_message"
@@ -864,6 +881,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
     t.index ["raw_increase_transaction_id"], name: "index_hashed_transactions_on_raw_increase_transaction_id"
     t.index ["raw_plaid_transaction_id"], name: "index_hashed_transactions_on_raw_plaid_transaction_id"
     t.index ["raw_stripe_transaction_id"], name: "index_hashed_transactions_on_raw_stripe_transaction_id"
+  end
+  
+  create_table "hcb_code_personal_transactions", force: :cascade do |t|
+    t.bigint "hcb_code_id"
+    t.bigint "invoice_id"
+    t.bigint "reporter_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hcb_code_id"], name: "index_hcb_code_personal_transactions_on_hcb_code_id", unique: true
+    t.index ["invoice_id"], name: "index_hcb_code_personal_transactions_on_invoice_id"
+    t.index ["reporter_id"], name: "index_hcb_code_personal_transactions_on_reporter_id"
   end
 
   create_table "hcb_codes", force: :cascade do |t|
@@ -1083,6 +1111,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "browser_token"
     t.index ["code"], name: "index_login_codes_on_code"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
@@ -1126,23 +1155,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
     t.index ["user_id"], name: "index_mailbox_addresses_on_user_id"
   end
 
-  create_table "mfa_codes", force: :cascade do |t|
-    t.text "message"
-    t.string "code"
-    t.string "provider"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "mfa_requests", force: :cascade do |t|
-    t.string "provider"
-    t.bigint "mfa_code_id"
-    t.string "aasm_state"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
-  end
-
   create_table "oauth_access_grants", force: :cascade do |t|
     t.bigint "resource_owner_id", null: false
     t.bigint "application_id", null: false
@@ -1169,13 +1181,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
-  end
-
-  create_table "ops_checkins", force: :cascade do |t|
-    t.bigint "point_of_contact_id"
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.index ["point_of_contact_id"], name: "index_ops_checkins_on_point_of_contact_id"
   end
 
   create_table "organizer_position_deletion_requests", force: :cascade do |t|
@@ -1491,6 +1496,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
     t.text "last4_ciphertext"
     t.datetime "canceled_at"
     t.boolean "migrated_from_legacy_stripe_account", default: false
+    t.text "message"
     t.index ["event_id"], name: "index_recurring_donations_on_event_id"
     t.index ["stripe_subscription_id"], name: "index_recurring_donations_on_stripe_subscription_id", unique: true
     t.index ["url_hash"], name: "index_recurring_donations_on_url_hash", unique: true
@@ -1781,6 +1787,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
   add_foreign_key "ach_transfers", "users", column: "creator_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "admin_ledger_audit_tasks", "admin_ledger_audits"
+  add_foreign_key "admin_ledger_audit_tasks", "hcb_codes"
+  add_foreign_key "admin_ledger_audit_tasks", "users", column: "reviewer_id"
   add_foreign_key "api_tokens", "users"
   add_foreign_key "bank_fees", "events"
   add_foreign_key "canonical_event_mappings", "canonical_transactions"
@@ -1838,6 +1847,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
   add_foreign_key "grants", "users", column: "processed_by_id"
   add_foreign_key "grants", "users", column: "submitted_by_id"
   add_foreign_key "hashed_transactions", "raw_plaid_transactions"
+  add_foreign_key "hcb_code_personal_transactions", "hcb_codes"
+  add_foreign_key "hcb_code_personal_transactions", "invoices"
+  add_foreign_key "hcb_code_personal_transactions", "users", column: "reporter_id"
   add_foreign_key "increase_account_numbers", "events"
   add_foreign_key "increase_checks", "events"
   add_foreign_key "increase_checks", "users"
@@ -1852,8 +1864,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_30_000209) do
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
-  add_foreign_key "mfa_requests", "mfa_codes"
-  add_foreign_key "ops_checkins", "users", column: "point_of_contact_id"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"
