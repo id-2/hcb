@@ -382,7 +382,7 @@ Rails.application.routes.draw do
     resources :comments
   end
   namespace :reimbursement do
-    resources :reports, only: [:index, :create] do
+    resources :reports, only: [:show, :create] do
     end
   end
 

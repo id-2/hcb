@@ -30,6 +30,43 @@
   <% end %>
 </section>
 
+<div class="statset mt3 mb2">
+  <div class="stat stat--small">
+    <span class="stat__label">Total</span>
+    <span class="stat__value">
+      <%= render_money_amount @reports.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
+    </span>
+  </div>
+  <div class="stat stat--small">
+    <span class="stat__label">Reimbursed</span>
+    <span class="stat__value">
+      <%= render_money_amount @reports.reimbursed.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
+    </span>
+  </div>
+  <div class="stat stat--small">
+    <span class="stat__label">Pending</span>
+    <span class="stat__value">
+      <%= render_money_amount @reports.pending.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
+    </span>
+  </div>
+</div>
+
+<hr>
+
+<div style="text-align: center;">
+  <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["reimbursed", "pending"].include?(params[:filter]), role: "tab" %>
+  <%= link_to "Reimbursed", "?filter=reimbursed", class: "filterbar__item", "aria-selected": params[:filter] == "reimbursed", role: "tab" %>
+  <%= link_to "Pending", "?filter=pending", class: "filterbar__item", "aria-selected": params[:filter] == "pending", role: "tab" %>
+</div>
+
+<%= form_with(model: nil, local: true, method: :get) do |form| %>
+  <div class="filterbar flex flex-wrap items-center width-100">
+
+    <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
+
+  </div>
+<% end %>
+
 <% if @reports.blank? %>
   <%= blankslate "No reports found!" %>
 <% else %>
@@ -37,9 +74,11 @@
     <table>
       <thead>
       <tr>
-        <th>Report</th>
+        <th>Status</th>
+        <th>Report Title</th>
+        <th>From</th>
+        <th>Amount</th>
         <th>Created at</th>
-        <th>Submitted by</th>
         <th></th>
       </tr>
       </thead>
@@ -47,13 +86,22 @@
         <% @reports.each do |report| %>
           <tr>
             <td>
+               <span class="ml0 badge bg-<%= report.aasm_state %>"><%= report.aasm_state&.capitalize %></span>
+            </td>
+            <td>
               <%= report.name %>
             </td>
             <td>
-              <%= report.created_at.strftime("%m-%d-%Y") %>
+               <%= user_mention report.user %>
             </td>
             <td>
-               <%= user_mention report.user %>
+               <%= render_money [report.maximum_amount_cents, report.expenses.sum(&:amount_cents)].min %>
+            </td>
+            <td>
+               <%= report.created_at.strftime("%m-%d-%Y") %>
+            </td>
+            <td>
+               <%= link_to "View", report %>
             </td>
           </tr>
         <% end %>

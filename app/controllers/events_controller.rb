@@ -581,6 +581,9 @@ class EventsController < ApplicationController
   def reimbursements
     authorize @event
     @reports = @event.reimbursement_reports
+    @reports = @reports.pending if params[:filter] == "pending"
+    @reports = @reports.reimbursed if params[:filter] == "reimbursed"
+    @reports = @reports.search(params[:q]) if params[:q].present?
   end
 
   def toggle_hidden

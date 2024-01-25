@@ -38,7 +38,10 @@ module Reimbursement
     belongs_to :event
 
     monetize :maximum_amount_cents, as: "maximum_amount"
+    has_many :expenses, foreign_key: "reimbursement_report_id"
     alias_attribute :report_name, :name
+
+    scope :search, ->(q) { joins(:user).where("users.full_name ILIKE :query OR reimbursement_reports.name ILIKE :query", query: "%#{User.sanitize_sql_like(q)}%") }
 
     include AASM
     include Commentable
