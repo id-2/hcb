@@ -37,6 +37,10 @@ class StripeCardPolicy < ApplicationPolicy
     user&.admin? || record&.event&.users&.include?(user) || record&.user == user
   end
 
+  def activation?
+    true
+  end
+
   alias_method :update_name?, :update?
 
 end

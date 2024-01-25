@@ -106,7 +106,7 @@ class StripeCardsController < ApplicationController
     end
 
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Birthday is required" } if current_user.birthday.nil?
-    return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Org is in Playground Mode" } if event.demo_mode?
+    return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Organization is in Playground Mode" } if event.demo_mode?
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Invalid country" } unless %w(US CA).include? sc[:stripe_shipping_address_country]
 
     ::StripeCardService::Create.new(
@@ -144,6 +144,10 @@ class StripeCardsController < ApplicationController
     updated = card.update(name:)
 
     redirect_to stripe_card_url(card), flash: updated ? { success: "Card's name has been successfully updated!" } : { error: "Card's name could not be updated" }
+  end
+
+  def activation
+    authorize @activation
   end
 
   private

@@ -290,6 +290,7 @@ Rails.application.routes.draw do
     end
 
     collection do
+      get "activation"
       post "activate"
     end
   end
