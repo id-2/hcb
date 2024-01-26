@@ -76,7 +76,7 @@ module Reimbursement
       @report = Reimbursement::Report.find(params[:id])
       @report.assign_attributes(update_reimbursement_report_params)
       authorize @report
-  
+
       if @report.save
         flash[:success] = "Report successfully updated."
         redirect_to @report

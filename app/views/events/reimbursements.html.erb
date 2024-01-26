@@ -34,19 +34,19 @@
   <div class="stat stat--small">
     <span class="stat__label">Total</span>
     <span class="stat__value">
-      <%= render_money_amount @reports.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
+      <%= render_money_amount(@reports.sum { |report| report.expenses.sum { |expense| expense.amount_cents } }) %>
     </span>
   </div>
   <div class="stat stat--small">
     <span class="stat__label">Reimbursed</span>
     <span class="stat__value">
-      <%= render_money_amount @reports.reimbursed.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
+      <%= render_money_amount(@reports.reimbursed.sum { |report| report.expenses.sum { |expense| expense.amount_cents } }) %>
     </span>
   </div>
   <div class="stat stat--small">
     <span class="stat__label">Pending</span>
     <span class="stat__value">
-      <%= render_money_amount @reports.draft.sum { |report| report.expenses.sum { |expense| expense.amount_cents } } %>
+      <%= render_money_amount(@reports.draft.sum { |report| report.expenses.sum { |expense| expense.amount_cents } }) %>
     </span>
   </div>
 </div>

@@ -14,5 +14,6 @@ module Reimbursement
         redirect_to @report, flash: { error: "Failed to create this expense." }
       end
     end
+
   end
 end

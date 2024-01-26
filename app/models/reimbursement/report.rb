@@ -40,7 +40,7 @@ module Reimbursement
     has_paper_trail
 
     monetize :maximum_amount_cents, as: "maximum_amount"
-    has_many :expenses, foreign_key: "reimbursement_report_id"
+    has_many :expenses, foreign_key: "reimbursement_report_id", inverse_of: :report
     alias_attribute :report_name, :name
 
     scope :search, ->(q) { joins(:user).where("users.full_name ILIKE :query OR reimbursement_reports.name ILIKE :query", query: "%#{User.sanitize_sql_like(q)}%") }
