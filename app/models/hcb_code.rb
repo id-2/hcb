@@ -39,7 +39,7 @@ class HcbCode < ApplicationRecord
 
   before_create :generate_and_set_short_code
 
-  delegate :likely_account_verification_related?, to: :ct, allow_nil: true
+  delegate :likely_account_verification_related?, :fee_payment?, to: :ct, allow_nil: true
 
   comma do
     hcb_code "HCB Code"
@@ -171,10 +171,6 @@ class HcbCode < ApplicationRecord
     title << event_preposition << event.name if show_event_name
 
     title.join(" ")
-  end
-
-  def fee_payment?
-    ct.fee_payment?
   end
 
   def raw_stripe_transaction
@@ -369,8 +365,28 @@ class HcbCode < ApplicationRecord
     canonical_transactions.last
   end
 
+  scope :receipt_required, -> {
+    joins("LEFT JOIN canonical_pending_transactions ON canonical_pending_transactions.hcb_code = hcb_codes.hcb_code")
+      .joins("LEFT JOIN canonical_pending_declined_mappings ON canonical_pending_declined_mappings.canonical_pending_transaction_id = canonical_pending_transactions.id")
+      .joins("LEFT JOIN canonical_transactions ON canonical_transactions.hcb_code = hcb_codes.hcb_code")
+      .where("canonical_transactions.transaction_source_type = 'RawEmburseTransaction'
+              OR (hcb_codes.hcb_code LIKE 'HCB-600%' AND canonical_pending_declined_mappings.id IS NULL)
+              OR (hcb_codes.hcb_code LIKE 'HCB-300%' AND hcb_codes.created_at >= '2024-02-01' AND canonical_pending_declined_mappings.id IS NULL)
+              OR (hcb_codes.hcb_code LIKE 'HCB-400%' AND hcb_codes.created_at >= '2024-02-01' AND canonical_pending_declined_mappings.id IS NULL)
+              ")
+  }
+
   def receipt_required?
-    (type == :card_charge && !pt&.declined? && !event&.salary?) || !!raw_emburse_transaction
+    return true if raw_emburse_transaction
+    return false if pt&.declined?
+
+    (type == :card_charge) ||
+      # starting from Feb. 2024, receipts have been required for ACHs & checks
+      ([:ach, :check].include?(type) && created_at > Time.utc(2024, 2, 1))
+  end
+
+  def receipt_optional?
+    !receipt_required?
   end
 
   def needs_receipt?
