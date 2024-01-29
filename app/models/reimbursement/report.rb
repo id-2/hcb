@@ -111,6 +111,14 @@ module Reimbursement
       last_user_change_to(aasm_state: "rejected")
     end
 
+    def expenses_updated_at
+      expenses.maximum(:updated_at)
+    end
+
+    def report_updated_at
+      [updated_at, expenses_updated_at].max
+    end
+
     private
 
     def last_user_change_to(**query)

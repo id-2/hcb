@@ -1,0 +1,14 @@
+<% title "foobar" %>
+<% @event = @expense.report.event %>
+<% page_md %>
+<%= render "events/nav", selected: :reimbursements %>
+
+<div class="mt4">
+    <h2 class="heading mt0 flex">
+      Edit Expense on <%= @expense.report.name %>
+    </h2>
+</div>
+
+<div class="mt2">
+  <%= render "form", expense: @expense %>
+</div>

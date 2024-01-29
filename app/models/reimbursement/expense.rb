@@ -29,7 +29,7 @@
 module Reimbursement
   class Expense < ApplicationRecord
     belongs_to :report, inverse_of: :expenses, foreign_key: "reimbursement_report_id"
-
+    monetize :amount_cents, as: "amount"
     include AASM
 
     aasm do
