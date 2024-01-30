@@ -237,7 +237,7 @@ class Donation < ApplicationRecord
   end
 
   def smart_memo
-    name.to_s.upcase
+    anonymous? ? "ANONYMOUS DONOR" : name.to_s.upcase
   end
 
   def hcb_code
