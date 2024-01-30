@@ -554,7 +554,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_27_023009) do
     t.text "user_agent"
     t.inet "ip_address"
     t.datetime "in_transit_at"
-    t.boolean "anonymous"
+    t.boolean "anonymous", default: false, null: false
     t.index ["event_id"], name: "index_donations_on_event_id"
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
     t.index ["payout_id"], name: "index_donations_on_payout_id"

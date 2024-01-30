@@ -7,7 +7,7 @@ module Api
         expose :amount, as: :amount_cents, documentation: { type: "integer" }
         expose :donor do
           expose :name do |donation|
-            donation.anonymous? ? "Anonymous donor" : donation.donor.name
+            donation.anonymous? ? "Anonymous donor" : donation.name
           end
           expose :anonymous, documentation: { type: "boolean" }
         end

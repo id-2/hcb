@@ -8,6 +8,7 @@
 #  aasm_state                           :string
 #  amount                               :integer
 #  amount_received                      :integer
+#  anonymous                            :boolean          default(FALSE), not null
 #  email                                :text
 #  hcb_code                             :text
 #  in_transit_at                        :datetime
