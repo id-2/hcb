@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -1140,6 +1142,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
   end
 
+  create_table "metrics", force: :cascade do |t|
+    t.string "type", null: false
+    t.jsonb "metric"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
+  end
+
   create_table "mailbox_addresses", force: :cascade do |t|
     t.string "address", null: false
     t.string "aasm_state"
@@ -1149,16 +1161,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
     t.datetime "updated_at", null: false
     t.index ["address"], name: "index_mailbox_addresses_on_address", unique: true
     t.index ["user_id"], name: "index_mailbox_addresses_on_user_id"
-  end
-
-  create_table "metrics", force: :cascade do |t|
-    t.string "type", null: false
-    t.jsonb "metric"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "subject_type"
-    t.bigint "subject_id"
-    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
