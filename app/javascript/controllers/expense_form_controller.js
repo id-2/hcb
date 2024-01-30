@@ -4,34 +4,41 @@ export default class extends Controller {
   static targets = ['field', 'button']
   static values = { enabled: { type: Boolean, default: false } }
 
-  connect () {
+  connect() {
     for (const field of this.fieldTargets) {
-      field.readOnly = !this.enabledValue;
+      field.readOnly = !this.enabledValue
 
-      field.addEventListener("dblclick", () => this.edit());
+      field.addEventListener('dblclick', () => this.edit())
     }
 
-    this.buttonTarget.addEventListener("click", e => (this.enabledValue || e.preventDefault(), this.edit()));
+    this.buttonTarget.addEventListener(
+      'click',
+      e => (this.enabledValue || e.preventDefault(), this.edit())
+    )
 
-    this.#buttons();
+    this.#buttons()
   }
 
-  edit () {
-    if (this.enabledValue) return;
-    this.enabledValue = true;
+  edit() {
+    if (this.enabledValue) return
+    this.enabledValue = true
 
-    this.#buttons();
+    this.#buttons()
 
     for (const field of this.fieldTargets) {
-      field.readOnly = false;
+      field.readOnly = false
     }
 
-    this.editTarget.style.display = 'none';
-    this.checkmarkTarget.style.display = 'block';
+    this.editTarget.style.display = 'none'
+    this.checkmarkTarget.style.display = 'block'
   }
 
-  #buttons () {
-    this.buttonTarget.querySelector("[aria-label=checkmark]").style.display = this.enabledValue ? 'block' : 'none';
-    this.buttonTarget.querySelector("[aria-label=edit]").style.display = this.enabledValue ? 'none' : 'block';
+  #buttons() {
+    this.buttonTarget.querySelector('[aria-label=checkmark]').style.display =
+      this.enabledValue ? 'block' : 'none'
+    this.buttonTarget.querySelector('[aria-label=edit]').style.display = this
+      .enabledValue
+      ? 'none'
+      : 'block'
   }
 }

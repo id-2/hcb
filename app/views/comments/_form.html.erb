@@ -1,5 +1,5 @@
 <% if @commentable && @comment %>
-  <%= form_with model: [@commentable, @comment], data: {turbo: false} do |form| %>
+  <%= form_with model: [@commentable, @comment], data: { turbo: false } do |form| %>
     <%= form_errors @comment, "note" %>
 
     <div class="comment__name mt2">

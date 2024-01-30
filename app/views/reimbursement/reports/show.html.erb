@@ -52,7 +52,7 @@
 </h2>
 <div id="expenses">
   <% @report.expenses.order(created_at: :desc).each do |expense| %>
-    <%= render "reimbursement/expenses/form", expense: expense %>
+    <%= render "reimbursement/expenses/form", expense: %>
   <% end %>
 </div>
 
@@ -60,9 +60,9 @@
   <div style="flex-grow: 1;" class="flex justify-start">
     <div <%= 'class="tooltipped tooltipped--n" aria-label="Expenses can\'t be added to locked reports"'.html_safe if @report.locked? %>>
       <%= link_to reimbursement_expenses_path(report_id: @report.id), class: "btn bg-success #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), data: {
-        turbo: true,
-        turbo_method: :post
-      } do %>
+            turbo: true,
+            turbo_method: :post
+          } do %>
         <%= inline_icon "docs" %>
         Add An Expense
       <% end %>
@@ -112,7 +112,7 @@
             <%= render "comments/item", comment: item %>
           <% end %>
         <% else %>
-          <% state_change = item.changeset['aasm_state']&.second %>
+          <% state_change = item.changeset["aasm_state"]&.second %>
 
           <style>
             .linethingy::before {
@@ -132,14 +132,14 @@
           <li class="linethingy">
             <% if state_change %>
 
-              <% icon, color, className = {    
-                "submitted" => ["send", "info"],
-                "rejected" => ["thumbsdown", "error"],
-                "organizer_approved" => ["thumbsup", "success"],
-                "admin_approved" =>  ["admin", "warning"],
-                "draft" => ["docs", "muted"],
-                "reimbursed" => ["docs", "purple"],
-              }[state_change] %>
+              <% icon, color = {
+                   "submitted"          => ["send", "info"],
+                   "rejected"           => ["thumbsdown", "error"],
+                   "organizer_approved" => ["thumbsup", "success"],
+                   "admin_approved"     => ["admin", "warning"],
+                   "draft"              => ["docs", "muted"],
+                   "reimbursed"         => ["docs", "purple"],
+                 }[state_change] %>
               <div class="flex flex-row items-center" style="gap: 16px">
                 <div class="flex items-center justify-center z2 pop no_hover bg-<%= color %>-important" style="color: white;">
                   <%= inline_icon icon, width: 30 %>
@@ -147,17 +147,17 @@
 
                 <div style="display: flex; align-items: center; gap: 4px">
                   <span class="muted" style="margin-right: -0.25em;">
-                    <%= user_mention User.find_by(id: item.whodunnit), {hide_avatar: true}, "Unknown User" %>
+                    <%= user_mention User.find_by(id: item.whodunnit), { hide_avatar: true }, "Unknown User" %>
                   </span>
                   <span class="align-middle">
-                    <%= {    
-                      "submitted" => "submitted this report", # TODO: support submitted / resubmitted
-                      "rejected" => "rejected this report",
-                      "organizer_approved" => "approved this report as an organizer",
-                      "admin_approved" =>  "approved this report as an admin",
-                      "draft" => "converted this report to a draft",
-                      "reimbursed" => "initiated a reimbursement"
-                    }[state_change] %>
+                    <%= {
+                          "submitted"          => "submitted this report", # TODO: support submitted / resubmitted
+                          "rejected"           => "rejected this report",
+                          "organizer_approved" => "approved this report as an organizer",
+                          "admin_approved"     => "approved this report as an admin",
+                          "draft"              => "converted this report to a draft",
+                          "reimbursed"         => "initiated a reimbursement"
+                        }[state_change] %>
                   </span>
                   <span class="tooltipped tooltipped--n align-middle" style="cursor: default" aria-label="<%= item.created_at.strftime("%b %e, %Y") %>">
                     <%= time_ago_in_words item.created_at %> ago
@@ -172,14 +172,14 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px">
                   <span class="muted; margin-right: -0.25em;">
-                    <%= user_mention User.find_by(id: item.whodunnit), {hide_avatar: true}, "Unknown User" %>
-                  </span> 
+                    <%= user_mention User.find_by(id: item.whodunnit), { hide_avatar: true }, "Unknown User" %>
+                  </span>
                   <span class="align-middle"><%= item.event %>d this report</span>
                   <span class="tooltipped tooltipped--n align-middle" style="cursor: default" aria-label="<%= item.created_at.strftime("%b %e, %Y") %>">
                   <%= time_ago_in_words item.created_at %> ago</span>
                 </div>
               </div>
-       
+
               <% if item.event == "update" %>
                 <ul class="list-reset" style="margin-left: 48px;">
                   <% item.changeset.excluding("updated_at").select { |field, changes| changes.any?(&:present?) }.each do |field, changes| %>

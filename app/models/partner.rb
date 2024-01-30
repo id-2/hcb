@@ -46,6 +46,10 @@ class Partner < ApplicationRecord
   validates :slug, exclusion: { in: EXCLUDED_SLUGS }, uniqueness: true
   validates :api_key, presence: true, uniqueness: true
 
+  after_initialize do
+    self.api_key ||= new_api_key
+  end
+
   def add_user_to_partnered_event!(user_email:, event:)
     # @msw: I take full responsibility the aweful way this is being implemented.
     # To my future self, or other devs: this should be moved to a service, and

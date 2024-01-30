@@ -13,9 +13,9 @@
           </script>
         <% end %>
         <%= form_with(model: expense, class: "mb3", style: "max-width: 600px;", local: true, data: {
-          controller: "expense-form",
-          "expense-form-enabled-value": start_enabled,
-        }) do |form| %>
+                        controller: "expense-form",
+                        "expense-form-enabled-value": start_enabled,
+                      }) do |form| %>
           <div class="flex flex-row items-center">
             <div style="flex-grow: 1;">
               <%= form.label :memo, "Memo", class: "bold" %>
