@@ -145,8 +145,8 @@
                   <%= inline_icon icon, width: 30 %>
                 </div>
 
-                <div class="flex flex-row items-center">
-                  <span class="muted">
+                <div style="display: flex; align-items: center; gap: 4px">
+                  <span class="muted" style="margin-right: -0.25em;">
                     <%= user_mention User.find_by(id: item.whodunnit), {hide_avatar: true}, "Unknown User" %>
                   </span>
                   <span class="align-middle">
@@ -171,11 +171,11 @@
                   <%= inline_icon "post", width: 30 %>
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px">
-                  <span class="muted">
+                  <span class="muted; margin-right: -0.25em;">
                     <%= user_mention User.find_by(id: item.whodunnit), {hide_avatar: true}, "Unknown User" %>
                   </span> 
-                  <%= item.event %>d this report
-                  <span class="tooltipped tooltipped--n" style="cursor: default" aria-label="<%= item.created_at.strftime("%b %e, %Y") %>">
+                  <span class="align-middle"><%= item.event %>d this report</span>
+                  <span class="tooltipped tooltipped--n align-middle" style="cursor: default" aria-label="<%= item.created_at.strftime("%b %e, %Y") %>">
                   <%= time_ago_in_words item.created_at %> ago</span>
                 </div>
               </div>
