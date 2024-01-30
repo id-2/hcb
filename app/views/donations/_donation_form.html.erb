@@ -23,11 +23,6 @@
     </div>
 
     <div class="field mb2">
-      <%= form.label :anonymous, "Donate anonymously?" %>
-      <%= form.check_box :anonymous %>
-    </div>
-
-    <div class="field mb2">
       <%= form.label :email, "Your email" %>
       <span class="muted block h5">We’ll send <%= @monthly ? "receipts" : "a receipt" %> here for your tax records.</span>
       <%= form.email_field :email, placeholder: "fionah@gmail.com", required: true %>
@@ -62,6 +57,14 @@
           <span class="muted nowrap ml1">/ month</span>
         <% end %>
       </div>
+    </div>
+
+    <div class="field field--checkbox mb2">
+      <%= form.check_box :anonymous, style: "margin-left: 0;" %>
+      <%= form.label :anonymous, "Donate anonymously?", style: "display: inline; flex-grow: 1;" %>
+      <a class="tooltipped tooltipped--w link--ignore flex" aria-label='When you donate anonymously, you will appear as "Anonymous donor" on public pages. Team members, however, can still see your name.' tabindex="0">
+        <%= inline_icon "info", width: 24 %>
+      </a>
     </div>
 
     <p class="muted h5 mt2 mb1">
