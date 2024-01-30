@@ -62,7 +62,7 @@
     <% if Flipper.enabled?(:anonymous_donations_2024_01_29, @event)%>
       <div class="field field--checkbox mb2">
         <%= form.check_box :anonymous, style: "margin-left: 0;" %>
-        <%= form.label :anonymous, "Donate anonymously?", style: "display: inline; flex-grow: 1;" %>
+        <%= form.label :anonymous, "Keep my donation private", style: "display: inline; flex-grow: 1;" %>
         <a class="tooltipped tooltipped--w link--ignore flex" aria-label='When you donate anonymously, you will appear as "Anonymous donor" on public pages. Team members, however, can still see your name.' tabindex="0">
           <%= inline_icon "info", width: 24 %>
         </a>
