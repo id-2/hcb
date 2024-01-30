@@ -390,10 +390,10 @@ Rails.application.routes.draw do
     resources :expenses, only: [:show, :create, :edit, :update]
   end
 
-  resources :reimbursement_reports, path: 'reimbursements/reports' do
+  resources :reimbursement_reports, path: "reimbursements/reports" do
     resources :comments
   end
-  
+
 
   resources :fee_reimbursements, only: [:show, :edit, :update] do
     collection do
