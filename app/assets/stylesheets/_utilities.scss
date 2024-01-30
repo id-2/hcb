@@ -135,6 +135,10 @@ $shades: (
 
   .bg-#{'' + $name} {
     background-color: $value;
+
+    &-important {
+      background-color: $value !important;
+    }
   }
 }
 

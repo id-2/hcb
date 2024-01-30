@@ -26,70 +26,25 @@
   <%= render "form" %>
 </section>
 
-<section class="flex items-start justify-center mt2 mb3" style="gap: 16px;">
-<article class="card max-width-2">
-  <p class="mt0">
-    HCB is able to reimburse you through either an ACH transfer or a check. To receive reimbursement, you'll need to submit each of your expenses to us through this report.
-  </p>
-  <p>
-    Begin by adding an expense to this report below; for each expense, you'll need to attach
-    a receipt, provide a memo describing the expense, and specify the amount you are seeking reimbursement for.
-  </p>
-  <p>
-    Once you've added all of your expenses to the report, click <i>Submit</i> to begin the review process.
-  </p>
-
-  <section class="card__banner card__banner--bottom card__darker pt2 pb2">
-    <p class="muted mt0 mb0">
-      There are some restrictions and limitations on what transactions can be reimbursed. Learn more in our <a href="#">FAQ</a>.
+<section class="flex items-start justify-center mt3 mb2" style="gap: 16px; position: relative;">
+  <article class="card">
+    <p class="mt0">
+      HCB is able to reimburse you through either an ACH transfer or a check. To receive reimbursement, you'll need to submit each of your expenses to us through this report.
     </p>
-  </section>
-</article>
-
-<article class="max-width-2 mt3 p2">
-  <h2 class="mt0 heading">
-    <span class="flex-auto">
-      <span class="medium muted">Reimbursement Report</span>
-    </span>
-  </h2>
-  <section class="details mt2">
-
     <p>
-      <strong>Created</strong>
-      <span class="flex items-baseline">
-        <%= format_date @report.created_at.to_date %>
-      </span>
+      Begin by adding an expense to this report below; for each expense, you'll need to attach
+      a receipt, provide a memo describing the expense, and specify the amount you are seeking reimbursement for.
     </p>
-
     <p>
-      <strong>Updated</strong>
-      <span class="flex items-baseline">
-        <%= format_date @report.report_updated_at.to_date %>
-      </span>
+      Once you've added all of your expenses to the report, click <i>Submit</i> to begin the review process.
     </p>
 
-    <% if @report.submitted_at %>
-      <p>
-        <strong>Submitted</strong>
-        <span class="flex items-baseline">
-          <%= format_date @report.submitted_at.to_date %>
-        </span>
+    <section class="card__banner card__banner--bottom card__darker pt2 pb2">
+      <p class="muted mt0 mb0">
+        There are some restrictions and limitations on what transactions can be reimbursed. Learn more in our <a href="#">FAQ</a>.
       </p>
-    <% end %>
-
-    <% if @report.reimbursed_at %>
-      <p>
-        <strong>Reimbursed</strong>
-        <span class="flex items-baseline">
-          <%= format_date @report.reimbursed_at.to_date %>
-        </span>
-      </p>
-    <% end %>
-
-  </section>
-
-</article>
-
+    </section>
+  </article>
 </section>
 
 <h2 class="flex items-center">
@@ -138,3 +93,107 @@
   </div>
 
 </div>
+
+<h2 class="flex items-center">
+  <span style="flex-grow: 1">Conversation</span>
+</h2>
+<article>
+  <%= turbo_frame_tag :audit_log do %>
+    <ul class="list-reset">
+      <% versions = @report.versions.select { |version| version.changeset.any? { |field, changes| changes.any?(&:present?) } } %>
+      <% comments = @report.comments %>
+      <% (versions + comments).sort_by(&:created_at).each do |item| %>
+        <% if item.instance_of?(Comment) %>
+          <% if item.admin_only %>
+            <% admin_tools do %>
+              <%= render "comments/item", comment: item %>
+            <% end %>
+          <% else %>
+            <%= render "comments/item", comment: item %>
+          <% end %>
+        <% else %>
+          <% state_change = item.changeset['aasm_state']&.second %>
+
+          <style>
+            .linethingy::before {
+              content: "";
+              width: 1px;
+              height: calc(100% + 20px);
+              background-color: black;
+              display: block;
+              position: absolute;
+              left: 17.5px;
+              z-index: 1;
+            }
+            .linethingy {
+              position: relative;
+            }
+          </style>
+          <li class="linethingy">
+            <% if state_change %>
+
+              <% icon, color, className = {    
+                "submitted" => ["send", "info"],
+                "rejected" => ["thumbsdown", "error"],
+                "organizer_approved" => ["thumbsup", "success"],
+                "admin_approved" =>  ["admin", "warning"],
+                "draft" => ["docs", "muted"],
+                "reimbursed" => ["docs", "purple"],
+              }[state_change] %>
+              <div class="flex flex-row items-center" style="gap: 16px">
+                <div class="flex items-center justify-center z2 pop no_hover bg-<%= color %>-important" style="color: white;">
+                  <%= inline_icon icon, width: 30 %>
+                </div>
+
+                <div class="flex flex-row items-center">
+                  <span class="muted">
+                    <%= user_mention User.find_by(id: item.whodunnit), {hide_avatar: true}, "Unknown User" %>
+                  </span>
+                  <span class="align-middle">
+                    <%= {    
+                      "submitted" => "submitted this report", # TODO: support submitted / resubmitted
+                      "rejected" => "rejected this report",
+                      "organizer_approved" => "approved this report as an organizer",
+                      "admin_approved" =>  "approved this report as an admin",
+                      "draft" => "converted this report to a draft",
+                      "reimbursed" => "initiated a reimbursement"
+                    }[state_change] %>
+                  </span>
+                  <span class="tooltipped tooltipped--n align-middle" style="cursor: default" aria-label="<%= item.created_at.strftime("%b %e, %Y") %>">
+                    <%= time_ago_in_words item.created_at %> ago
+                  </span>
+                </div>
+              </div>
+            <% else %>
+
+              <div class="flex flex-row items-center" style="gap: 16px">
+                <div class="pop bg-smoke-important no_hover relative z2">
+                  <%= inline_icon "post", width: 30 %>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px">
+                  <span class="muted">
+                    <%= user_mention User.find_by(id: item.whodunnit), {hide_avatar: true}, "Unknown User" %>
+                  </span> 
+                  <%= item.event %>d this report
+                  <span class="tooltipped tooltipped--n" style="cursor: default" aria-label="<%= item.created_at.strftime("%b %e, %Y") %>">
+                  <%= time_ago_in_words item.created_at %> ago</span>
+                </div>
+              </div>
+       
+              <% if item.event == "update" %>
+                <ul class="list-reset" style="margin-left: 48px;">
+                  <% item.changeset.excluding("updated_at").select { |field, changes| changes.any?(&:present?) }.each do |field, changes| %>
+                    <strong class="muted"><%= field.humanize %>:</strong> <%= render_audit_log_value(field, changes[0], color: "primary") %> → <%= render_audit_log_value(field, changes[1], color: "success") %>
+                  <% end %>
+                </ul>
+              <% end %>
+            <% end %>
+          </li>
+        <% end %>
+        <div class="mt1 mb2"></div>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%= render "comments/form" %>
+</article>

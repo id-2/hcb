@@ -248,21 +248,25 @@ html[data-dark='true'] {
   .pop.info {
     background-color: rgba(map-get($palette, info), 0.125);
   }
+
   .flash.accent,
   .badge.bg-accent,
   .pop.accent {
     background-color: rgba(map-get($palette, accent), 0.125);
   }
+
   .flash.success,
   .badge.bg-success,
   .pop.success {
     background-color: rgba(map-get($palette, success), 0.125);
   }
+
   .flash.warning,
   .badge.bg-warning,
   .pop.warning {
     background-color: rgba(map-get($palette, warning), 0.125);
   }
+
   .flash.muted,
   .badge,
   .badge.bg-muted,
@@ -305,6 +309,11 @@ html[data-dark='true'] {
 
   pre.bg-smoke {
     background: $darkless;
+    color: map-get($palette, white);
+  }
+
+  .bg-smoke-important {
+    background: $darkless!important;
     color: map-get($palette, white);
   }
 

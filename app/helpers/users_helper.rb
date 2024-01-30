@@ -88,9 +88,11 @@ module UsersHelper
              "#{user.name} is an admin"
            end
 
-    content = if user&.admin?
+    content = if user&.admin? && !options[:hide_avatar]
                 bolt = inline_icon "admin-badge", size: 20
                 avi + bolt + name
+              elsif options[:hide_avatar]
+                name
               else
                 avi + name
               end

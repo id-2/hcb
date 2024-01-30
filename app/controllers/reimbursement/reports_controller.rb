@@ -29,6 +29,10 @@ module Reimbursement
       @event = @report.event
       @user = @report.user
 
+      @commentable = @report
+      @comments = @commentable.comments
+      @comment = Comment.new
+
       authorize @report
     end
 
@@ -84,6 +88,8 @@ module Reimbursement
         render :edit, status: :unprocessable_entity
       end
     end
+
+    private
 
     def reimbursement_report_params
       reimbursement_report_params = params.require(:reimbursement_report).permit(:report_name, :maximum_amount, :event_id, :user_email, :other_email)
