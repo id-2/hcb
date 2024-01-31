@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -51,10 +51,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.text "increase_id"
     t.date "scheduled_on"
     t.text "column_id"
+    t.bigint "payment_recipient_id"
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
     t.index ["increase_id"], name: "index_ach_transfers_on_increase_id", unique: true
+    t.index ["payment_recipient_id"], name: "index_ach_transfers_on_payment_recipient_id"
     t.index ["processor_id"], name: "index_ach_transfers_on_processor_id"
   end
 
@@ -944,7 +946,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.string "increase_status"
     t.string "check_number"
     t.jsonb "increase_object"
+    t.string "column_id"
+    t.string "column_status"
+    t.jsonb "column_object"
+    t.string "column_delivery_status"
     t.index "(((increase_object -> 'deposit'::text) ->> 'transaction_id'::text))", name: "index_increase_checks_on_transaction_id"
+    t.index ["column_id"], name: "index_increase_checks_on_column_id", unique: true
     t.index ["event_id"], name: "index_increase_checks_on_event_id"
     t.index ["user_id"], name: "index_increase_checks_on_user_id"
   end
@@ -1305,6 +1312,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
     t.string "api_key_bidx"
     t.index ["api_key_bidx"], name: "index_partners_on_api_key_bidx", unique: true
     t.index ["representative_id"], name: "index_partners_on_representative_id"
+  end
+
+  create_table "payment_recipients", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.string "name"
+    t.text "account_number_ciphertext"
+    t.string "routing_number_ciphertext"
+    t.string "bank_name_ciphertext"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_payment_recipients_on_event_id"
   end
 
   create_table "raw_column_transactions", force: :cascade do |t|
@@ -1878,6 +1896,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_23_161458) do
   add_foreign_key "partnered_signups", "partners"
   add_foreign_key "partnered_signups", "users"
   add_foreign_key "partners", "users", column: "representative_id"
+  add_foreign_key "payment_recipients", "events"
   add_foreign_key "raw_pending_incoming_disbursement_transactions", "disbursements"
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
   add_foreign_key "receipts", "users"
