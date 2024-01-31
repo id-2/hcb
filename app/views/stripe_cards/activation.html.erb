@@ -7,3 +7,22 @@
     Card activation
   </span>
 </h1>
+
+<%= async_frame_to my_cards_shipping_path %>
+
+<p class="text">
+  Enter the last 4 digits of your card number to activate it.
+</p>
+<%= form_with url: activate_stripe_cards_path, method: :post do |form| %>
+  <div class="card mt2 mb2" style="width: fit-content;">
+    <%= form.label :last4, "Card Number" %>
+    <div class="flex flex-row g2 items-center">
+      <span>••••</span>
+      <span>••••</span>
+      <span>••••</span>
+      <%= form.number_field :last4, placeholder: "XXXX", required: true, style: "width: 64px", maxlength: 4, oninput: "javascript: (this.value.length > this.maxLength) ? (this.value = this.value.slice(0, this.maxLength)) : 0" %>
+    </div>
+  </div>
+<%= form.submit "Activate", class: "btn btn-primary mt2" %>
+  
+<% end %>

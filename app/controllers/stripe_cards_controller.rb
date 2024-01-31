@@ -147,7 +147,7 @@ class StripeCardsController < ApplicationController
   end
 
   def activation
-    authorize @activation
+    authorize StripeCard
   end
 
   private
