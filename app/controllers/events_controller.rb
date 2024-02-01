@@ -93,12 +93,10 @@ class EventsController < ApplicationController
     end
 
     if @start_date || @end_date
-      @all_transactions = @all_transactions.select { |t|
-        (!@start_date || t.date >= @start_date.to_datetime) && (!@end_date || t.date <= @end_date.to_datetime)
-      }
-      @pending_transactions = @pending_transactions.select { |x|
-        (!@start_date || x.date >= @start_date.to_datetime) && (!@end_date || x.date <= @end_date.to_datetime)
-      }
+      in_range = ->(t) { (!@start_date || t.date >= @start_date.to_datetime) && (!@end_date || t.date <= @end_date.to_datetime) }
+
+      @all_transactions = @all_transactions.select(&in_range)
+      @pending_transactions = @pending_transactions.select(&in_range)
     end
 
     @type_filters = {
