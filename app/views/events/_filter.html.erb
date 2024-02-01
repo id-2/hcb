@@ -75,7 +75,7 @@
         </span>
         <span
           data-filter-target="datesLabel"
-          data-filter-menu-label-selected="<%= @dates ? "true" : "false" %>"
+          data-filter-menu-label-selected="<%= @start_date || @end_date ? "true" : "false" %>"
           data-action="click->filter#selectDates"
           style="cursor: pointer;">
           Dates
