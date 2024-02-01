@@ -59,7 +59,7 @@ class StripeCardsController < ApplicationController
     end
 
     if @card.activate!
-      flash[:success] = "Card activated!"
+      flash[:success] = "Card !"
       confetti!
       redirect_to @card
     else
