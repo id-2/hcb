@@ -42,7 +42,7 @@ class Receipt < ApplicationRecord
   validates :file, attached: true
 
   before_create do
-    suppress(ActiveModel::MissingAttributeError) do
+    suppress(ActiveModel::MissingAttributeError, ActiveModel::UnknownAttributeError) do
       receiptable&.update(marked_no_or_lost_receipt_at: nil)
     end
   end
@@ -66,7 +66,9 @@ class Receipt < ApplicationRecord
     api: 9,
     email_receipt_bin: 10,
     sms: 11,
-    transfer_create_page: 12
+    transfer_create_page: 12,
+    expense_report: 13,
+    expense_report_drag_and_drop: 14
   }
 
   scope :in_receipt_bin, -> { where(receiptable: nil) }
@@ -82,7 +84,7 @@ class Receipt < ApplicationRecord
       Rails.application.routes.url_helpers.rails_representation_url(file.variant(resize:).processed, only_path:)
     end
   rescue
-    nil
+    "https://cloud-kt9bf83lf-hack-club-bot.vercel.app/0design7.png"
   end
 
   def extract_textual_content

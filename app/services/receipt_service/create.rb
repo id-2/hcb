@@ -10,7 +10,7 @@ module ReceiptService
     end
 
     def run!
-      suppress(ActiveModel::MissingAttributeError) do
+      suppress(ActiveModel::MissingAttributeError, ActiveModel::UnknownAttributeError) do
         @receiptable&.update(marked_no_or_lost_receipt_at: nil)
       end
 

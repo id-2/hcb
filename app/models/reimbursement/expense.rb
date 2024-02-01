@@ -31,6 +31,7 @@ module Reimbursement
     belongs_to :report, inverse_of: :expenses, foreign_key: "reimbursement_report_id"
     monetize :amount_cents, as: "amount"
     include AASM
+    include Receiptable
 
     aasm do
       state :pending, initial: true
@@ -43,6 +44,18 @@ module Reimbursement
 
     def event
       self.report.event
+    end
+
+    def receipt_required?
+      true
+    end
+
+    def marked_no_or_lost_receipt_at
+      nil
+    end
+
+    def missing_receipt?
+      true
     end
 
   end

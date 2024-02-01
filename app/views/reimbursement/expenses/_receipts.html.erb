@@ -1,0 +1,56 @@
+<%= turbo_frame_tag "receipts_for_" + expense.to_s do %>
+  <div class="w-100 h-100 flex">
+    <%= form_with(url: upload_receipts_path, method: "post", class: "w-100 h-100 flex flex-column justify-center my-inbox-dropzone", 
+      data: {
+        turbo: "false",
+        controller: "file-drop form",
+        action: "
+          dragover->file-drop#dragover
+          drop->file-drop#drop
+          dragenter->file-drop#dragenter
+          dragleave->file-drop#dragleave
+        ",
+        "file-drop-target" => "dropzone",
+        "file-drop-title-value" => "Add receipt"
+      }.compact
+    ) do |form| %>
+
+      <div class="<%= expense.receipts.any? ? "flex flex-column" : "card card--sunken flex flex-column items-center justify-center g2" %> h-100" id="link_receipt__form">
+         <% if expense.receipts.any?  %>
+          <div style="display: flex; gap: 16px; max-width: 500px; overflow-x: scroll;">
+            <%= render partial: "receipts/receipt", collection: expense.receipts.order(created_at: :desc), as: :receipt, locals: { hide_info: false, style: "width: 100px" } %>
+            <div class="card card--sunken flex flex-column">
+              <span class="flex items-center justify-center">
+                <label for="file" class="btn">
+                  Upload
+                </label>
+              </span>
+            </div>
+          </div>
+        <% end %>
+
+        <% if expense.receipts.none?  %>
+            <span class="flex items-center justify-center flex-row flex-wrap" style="margin: -8px;">
+              <label for="file" class="btn m1">
+                <%= inline_icon "share" %>
+                <span>Upload</span>
+              </label>
+            </span>
+            <p class="center muted mt0 mb0">Or drag & drop your receipt here</p>
+        <% end %>
+
+        <%= form.hidden_field :upload_method, value: "expense_report", data: { "file-drop-target" => "uploadMethod" } %>
+
+        <%= form.hidden_field :receiptable_type, value: expense.class %>
+        <%= form.hidden_field :receiptable_id, value: expense.id %>
+
+        <%= form.file_field :file, multiple: true, include_hidden: false, required: true, class: "display-none", accept: "image/*,image/heic,.pdf", data: {
+          "file-drop-target" => "fileInput",
+          "action" => "change->form#submit"
+        } %>
+
+      </div>
+      
+    <% end %>
+  </div>
+<% end %>

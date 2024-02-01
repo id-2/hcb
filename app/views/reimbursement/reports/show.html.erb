@@ -50,6 +50,7 @@
 <h2 class="flex items-center">
   <span style="flex-grow: 1">Expenses</span>
 </h2>
+
 <div id="expenses">
   <% @report.expenses.order(created_at: :desc).each do |expense| %>
     <%= render "reimbursement/expenses/form", expense: %>

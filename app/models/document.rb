@@ -40,14 +40,15 @@ class Document < ApplicationRecord
   scope :common, -> { where(event_id: nil) }
 
   def preview_url(resize: "500x500")
-    return nil unless file
+    return "https://cloud-kt9bf83lf-hack-club-bot.vercel.app/0design7.png" unless file
 
     case file.content_type
     when "application/pdf"
-      return nil unless file.previewable?
+      return "https://cloud-kt9bf83lf-hack-club-bot.vercel.app/0design7.png" unless file.previewable?
 
       file.preview(resize:)
     else
+      "https://cloud-kt9bf83lf-hack-club-bot.vercel.app/0design7.png"
     end
   end
 

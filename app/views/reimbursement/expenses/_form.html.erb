@@ -3,10 +3,10 @@
 <% start_enabled ||= false %>
 <% scroll_on_load ||= false %>
 
-<%= turbo_frame_tag expense do %>
-  <article class="card mt2" id="expense-<%= expense.id %>">
-    <section class="grid grid--split">
-      <div>
+<article class="card mt2" id="expense-<%= expense.id %>">
+  <section class="grid grid--split">
+    <div>
+      <%= turbo_frame_tag expense do %>
         <% if scroll_on_load %>
           <script>
             window.scrollTo(0, document.body.scrollHeight);
@@ -57,10 +57,9 @@
             </p>
           </div>
         <% end %>
-      </div>
-      <div style="background: #dddddd00;">
-        <img src="https://cloud-qdmlsxcma-hack-club-bot.vercel.app/0frame_1__39_.png" style="float: right;">
-      </div>
-    </section>
-  </article>
-<% end %>
+      <% end %>
+    </div>
+    
+    <%= render partial: "reimbursement/expenses/receipts", locals: { expense: } %>
+  </section>
+</article>
