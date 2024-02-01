@@ -183,8 +183,6 @@ class StripeCard < ApplicationRecord
     save!
   end
 
-  alias_method :activate!, :defrost!
-
   def cancel!
     StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
     sync_from_stripe!

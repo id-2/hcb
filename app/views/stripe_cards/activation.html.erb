@@ -20,7 +20,7 @@
       <span>••••</span>
       <span>••••</span>
       <span>••••</span>
-      <%= form.number_field :last4, placeholder: "XXXX", required: true, style: "width: 64px", maxlength: 4, oninput: "javascript: (this.value.length > this.maxLength) ? (this.value = this.value.slice(0, this.maxLength)) : 0" %>
+      <%= form.number_field :last4, placeholder: "XXXX", required: true, style: "width: 64px", oninput: "this.value = this.value.replace(/[^0-9]/g, '').substring(0, 4)", class: "mono center" %>
     </div>
   </div>
   <%= form.submit "Activate", class: "btn btn-primary mt2" %>
