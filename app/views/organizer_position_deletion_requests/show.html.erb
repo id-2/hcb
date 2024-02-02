@@ -48,9 +48,13 @@
     </p>
   </div>
 
+  <% warning_emoji = capture do %>
+    <%# ⚠️ Emoji doesn't render with our default font stack %>
+    <span style="font-family: initial;">⚠️</span>
+  <% end %>
   <p>
     <% if @opdr.subject_has_outstanding_expenses_expensify %>
-      ⚠️ <strong>Outstanding Expensify expenses reported</strong>
+      <%= warning_emoji %> <strong>Outstanding Expensify expenses reported</strong>
     <% else %>
       ✅ <strong>No outstanding Expensify expenses reported</strong>
     <% end %>
@@ -58,7 +62,8 @@
 
   <p>
     <% if @opdr.organizer_missing_receipts.any? %>
-      ⚠️ <strong>
+      <%= warning_emoji %>
+      <strong>
         <%= @opdr.organizer_missing_receipts.count %>
         missing receipt(s) on Stripe cards
       </strong>
@@ -69,7 +74,8 @@
 
   <p>
     <% if @opdr.organizer_active_cards.any? %>
-      ⚠️ <strong>
+      <%= warning_emoji %>
+      <strong>
         <%= @opdr.organizer_active_cards.count %> active Stripe card(s)
       </strong>
     <% else %>
