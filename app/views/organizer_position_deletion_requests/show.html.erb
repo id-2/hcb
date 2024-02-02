@@ -83,6 +83,18 @@
     <% end %>
   </p>
 
+  <p>
+    <% if @opdr.organizer_last_signee %>
+      <%= warning_emoji %>
+      <strong>User is last signee</strong>
+    <% else %>
+      ✅ <strong>
+        User is not last signee (<%= @opdr.event_signee_count %> remain)
+      </strong>
+    <% end %>
+  </p>
+
+
   <% if @opdr.organizer_position.signee? %>
     <p class='warning'>
       <%= inline_icon "important", size: 24, style: "vertical-align: middle; margin: -0.2rem 0 0 -0.2rem;" %>
@@ -95,7 +107,7 @@
     <%= link_to "Delete organizer ⚠️☣☠",
       organizer_path(@opdr.organizer_position.id),
       method: :delete,
-      data: { confirm: "This will remove this user from #{@opdr.organizer_position.event.name} from the database. Are you sure you want to do this?" },
+      data: { confirm: "This will remove this user from #{@opdr.organizer_position.event.name} from the database. #{"⚠️ They are the last signee for this organization! ⚠️ " if @opdr.organizer_last_signee}Are you sure you want to do this?" },
       class: "btn bg-error mr1" %>
   <% else %>
     <p><strong>Organizer is marked as deleted</strong></p>
