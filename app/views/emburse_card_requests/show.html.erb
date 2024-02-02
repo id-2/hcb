@@ -17,14 +17,4 @@
 </p>
 </section>
 
-<% if admin_signed_in? %>
-  <p>
-    <%= link_to "Reject request", emburse_card_request_reject_path(@emburse_card_request), method: :post, class: "btn bg-error" %>
-  </p>
-<% else %>
-  <p>
-    <%= link_to "Cancel request", emburse_card_request_path(@emburse_card_request), method: :delete, class: "btn btn--destroy" %>
-  </p>
-<% end %>
-
 <%= render "comments/comments" %>
