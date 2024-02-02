@@ -268,10 +268,10 @@ class EventsController < ApplicationController
   def card_overview
     @stripe_cards = @event.stripe_cards.where.missing(:card_grant)
                           .includes(:stripe_cardholder, :user).order("stripe_status asc, created_at desc")
-    @session_user_stripe_cards = []
+    @current_user_stripe_cards = []
 
-    unless current_user.nil?
-      @session_user_stripe_cards = @stripe_cards.filter { |card| card.user.id.eql?(current_user.id) }
+    if current_user
+      @current_user_stripe_cards = @stripe_cards.filter { |card| card.user.id.eql?(current_user.id) }
       @stripe_cards = @stripe_cards.filter { |card| !card.user.id.eql?(current_user.id) }
     end
 
@@ -281,7 +281,7 @@ class EventsController < ApplicationController
 
     # Generate mock data
     if helpers.show_mock_data?
-      @session_user_stripe_cards = []
+      @current_user_stripe_cards = []
 
       if organizer_signed_in?
         # The user's cards
@@ -304,11 +304,11 @@ class EventsController < ApplicationController
             hidden_card_number_with_last_four: "•••• •••• •••• #{Faker::Number.number(digits: 4)}",
             to_partial_path: "stripe_cards/stripe_card",
           )
-          @session_user_stripe_cards << card
+          @current_user_stripe_cards << card
         end
       end
       # Sort by date issued
-      @session_user_stripe_cards.sort_by! { |card| card.created_at }.reverse!
+      @current_user_stripe_cards.sort_by! { |card| card.created_at }.reverse!
     end
 
     page = (params[:page] || 1).to_i
