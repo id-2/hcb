@@ -89,7 +89,7 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
   end
 
   def organizer_active_cards
-    organizer_stripe_cards.where(stripe_status: "active")
+    organizer_stripe_cards.active
   end
 
   private
