@@ -92,7 +92,7 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
     organizer_stripe_cards.active
   end
 
-  def organizer_last_signee
+  def organizer_last_signee?
     event_signee_count == 1 && organizer_position.signee?
   end
 
