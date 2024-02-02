@@ -611,6 +611,10 @@ class Event < ApplicationRecord
       canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
   end
 
+  def signee_count
+    organizer_positions.where(is_signee: true).size
+  end
+
   private
 
   def point_of_contact_is_admin

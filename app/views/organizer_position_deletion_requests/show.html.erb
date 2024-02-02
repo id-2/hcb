@@ -93,7 +93,7 @@
     <p class='warning'>
       <%= inline_icon "important", size: 24, style: "vertical-align: middle; margin: -0.2rem 0 0 -0.2rem;" %>
       Woah! This user has signed the fiscal sponsorship contract for this
-      organization. Are you sure you want to remove them? (<%= @opdr.event_signee_count - 1 %> signee<%= @opdr.event_signee_count == 2 ? "" : "s" %> will remain)
+      organization. Are you sure you want to remove them? (<%= @opdr.event.signee_count - 1 %> signee<%= @opdr.event.signee_count == 2 ? "" : "s" %> will remain)
     </p>
   <% end %>
 
