@@ -13,7 +13,7 @@ class StripeCardMailer < ApplicationMailer
 
   def lost_in_shipping
     mail to: @recipient,
-         subject: "Your HCB card (ending in #{@card.last4}) for #{@event.name} was lost in shipping."
+         subject: "Your HCB card for #{@event.name} was lost in shipping."
   end
 
   def virtual_card_ordered
