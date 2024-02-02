@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class EmburseCardsController < ApplicationController
-  before_action :set_emburse_card, only: [:show, :edit, :update, :destroy, :toggle_active]
+  before_action :set_emburse_card, only: :show
   skip_before_action :signed_in_user
 
   # GET /emburse_cards
@@ -29,16 +29,6 @@ class EmburseCardsController < ApplicationController
   def set_emburse_card
     @emburse_card = EmburseCard.friendly.find(params[:id] || params[:emburse_card_id])
     @event = @emburse_card.event
-  end
-
-  # Only allow a trusted parameter "white list" through.
-  def emburse_card_params
-    params.require(:emburse_card).permit(
-      :user_id,
-      :event_id,
-      :emburse_card_request_id,
-      :emburse_id,
-    )
   end
 
 end
