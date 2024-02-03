@@ -88,13 +88,21 @@
       </div>
     <% end %>
     <p>
-      <strong>Billing address</strong>
-      <%= render_address stripe_card.cardholder %>
-    </p>
-    <p>
       <strong>Type</strong>
       <%= stripe_card.virtual? ? "Virtual" : "Physical" %>
     </p>
+    <p>
+      <strong>Billing address</strong>
+      <%= render_address stripe_card.cardholder %>
+    </p>
+    <% if @is_default_billing_address %>
+      <p class="info" style="display: flex;">
+        <%= inline_icon "info", size: 24, style: "position: unset;" %>
+        <span>
+          You're using HCB's default billing address, not your home address. You can change it in your <%= link_to("user settings", settings_address_path, data: { "turbo-frame": :_top }) %> if you'd like.
+        </span>
+      </p>
+    <% end %>
   </section>
   <% admin_tools "details" do %>
     <div>
