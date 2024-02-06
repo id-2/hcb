@@ -99,7 +99,8 @@ class StripeCardholder < ApplicationRecord
     state: "CA",
     postal_code: "90069",
     country: "US"
-  }
+  }.freeze
+
   def default_billing_address?
     DEFAULT_BILLING_ADDRESS.each.all? do |key, value|
       self.public_send(:"address_#{key}") == value
