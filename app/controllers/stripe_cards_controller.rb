@@ -123,7 +123,16 @@ class StripeCardsController < ApplicationController
       stripe_shipping_address_country: sc[:stripe_shipping_address_country],
     ).run
 
-    redirect_to new_card, flash: { success: "Card was successfully created." }
+    flashes = { success: "Card was successfully created." }
+    if new_card.cardholder.default_billing_address?
+      flashes[:warning] = {
+        text: "You are using HCB's default billing address.",
+        link_text: "Edit in settings",
+        link: settings_address_path(current_user)
+      }
+    end
+
+    redirect_to new_card, flash: flashes
   rescue => e
     notify_airbrake(e)
 
