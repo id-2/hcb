@@ -29,7 +29,6 @@
       </div>
     </div>
 
-
     <%= form_with model: @user do |form| %>
       <%= form.fields_for :stripe_cardholder, @user.stripe_cardholder do |form| %>
         <div class="field">
