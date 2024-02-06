@@ -91,7 +91,7 @@
       <strong>Billing address</strong>
       <div class="flex justify-between">
         <%= render_address stripe_card.cardholder %>
-        <% if @is_default_billing_address %>
+        <% if stripe_card.cardholder.default_billing_address? %>
           <p class="info tooltipped tooltipped--w" aria-label="You're using HCB's default billing address, not your home address. You can change it in your user settings if you'd like." style="display: flex;">
             <%= inline_icon "info", size: 24, style: "position: unset;" %>
           </p>
