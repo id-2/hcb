@@ -1,0 +1,17 @@
+<script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+<script type="text/javascript">
+  window.Beacon('init', 'e3d6bbe1-aa48-43cb-8f8b-be1e33945bab')
+
+  <% if signed_in? %>
+  window.Beacon('identify', {
+    name: <%= current_user.name.to_json.html_safe %>,
+    email: <%= current_user.email.to_json.html_safe %>,
+    signature: <%= OpenSSL::HMAC.hexdigest("SHA256", Rails.application.credentials.dig(:helpscout_beacon, :secure_key), current_user.email).to_json.html_safe %>,
+  })
+  <% end %>
+
+  window.Beacon('config', {
+    enableFabAnimation: false,
+    hideFABOnMobile: true,
+  })
+</script>
