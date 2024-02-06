@@ -15,6 +15,22 @@
       By default this is our address.
     </p>
 
+    <div class="card border b--warning pb0 mt2 mb2">
+      <div class="flex items-center warning">
+        <%= inline_icon "info", size: 32, class: "mr1" %>
+        <p class="bold mt0 mb0">Important info about changing your billing address</p>
+      </div>
+      <ul class="mt1 mb2">
+        <li>Changing your address applies immedietly to all of your cards.</li>
+        <li>Recurring card charges like subscriptions might break when your billing address changes.</li>
+      </ul>
+      <div class="border-top card__banner card__darker secondary">
+        <strong>Questions?</strong>
+        <%= help_message %>
+      </div>
+    </div>
+
+
     <%= form_with model: @user do |form| %>
       <%= form.fields_for :stripe_cardholder, @user.stripe_cardholder do |form| %>
         <div class="field">
@@ -45,21 +61,6 @@
         <div class="field">
           <%= form.label :country %>
           <%= form.country_select :stripe_billing_address_country, nil, { only: ["US", "CA"] }, { required: true } %>
-        </div>
-
-        <div class="card border b--warning pb0 mt2 mb2">
-          <div class="flex items-center warning">
-            <%= inline_icon "info", size: 32, class: "mr1" %>
-            <p class="bold mt0 mb0">Important info about changing your billing address</p>
-          </div>
-          <ul class="mt1 mb2">
-            <li>Changing your address applies immedietly to all of your cards.</li>
-            <li>Recurring card charges like subscriptions might break when your billing address changes.</li>
-          </ul>
-          <div class="border-top card__banner card__darker secondary">
-            <strong>Questions?</strong>
-              <%= help_message %>
-          </div>
         </div>
 
         <div class="actions inline-block mt1">
