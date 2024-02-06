@@ -102,7 +102,7 @@ class StripeCardholder < ApplicationRecord
   }.freeze
 
   def default_billing_address?
-    DEFAULT_BILLING_ADDRESS.each.all? do |key, value|
+    DEFAULT_BILLING_ADDRESS.all? do |key, value|
       self.public_send(:"address_#{key}") == value
     end
   end
