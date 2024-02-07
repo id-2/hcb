@@ -186,6 +186,7 @@ Rails.application.routes.draw do
       get "balances", to: "admin#balances"
       get "grants", to: "admin#grants"
       get "check_deposits", to: "admin#check_deposits"
+      get "column_statements", to: "admin#column_statements"
 
       resources :grants, only: [] do
         post "approve"
@@ -523,7 +524,6 @@ Rails.application.routes.draw do
 
   get "negative_events", to: "admin#negative_events"
 
-  get "admin_tasks", to: "admin#tasks"
   get "admin_task_size", to: "admin#task_size"
   get "admin_search", to: redirect("/admin/users")
   post "admin_search", to: redirect("/admin/users")
