@@ -27,6 +27,9 @@
 <% else %>
   <%= form.submit "Search" %>
 <% end %>
+  <%= link_to params.to_unsafe_h.merge(format: :csv) do %>
+    <button type="button" class="bg-muted" <%= "disabled" if @events.total_count == 0 %>>Export <%= pluralize @events.total_count, "record" %></button>
+  <% end %>
 
 <br>
 <%= form.label :transparent do %>
