@@ -6,20 +6,6 @@ class AdminController < ApplicationController
 
   layout "application"
 
-  def tasks
-    @active = pending_tasks
-    @pending_actions = @active.values.any? { |e| e.nonzero? }
-    @blankslate_message = [
-      "You look great today, #{current_user.first_name}.",
-      "You’re a *credit* to your team, #{current_user.first_name}.",
-      "Everybody thinks you’re amazing, #{current_user.first_name}.",
-      "You’re every organizer’s favorite team member.",
-      "You’re so good at finances, even we think your balance is outstanding.",
-      "You’re sweeter than a savings account.",
-      "Though they don't show it off, those flowers sure are pretty."
-    ].sample
-  end
-
   def task_size
     starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     size = pending_task params[:task_name].to_sym
@@ -1098,6 +1084,14 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
+  def column_statements
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @statements = Column::Statement.page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
   private
 
   def stream_data(content_type, filename, data, download = true)
@@ -1189,13 +1183,14 @@ class AdminController < ApplicationController
 
   def airtable_task_size(task_name)
     info = airtable_info[task_name]
-    task = Faraday
-           .new { |c| c.response :json }
-           .get(info[:url], { select: info[:query].to_json })
-           .body
+    task = Faraday.new { |c|
+      c.response :json
+      c.authorization :Bearer, Rails.application.credentials.airtable[:pat]
+    }.get("https://api.airtable.com/v0/#{info[:id]}/#{info[:table]}", info[:query]).body["records"]
 
     task.size
-  rescue Faraday::Error
+  rescue => e
+    Airbrake.notify(e)
     9999 # return something invalidly high to get the ops team to report it
   end
 

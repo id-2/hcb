@@ -9,7 +9,7 @@ json.date tx.date
 json.amount_cents transaction_amount(tx, event: @event)
 json.memo hcb_code.memo(event: @event)
 json.has_custom_memo hcb_code.custom_memo.present?
-json.pending tx.is_a?(CanonicalPendingTransaction) || (tx.is_a?(HcbCode) && !tx.pt&.fronted? && tx.pt&.unsettled?)
+json.pending (tx.is_a?(CanonicalPendingTransaction) && tx.unsettled?) || (tx.is_a?(HcbCode) && !tx.pt&.fronted? && tx.pt&.unsettled?)
 json.declined (tx.is_a?(CanonicalPendingTransaction) && tx.declined?) || (tx.is_a?(HcbCode) && tx.pt&.declined?)
 if Flipper.enabled?(:transaction_tags_2022_07_29, @event)
   json.tags hcb_code.tags do |tag|
@@ -20,6 +20,7 @@ else
   json.tags []
 end
 json.code hcb_code.hcb_i1
+json.missing_receipt hcb_code.needs_receipt?
 
 json.card_charge { json.partial! "api/v4/transactions/card_charge",  hcb_code:                             } if hcb_code.stripe_card? || hcb_code.stripe_force_capture?
 json.donation    { json.partial! "api/v4/transactions/donation",     donation:     hcb_code.donation       } if hcb_code.donation?
