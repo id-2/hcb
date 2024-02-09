@@ -11,7 +11,14 @@
   <% end %>
 
   window.Beacon('config', {
+    mode: "neutral",
     enableFabAnimation: false,
     hideFABOnMobile: true,
+    display: {
+      style: "manual",
+    },
+    labels: {
+      noTimeToWaitAround: "We usually respond within a few hours",
+    },
   })
 </script>
