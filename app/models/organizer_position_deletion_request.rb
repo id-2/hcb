@@ -93,7 +93,7 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
   end
 
   def organizer_last_signee?
-    event.signee_count == 1 && organizer_position.signee?
+    event.signee.size == 1 && organizer_position.signee?
   end
 
   private

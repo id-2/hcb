@@ -230,6 +230,7 @@ class Event < ApplicationRecord
   has_many :organizer_position_invites, dependent: :destroy
   has_many :organizer_positions, dependent: :destroy
   has_many :users, through: :organizer_positions
+  has_many :signees, -> { where(organizer_positions: { is_signee: true }) }, through: :organizer_positions, source: :event
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
 
@@ -609,10 +610,6 @@ class Event < ApplicationRecord
     @total_fee_payments_v2_cents ||=
       canonical_transactions.includes(:fee).where(fee: { reason: "HACK CLUB FEE" }).sum(:amount_cents).abs +
       canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
-  end
-
-  def signee_count
-    organizer_positions.where(is_signee: true).size
   end
 
   private
