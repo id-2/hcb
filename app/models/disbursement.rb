@@ -306,7 +306,7 @@ class Disbursement < ApplicationRecord
   end
 
   def scheduled_on_must_be_in_the_future
-    if scheduled_on.present? && scheduled_on.before?(Date.today)
+    if scheduled_on.present? && scheduled_on.before?(Time.now.end_of_day)
       self.errors.add(:scheduled_on, "must be in the future")
     end
   end
