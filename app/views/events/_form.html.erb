@@ -272,9 +272,14 @@
       <%= form.collection_select :category, Event.categories, :first, :first, { include_blank: "Select a category" } %>
     </div>
 
-    <div class="field">
-      <%= form.label :point_of_contact_id, "Point of contact" %>
-      <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email %>
+    <div class="field" x-data="{ email: '' }">
+      <div class="flex">
+        <%= form.label :point_of_contact_id, "Point of contact" %>
+        <button class="ml1 list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" x-on:click="email = localStorage.getItem('login_email')">
+          + Me!
+        </button>
+      </div>
+      <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email, "x-html": "email" %>
     </div>
 
     <div class="field field--checkbox">
