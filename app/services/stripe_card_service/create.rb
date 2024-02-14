@@ -80,6 +80,7 @@ module StripeCardService
         }
       }
       if physical?
+        attrs[:status] = "inactive"
         attrs[:shipping] = {
           name: @stripe_shipping_name,
           service: shipping_type,

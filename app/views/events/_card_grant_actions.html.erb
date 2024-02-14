@@ -13,7 +13,7 @@
         <%= inline_icon "freeze", size: 20 %> Freeze card
       <% end %>
     <% elsif card_grant.active? && card_grant.stripe_card&.frozen? %>
-      <%= link_to stripe_card_defrost_path(card_grant.stripe_card), method: :post do %>
+      <%= link_to defrost_stripe_card_path(card_grant.stripe_card), method: :post do %>
         <%= inline_icon "freeze", size: 20 %> Defrost
       <% end %>
     <% end %>

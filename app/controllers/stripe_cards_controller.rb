@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class StripeCardsController < ApplicationController
+  skip_after_action :verify_authorized, only: [:activation]
+  
   def index
     @cards = StripeCard.all
     authorize @cards
@@ -24,7 +26,7 @@ class StripeCardsController < ApplicationController
   end
 
   def freeze
-    @card = StripeCard.find(params[:stripe_card_id])
+    @card = StripeCard.find(params[:id])
     authorize @card
 
     if @card.freeze!
@@ -36,7 +38,7 @@ class StripeCardsController < ApplicationController
   end
 
   def defrost
-    @card = StripeCard.find(params[:stripe_card_id])
+    @card = StripeCard.find(params[:id])
     authorize @card
 
     if @card.defrost!
@@ -50,17 +52,30 @@ class StripeCardsController < ApplicationController
   def activate
     @card = current_user.stripe_cardholder.stripe_cards.find_by(last4: params[:last4])
 
-    authorize @card
-    if card.activated?
-      flash[:error] = "Card already activated"
-    if @card&.activate!
-      flash[:success] = "Card Activated!"
-      confetti!
-      redirect_to @card
-    else
-      flash[:error] = "Card could not be activated"
-      redirect_back
+    unless @card.present?
+      flash[:error] = "Card not found"
+      skip_authorization # do not force pundit
+      redirect_back fallback_location: activation_stripe_cards_path and return 
     end
+
+    authorize @card
+    
+    if @card&.replacement_for
+      suppress(Stripe::InvalidRequestError) do
+        @card.replacement_for.cancel!
+      end
+    end
+
+    if @card.activated?
+      flash[:error] = "Card already activated"
+      redirect_back fallback_location: activation_stripe_cards_path and return
+    end
+
+    @card.update(activated: true)
+    @card.defrost!
+
+    flash[:success] = "Card activated!"
+    redirect_to @card
   end
 
   # def activate
@@ -147,13 +162,13 @@ class StripeCardsController < ApplicationController
   end
 
   def edit
-    @card = StripeCard.find(params[:stripe_card_id])
+    @card = StripeCard.find(params[:id])
     @event = @card.event
     authorize @card
   end
 
   def update_name
-    card = StripeCard.find(params[:stripe_card_id])
+    card = StripeCard.find(params[:id])
     authorize card
     name = params[:stripe_card][:name]
     name = nil unless name.present?
