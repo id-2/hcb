@@ -230,6 +230,7 @@ class Event < ApplicationRecord
   has_many :organizer_position_invites, dependent: :destroy
   has_many :organizer_positions, dependent: :destroy
   has_many :users, through: :organizer_positions
+  has_many :signees, -> { where(organizer_positions: { is_signee: true }) }, through: :organizer_positions, source: :user
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
 
@@ -291,7 +292,7 @@ class Event < ApplicationRecord
   has_one :increase_account_number
 
   has_one :column_account_number, class_name: "Column::AccountNumber"
-  delegate :account_number, :routing_number, to: :column_account_number, allow_nil: true
+  delegate :account_number, :routing_number, :bic_code, to: :column_account_number, allow_nil: true
 
   has_many :grants
 
@@ -373,10 +374,6 @@ class Event < ApplicationRecord
     express: 1,
     priority: 2,
   }
-
-  def country_us?
-    country == "US"
-  end
 
   def admin_formatted_name
     "#{name} (#{id})"

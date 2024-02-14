@@ -237,6 +237,9 @@ Rails.application.routes.draw do
     post "accept"
     post "reject"
     post "cancel"
+    member do
+      post "toggle_signee_status"
+    end
   end
 
   resources :organizer_positions, only: [:destroy], as: "organizers" do
@@ -498,10 +501,14 @@ Rails.application.routes.draw do
             end
           end
 
+          resources :disbursements, path: "transfers", only: [:create]
+
           member do
             get "transactions"
           end
         end
+
+        resources :transactions, only: [:show]
 
         resources :stripe_cards, path: "cards", only: [:show, :update] do
           member do
