@@ -82,6 +82,7 @@ class Disbursement < ApplicationRecord
   scope :fulfilled, -> { deposited }
   scope :reviewing_or_processing, -> { where(aasm_state: [:reviewing, :pending, :in_transit]) }
   scope :scheduled_for_today, -> { scheduled.where(scheduled_on: ..Date.today) }
+  scope :not_scheduled, -> { where(scheduled_on: nil) }
 
   scope :not_card_grant_related, -> { left_joins(source_subledger: :card_grant, destination_subledger: :card_grant).where("card_grants.id IS NULL AND card_grants_subledgers.id IS NULL") }
 
