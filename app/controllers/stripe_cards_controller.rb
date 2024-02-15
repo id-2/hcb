@@ -50,16 +50,20 @@ class StripeCardsController < ApplicationController
   end
 
   def activate
+    skip_authorization
+  end
+
+  def activate_submit
     @card = current_user.stripe_cardholder.stripe_cards.find_by(last4: params[:last4])
 
     unless @card.present?
       flash[:error] = "Card not found"
-      skip_authorization # do not force pundit
-      redirect_back fallback_location: activation_stripe_cards_path and return 
+      skip_authorization
+      redirect_back fallback_location: activate_stripe_cards_path and return
     end
-
-    authorize @card
     
+    authorize @card
+
     if @card&.replacement_for
       suppress(Stripe::InvalidRequestError) do
         @card.replacement_for.cancel!
@@ -68,7 +72,7 @@ class StripeCardsController < ApplicationController
 
     if @card.activated?
       flash[:error] = "Card already activated"
-      redirect_back fallback_location: activation_stripe_cards_path and return
+      redirect_back fallback_location: activate_stripe_cards_path and return
     end
 
     @card.update(activated: true)
@@ -175,10 +179,6 @@ class StripeCardsController < ApplicationController
     updated = card.update(name:)
 
     redirect_to stripe_card_url(card), flash: updated ? { success: "Card's name has been successfully updated!" } : { error: "Card's name could not be updated" }
-  end
-
-  def activation
-    authorize StripeCard
   end
 
   private

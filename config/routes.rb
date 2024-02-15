@@ -294,8 +294,8 @@ Rails.application.routes.draw do
     end
 
     collection do
-      get "activation"
-      post "activate"
+      get "activate", to: "stripe_cards#activate", as: :activate
+      post "activate", to: "stripe_cards#activate_submit", as: :activate_submit
     end
   end
   resources :emburse_cards, except: %i[new create]

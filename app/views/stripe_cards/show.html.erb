@@ -8,10 +8,6 @@
 
 <%= render partial: "canceled_warning", locals: { stripe_card: @card } %>
 
-<% unless @card.activated? %>
-  <%= render partial: "stripe_cards/shipping" %>
-<% end %>
-
 <turbo-frame id="details">
   <article class="check--form flex items-start justify-center mt2 mb3" style="gap: 16px;">
     <section class="center mt0 mx-auto" style="width: 400px; max-width: 100%;">
@@ -27,6 +23,11 @@
     </section>
 
     <%= render partial: "details", locals: { stripe_card: @card } if @card.activated? %>
+    <% unless @card.activated? %>
+      <div class="mt2 max-width-2 w-100 mx-auto">
+        <%= render partial: "stripe_cards/shipping" %>
+      </div>
+    <% end %>
   </article>
 </turbo-frame>
 

@@ -11,7 +11,7 @@
 <p class="text">
   Enter the last 4 digits of your card number to activate it.
 </p>
-<%= form_with url: activate_stripe_cards_path, method: :post do |form| %>
+<%= form_with url: activate_submit_stripe_cards_path, method: :post do |form| %>
   <div class="card mt2 mb2" style="width: fit-content;">
     <%= form.label :last4, "Card Number" %>
     <div class="flex flex-row g2 items-center">
