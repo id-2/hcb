@@ -1,0 +1,20 @@
+<%# locals: (expense:, start_enabled:, scroll_on_load:) -%>
+
+<% start_enabled ||= false %>
+<% scroll_on_load ||= false %>
+
+<% if scroll_on_load %>
+  <script>
+    window.scrollTo(0, document.body.scrollHeight);
+  </script>
+<% end %>
+
+<article class="card mt2" id="expense-<%= expense.id %>">
+  <section class="grid grid--split">
+    <div>
+      <%= render partial: "reimbursement/expenses/form", locals: { expense:, start_enabled: } %>
+    </div>
+
+    <%= render partial: "reimbursement/expenses/receipts", locals: { expense: } %>
+  </section>
+</article>

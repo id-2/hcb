@@ -140,6 +140,14 @@ $shades: (
       background-color: $value !important;
     }
   }
+
+  .text-#{'' + $name} {
+    color: $value;
+
+    &-important {
+      color: $value !important;
+    }
+  }
 }
 
 .bg-transparent {

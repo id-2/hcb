@@ -11,7 +11,7 @@ module Reimbursement
       if @expense.save!
 
         respond_to do |format|
-          format.turbo_stream { render turbo_stream: turbo_stream.append(:expenses, partial: "reimbursement/expenses/form", locals: { expense: @expense, start_enabled: true, scroll_on_load: true }) }
+          format.turbo_stream { render turbo_stream: turbo_stream.append(:expenses, partial: "reimbursement/expenses/expense", locals: { expense: @expense, start_enabled: true, scroll_on_load: true }) }
           format.html         { redirect_to url_for(@report) + "#expense-#{@expense.id}", flash: { success: "Expense created." } }
         end
       else

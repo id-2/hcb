@@ -9,7 +9,7 @@
 <div class="mt4">
     <h3 class="mt2 mb1 muted flex" style="font-weight: 400; gap: 4px;">
       <span style="flex-grow: 1;">
-        <%= user_mention @user, class: "tooltipped--s align-top" %> is requesting <%= render "total", report: @report %> for
+        <%= user_mention @user, class: "tooltipped--s align-top" %>is requesting <%= render "total", report: @report %> for
       </span>
       <span class="ml0 badge bg-<%= @report.aasm_state %>"><%= @report.status_text %></span>
       <%= link_to "#", class: "ml0 badge bg-info text-decoration-none", data: { behavior: "modal_trigger", modal: "edit" } do %>
@@ -26,7 +26,7 @@
   <%= render "form" %>
 </section>
 
-<section class="flex items-start justify-center mt3 mb2" style="gap: 16px; position: relative;">
+<section class="flex items-start justify-center mt2 mb2" style="gap: 16px; position: relative;">
   <article class="card">
     <p class="mt0">
       HCB is able to reimburse you through either an ACH transfer or a check. To receive reimbursement, you'll need to submit each of your expenses to us through this report.
@@ -53,7 +53,7 @@
 
 <div id="expenses">
   <% @report.expenses.order(created_at: :desc).each do |expense| %>
-    <%= render "reimbursement/expenses/form", expense: %>
+    <%= render "reimbursement/expenses/expense", expense: %>
   <% end %>
 </div>
 
@@ -78,14 +78,15 @@
   </div>
 
   <div style="flex-grow: 1;" class="flex justify-end">
-    <div <%= 'class="tooltipped tooltipped--n" aria-label="Locked reports can\'t be modified"'.html_safe if @report.locked? %>>
+    <% can_be_marked_draft = !@report.locked? || !(@report.organizer_approved? || @report.admin_approved?) %>
+    <div <%= 'class="tooltipped tooltipped--n" aria-label="Locked reports can\'t be modified"'.html_safe if !can_be_marked_draft %>>
       <% if @report.draft? %>
         <%= link_to reimbursement_report_submit_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
           <%= inline_icon "send" %>
           Submit & Request Review
         <% end %>
       <% else %>
-        <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn bg-muted #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), method: :post do %>
+        <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn bg-muted #{!can_be_marked_draft ? "disabled" : ""}", style: (!can_be_marked_draft ? "opacity: 0.75" : ""), method: :post do %>
           <%= inline_icon "reply" %>
           Mark As Draft
         <% end %>
@@ -94,6 +95,24 @@
   </div>
 
 </div>
+
+<style>
+  .linethingy:not(:last-child)::before {
+    content: "";
+    width: 2px;
+    height: calc(100% - 18px);
+    background-color: var(--palette-smoke);
+    display: block;
+    position: absolute;
+    top: 39px;
+    left: 17.5px;
+    z-index: 1;
+    border-radius: 1px;
+  }
+  .linethingy {
+    position: relative;
+  }
+</style>
 
 <h2 class="flex items-center">
   <span style="flex-grow: 1">Conversation</span>
@@ -115,22 +134,7 @@
         <% else %>
           <% state_change = item.changeset["aasm_state"]&.second %>
 
-          <style>
-            .linethingy::before {
-              content: "";
-              width: 1px;
-              height: calc(100% + 20px);
-              background-color: black;
-              display: block;
-              position: absolute;
-              left: 17.5px;
-              z-index: 1;
-            }
-            .linethingy {
-              position: relative;
-            }
-          </style>
-          <li class="linethingy">
+          <li class="linethingy mt2" style="margin-bottom: 24px;">
             <% if state_change %>
 
               <% icon, color = {
@@ -182,19 +186,21 @@
               </div>
 
               <% if item.event == "update" %>
-                <ul class="list-reset" style="margin-left: 48px;">
+                <ul class="list-reset" style="margin-left: 52px;">
                   <% item.changeset.excluding("updated_at").select { |field, changes| changes.any?(&:present?) }.each do |field, changes| %>
-                    <strong class="muted"><%= field.humanize %>:</strong> <%= render_audit_log_value(field, changes[0], color: "primary") %> → <%= render_audit_log_value(field, changes[1], color: "success") %>
+                    <li>
+                      <strong class="muted"><%= field.humanize %>:</strong> <%= render_audit_log_value(field, changes[0], color: "primary") %> → <%= render_audit_log_value(field, changes[1], color: "success") %>
+                    </li>
                   <% end %>
                 </ul>
               <% end %>
             <% end %>
           </li>
         <% end %>
-        <div class="mt1 mb2"></div>
       <% end %>
     </ul>
   <% end %>
 
+  <div style="margin-top: 24px;"></div>
   <%= render "comments/form" %>
 </article>

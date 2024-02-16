@@ -95,7 +95,7 @@
                <%= user_mention report.user %>
             </td>
             <td>
-               <%= render_money [report.maximum_amount_cents, report.expenses.sum(&:amount_cents)].min %>
+               <%= render_money [report.maximum_amount_cents || Float::INFINITY, report.expenses.sum(&:amount_cents)].min %>
             </td>
             <td>
                <%= report.created_at.strftime("%m-%d-%Y") %>

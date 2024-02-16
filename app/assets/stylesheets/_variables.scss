@@ -34,6 +34,12 @@ $palette: (
   white: $white
 );
 
+:root {
+  @each $name, $value in $palette {
+    --#{'palette-' + $name}: #{$value};
+  }
+}
+
 @mixin gradient($color) {
   background-color: map-get($palette, $color);
   background-image: radial-gradient(
