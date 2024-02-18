@@ -51,6 +51,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
     t.text "increase_id"
     t.date "scheduled_on"
     t.text "column_id"
+    t.string "recipient_email"
+    t.boolean "send_email_notification", default: false
     t.bigint "payment_recipient_id"
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
@@ -904,6 +906,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
     t.index ["reporter_id"], name: "index_hcb_code_personal_transactions_on_reporter_id"
   end
 
+  create_table "hcb_code_pins", force: :cascade do |t|
+    t.bigint "hcb_code_id"
+    t.bigint "event_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_hcb_code_pins_on_event_id"
+    t.index ["hcb_code_id"], name: "index_hcb_code_pins_on_hcb_code_id"
+  end
+
   create_table "hcb_codes", force: :cascade do |t|
     t.text "hcb_code", null: false
     t.datetime "created_at", null: false
@@ -954,6 +965,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
     t.string "increase_status"
     t.string "check_number"
     t.jsonb "increase_object"
+    t.string "recipient_email"
+    t.boolean "send_email_notification", default: false
     t.string "column_id"
     t.string "column_status"
     t.jsonb "column_object"
@@ -1876,6 +1889,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
   add_foreign_key "hcb_code_personal_transactions", "hcb_codes"
   add_foreign_key "hcb_code_personal_transactions", "invoices"
   add_foreign_key "hcb_code_personal_transactions", "users", column: "reporter_id"
+  add_foreign_key "hcb_code_pins", "events"
+  add_foreign_key "hcb_code_pins", "hcb_codes"
   add_foreign_key "increase_account_numbers", "events"
   add_foreign_key "increase_checks", "events"
   add_foreign_key "increase_checks", "users"

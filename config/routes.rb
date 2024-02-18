@@ -357,6 +357,7 @@ Rails.application.routes.draw do
       get "dispute"
       get "breakdown"
       post "invoice_as_personal_transaction"
+      post "pin", to: "hcb_codes"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
     end
@@ -495,6 +496,7 @@ Rails.application.routes.draw do
           resources :stripe_cards, path: "cards", only: [:index]
           resources :transactions, only: [:show, :update] do
             resources :receipts, only: [:create, :index]
+            resources :comments, only: [:index]
 
             member do
               get "memo_suggestions"
