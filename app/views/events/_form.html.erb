@@ -275,7 +275,7 @@
     <div class="field" x-data="{ email: '' }">
       <div class="flex">
         <%= form.label :point_of_contact_id, "Point of contact" %>
-        <button class="ml1 list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" x-on:click="email = localStorage.getItem('login_email')">
+        <button class="ml1 list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" x-on:click="email = <%= form.label current_user.email %>">
           + Me!
         </button>
       </div>
