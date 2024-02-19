@@ -52,9 +52,25 @@ module Reimbursement
       authorize @report
 
       if @report.mark_submitted!
-        flash[:success] = "Report submitted for review, you can continue to make edits at the moment."
+        flash[:success] = "Report submitted for review. To make changes, mark it as a draft."
       else
         flash[:error] = "Failed to submit report."
+      end
+
+      redirect_to @report
+    end
+
+    def request_reimbursement
+      @report = Reimbursement::Report.find(params[:report_id])
+      @event = @report.event
+      @user = @report.user
+
+      authorize @report
+
+      if @report.mark_reimbursement_requested!
+        flash[:success] = "Reimbursement requested, awaiting admin approval."
+      else
+        flash[:error] = "Failed to request reimbursement."
       end
 
       redirect_to @report
@@ -68,7 +84,7 @@ module Reimbursement
       authorize @report
 
       if @report.mark_draft!
-        flash[:success] = "Report marked as a draft, you can continue to make edits at the moment."
+        flash[:success] = "Report marked as a draft, you can now make edits."
       else
         flash[:error] = "Failed to submit report."
       end

@@ -6,11 +6,11 @@
 #
 #  id                    :bigint           not null, primary key
 #  aasm_state            :string
-#  admin_approved_at     :datetime
+#  reimbursement_approved_at     :datetime
 #  invite_message        :text
 #  maximum_amount_cents  :integer
 #  name                  :text
-#  organizer_approved_at :datetime
+#  reimbursement_requested_at :datetime
 #  reimbursed_at         :datetime
 #  rejected_at           :datetime
 #  submitted_at          :datetime
@@ -51,25 +51,25 @@ module Reimbursement
     aasm do
       state :draft, initial: true
       state :submitted
-      state :organizer_approved
-      state :admin_approved
-      state :rejected
+      state :reimbursement_requested
+      state :reimbursement_approved
       state :reimbursed
+      state :rejected
 
       event :mark_submitted do
-        transitions from: [:draft, :organizer_approved], to: :submitted
+        transitions from: [:draft, :reimbursement_requested], to: :submitted
       end
 
-      event :mark_organizer_approved do
-        transitions from: :submitted, to: :organizer_approved
+      event :mark_reimbursement_requested do
+        transitions from: :submitted, to: :reimbursement_requested
       end
 
-      event :mark_admin_approved do
-        transitions from: :organizer_approved, to: :admin_approved
+      event :mark_reimbursement_approved do
+        transitions from: :reimbursement_requested, to: :reimbursement_approved
       end
 
       event :mark_rejected do
-        transitions from: [:draft, :submitted, :organizer_approved], to: :rejected
+        transitions from: [:draft, :submitted, :reimbursement_requested], to: :rejected
       end
 
       event :mark_draft do
@@ -77,7 +77,7 @@ module Reimbursement
       end
 
       event :mark_reimbursed do
-        transitions from: :admin_approved, to: :reimbursed
+        transitions from: :reimbursement_approved, to: :reimbursed
       end
     end
 
@@ -92,19 +92,19 @@ module Reimbursement
     end
 
     def unlockable?
-      submitted? || organizer_approved?
+      submitted? || reimbursement_requested?
     end
 
     def amount_cents
       expenses.sum(&:amount_cents)
     end
 
-    def last_organizer_approved_by
-      last_user_change_to(aasm_state: "organizer_approved")
+    def last_reimbursement_requested_by
+      last_user_change_to(aasm_state: "reimbursement_requested")
     end
 
-    def last_admin_approved_by
-      last_user_change_to(aasm_state: "admin_approved")
+    def last_reimbursement_approved_by
+      last_user_change_to(aasm_state: "reimbursement_approved")
     end
 
     def last_rejected_by

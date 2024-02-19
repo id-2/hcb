@@ -13,8 +13,8 @@ class CreateReimbursementReports < ActiveRecord::Migration[7.0]
       t.string :aasm_state
 
       t.datetime :submitted_at
-      t.datetime :organizer_approved_at
-      t.datetime :admin_approved_at
+      t.datetime :reimbursement_requested_at
+      t.datetime :reimbursement_approved_at
       t.datetime :rejected_at
       t.datetime :reimbursed_at
 

@@ -38,6 +38,10 @@ module Reimbursement
       admin_or_user
     end
 
+    def request_reimbursement?
+      admin_or_user
+    end
+
     private
 
     def admin_or_user

@@ -108,6 +108,13 @@ class StaticPagesController < ApplicationController
     end
   end
 
+  def my_reimbursements
+    @reports = current_user.reimbursement_reports
+    @reports = @reports.pending if params[:filter] == "pending"
+    @reports = @reports.reimbursed if params[:filter] == "reimbursed"
+    @reports = @reports.search(params[:q]) if params[:q].present?
+  end
+
   def receipt
     if params[:file] # Ignore if no files were uploaded
       ::ReceiptService::Create.new(

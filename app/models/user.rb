@@ -90,6 +90,8 @@ class User < ApplicationRecord
 
   has_many :checks, inverse_of: :creator
 
+  has_many :reimbursement_reports, class_name: "Reimbursement::Report"
+
   has_many :card_grants
 
   has_one_attached :profile_picture

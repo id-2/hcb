@@ -45,6 +45,44 @@ module Reimbursement
       end
     end
 
+    def approve
+      @expense = Reimbursement::Expense.find(params[:expense_id])
+
+      authorize @expense
+
+      @expense.mark_approved!
+
+      respond_to do |format|
+        format.turbo_stream {
+          streams = [
+            turbo_stream.replace(:total, partial: "reimbursement/reports/total", locals: { report: @expense.report }),
+            turbo_stream.replace(@expense, partial: "reimbursement/expenses/form", locals: { expense: @expense })
+          ]
+          render turbo_stream: streams
+        }
+        format.html { redirect_to @expense.report, flash: { success: "Expense approved." } }
+      end
+    end
+
+    def unapprove
+      @expense = Reimbursement::Expense.find(params[:expense_id])
+
+      authorize @expense
+
+      @expense.mark_pending!
+
+      respond_to do |format|
+        format.turbo_stream {
+          streams = [
+            turbo_stream.replace(:total, partial: "reimbursement/reports/total", locals: { report: @expense.report }),
+            turbo_stream.replace(@expense, partial: "reimbursement/expenses/form", locals: { expense: @expense })
+          ]
+          render turbo_stream: streams
+        }
+        format.html { redirect_to @expense.report, flash: { success: "Expense unapproved." } }
+      end
+    end
+
     private
 
     def expense_params

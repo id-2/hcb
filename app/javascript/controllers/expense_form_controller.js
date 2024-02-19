@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
   static targets = ['field', 'button']
-  static values = { enabled: { type: Boolean, default: false } }
+  static values = { enabled: { type: Boolean, default: false }, locked: { type: Boolean, default: false }  }
 
   connect() {
     for (const field of this.fieldTargets) {
@@ -20,7 +20,7 @@ export default class extends Controller {
   }
 
   edit() {
-    if (this.enabledValue) return
+    if (this.enabledValue || this.lockedValue) return
     this.enabledValue = true
 
     this.#buttons()
@@ -35,9 +35,9 @@ export default class extends Controller {
 
   #buttons() {
     this.buttonTarget.querySelector('[aria-label=checkmark]').style.display =
-      this.enabledValue ? 'block' : 'none'
+      this.enabledValue && !this.lockedValue ? 'block' : 'none'
     this.buttonTarget.querySelector('[aria-label=edit]').style.display = this
-      .enabledValue
+      .enabledValue && !this.lockedValue
       ? 'none'
       : 'block'
   }

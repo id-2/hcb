@@ -47,6 +47,7 @@ Rails.application.routes.draw do
     get "settings/security", to: "users#edit_security"
     get "settings/admin", to: "users#edit_admin"
     get "inbox", to: "static_pages#my_inbox", as: :my_inbox
+    get "reimbursements", to: "static_pages#my_reimbursements", as: :my_reimbursements
     post "receipts/upload", to: "static_pages#receipt", as: :my_receipts_upload
     get "missing_receipts", to: "static_pages#my_missing_receipts_list", as: :my_missing_receipts_list
     get "missing_receipts_icon", to: "static_pages#my_missing_receipts_icon", as: :my_missing_receipts_icon
@@ -383,11 +384,15 @@ Rails.application.routes.draw do
   end
   namespace :reimbursement do
     resources :reports, only: [:show, :create, :edit, :update] do
+      post "request_reimbursement"
       post "submit"
       post "draft"
     end
 
-    resources :expenses, only: [:show, :create, :edit, :update]
+    resources :expenses, only: [:show, :create, :edit, :update] do
+      post "approve"
+      post "unapprove"
+    end
   end
 
   resources :reimbursement_reports, path: "reimbursements/reports" do

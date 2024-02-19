@@ -72,7 +72,7 @@ module UsersHelper
 
   def user_mention(user, options = {}, default_name = "No User")
     name = content_tag :span, (user&.initial_name || default_name)
-    avi = avatar_for user
+    avi = avatar_for user, 24, options.filter_map { |option, value| [option[4..], value] if option.to_s.start_with?("img_") }.to_h
 
     klasses = ["mention"]
     klasses << %w[mention--admin tooltipped tooltipped--n] if user&.admin?

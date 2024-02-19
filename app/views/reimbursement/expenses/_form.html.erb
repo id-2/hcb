@@ -6,6 +6,7 @@
   <%= form_with(model: expense, class: "mb3", style: "max-width: 600px;", local: true, data: {
                   controller: "expense-form",
                   "expense-form-enabled-value": start_enabled,
+                  "expense-form-locked-value": expense.report.locked?,
                 }) do |form| %>
     <div class="flex flex-row items-center">
       <div style="flex-grow: 1;">
@@ -26,26 +27,42 @@
             color: #33d6a6;
             background-color: #33d6a620;
           }
+          [data-expense-form-locked-value=true] #edit-or-save {
+            color: #ff8c37;
+            background-color: #ff8c3720;
+            cursor: no-drop!important;
+          }
+
+          [data-expense-form-locked-value=true] #edit-or-save:hover {
+            transform: none;
+            box-shadow: none!important;
+          }
         </style>
         <button id="edit-or-save" class="pop pointer" data-expense-form-target="button">
           <%= inline_icon "checkmark", style: start_enabled ? nil : "display: none;" %>
-          <%= inline_icon "edit", style: start_enabled ? "display: none;" : nil %>
+          <%= inline_icon expense.report.locked? ? "private" : "edit", style: start_enabled && !expense.report.locked? ? "display: none;" : nil %>
         </button>
       </div>
     </div>
     <div class="field mt2">
       <div class="flex flex-row items-center justify-between mb1">
         <%= form.label :description, "Description", class: "bold" %>
-        <span class="h5 muted mt0 mb0">
-          Provide additional context for this expense
+        <span class="h5 muted mt0 mb0 flex items-center">
+          <%= inline_icon "markdown", size: 32 %> Additional context for this expense
         </span>
       </div>
       <%= form.text_area :description, placeholder: "Focusing on...", class: "w-100 fit", data: { "expense-form-target": "field" } %>
-      <p class="h5 muted mt1 mb1">
-        <%= link_to "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#table-of-contents", target: "_blank", class: "flex items-center" do %>
-          <%= inline_icon "markdown", size: 32 %> Styling with Markdown is supported
-        <% end %>
-      </p>
     </div>
+    <% if !expense.approved? && expense.report.submitted? %>
+      <%= link_to reimbursement_expense_approve_path(expense_id: expense.id), class: "btn bg-info", method: :post do %>
+        <%= inline_icon "thumbsup" %>
+        Approve
+      <% end %>
+    <% elsif expense.report.submitted? %>
+      <%= link_to reimbursement_expense_unapprove_path(expense_id: expense.id), class: "btn bg-muted", method: :post do %>
+        <%= inline_icon "reply" %>
+        Revert Approval
+      <% end %>
+    <% end %>
   <% end %>
 <% end %>

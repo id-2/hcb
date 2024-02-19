@@ -40,6 +40,10 @@ module Reimbursement
       event :mark_approved do
         transitions from: :pending, to: :approved
       end
+
+      event :mark_pending do
+        transitions from: :approved, to: :pending
+      end
     end
 
     def event

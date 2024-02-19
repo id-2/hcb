@@ -23,7 +23,7 @@
 
 <section data-behavior="modal" role="dialog" id="edit" class="modal modal--scroll bg-snow">
   <%= modal_header "Edit Report" %>
-  <%= render "form" %>
+  <%= render "edit_form" %>
 </section>
 
 <section class="flex items-start justify-center mt2 mb2" style="gap: 16px; position: relative;">
@@ -71,14 +71,19 @@
   </div>
 
   <div style="flex-grow: 1;" class="flex justify-center items-center" style="gap: 4px;">
-    <% if @report.locked? %>
+    <% if !@report.event.users.include?(current_user) && @report.locked? %>
       <%= inline_icon "private" %>
       Expense Report Locked
+    <% elsif @report.locked? && @report.submitted? %>
+      <%= link_to reimbursement_report_request_reimbursement_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
+        <%= inline_icon "payment-transfer" %>
+        Request Reimbusement (<%= @report.expenses.approved.count %>/<%= @report.expenses.count %>)
+      <% end %>
     <% end %>
   </div>
 
   <div style="flex-grow: 1;" class="flex justify-end">
-    <% can_be_marked_draft = !@report.locked? || !(@report.organizer_approved? || @report.admin_approved?) %>
+    <% can_be_marked_draft = !@report.locked? || !(@report.reimbursement_requested? || @report.reimbursement_approved?) %>
     <div <%= 'class="tooltipped tooltipped--n" aria-label="Locked reports can\'t be modified"'.html_safe if !can_be_marked_draft %>>
       <% if @report.draft? %>
         <%= link_to reimbursement_report_submit_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
@@ -109,8 +114,13 @@
     z-index: 1;
     border-radius: 1px;
   }
-  .linethingy {
+  div.linethingy:not(:last-child)::before {
+    height: calc(100% - 26px);
+  }
+  .linethingy, div.linethingy > * {
     position: relative;
+    position: relative;
+    z-index: 2;
   }
 </style>
 
@@ -124,13 +134,15 @@
       <% comments = @report.comments %>
       <% (versions + comments).sort_by(&:created_at).each do |item| %>
         <% if item.instance_of?(Comment) %>
-          <% if item.admin_only %>
-            <% admin_tools do %>
-              <%= render "comments/item", comment: item %>
+          <div class="linethingy">
+            <% if item.admin_only %>
+              <% admin_tools do %>
+                <%= render "comments/item_v2", comment: item %>
+              <% end %>
+            <% else %>
+              <%= render "comments/item_v2", comment: item %>
             <% end %>
-          <% else %>
-            <%= render "comments/item", comment: item %>
-          <% end %>
+          </div>
         <% else %>
           <% state_change = item.changeset["aasm_state"]&.second %>
 
@@ -140,8 +152,8 @@
               <% icon, color = {
                    "submitted"          => ["send", "info"],
                    "rejected"           => ["thumbsdown", "error"],
-                   "organizer_approved" => ["thumbsup", "success"],
-                   "admin_approved"     => ["admin", "warning"],
+                   "reimbursement_requested" => ["thumbsup", "success"],
+                   "reimbursement_approved"     => ["admin", "warning"],
                    "draft"              => ["docs", "muted"],
                    "reimbursed"         => ["docs", "purple"],
                  }[state_change] %>
@@ -152,14 +164,14 @@
 
                 <div style="display: flex; align-items: center; gap: 4px">
                   <span class="muted" style="margin-right: -0.25em;">
-                    <%= user_mention User.find_by(id: item.whodunnit), { hide_avatar: true }, "Unknown User" %>
+                    <%= user_mention User.find_by(id: item.whodunnit), { img_style: "vertical-align: sub;" }, "Unknown User" %>
                   </span>
                   <span class="align-middle">
                     <%= {
                           "submitted"          => "submitted this report", # TODO: support submitted / resubmitted
                           "rejected"           => "rejected this report",
-                          "organizer_approved" => "approved this report as an organizer",
-                          "admin_approved"     => "approved this report as an admin",
+                          "reimbursement_requested" => "approved this report as an organizer",
+                          "reimbursement_approved"     => "approved this report as an admin",
                           "draft"              => "converted this report to a draft",
                           "reimbursed"         => "initiated a reimbursement"
                         }[state_change] %>

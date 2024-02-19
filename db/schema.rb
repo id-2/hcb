@@ -1582,8 +1582,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_03_183350) do
     t.integer "maximum_amount_cents"
     t.string "aasm_state"
     t.datetime "submitted_at"
-    t.datetime "organizer_approved_at"
-    t.datetime "admin_approved_at"
+    t.datetime "reimbursement_requested_at"
+    t.datetime "reimbursement_approved_at"
     t.datetime "rejected_at"
     t.datetime "reimbursed_at"
     t.datetime "created_at", null: false
