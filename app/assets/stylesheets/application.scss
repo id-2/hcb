@@ -211,6 +211,7 @@ summary {
 @import 'components/physical_cards';
 @import 'components/public_message';
 @import 'components/stats';
+@import 'components/pinned_transactions';
 @import 'components/steps';
 @import 'components/tooltips';
 @import 'components/transactions';
@@ -226,6 +227,7 @@ summary {
 @import 'components/feedback_form';
 @import 'components/welcome';
 @import 'components/tabs';
+@import 'components/team';
 @import 'components/tour';
 @import 'components/receipts';
 @import 'components/shimmer';
@@ -396,7 +398,7 @@ summary {
   }
 }
 
-[x-cloak] { display: none !important; }
+[x-cloak], [hidden] { display: none !important; }
 
 @import 'basscss';
 @import 'space';
