@@ -148,19 +148,13 @@
 </h2>
 <article>
   <%= turbo_frame_tag :audit_log do %>
-    <ul class="list-reset">
+    <ul class="list-reset comments">
       <% versions = @report.versions.select { |version| version.changeset.any? { |field, changes| changes.any?(&:present?) } } %>
-      <% comments = @report.comments %>
+      <% comments = policy_scope(@report.comments) %>
       <% (versions + comments).sort_by(&:created_at).each do |item| %>
         <% if item.instance_of?(Comment) %>
           <div class="linethingy">
-            <% if item.admin_only %>
-              <% admin_tools do %>
-                <%= render "comments/item_v2", comment: item %>
-              <% end %>
-            <% else %>
-              <%= render "comments/item_v2", comment: item %>
-            <% end %>
+            <%= render "comments/item_v2", comment: item %>
           </div>
         <% else %>
           <% state_change = item.changeset["aasm_state"]&.second %>
