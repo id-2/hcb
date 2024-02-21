@@ -64,15 +64,15 @@ class StripeCardsController < ApplicationController
     
     authorize @card
 
-    if @card&.replacement_for
-      suppress(Stripe::InvalidRequestError) do
-        @card.replacement_for.cancel!
-      end
-    end
-
     if @card.activated?
       flash[:error] = "Card already activated"
       redirect_back fallback_location: activate_stripe_cards_path and return
+    end
+
+    if @card.replacement_for
+      suppress(Stripe::InvalidRequestError) do
+        @card.replacement_for.cancel!
+      end
     end
 
     @card.update(activated: true)
