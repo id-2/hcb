@@ -23,7 +23,7 @@
     </section>
 
     <%= render partial: "details", locals: { stripe_card: @card } if @card.activated? %>
-    <% unless @card.activated? %>
+    <% if @card.physical? && !@card.activated? %>
       <div class="mt2 max-width-2 w-100 mx-auto">
         <%= render partial: "stripe_cards/shipping" %>
       </div>
