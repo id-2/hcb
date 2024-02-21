@@ -56,7 +56,7 @@ class StripeCardsController < ApplicationController
   def activate_submit
     @card = current_user.stripe_cardholder.stripe_cards.find_by(last4: params[:last4])
 
-    unless @card.present?
+    if @card.nil?
       flash[:error] = "Card not found"
       skip_authorization
       redirect_back fallback_location: activate_stripe_cards_path and return
