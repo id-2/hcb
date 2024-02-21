@@ -66,7 +66,7 @@ class StripeCardsController < ApplicationController
 
     if @card.activated?
       flash[:error] = "Card already activated"
-      redirect_back fallback_location: activate_stripe_cards_path and return
+      redirect_to @card and return
     end
 
     if @card.replacement_for
