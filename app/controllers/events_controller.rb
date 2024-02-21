@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class EventsController < ApplicationController
+  TRANSACTIONS_PER_PAGE = 75
+
   include SetEvent
 
   include Rails::Pagination
@@ -75,6 +77,8 @@ class EventsController < ApplicationController
     @user = User.find(params[:user]) if params[:user]
 
     @type = params[:type]
+    @start_date = params[:start].presence
+    @end_date = params[:end].presence
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
@@ -88,6 +92,13 @@ class EventsController < ApplicationController
     if @user
       @all_transactions = @all_transactions.select { |t| t.stripe_cardholder&.user == @user }
       @pending_transactions = @pending_transactions.select { |x| x.stripe_cardholder && x.stripe_cardholder.user.id == @user.id }
+    end
+
+    if @start_date || @end_date
+      in_range = ->(t) { (!@start_date || t.date >= @start_date.to_datetime) && (!@end_date || t.date <= @end_date.to_datetime) }
+
+      @all_transactions = @all_transactions.select(&in_range)
+      @pending_transactions = @pending_transactions.select(&in_range)
     end
 
     @type_filters = {
@@ -147,7 +158,7 @@ class EventsController < ApplicationController
     end
 
     page = (params[:page] || 1).to_i
-    per_page = (params[:per] || 75).to_i
+    per_page = (params[:per] || TRANSACTIONS_PER_PAGE).to_i
 
     @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
@@ -199,7 +210,7 @@ class EventsController < ApplicationController
     authorize @event
 
     @all_positions = @event.organizer_positions.includes(:user).order(created_at: :desc)
-    @positions = @all_positions.page(params[:page]).per(params[:per] || 5)
+    @positions = @all_positions.page(params[:page]).per(params[:per] || 10)
 
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
@@ -256,10 +267,6 @@ class EventsController < ApplicationController
   end
 
   def emburse_card_overview
-    @event = Event.includes([
-                              { emburse_cards: :user },
-                              { emburse_transfers: [:t_transaction, :creator] }
-                            ]).find(params[:event_id])
     authorize @event
     @emburse_cards = @event.emburse_cards.includes(user: [:profile_picture_attachment])
     @emburse_card_requests = @event.emburse_card_requests.includes(creator: :profile_picture_attachment)
@@ -670,6 +677,13 @@ class EventsController < ApplicationController
 
   def audit_log
     authorize @event
+  end
+
+  def statements
+    authorize @event
+
+    @start_date = (@event.activated_at || @event.created_at).beginning_of_month.to_date
+    @end_date = Date.today.prev_month.beginning_of_month.to_date
   end
 
   def validate_slug

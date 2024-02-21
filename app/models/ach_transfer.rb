@@ -12,27 +12,31 @@
 #  bank_name                 :string
 #  confirmation_number       :text
 #  payment_for               :text
+#  recipient_email           :string
 #  recipient_name            :string
 #  recipient_tel             :string
 #  rejected_at               :datetime
 #  routing_number            :string
 #  scheduled_arrival_date    :datetime
 #  scheduled_on              :date
+#  send_email_notification   :boolean          default(FALSE)
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #  column_id                 :text
 #  creator_id                :bigint
 #  event_id                  :bigint
 #  increase_id               :text
+#  payment_recipient_id      :bigint
 #  processor_id              :bigint
 #
 # Indexes
 #
-#  index_ach_transfers_on_column_id     (column_id) UNIQUE
-#  index_ach_transfers_on_creator_id    (creator_id)
-#  index_ach_transfers_on_event_id      (event_id)
-#  index_ach_transfers_on_increase_id   (increase_id) UNIQUE
-#  index_ach_transfers_on_processor_id  (processor_id)
+#  index_ach_transfers_on_column_id             (column_id) UNIQUE
+#  index_ach_transfers_on_creator_id            (creator_id)
+#  index_ach_transfers_on_event_id              (event_id)
+#  index_ach_transfers_on_increase_id           (increase_id) UNIQUE
+#  index_ach_transfers_on_payment_recipient_id  (payment_recipient_id)
+#  index_ach_transfers_on_processor_id          (processor_id)
 #
 # Foreign Keys
 #
@@ -56,10 +60,13 @@ class AchTransfer < ApplicationRecord
   belongs_to :creator, class_name: "User", optional: true
   belongs_to :processor, class_name: "User", optional: true
   belongs_to :event
+  belongs_to :payment_recipient, optional: true
 
   validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
   validates :routing_number, format: { with: /\A\d{9}\z/, message: "must be 9 digits" }
   validates :account_number, format: { with: /\A\d+\z/, message: "must be only numbers" }
+  validates :recipient_email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }, allow_nil: true
+  validates_presence_of :recipient_email, on: :create
   validate :scheduled_on_must_be_in_the_future, on: :create
   validate on: :create do
     if amount > event.balance_available_v2_cents
@@ -86,6 +93,9 @@ class AchTransfer < ApplicationRecord
     state :deposited
 
     event :mark_in_transit do
+      after do
+        AchTransferMailer.with(ach_transfer: self).notify_recipient.deliver_later if self.send_email_notification
+      end
       transitions from: [:pending, :deposited, :scheduled], to: :in_transit
     end
 
@@ -104,10 +114,21 @@ class AchTransfer < ApplicationRecord
     event :mark_scheduled do
       transitions from: :pending, to: :scheduled
     end
+
+    event :mark_failed do
+      after do |reason: nil|
+        AchTransferMailer.with(ach_transfer: self, reason:).notify_failed.deliver_later
+      end
+      transitions from: [:in_transit, :deposited], to: :failed
+    end
   end
+
+  before_validation { self.recipient_name = recipient_name.presence&.strip }
 
   # Eagerly create HcbCode object
   after_create :local_hcb_code
+
+  after_create :create_or_link_payment_recipient, if: -> { Flipper.enabled?(:payment_recipients_2024_01_10, event) }
 
   after_create unless: -> { scheduled_on.present? } do
     create_raw_pending_outgoing_ach_transaction!(amount_cents: -amount, date_posted: scheduled_on || created_at)
@@ -177,6 +198,7 @@ class AchTransfer < ApplicationRecord
     when :in_transit then "In transit"
     when :pending then "Waiting on HCB approval"
     when :rejected then "Rejected"
+    else status_text
     end
   end
 
@@ -187,6 +209,7 @@ class AchTransfer < ApplicationRecord
     when :scheduled then :pending
     when :pending then :pending
     when :rejected then :error
+    when :failed then :error
     end
   end
 
@@ -224,6 +247,23 @@ class AchTransfer < ApplicationRecord
     if scheduled_on.present? && scheduled_on.before?(Date.today)
       errors.add(:scheduled_on, "must be in the future")
     end
+  end
+
+  def create_or_link_payment_recipient
+    self.payment_recipient = event.payment_recipients.find_by("name ILIKE ?", AchTransfer.sanitize_sql_like(recipient_name))
+
+    if payment_recipient.nil? ||
+       payment_recipient.account_number != account_number ||
+       payment_recipient.routing_number != routing_number
+      self.payment_recipient = event.payment_recipients.create!(
+        name: recipient_name,
+        bank_name:,
+        account_number:,
+        routing_number:,
+      )
+    end
+
+    save!
   end
 
 end

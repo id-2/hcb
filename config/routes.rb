@@ -187,6 +187,7 @@ Rails.application.routes.draw do
       get "balances", to: "admin#balances"
       get "grants", to: "admin#grants"
       get "check_deposits", to: "admin#check_deposits"
+      get "column_statements", to: "admin#column_statements"
 
       resources :grants, only: [] do
         post "approve"
@@ -237,6 +238,9 @@ Rails.application.routes.draw do
     post "accept"
     post "reject"
     post "cancel"
+    member do
+      post "toggle_signee_status"
+    end
   end
 
   resources :organizer_positions, only: [:destroy], as: "organizers" do
@@ -348,6 +352,7 @@ Rails.application.routes.draw do
       get "dispute"
       get "breakdown"
       post "invoice_as_personal_transaction"
+      post "pin", to: "hcb_codes"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
     end
@@ -504,16 +509,21 @@ Rails.application.routes.draw do
           resources :stripe_cards, path: "cards", only: [:index]
           resources :transactions, only: [:show, :update] do
             resources :receipts, only: [:create, :index]
+            resources :comments, only: [:index]
 
             member do
               get "memo_suggestions"
             end
           end
 
+          resources :disbursements, path: "transfers", only: [:create]
+
           member do
             get "transactions"
           end
         end
+
+        resources :transactions, only: [:show]
 
         resources :stripe_cards, path: "cards", only: [:show, :update] do
           member do
@@ -542,7 +552,6 @@ Rails.application.routes.draw do
 
   get "negative_events", to: "admin#negative_events"
 
-  get "admin_tasks", to: "admin#tasks"
   get "admin_task_size", to: "admin#task_size"
   get "admin_search", to: redirect("/admin/users")
   post "admin_search", to: redirect("/admin/users")
@@ -606,6 +615,7 @@ Rails.application.routes.draw do
 
     get "documentation", to: "events#documentation", as: :documentation
     get "transfers", to: "events#transfers", as: :transfers
+    get "statements", to: "events#statements", as: :statements
     get "promotions", to: "events#promotions", as: :promotions
     get "reimbursements", to: "events#reimbursements", as: :reimbursements
     get "donations", to: "events#donation_overview", as: :donation_overview
@@ -646,6 +656,8 @@ Rails.application.routes.draw do
     resources :organizer_positions, path: "team", as: "organizer", only: [] do
       resources :organizer_position_deletion_requests, path: "removal-requests", as: "remove", only: [:new]
     end
+
+    resources :payment_recipients, only: [:destroy]
 
     member do
       post "disable_feature"

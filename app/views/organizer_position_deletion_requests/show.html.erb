@@ -48,26 +48,54 @@
     </p>
   </div>
 
+  <% warning_emoji = capture do %>
+    <%# ⚠️ Emoji doesn't render with our default font stack %>
+    <span style="font-family: initial;">⚠️</span>
+  <% end %>
   <p>
-    <%= @opdr.subject_has_outstanding_expenses_expensify ? "✅" : "❌" %>
-    <strong>Outstanding Expensify expenses?</strong>
+    <% if @opdr.subject_has_outstanding_expenses_expensify %>
+      <%= warning_emoji %> <strong>Outstanding Expensify expenses reported</strong>
+    <% else %>
+      ✅ <strong>No outstanding Expensify expenses reported</strong>
+    <% end %>
   </p>
 
   <p>
-    <%= @opdr.subject_has_outstanding_transactions_stripe ? "✅" : "❌" %>
-    <strong>Outstanding Stripe transactions?</strong>
+    <% if @opdr.organizer_missing_receipts.any? %>
+      <%= warning_emoji %>
+      <strong>
+        <%= @opdr.organizer_missing_receipts.count %>
+        missing receipt(s) on Stripe cards
+      </strong>
+    <% else %>
+      ✅ <strong>No missing receipts on Stripe cards</strong>
+    <% end %>
   </p>
 
   <p>
-    <%= @opdr.subject_has_active_cards ? "✅" : "❌" %>
-    <strong>Active cards?</strong>
+    <% if @opdr.organizer_active_cards.any? %>
+      <%= warning_emoji %>
+      <strong>
+        <%= @opdr.organizer_active_cards.count %> active Stripe card(s)
+      </strong>
+    <% else %>
+      ✅ <strong>No active Stripe cards</strong>
+    <% end %>
   </p>
 
-  <% if @opdr.organizer_position.signee? %>
+  <% if @opdr.organizer_last_signee? %>
+    <p class='error bold'>
+      <%= inline_icon "important", size: 24, style: "vertical-align: middle; margin: -0.2rem 0 0 -0.2rem;" %>
+      Woah! This user is THE LAST organizer that has signed the fiscal sponsorship contract for this
+      organization! Are you sure you want to remove them?
+    </p>
+  <% elsif @opdr.organizer_position.signee? %>
     <p class='warning'>
       <%= inline_icon "important", size: 24, style: "vertical-align: middle; margin: -0.2rem 0 0 -0.2rem;" %>
       Woah! This user has signed the fiscal sponsorship contract for this
       organization. Are you sure you want to remove them?
+      <% signee_count_after_removal = @opdr.event.signees.size - 1 %>
+      (<%= signee_count_after_removal %> <%= "signee".pluralize(signee_count_after_removal) %> will remain)
     </p>
   <% end %>
 
@@ -75,8 +103,8 @@
     <%= link_to "Delete organizer ⚠️☣☠",
       organizer_path(@opdr.organizer_position.id),
       method: :delete,
-      data: { confirm: "This will remove this user from #{@opdr.organizer_position.event.name} from the database. Are you sure you want to do this?" },
-      class: "btn bg-error ml1" %>
+      data: { confirm: "This will remove this user from #{@opdr.organizer_position.event.name} from the database. #{"⚠️ They are the last signee for this organization! This organization will be left with NO SIGNEES! ⚠️ " if @opdr.organizer_last_signee?}Are you sure you want to do this?" },
+      class: "btn bg-error mr1" %>
   <% else %>
     <p><strong>Organizer is marked as deleted</strong></p>
   <% end %>

@@ -137,7 +137,7 @@ module ApplicationHelper
 
   def carousel(content, &block)
     content_tag :div, class: "carousel", data: { "controller": "carousel", "carousel-target": "carousel", "carousel-slide-value": "0", "carousel-length-value": content.length.to_s } do
-      (content_tag :button, class: "carousel__button carousel__button--left", data: { "carousel-target": "left" } do
+      (content_tag :button, class: "carousel__button carousel__button--left pop", data: { "carousel-target": "left" } do
         inline_icon "view-back", size: 40
       end) +
         (content_tag :div, class: "carousel__items" do
@@ -147,7 +147,7 @@ module ApplicationHelper
             end
           end).join.html_safe
         end) +
-        (content_tag :button, class: "carousel__button carousel__button--right", data: { "carousel-target": "right" } do
+        (content_tag :button, class: "carousel__button carousel__button--right pop", data: { "carousel-target": "right" } do
           inline_icon "view-back", size: 40
         end)
     end
@@ -354,10 +354,7 @@ module ApplicationHelper
     block ||= ->(_) { clipboard_value }
     return yield if options.delete(:if) == false
 
-    tag.span class: "pointer tooltipped tooltipped--#{tooltip_direction} #{options[:class]}",
-             "aria-label": "Click to copy",
-             data: { controller: "clipboard", clipboard_text_value: clipboard_value, action: "click->clipboard#copy" },
-             **options.except(:class), &block
+    css_classes = "pointer tooltipped tooltipped--#{tooltip_direction} #{options.delete(:class)}"
+    tag.span "data-controller": "clipboard", "data-clipboard-text-value": clipboard_value, class: css_classes, "aria-label": "Click to copy", "data-action": "click->clipboard#copy", **options, &block
   end
-
 end

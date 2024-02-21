@@ -12,11 +12,14 @@ module BankFeeService
       ActiveRecord::Base.transaction do
         bank_fee.mark_in_transit!
 
+        sender_bank_account_id = ColumnService::Accounts.id_of bank_fee.book_transfer_originating_account
+        receiver_bank_account_id = ColumnService::Accounts.id_of bank_fee.book_transfer_receiving_account
+
         ColumnService.post "/transfers/book",
-                           amount: amount_cents,
+                           amount: amount_cents.abs,
                            currency_code: "USD",
-                           sender_bank_account_id: ColumnService::Accounts::FS_MAIN,
-                           receiver_bank_account_id: ColumnService::Accounts::FS_OPERATING,
+                           sender_bank_account_id:,
+                           receiver_bank_account_id:,
                            description: memo
       end
 
@@ -26,7 +29,7 @@ module BankFeeService
     private
 
     def amount_cents
-      bank_fee.amount_cents.abs # needs to use absolute positive value
+      bank_fee.amount_cents
     end
 
     def memo

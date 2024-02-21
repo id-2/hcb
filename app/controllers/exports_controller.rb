@@ -1,16 +1,13 @@
 # frozen_string_literal: true
 
-
 class ExportsController < ApplicationController
   skip_before_action :signed_in_user
-  skip_after_action :verify_authorized, only: [:transactions, :collect_email]
+  skip_after_action :verify_authorized, only: :collect_email
 
   def transactions
     @event = Event.friendly.find(params[:event])
 
-    if !@event.is_public?
-      authorize @event.canonical_transactions.first, :show? # temporary hack for policies
-    end
+    authorize @event, :show?
 
     # 300 is slightly arbitrary. HQ didn't run into issues until 5k
     should_queue = @event.canonical_transactions.size > 300
@@ -78,6 +75,44 @@ class ExportsController < ApplicationController
 
         stream_transactions_ledger
       end
+
+      format.pdf do
+        @start = (params[:start_date] || Date.today.prev_month).to_datetime.beginning_of_month
+        if @start >= Date.today.beginning_of_month
+          flash[:error] = "Can not create an account statement for #{@start.strftime("%B %Y")}"
+          redirect_back fallback_location: event_statements_path(@event) and return
+        end
+        @end = @start.end_of_month
+        all = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
+        TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: all, event: @event).run!
+
+        all.reverse.reduce(0) do |running_total, transaction|
+          transaction.running_balance = running_total + transaction.amount
+        end
+        @transactions = all.select { |t| t.date >= @start && t.date <= @end }
+        @start_balance = if @transactions.length > 0
+                           @transactions.last.running_balance - @transactions.last.amount
+                         elsif all.size.zero?
+                           0
+                         else
+                           # Get the running balance of the first transaction immediately before the start date
+                           # or if there's no transaction before the start date, $0.
+                           all.find { |t| t.date < @start }&.running_balance || 0
+                         end
+        @end_balance = @transactions.first&.running_balance || @start_balance
+
+        @withdrawn = 0
+        @deposited = 0
+        @transactions.each do |ct|
+          if ct.amount > 0
+            @deposited += ct.amount
+          else
+            @withdrawn -= ct.amount
+          end
+        end
+        render pdf: "statement", page_height: "11in", page_width: "8.5in"
+      end
+
     end
   end
 

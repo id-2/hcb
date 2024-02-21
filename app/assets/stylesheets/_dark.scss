@@ -88,6 +88,23 @@ html[data-dark='true'] {
   .flash {
     border: 0;
   }
+  
+  .menu__content {
+    input[type='date'],
+    input[type='email'],
+    input[type='number'],
+    input[type='password'],
+    input[type='search'],
+    input[type='tel'],
+    input[type='text'],
+    input[type='url'],
+    .input,
+    select,
+    textarea {
+      background: $dark;
+      border-color: $dark;
+    }
+  }
 
   .retrofees,
   .card,
@@ -98,6 +115,11 @@ html[data-dark='true'] {
   .modal--scroll.bg-snow {
     background-color: $dark;
   }
+
+  .pinned__transaction.bg-smoke {
+    background-color: $darkless;
+  }
+
   .modal--scroll header,
   .modal--scroll:not(.modal--popover) > footer,
   .modal--scroll:not(.modal--popover) > * > footer {
@@ -170,6 +192,11 @@ html[data-dark='true'] {
 
   .comments .card.current-user {
     background-color: mix($darkless, map-get($palette, info), 90%);
+  }
+  
+  .comments .card.comment--admin {
+    border: 1px dashed map-get($palette, warning);
+    background-color: mix($darkless, map-get($palette, warning), 90%);
   }
 
   .card__banner.bg-success,

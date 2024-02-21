@@ -51,7 +51,7 @@ class HcbCodesController < ApplicationController
     if @hcb_code.canonical_transactions.any?
       txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
       pos = txs.index { |tx| tx.hcb_code == hcb } + 1
-      page = (pos.to_f / 100).ceil
+      page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
 
       redirect_to event_path(@event, page:, anchor: hcb_id)
     else
@@ -80,6 +80,30 @@ class HcbCodesController < ApplicationController
 
     @frame = turbo_frame_request?
     @suggested_memos = [::HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run].compact + ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
+  end
+
+  def pin
+    @hcb_code = HcbCode.find(params[:id])
+    @event = @hcb_code.event
+
+    authorize @hcb_code
+
+    # Handle unpinning
+    if (@pin = HcbCode::Pin.find_by(event: @event, hcb_code: @hcb_code))
+      @pin.destroy
+      flash[:success] = "Unpinned transaction from #{@event.name}"
+      redirect_back fallback_location: @event and return
+    end
+
+    # Handle pinning
+    @pin = HcbCode::Pin.new(event: @event, hcb_code: @hcb_code)
+    if @pin.save
+      flash[:success] = "Transaction pinned!"
+    else
+      flash[:error] = @pin.errors.full_messages.to_sentence
+    end
+
+    redirect_back fallback_location: @event
   end
 
   def update
