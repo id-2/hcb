@@ -41,7 +41,7 @@ module Reimbursement
     def request_reimbursement?
       admin_or_user
     end
-    
+
     def admin_approve?
       user&.admin?
     end

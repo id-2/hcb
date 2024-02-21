@@ -75,20 +75,20 @@ module Reimbursement
 
       redirect_to @report
     end
-    
+
     def admin_approve
       @report = Reimbursement::Report.find(params[:report_id])
       @event = @report.event
       @user = @report.user
-    
+
       authorize @report
-    
+
       if @report.mark_reimbursement_approved!
         flash[:success] = "Reimbursement approved."
       else
         flash[:error] = "Failed to approve reimbursement."
       end
-    
+
       redirect_to @report
     end
 

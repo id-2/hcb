@@ -18,13 +18,13 @@
          <% if expense.receipts.any? %>
           <% column_width = [300 / (expense.receipts.count / 2.to_f).ceil, 150].max %>
           <div style="
-            display: grid; 
-            gap: 16px; 
-            max-width: 420px; 
-            overflow-x: scroll; 
+            display: grid;
+            gap: 16px;
+            max-width: 420px;
+            overflow-x: scroll;
             grid-template-columns: <%= expense.report.locked? ? column_width : [column_width, 200].min %>px
                                    repeat(
-                                    <%= [((expense.receipts.count - 1) / 2.to_f).ceil, expense.receipts.count == 2 ? 2 : 1].max %>, 
+                                    <%= [((expense.receipts.count - 1) / 2.to_f).ceil, expense.receipts.count == 2 ? 2 : 1].max %>,
                                     <%= column_width %>px
                                    )">
             <% if !expense.report.locked? %>

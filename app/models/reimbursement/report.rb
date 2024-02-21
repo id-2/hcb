@@ -86,12 +86,13 @@ module Reimbursement
 
       aasm_state.humanize.titleize
     end
-    
-    def status_color 
+
+    def status_color
       return "muted" if draft?
       return "info" if submitted?
       return "purple" if reimbursement_requested?
       return "success" if reimbursement_approved? || reimbursed?
+
       return "primary"
     end
 
