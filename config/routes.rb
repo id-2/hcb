@@ -285,17 +285,16 @@ Rails.application.routes.draw do
   end
 
   resources :stripe_cardholders, only: [:new, :create, :update]
+
+  namespace :stripe_cards do
+    resource :activation, only: [:new, :create], controller: :activation
+  end
   resources :stripe_cards, only: %i[create index show] do
     member do
       get "edit"
       post "update_name"
       post "freeze"
       post "defrost"
-    end
-
-    collection do
-      get "activate", to: "stripe_cards#activate", as: :activate
-      post "activate", to: "stripe_cards#activate_submit", as: :activate_submit
     end
   end
   resources :emburse_cards, except: %i[new create]
