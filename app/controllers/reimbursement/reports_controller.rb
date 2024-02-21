@@ -123,6 +123,25 @@ module Reimbursement
 
       redirect_to @report
     end
+    
+    def request_changes
+      @report = Reimbursement::Report.find(params[:report_id])
+    
+      authorize @report
+      
+      @report.mark_draft!
+      
+      @comment = @report.comments.build(params.require(:comment).permit(:content, :file, :admin_only, :action))
+      @comment.user = current_user
+
+      if @comment.save
+        flash[:success] = "Changes requested."
+      else
+        flash[:error] = "Failed to request changes."
+      end
+      
+      redirect_to @report
+    end
 
     def update
       @report = Reimbursement::Report.find(params[:id])

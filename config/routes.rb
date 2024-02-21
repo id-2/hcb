@@ -391,6 +391,7 @@ Rails.application.routes.draw do
     resources :reports, only: [:show, :create, :edit, :update] do
       post "request_reimbursement"
       post "admin_approve"
+      post "request_changes"
       post "reject"
       post "submit"
       post "draft"
