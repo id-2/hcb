@@ -9,11 +9,13 @@
 <div class="mt4">
     <h3 class="mt2 mb1 muted flex" style="font-weight: 400; gap: 4px;">
       <span style="flex-grow: 1;">
-        <%= user_mention @user, class: "tooltipped--s align-top" %><%= @report.reimbursement_approved? ? "will be reimbursed " : @report.reimbursed? ? "was reimbursed " : "is requesting " %> <%= render "total", report: @report %> for
+        <%= user_mention @user, class: "tooltipped--s align-top" %><%= @report.reimbursement_approved? ? "will be reimbursed " : @report.reimbursed? ? "was reimbursed " : @report.rejected? ? "requested" : "is requesting " %> <%= render "total", report: @report %> for
       </span>
       <span class="ml0 badge bg-<%= @report.status_color %>"><%= @report.status_text %></span>
-      <%= link_to "#", class: "ml0 badge bg-info text-decoration-none", data: { behavior: "modal_trigger", modal: "edit" } do %>
-        Edit Details
+      <% if !(@report.reimbursement_approved? || @report.reimbursed? || @report.rejected?) %>
+        <%= link_to "#", class: "ml0 badge bg-info text-decoration-none", data: { behavior: "modal_trigger", modal: "edit" } do %>
+          Edit Details
+        <% end %>
       <% end %>
     </h3>
     <h2 class="heading mt0 mb1 flex">
@@ -59,16 +61,26 @@
   <% end %>
 </div>
 
-<% if !(@report.reimbursement_approved? || @report.reimbursed?) %>
+<% if !(@report.reimbursement_approved? || @report.reimbursed? || @report.rejected?) %>
   <div class="flex items-center justify-between mt2 mb3" style="gap: 16px;">
     <div style="flex-grow: 1;" class="flex justify-start">
-      <div <%= 'class="tooltipped tooltipped--n" aria-label="Expenses can\'t be added to locked reports"'.html_safe if @report.locked? %>>
-        <%= link_to reimbursement_expenses_path(report_id: @report.id), class: "btn bg-success #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), data: {
-              turbo: true,
-              turbo_method: :post
-            } do %>
-          <%= inline_icon "docs" %>
-          Add An Expense
+      <div <%= 'class="tooltipped tooltipped--n" aria-label="Expenses can\'t be added to locked reports"'.html_safe if @report.locked? && !@report.event.users.include?(current_user) %>>
+        <% if !@report.event.users.include?(current_user) || !@report.locked? %>
+          <%= link_to reimbursement_expenses_path(report_id: @report.id), class: "btn bg-success #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), data: {
+                turbo: true,
+                turbo_method: :post
+              } do %>
+            <%= inline_icon "docs" %>
+            Add An Expense
+          <% end %>
+        <% else %>
+          <%= link_to reimbursement_report_reject_path(report_id: @report.id), class: "btn bg-primary", data: {
+                turbo: true,
+                turbo_method: :post
+              } do %>
+            <%= inline_icon "docs" %>
+            Reject & Close Report
+          <% end %>
         <% end %>
       </div>
     </div>
@@ -106,12 +118,16 @@
             Submit & Request Review
           <% end %>
         <% else %>
-          <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn bg-muted #{!can_be_marked_draft ? "disabled" : ""}", style: (!can_be_marked_draft ? "opacity: 0.75" : ""), method: :post do %>
+          <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn #{(@report.event.users.include?(current_user) ||  admin_signed_in?) && @report.locked? ? "bg-warning" : "bg-muted"} #{!can_be_marked_draft ? "disabled" : ""}", style: (!can_be_marked_draft ? "opacity: 0.75" : ""), method: :post do %>
             <%= inline_icon "reply" %>
             <% if @report.reimbursement_requested? && admin_signed_in? %>
               Send Back
             <% else %>
-              Mark As Draft
+              <% if !@report.event.users.include?(current_user) %>
+                Mark As Draft
+              <% else %>
+                Request Changes
+              <% end %>
             <% end %>
           <% end %>
         <% end %>
@@ -184,7 +200,7 @@
                           "submitted"               => "submitted this report", # TODO: support submitted / resubmitted
                           "rejected"                => "rejected this report",
                           "reimbursement_requested" => "approved this report as an organizer",
-                          "reimbursement_approved"  => "approved this report as an admin",
+                          "reimbursement_approved"  => "approved this report on behalf of the HCB team",
                           "draft"                   => "converted this report to a draft",
                           "reimbursed"              => "initiated a reimbursement"
                         }[state_change] %>

@@ -9,7 +9,7 @@
   </script>
 <% end %>
 
-<article class="card mt2 border <%= expense.pending? ? expense.report.reimbursement_requested? || expense.report.reimbursement_approved? ? "b--primary" : "b--warning" : "b--success" %>" id="expense-<%= expense.id %>" style="border-width: 1.5px; <%= expense.pending? && (expense.report.reimbursement_requested? || expense.report.reimbursement_approved?) ? "opacity: 0.2" : "" %>">
+<article class="card mt2 border <%= expense.report.rejected? ? "b--primary" : expense.pending? ? expense.report.reimbursement_requested? || expense.report.reimbursement_approved? ? "b--primary" : "b--warning" : "b--success" %>" id="expense-<%= expense.id %>" style="border-width: 1.5px; <%= expense.pending? && (expense.report.reimbursement_requested? || expense.report.reimbursement_approved?) ? "opacity: 0.2" : "" %>">
   <section class="grid grid--split">
     <div>
       <%= render partial: "reimbursement/expenses/form", locals: { expense:, start_enabled: } %>

@@ -91,6 +91,22 @@ module Reimbursement
 
       redirect_to @report
     end
+    
+    def reject
+      @report = Reimbursement::Report.find(params[:report_id])
+      @event = @report.event
+      @user = @report.user
+    
+      authorize @report
+    
+      if @report.mark_rejected!
+        flash[:success] = "Rejected and closed report."
+      else
+        flash[:error] = "Failed to reject report."
+      end
+    
+      redirect_to @report
+    end
 
     def draft
       @report = Reimbursement::Report.find(params[:report_id])
