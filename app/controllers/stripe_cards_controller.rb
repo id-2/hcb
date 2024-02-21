@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class StripeCardsController < ApplicationController
-  skip_after_action :verify_authorized, only: [:activation]
-  
   def index
     @cards = StripeCard.all
     authorize @cards
