@@ -170,6 +170,10 @@ $shades: (
   border-color: map-get($palette, success);
 }
 
+.b--primary {
+  border-color: map-get($palette, primary);
+}
+
 .w-50 {
   width: 50%;
 }

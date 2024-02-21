@@ -73,7 +73,7 @@ module Reimbursement
       end
 
       event :mark_draft do
-        transitions from: [:submitted], to: :draft
+        transitions from: [:submitted, :reimbursement_requested], to: :draft
       end
 
       event :mark_reimbursed do
@@ -84,7 +84,15 @@ module Reimbursement
     def status_text
       return "Draft" if draft?
 
-      aasm_state.humanize
+      aasm_state.humanize.titleize
+    end
+    
+    def status_color 
+      return "muted" if draft?
+      return "info" if submitted?
+      return "purple" if reimbursement_requested?
+      return "success" if reimbursement_approved? || reimbursed?
+      return "primary"
     end
 
     def locked?

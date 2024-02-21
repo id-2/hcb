@@ -9,9 +9,9 @@
 <div class="mt4">
     <h3 class="mt2 mb1 muted flex" style="font-weight: 400; gap: 4px;">
       <span style="flex-grow: 1;">
-        <%= user_mention @user, class: "tooltipped--s align-top" %>is requesting <%= render "total", report: @report %> for
+        <%= user_mention @user, class: "tooltipped--s align-top" %><%= @report.reimbursement_approved? ? "will be reimbursed " : @report.reimbursed? ? "was reimbursed " : "is requesting "  %> <%= render "total", report: @report %> for
       </span>
-      <span class="ml0 badge bg-<%= @report.aasm_state %>"><%= @report.status_text %></span>
+      <span class="ml0 badge bg-<%= @report.status_color %>"><%= @report.status_text %></span>
       <%= link_to "#", class: "ml0 badge bg-info text-decoration-none", data: { behavior: "modal_trigger", modal: "edit" } do %>
         Edit Details
       <% end %>
@@ -26,30 +26,32 @@
   <%= render "edit_form" %>
 </section>
 
-<section class="flex items-start justify-center mt2 mb2" style="gap: 16px; position: relative;">
-  <article class="card">
-    <p class="mt0">
-      HCB is able to reimburse you through either an ACH transfer or a check. To receive reimbursement, you'll need to submit each of your expenses to us through this report.
-    </p>
-    <p>
-      Begin by adding an expense to this report below; for each expense, you'll need to attach
-      a receipt, provide a memo describing the expense, and specify the amount you are seeking reimbursement for.
-    </p>
-    <p>
-      Once you've added all of your expenses to the report, click <i>Submit</i> to begin the review process.
-    </p>
-
-    <section class="card__banner card__banner--bottom card__darker pt2 pb2">
-      <p class="muted mt0 mb0">
-        There are some restrictions and limitations on what transactions can be reimbursed. Learn more in our <a href="#">FAQ</a>.
+<% if @report.draft? %>
+  <section class="flex items-start justify-center mt2 mb2" style="gap: 16px; position: relative;">
+    <article class="card">
+      <p class="mt0">
+        HCB is able to reimburse you through either an ACH transfer or a check. To receive reimbursement, you'll need to submit each of your expenses to us through this report.
       </p>
-    </section>
-  </article>
-</section>
-
-<h2 class="flex items-center">
-  <span style="flex-grow: 1">Expenses</span>
-</h2>
+      <p>
+        Begin by adding an expense to this report below; for each expense, you'll need to attach
+        a receipt, provide a memo describing the expense, and specify the amount you are seeking reimbursement for.
+      </p>
+      <p>
+        Once you've added all of your expenses to the report, click <i>Submit</i> to begin the review process.
+      </p>
+  
+      <section class="card__banner card__banner--bottom card__darker pt2 pb2">
+        <p class="muted mt0 mb0">
+          There are some restrictions and limitations on what transactions can be reimbursed. Learn more in our <a href="#">FAQ</a>.
+        </p>
+      </section>
+    </article>
+  </section>
+  
+  <h2 class="flex items-center">
+    <span style="flex-grow: 1">Expenses</span>
+  </h2>
+<% end %>
 
 <div id="expenses">
   <% @report.expenses.order(created_at: :desc).each do |expense| %>
@@ -57,49 +59,66 @@
   <% end %>
 </div>
 
-<div class="flex items-center justify-between mt2 mb3" style="gap: 16px;">
-  <div style="flex-grow: 1;" class="flex justify-start">
-    <div <%= 'class="tooltipped tooltipped--n" aria-label="Expenses can\'t be added to locked reports"'.html_safe if @report.locked? %>>
-      <%= link_to reimbursement_expenses_path(report_id: @report.id), class: "btn bg-success #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), data: {
-            turbo: true,
-            turbo_method: :post
-          } do %>
-        <%= inline_icon "docs" %>
-        Add An Expense
-      <% end %>
-    </div>
-  </div>
-
-  <div style="flex-grow: 1;" class="flex justify-center items-center" style="gap: 4px;">
-    <% if !@report.event.users.include?(current_user) && @report.locked? %>
-      <%= inline_icon "private" %>
-      Expense Report Locked
-    <% elsif @report.locked? && @report.submitted? %>
-      <%= link_to reimbursement_report_request_reimbursement_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
-        <%= inline_icon "payment-transfer" %>
-        Request Reimbusement (<%= @report.expenses.approved.count %>/<%= @report.expenses.count %>)
-      <% end %>
-    <% end %>
-  </div>
-
-  <div style="flex-grow: 1;" class="flex justify-end">
-    <% can_be_marked_draft = !@report.locked? || !(@report.reimbursement_requested? || @report.reimbursement_approved?) %>
-    <div <%= 'class="tooltipped tooltipped--n" aria-label="Locked reports can\'t be modified"'.html_safe if !can_be_marked_draft %>>
-      <% if @report.draft? %>
-        <%= link_to reimbursement_report_submit_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
-          <%= inline_icon "send" %>
-          Submit & Request Review
+<% if !(@report.reimbursement_approved? || @report.reimbursed?) %>
+  <div class="flex items-center justify-between mt2 mb3" style="gap: 16px;">
+    <div style="flex-grow: 1;" class="flex justify-start">
+      <div <%= 'class="tooltipped tooltipped--n" aria-label="Expenses can\'t be added to locked reports"'.html_safe if @report.locked? %>>
+        <%= link_to reimbursement_expenses_path(report_id: @report.id), class: "btn bg-success #{@report.locked? ? "disabled" : ""}", style: (@report.locked? ? "opacity: 0.75" : ""), data: {
+              turbo: true,
+              turbo_method: :post
+            } do %>
+          <%= inline_icon "docs" %>
+          Add An Expense
         <% end %>
-      <% else %>
-        <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn bg-muted #{!can_be_marked_draft ? "disabled" : ""}", style: (!can_be_marked_draft ? "opacity: 0.75" : ""), method: :post do %>
-          <%= inline_icon "reply" %>
-          Mark As Draft
+      </div>
+    </div>
+  
+    <div style="flex-grow: 1;" class="flex justify-center items-center" style="gap: 4px;">
+      <% if !@report.event.users.include?(current_user) && @report.locked? %>
+        <%= inline_icon "private" %>
+        Expense Report Locked
+      <% elsif @report.locked? && @report.submitted? %>
+        <%= link_to reimbursement_report_request_reimbursement_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
+          <%= inline_icon "payment-transfer" %>
+          Request Reimbursement (<%= @report.expenses.approved.count %>/<%= @report.expenses.count %>)
+        <% end %>
+      <% elsif @report.locked? && @report.reimbursement_requested? && !admin_signed_in? %>
+        <div class="btn bg-info disabled" style="opacity: 0.75" disabled>
+          <%= inline_icon "clock" %>
+          Pending Admin Review
+        </div>
+      <% elsif @report.locked? && @report.reimbursement_requested? %>
+        <% admin_tools do %>
+          <%= link_to reimbursement_report_admin_approve_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
+            <%= inline_icon "thumbsup" %>
+            Approve Reimbursement
+          <% end %>
         <% end %>
       <% end %>
     </div>
+  
+    <div style="flex-grow: 1;" class="flex justify-end">
+      <% can_be_marked_draft = !@report.locked? || !@report.reimbursement_approved? %>
+      <div <%= 'class="tooltipped tooltipped--n" aria-label="Locked reports can\'t be modified"'.html_safe if !can_be_marked_draft %>>
+        <% if @report.draft? %>
+          <%= link_to reimbursement_report_submit_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
+            <%= inline_icon "send" %>
+            Submit & Request Review
+          <% end %>
+        <% else %>
+          <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn bg-muted #{!can_be_marked_draft ? "disabled" : ""}", style: (!can_be_marked_draft ? "opacity: 0.75" : ""), method: :post do %>
+            <%= inline_icon "reply" %>
+            <% if @report.reimbursement_requested? && admin_signed_in?  %>
+              Send Back
+            <% else %>
+              Mark As Draft
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
   </div>
-
-</div>
+<% end %>
 
 <style>
   .linethingy:not(:last-child)::before {

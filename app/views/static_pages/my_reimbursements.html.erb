@@ -68,7 +68,7 @@
         <% @reports.each do |report| %>
           <tr>
             <td>
-               <span class="ml0 badge bg-<%= report.aasm_state %>"><%= report.aasm_state&.capitalize %></span>
+               <span class="ml0 badge bg-<%= report.status_color %>"><%= report.status_text %></span>
             </td>
             <td>
               <%= report.name %>

@@ -385,6 +385,7 @@ Rails.application.routes.draw do
   namespace :reimbursement do
     resources :reports, only: [:show, :create, :edit, :update] do
       post "request_reimbursement"
+      post "admin_approve"
       post "submit"
       post "draft"
     end
