@@ -14,7 +14,7 @@
         </action>
         <% end %>
         <% if policy(comment).edit? %>
-          <%= link_to edit_comment_path(comment), class: "tooltipped tooltipped--s right", 'aria-label': "Edit", data: {turbo:false} do %>
+          <%= link_to edit_comment_path(comment), class: "tooltipped tooltipped--s right", 'aria-label': "Edit", data: { turbo: false } do %>
             <%= inline_icon "edit", size: 24, 'aria-label': "Edit" %>
           <% end %>
         <% end %>

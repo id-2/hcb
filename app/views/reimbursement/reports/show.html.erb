@@ -34,13 +34,13 @@
     <%= form.hidden_field :commentable_type, value: @commentable.class %>
     <%= form.hidden_field :commentable_id, value: @report.id %>
     <%= form.text_area :content, class: "card mb2 overflow-visible", placeholder: "Describe your requested changes…", "data-behavior": "ctrl_enter_submit", style: "min-height: 100px" %>
-    
+
     <%= form.hidden_field :action, value: :changes_requested %>
-  
+
     <div class="field">
       <%= form.file_field :file %>
     </div>
-  
+
     <%= form.submit "Request Changes" %>
   <% end %>
 </section>
@@ -143,13 +143,13 @@
               <% else %>
                 Request Changes
               <% end %>
-            <% end %> 
-          <% else %> 
+            <% end %>
+          <% else %>
             <%= link_to reimbursement_report_draft_path(report_id: @report.id), class: "btn bg-muted #{!can_be_marked_draft ? "disabled" : ""}", style: (!can_be_marked_draft ? "opacity: 0.75" : ""), method: :post do %>
               <%= inline_icon "reply" %>
               Mark As Draft
             <% end %>
-          <% end %> 
+          <% end %>
         <% end %>
       </div>
     </div>

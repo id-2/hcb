@@ -91,20 +91,20 @@ module Reimbursement
 
       redirect_to @report
     end
-    
+
     def reject
       @report = Reimbursement::Report.find(params[:report_id])
       @event = @report.event
       @user = @report.user
-    
+
       authorize @report
-    
+
       if @report.mark_rejected!
         flash[:success] = "Rejected and closed report."
       else
         flash[:error] = "Failed to reject report."
       end
-    
+
       redirect_to @report
     end
 
@@ -123,14 +123,14 @@ module Reimbursement
 
       redirect_to @report
     end
-    
+
     def request_changes
       @report = Reimbursement::Report.find(params[:report_id])
-    
+
       authorize @report
-      
+
       @report.mark_draft!
-      
+
       @comment = @report.comments.build(params.require(:comment).permit(:content, :file, :admin_only, :action))
       @comment.user = current_user
 
@@ -139,7 +139,7 @@ module Reimbursement
       else
         flash[:error] = "Failed to request changes."
       end
-      
+
       redirect_to @report
     end
 

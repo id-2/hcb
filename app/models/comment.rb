@@ -41,7 +41,7 @@ class Comment < ApplicationRecord
   scope :not_admin_only, -> { where(admin_only: false) }
   scope :edited, -> { joins(:versions).where("has_untracked_edit IS TRUE OR versions.event = 'update' OR versions.event = 'destroy'") }
   scope :has_attached_file, -> { joins(:file_attachment) }
-  
+
   enum action: {
     comment: 0,
     changes_requested: 1 # used by Reimbursements
@@ -55,9 +55,10 @@ class Comment < ApplicationRecord
   def has_attached_file?
     file.attached?
   end
-  
+
   def action_text
     return "requested changes" if changes_requested?
+
     return "commented"
   end
 

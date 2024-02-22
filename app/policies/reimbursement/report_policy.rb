@@ -41,11 +41,11 @@ module Reimbursement
     def request_reimbursement?
       admin_or_user
     end
-    
+
     def request_changes?
       admin_or_user
     end
-    
+
     def reject?
       admin_or_user
     end
