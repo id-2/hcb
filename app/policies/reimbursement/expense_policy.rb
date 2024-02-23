@@ -22,6 +22,10 @@ module Reimbursement
       admin_or_user_unlocked || creator
     end
 
+    def destroy?
+      admin_or_user_unlocked || creator
+    end
+
     def update?
       admin_or_user_unlocked || creator
     end

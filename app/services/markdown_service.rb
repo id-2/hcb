@@ -5,6 +5,26 @@ class MarkdownService
 
   class MarkdownRenderer < Redcarpet::Render::HTML
     include ApplicationHelper # for render_money helper
+    include Rails.application.routes.url_helpers
+
+    def postprocess(fulldoc)
+
+      # this is used to detect & link expenses
+      # in expense report comments
+
+      fulldoc.gsub!(/\[@(\w+)( .*?)?\]/) do |mention|
+        expense = Reimbursement::Expense.find_by_hashid($1)
+        next unless expense
+
+        Pundit.authorize(@current_user, expense, :show?)
+        link_to expense.memo,
+                reimbursement_report_path(expense.report) + "##{expense.hashid}",
+                class: "autolink",
+                data: { turbo: false }
+      end
+
+      fulldoc
+    end
 
     def link(link, title, alt_text)
       link_to alt_text, link, title:,
@@ -67,6 +87,29 @@ class MarkdownService
     def try_hcb_autolink(link)
       found_link = link.match(/(#{app_hosts.join('|')})\/hcb\/(\w+)\#comment-(\w+)/)
       found_link ||= link.match(/(#{app_hosts.join('|')})\/hcb\/(\w+)/)
+
+      if found_link
+        hcb_code = found_link[2]
+        comment = found_link[3]
+        hcb = HcbCode.find_by_hashid hcb_code
+        return nil unless hcb
+
+        Pundit.authorize(@current_user, hcb, :show?)
+        link_to "#{'comment on ' if comment.present?}#{hcb.humanized_type.downcase} (HCB-#{hcb.hashid})",
+                link,
+                target: "_blank",
+                class: "tooltipped tooltipped--e autolink",
+                "aria-label" => "#{render_money hcb.amount_cents} - #{hcb.memo}"
+      else
+        return nil
+      end
+    rescue Pundit::NotAuthorizedError
+      return nil
+    end
+
+    def try_expense_autolink(link)
+      found_link = link.match(/(#{app_hosts.join('|')})\/reimbursement\/expenses\/(\w+)\#comment-(\w+)/)
+      found_link ||= link.match(/(#{app_hosts.join('|')})\/reimbursement\/expenses\/(\w+)/)
 
       if found_link
         hcb_code = found_link[2]

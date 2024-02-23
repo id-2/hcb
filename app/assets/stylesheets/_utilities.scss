@@ -148,6 +148,14 @@ $shades: (
     }
   }
 
+  .border-#{'' + $name} {
+    border-color: $value;
+
+    &-important {
+      border-color: $value !important;
+    }
+  }
+
   .text-#{'' + $name} {
     color: $value;
 

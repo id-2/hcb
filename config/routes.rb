@@ -397,7 +397,7 @@ Rails.application.routes.draw do
       post "draft"
     end
 
-    resources :expenses, only: [:show, :create, :edit, :update] do
+    resources :expenses, only: [:show, :create, :edit, :update, :destroy] do
       post "approve"
       post "unapprove"
     end

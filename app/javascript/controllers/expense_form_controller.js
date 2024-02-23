@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
-  static targets = ['field', 'button']
+  static targets = ['field', 'button', 'form']
   static values = {
     enabled: { type: Boolean, default: false },
     locked: { type: Boolean, default: false },
@@ -16,7 +16,15 @@ export default class extends Controller {
 
     this.buttonTarget.addEventListener(
       'click',
-      e => (this.enabledValue || e.preventDefault(), this.edit())
+      e => {
+        e.preventDefault()
+        if(this.enabledValue){
+          this.formTarget.requestSubmit()
+        }
+        else {
+          this.edit()
+        }
+      }
     )
 
     this.#buttons()
@@ -31,9 +39,6 @@ export default class extends Controller {
     for (const field of this.fieldTargets) {
       field.readOnly = false
     }
-
-    this.editTarget.style.display = 'none'
-    this.checkmarkTarget.style.display = 'block'
   }
 
   #buttons() {

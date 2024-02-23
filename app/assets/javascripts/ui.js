@@ -422,3 +422,8 @@ $(document).on('keydown', function (e) {
     return (hankIndex = 0)
   }
 })
+
+$('[data-behavior~=mention]').on('click', e => {
+  BK.s('comment').val(`${BK.s('comment').val() + BK.s('comment').val().length > 0 ? " " : ""}[${e.target.innerText} ${BK.s("mention").data('mention-title')}]`)
+  BK.s('comment')[0].scrollIntoView();
+})

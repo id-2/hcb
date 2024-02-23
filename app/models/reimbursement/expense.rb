@@ -33,6 +33,9 @@ module Reimbursement
     include AASM
     include Receiptable
 
+    include Hashid::Rails
+    hashid_config min_hash_length: 3
+
     aasm do
       state :pending, initial: true
       state :approved

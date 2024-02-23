@@ -2,46 +2,19 @@
 
 <% start_enabled ||= false %>
 
-<%= turbo_frame_tag expense do %>
-  <%= form_with(model: expense, class: "mb3", style: "max-width: 600px;", local: true, data: {
-                  controller: "expense-form",
-                  "expense-form-enabled-value": start_enabled,
-                  "expense-form-locked-value": expense.report.locked?,
-                }) do |form| %>
+
+  <%= form_with(model: expense, class: "mb3", style: "max-width: 600px;", local: true, data: { "expense-form-target": "form", turbo: true }) do |form| %>
     <div class="flex flex-row items-center">
       <div style="flex-grow: 1;">
         <%= form.label :memo, "Memo", class: "bold" %>
-        <%= form.text_field :memo, placeholder: "Meal at SFO Airport", required: true, data: { "expense-form-target": "field", "action": "dblclick->expense-form#edit" } %>
+        <%= form.text_field :memo, placeholder: "Meal at SFO Airport", required: true, data: { "expense-form-target": "field", "action": "dblclick->expense-form#edit" }, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()"  %>
       </div>
 
       <span class="bold muted flex self-end items-center justify-center ml1" style="width: 1rem; height: 48px;">$</span>
 
       <div>
         <%= form.label :amount, "Amount", class: "bold" %>
-        <%= form.number_field :amount, placeholder: "500.00", step: 0.01, min: 0.01, max: [expense.report.maximum_amount_cents || Float::INFINITY, 500_000].min, data: { controller: "truncate-decimal", action: "truncate-decimal#truncate", "expense-form-target": "field" } %>
-      </div>
-
-      <div class="ml1 self-end flex items-center justify-center" style="height: 48px;">
-        <style>
-          [data-expense-form-enabled-value=true] #edit-or-save {
-            color: #33d6a6;
-            background-color: #33d6a620;
-          }
-          [data-expense-form-locked-value=true] #edit-or-save {
-            color: #ff8c37;
-            background-color: #ff8c3720;
-            cursor: no-drop!important;
-          }
-
-          [data-expense-form-locked-value=true] #edit-or-save:hover {
-            transform: none;
-            box-shadow: none!important;
-          }
-        </style>
-        <button id="edit-or-save" class="pop pointer" data-expense-form-target="button">
-          <%= inline_icon "checkmark", style: start_enabled ? nil : "display: none;" %>
-          <%= inline_icon expense.report.locked? ? "private" : "edit", style: start_enabled && !expense.report.locked? ? "display: none;" : nil %>
-        </button>
+        <%= form.number_field :amount, placeholder: "500.00", step: 0.01, min: 0.01, max: [expense.report.maximum_amount_cents || Float::INFINITY, 500_000].min, data: { controller: "truncate-decimal", action: "truncate-decimal#truncate", "expense-form-target": "field" }, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()" %>
       </div>
     </div>
     <div class="field mt2">
@@ -65,4 +38,3 @@
       <% end %>
     <% end %>
   <% end %>
-<% end %>

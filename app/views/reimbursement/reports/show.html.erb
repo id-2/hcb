@@ -73,7 +73,7 @@
 <% end %>
 
 <div id="expenses">
-  <% @report.expenses.order(created_at: :desc).each do |expense| %>
+  <% @report.expenses.order(created_at: :asc).each do |expense| %>
     <%= render "reimbursement/expenses/expense", expense: %>
   <% end %>
 </div>
