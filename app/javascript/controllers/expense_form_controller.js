@@ -14,18 +14,14 @@ export default class extends Controller {
       field.addEventListener('dblclick', () => this.edit())
     }
 
-    this.buttonTarget.addEventListener(
-      'click',
-      e => {
-        e.preventDefault()
-        if(this.enabledValue){
-          this.formTarget.requestSubmit()
-        }
-        else {
-          this.edit()
-        }
+    this.buttonTarget.addEventListener('click', e => {
+      e.preventDefault()
+      if (this.enabledValue) {
+        this.formTarget.requestSubmit()
+      } else {
+        this.edit()
       }
-    )
+    })
 
     this.#buttons()
   }
