@@ -63,7 +63,7 @@
       <iframe src="<%= file_path %>" style="width: 100%; display: none; height: 100vh; max-height: 100%; border: none; border-radius: 0.75rem; overflow: hidden;"></iframe>
     <% end %>
     <% end %>
-    <% if defined?(delete_on_hover) %>
+    <% if defined?(delete_on_hover) && delete_on_hover %>
       <%= pop_icon_to "view-close",
               { controller: "/receipts", action: :destroy, id: receipt.id, popover: local_assigns[:popover] },
               method: :delete,

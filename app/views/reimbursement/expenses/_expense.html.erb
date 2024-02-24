@@ -8,7 +8,7 @@
     class="
       expense card mt2 pt0 border
       b--<%= expense.status_color %>
-      <%= "translucent" if expense.rejected? && !report.rejected? %>
+      <%= "translucent" if expense.rejected? && !expense.report.rejected? %>
     "
     data-controller="expense-form"
     data-expense-form-enabled-value="<%= new %>"

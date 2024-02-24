@@ -68,6 +68,10 @@ module Reimbursement
     def rejected?
       pending? && report.closed?
     end
+    
+    def locked?
+      report.locked?
+    end
 
     def status_color
       return "primary" if report.rejected? || rejected?
