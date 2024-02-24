@@ -84,7 +84,7 @@ class Receipt < ApplicationRecord
       Rails.application.routes.url_helpers.rails_representation_url(file.variant(resize:).processed, only_path:)
     end
   rescue
-    "https://cloud-kt9bf83lf-hack-club-bot.vercel.app/0design7.png"
+    nil
   end
 
   def extract_textual_content

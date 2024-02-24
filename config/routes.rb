@@ -398,8 +398,7 @@ Rails.application.routes.draw do
     end
 
     resources :expenses, only: [:show, :create, :edit, :update, :destroy] do
-      post "approve"
-      post "unapprove"
+      post "toggle_approved"
     end
   end
 

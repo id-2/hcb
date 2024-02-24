@@ -1,17 +1,10 @@
-<%# locals: (expense:, start_enabled:, scroll_on_load:) -%>
+<%# locals: (expense:, new:) -%>
+
+<% new ||= false %>
 
 <%= turbo_frame_tag expense do %>
-
-  <% start_enabled ||= false %>
-  <% scroll_on_load ||= false %>
-
-  <% if scroll_on_load %>
-    <script>
-      window.scrollTo(0, document.body.scrollHeight);
-    </script>
-  <% end %>
   <% color = expense.report.rejected? ? "primary" : expense.pending? ? expense.report.reimbursement_requested? || expense.report.reimbursement_approved? ? "primary" : "warning" : "success" %>
-  <article id="<%= expense.hashid %>" class="expense card mt2 pt0 border b--<%= color %>" data-controller="expense-form" data-expense-form-enabled-value="<%= start_enabled %>" data-expense-form-locked-value="<%= expense.report.locked? %>" style="border-width: 1.5px; <%= expense.pending? && (expense.report.reimbursement_requested? || expense.report.reimbursement_approved?) ? "opacity: 0.2" : "" %>">
+  <article id="<%= expense.hashid %>" class="expense card mt2 pt0 border b--<%= color %>" data-controller="expense-form" data-expense-form-enabled-value="<%= new %>" data-expense-form-locked-value="<%= expense.report.locked? %>" style="border-width: 1.5px; <%= expense.pending? && (expense.report.reimbursement_requested? || expense.report.reimbursement_approved?) ? "opacity: 0.2" : "" %>">
   <div class="card__banner secondary mb2 b--info border-bottom border-smoke-important flex items-center" style="gap: 8px">
       <code data-behavior="mention" data-mention-title="<%= expense.memo %>" class="bg-white tooltipped tooltipped--e pointer" style="padding: 2px 4px; border-radius: 4px;" aria-label="Click to reference in comment">@<%= expense.hashid %></code>
       <div style="flex-grow: 1"></div>
@@ -32,8 +25,8 @@
         }
       </style>
       <button id="edit-or-save" class="pop pointer" data-expense-form-target="button">
-        <%= inline_icon "checkmark", style: start_enabled ? nil : "display: none;" %>
-        <%= inline_icon expense.report.locked? ? "private" : "edit", style: start_enabled && !expense.report.locked? ? "display: none;" : nil %>
+        <%= inline_icon "checkmark", style: new ? nil : "display: none;" %>
+        <%= inline_icon expense.report.locked? ? "private" : "edit", style: new && !expense.report.locked? ? "display: none;" : nil %>
       </button>
       <%= pop_icon_to "view-close",
                 reimbursement_expense_path(expense.id),
@@ -45,10 +38,15 @@
   </div>
   <section class="grid grid--split">
       <div>
-        <%= render partial: "reimbursement/expenses/form", locals: { expense:, start_enabled: } %>
+        <%= render partial: "reimbursement/expenses/form", locals: { expense:, new: } %>
       </div>
       <%= render partial: "reimbursement/expenses/receipts", locals: { expense: } %>
     </section>
   </article>
+<% end %>
 
+<% if new %>
+  <script>
+    document.getElementById("<%= expense.hashid %>").scrollIntoView()
+  </script>
 <% end %>

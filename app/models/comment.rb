@@ -44,7 +44,7 @@ class Comment < ApplicationRecord
 
   enum action: {
     comment: 0,
-    changes_requested: 1 # used by Reimbursements
+    changes_requested: 1 # used by reimbursements
   }
 
   def edited?
