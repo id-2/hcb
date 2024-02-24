@@ -2,7 +2,6 @@
 
 module Reimbursement
   class ReportsController < ApplicationController
-
     before_action :set_event_user_and_event, except: [:create]
 
     # POST /reimbursement_reports
@@ -31,11 +30,11 @@ module Reimbursement
     def edit
       authorize @report
     end
-    
+
     def update
       @report.assign_attributes(update_reimbursement_report_params)
       authorize @report
-    
+
       if @report.save
         flash[:success] = "Report successfully updated."
         redirect_to @report
@@ -43,19 +42,19 @@ module Reimbursement
         render :edit, status: :unprocessable_entity
       end
     end
-    
+
     # The following routes handle state changes for the reports.
-    
+
     def draft
-    
+
       authorize @report
-    
+
       if @report.mark_draft!
         flash[:success] = "Report marked as a draft, you can now make edits."
       else
         flash[:error] = @report.errors.full_messages.to_sentence
       end
-    
+
       redirect_to @report
     end
 
@@ -109,7 +108,7 @@ module Reimbursement
 
       redirect_to @report
     end
-    
+
     # this is a custom method for creating a comment
     # that also makes the report as a draft.
     # - @sampoder
@@ -133,7 +132,7 @@ module Reimbursement
     end
 
     private
-    
+
     def set_event_user_and_event
       @report = Reimbursement::Report.find(params[:report_id])
       @event = @report.event

@@ -47,6 +47,6 @@
 
 <% if new %>
   <script>
-    document.getElementById("<%= expense.hashid %>").scrollIntoView()
+    document.getElementById("<%= expense.hashid.to_json %>").scrollIntoView()
   </script>
 <% end %>
