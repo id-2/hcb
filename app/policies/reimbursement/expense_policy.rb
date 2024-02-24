@@ -6,50 +6,46 @@ module Reimbursement
       user&.admin?
     end
 
-    def new?
-      is_public || admin_or_user
-    end
-
     def create?
-      admin_or_user_unlocked && !record.event.demo_mode
+      (admin || team_member || creator) && unlocked
     end
 
     def show?
-      is_public || admin_or_user || creator
+      is_public || admin || team_member || creator
     end
 
     def edit?
-      admin_or_user_unlocked || creator
-    end
-
-    def destroy?
-      admin_or_user_unlocked || creator
+      (admin || team_member || creator) && unlocked
     end
 
     def update?
-      admin_or_user_unlocked || creator
+      (admin || team_member || creator) && unlocked
     end
 
-    def approve?
-      admin_or_user
+    def destroy?
+      (admin || team_member || creator) && unlocked
     end
 
-    def unapprove?
-      admin_or_user
+    def toggle_approve?
+      admin || team_member
     end
 
     private
 
-    def admin_or_user
-      user&.admin? || record.event.users.include?(user)
+    def admin
+      user&.admin?
     end
 
-    def admin_or_user_unlocked
-      user&.admin? || (record.event.users.include?(user) && !record.report.locked?)
+    def team_member
+      record.event.users.include?(user)
     end
 
     def creator
-      record.report.user == user && !record.report.locked?
+      record.report.user == user
+    end
+
+    def unlocked
+      !record.report.locked?
     end
 
     def is_public

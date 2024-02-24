@@ -7,57 +7,69 @@ module Reimbursement
     end
 
     def new?
-      is_public || admin_or_user
+      admin || team_member
     end
 
     def create?
-      admin_or_user && !record.event.demo_mode && !record.event.outernet_guild?
+      admin || team_member && !record.event.demo_mode && !record.event.outernet_guild?
     end
 
     def show?
-      is_public || admin_or_user
+      is_public || admin || team_member || creator
     end
 
     def edit?
-      admin_or_user
+      admin || team_member || (creator && unlocked)
     end
 
     def update?
-      admin_or_user
-    end
-
-    def cancel?
-      admin_or_user
+      admin || team_member || (creator && unlocked)
     end
 
     def submit?
-      admin_or_user
+      (admin || team_member || creator) && unlocked
     end
 
     def draft?
-      admin_or_user
+      (admin || team_member || creator) && open
     end
 
     def request_reimbursement?
-      admin_or_user
+      (admin || team_member) && open
     end
 
     def request_changes?
-      admin_or_user
+      (admin || team_member) && open
     end
 
     def reject?
-      admin_or_user
+      (admin || team_member) && open
     end
 
     def admin_approve?
-      user&.admin?
+      admin && open
     end
 
     private
 
-    def admin_or_user
-      user&.admin? || record.event.users.include?(user)
+    def admin
+      user&.admin?
+    end
+
+    def team_member
+      record.event.users.include?(user)
+    end
+
+    def creator
+      record.user == user
+    end
+
+    def open
+      !record.closed?
+    end
+
+    def unlocked
+      !record.locked?
     end
 
     def is_public

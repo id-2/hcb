@@ -104,6 +104,10 @@ module Reimbursement
       submitted? || reimbursement_requested?
     end
 
+    def closed?
+      reimbursement_approved? || reimbursed? || rejected?
+    end
+
     def amount_cents
       expenses.sum(&:amount_cents)
     end

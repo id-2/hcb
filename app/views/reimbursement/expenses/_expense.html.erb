@@ -3,43 +3,39 @@
 <% new ||= false %>
 
 <%= turbo_frame_tag expense do %>
-  <% color = expense.report.rejected? ? "primary" : expense.pending? ? expense.report.reimbursement_requested? || expense.report.reimbursement_approved? ? "primary" : "warning" : "success" %>
-  <article id="<%= expense.hashid %>" class="expense card mt2 pt0 border b--<%= color %>" data-controller="expense-form" data-expense-form-enabled-value="<%= new %>" data-expense-form-locked-value="<%= expense.report.locked? %>" style="border-width: 1.5px; <%= expense.pending? && (expense.report.reimbursement_requested? || expense.report.reimbursement_approved?) ? "opacity: 0.2" : "" %>">
-  <div class="card__banner secondary mb2 b--info border-bottom border-smoke-important flex items-center" style="gap: 8px">
-      <code data-behavior="mention" data-mention-title="<%= expense.memo %>" class="bg-white tooltipped tooltipped--e pointer" style="padding: 2px 4px; border-radius: 4px;" aria-label="Click to reference in comment">@<%= expense.hashid %></code>
-      <div style="flex-grow: 1"></div>
-      <style>
-        [data-expense-form-enabled-value=true] #edit-or-save {
-          color: #33d6a6;
-          background-color: #33d6a620;
-        }
-        [data-expense-form-locked-value=true] #edit-or-save {
-          color: #ff8c37;
-          background-color: #ff8c3720;
-          cursor: no-drop!important;
-        }
-
-        [data-expense-form-locked-value=true] #edit-or-save:hover {
-          transform: none;
-          box-shadow: none!important;
-        }
-      </style>
-      <button id="edit-or-save" class="pop pointer" data-expense-form-target="button">
-        <%= inline_icon "checkmark", style: new ? nil : "display: none;" %>
-        <%= inline_icon expense.report.locked? ? "private" : "edit", style: new && !expense.report.locked? ? "display: none;" : nil %>
-      </button>
-      <%= pop_icon_to "view-close",
-                reimbursement_expense_path(expense.id),
-                method: :delete,
-                size: 24,
-                class: "error tooltipped tooltipped--w",
-                'aria-label': "Delete this expense",
-                data: { turbo: true } %>
-  </div>
-  <section class="grid grid--split">
-      <div>
-        <%= render partial: "reimbursement/expenses/form", locals: { expense:, new: } %>
-      </div>
+  <article
+    id="<%= expense.hashid %>"
+    class="
+      expense card mt2 pt0 border
+      b--<%= expense.status_color %>
+      <%= "translucent" if expense.rejected? && !report.rejected? %>
+    "
+    data-controller="expense-form"
+    data-expense-form-enabled-value="<%= new %>"
+    data-expense-form-locked-value="<%= expense.report.locked? %>">
+    <div class="card__banner secondary mb2 b--info border-bottom border-smoke-important flex items-center" style="gap: 8px">
+        <code
+          data-behavior="mention"
+          data-mention-title="<%= expense.memo %>"
+          class="bg-white tooltipped tooltipped--e pointer mention"
+          aria-label="Click to reference in comment">
+          @<%= expense.hashid %>
+        </code>
+        <div style="flex-grow: 1"></div>
+        <button id="edit-or-save" class="pop pointer" data-expense-form-target="button">
+          <%= inline_icon "checkmark", style: new ? nil : "display: none;" %>
+          <%= inline_icon expense.report.locked? ? "private" : "edit", style: new && !expense.report.locked? ? "display: none;" : nil %>
+        </button>
+        <%= pop_icon_to "view-close",
+                  reimbursement_expense_path(expense.id),
+                  method: :delete,
+                  size: 24,
+                  class: "error tooltipped tooltipped--w",
+                  'aria-label': "Delete this expense",
+                  data: { turbo: true } %>
+    </div>
+    <section class="grid grid--split">
+      <%= render partial: "reimbursement/expenses/form", locals: { expense:, new: } %>
       <%= render partial: "reimbursement/expenses/receipts", locals: { expense: } %>
     </section>
   </article>

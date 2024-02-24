@@ -413,3 +413,9 @@ html[data-dark='true'] {
     }
   }
 }
+
+.expense {
+  .mention {
+    color: $darker;
+  }
+}

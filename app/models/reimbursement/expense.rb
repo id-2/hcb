@@ -65,5 +65,16 @@ module Reimbursement
       true
     end
 
+    def rejected?
+      pending? && report.closed?
+    end
+
+    def status_color
+      return "primary" if report.rejected? || rejected?
+      return "warning" if pending?
+
+      "success"
+    end
+
   end
 end

@@ -134,7 +134,7 @@ module Reimbursement
     private
 
     def set_event_user_and_event
-      @report = Reimbursement::Report.find(params[:report_id])
+      @report = Reimbursement::Report.find(params[:report_id] || params[:id])
       @event = @report.event
       @user = @report.user
     end

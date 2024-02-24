@@ -6,6 +6,7 @@ module Reimbursement
 
     def create
       @report = Reimbursement::Report.find(params[:report_id])
+      @expense = @report.expenses.build(report: @report, amount_cents: 0)
 
       authorize @expense
 
@@ -69,7 +70,7 @@ module Reimbursement
     end
 
     def set_expense
-      @expense = @report.expenses.build(report: @report, amount_cents: 0)
+      @expense = Reimbursement::Expense.find(params[:expense_id] || params[:id])
     end
 
     def total_turbo_stream

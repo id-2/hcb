@@ -6,7 +6,7 @@
   <div class="flex flex-row items-center">
     <div style="flex-grow: 1;">
       <%= form.label :memo, "Memo", class: "bold" %>
-      <%= form.text_field :memo, placeholder: "Meal at SFO Airport", required: true, data: { "expense-form-target": "field", "action": "dblclick->expense-form#edit" }, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()" %>
+      <%= form.text_field :memo, placeholder: "Lunch during layover at SFO", required: true, data: { "expense-form-target": "field", "action": "dblclick->expense-form#edit" }, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()" %>
     </div>
 
     <span class="bold muted flex self-end items-center justify-center ml1" style="width: 1rem; height: 48px;">$</span>
@@ -23,7 +23,7 @@
         <%= inline_icon "markdown", size: 32 %> Additional context for this expense
       </span>
     </div>
-    <%= form.text_area :description, placeholder: "Focusing on...", class: "w-100 fit", data: { "expense-form-target": "field" } %>
+    <%= form.text_area :description, placeholder: "This was for...", class: "w-100 fit", data: { "expense-form-target": "field" } %>
   </div>
   <% if !expense.approved? && expense.report.submitted? %>
     <%= link_to reimbursement_expense_toggle_approved_path(expense_id: expense.id), class: "btn bg-info", method: :post do %>
