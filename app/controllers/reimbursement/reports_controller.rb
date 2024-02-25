@@ -35,6 +35,12 @@ module Reimbursement
       @report.assign_attributes(update_reimbursement_report_params)
       authorize @report
 
+      @allowed_events = if current_user.admin?
+                          Event.all.reorder(Event::CUSTOM_SORT)
+                        else
+                          current_user.events.not_hidden.without(@source_event).filter_demo_mode(false)
+                        end
+
       if @report.save
         flash[:success] = "Report successfully updated."
         redirect_to @report
@@ -147,7 +153,7 @@ module Reimbursement
     end
 
     def update_reimbursement_report_params
-      reimbursement_report_params = params.require(:reimbursement_report).permit(:report_name, :maximum_amount)
+      reimbursement_report_params = params.require(:reimbursement_report).permit(:report_name, :event_id, :maximum_amount)
       reimbursement_report_params[:maximum_amount] = reimbursement_report_params[:maximum_amount].presence
       reimbursement_report_params.delete(:maximum_amount) unless @current_user.admin? || @current_user != @report.user
       reimbursement_report_params
