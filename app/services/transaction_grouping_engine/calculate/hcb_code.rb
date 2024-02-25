@@ -8,6 +8,11 @@ module TransactionGroupingEngine
       HCB_CODE = "HCB"
       SEPARATOR = "-"
       UNKNOWN_CODE = "000"
+      # 001 — This type code exists in production to group transactions under
+      # `000` while preventing from the TX Engine from trying to re-group them.
+      # For context, `TransactionGroupingEngineJob::Nightly` will try to group
+      # any CanonicalTransactions with a `000`. `001` was used to manually group
+      # transactions together during an incident.
       INVOICE_CODE = "100"
       DONATION_CODE = "200"
       PARTNER_DONATION_CODE = "201"
@@ -22,6 +27,7 @@ module TransactionGroupingEngine
       INCOMING_BANK_FEE_CODE = "701" # short-lived and deprecated
       FEE_REVENUE_CODE = "702"
       ACH_PAYMENT_CODE = "800" # ALSO short-lived and deprecated
+      OUTGOING_FEE_REIMBURSEMENT_CODE = "900" # Note: many old fee reimbursements are still grouped under HCB-000
 
       def initialize(canonical_transaction_or_canonical_pending_transaction:)
         @ct_or_cp = canonical_transaction_or_canonical_pending_transaction
@@ -42,6 +48,7 @@ module TransactionGroupingEngine
         return stripe_card_hcb_code if raw_stripe_transaction
         return stripe_card_hcb_code_pending if raw_pending_stripe_transaction
         return ach_payment_hcb_code if ach_payment
+        return outgoing_fee_reimbursement_hcb_code if outgoing_fee_reimbursement?
 
         unknown_hcb_code
       end
@@ -210,6 +217,18 @@ module TransactionGroupingEngine
 
       def ach_payment
         @ct_or_cp.try :ach_payment
+      end
+
+      def outgoing_fee_reimbursement_hcb_code
+        [
+          HCB_CODE,
+          OUTGOING_FEE_REIMBURSEMENT_CODE,
+          @ct_or_cp.date.strftime("%G_%V"),
+        ].join(SEPARATOR)
+      end
+
+      def outgoing_fee_reimbursement?
+        @ct_or_cp.memo.downcase.include?("stripe fee reimbursement")
       end
 
       def unknown_hcb_code

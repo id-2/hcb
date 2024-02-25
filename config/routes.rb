@@ -151,7 +151,6 @@ Rails.application.routes.draw do
 
   resources :admin, only: [] do
     collection do
-      get "twilio_messaging", to: "admin#twilio_messaging"
       get "transaction_csvs", to: "admin#transaction_csvs"
       post "upload", to: "admin#upload"
       get "bank_accounts", to: "admin#bank_accounts"
@@ -187,6 +186,7 @@ Rails.application.routes.draw do
       get "balances", to: "admin#balances"
       get "grants", to: "admin#grants"
       get "check_deposits", to: "admin#check_deposits"
+      get "column_statements", to: "admin#column_statements"
 
       resources :grants, only: [] do
         post "approve"
@@ -221,12 +221,25 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :admin do
+    namespace :ledger_audits do
+      resources :tasks, only: [:index, :show] do
+        post :reviewed
+        post :flagged
+      end
+    end
+    resources :ledger_audits, only: [:index, :show]
+  end
+
   post "set_event/:id", to: "admin#set_event", as: :set_event
 
   resources :organizer_position_invites, only: [:show], path: "invites" do
     post "accept"
     post "reject"
     post "cancel"
+    member do
+      post "toggle_signee_status"
+    end
   end
 
   resources :organizer_positions, only: [:destroy], as: "organizers" do
@@ -272,12 +285,17 @@ Rails.application.routes.draw do
   end
 
   resources :stripe_cardholders, only: [:new, :create, :update]
+
+  namespace :stripe_cards do
+    resource :activation, only: [:new, :create], controller: :activation
+  end
   resources :stripe_cards, only: %i[create index show] do
-    get "edit"
-    post "update_name"
-    post "freeze"
-    post "defrost"
-    post "activate"
+    member do
+      get "edit"
+      post "update_name"
+      post "freeze"
+      post "defrost"
+    end
   end
   resources :emburse_cards, except: %i[new create]
 
@@ -336,7 +354,9 @@ Rails.application.routes.draw do
       get "attach_receipt"
       get "memo_frame"
       get "dispute"
+      get "breakdown"
       post "invoice_as_personal_transaction"
+      post "pin", to: "hcb_codes"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
     end
@@ -381,8 +401,8 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  get "branding", to: redirect("brand_guidelines")
-  get "brand_guidelines", to: "static_pages#brand_guidelines"
+  get "brand_guidelines", to: redirect("branding")
+  get "branding", to: "static_pages#branding"
   get "faq", to: "static_pages#faq"
   get "audit", to: "admin#audit"
 
@@ -475,16 +495,21 @@ Rails.application.routes.draw do
           resources :stripe_cards, path: "cards", only: [:index]
           resources :transactions, only: [:show, :update] do
             resources :receipts, only: [:create, :index]
+            resources :comments, only: [:index]
 
             member do
               get "memo_suggestions"
             end
           end
 
+          resources :disbursements, path: "transfers", only: [:create]
+
           member do
             get "transactions"
           end
         end
+
+        resources :transactions, only: [:show]
 
         resources :stripe_cards, path: "cards", only: [:show, :update] do
           member do
@@ -513,14 +538,9 @@ Rails.application.routes.draw do
 
   get "negative_events", to: "admin#negative_events"
 
-  get "admin_tasks", to: "admin#tasks"
   get "admin_task_size", to: "admin#task_size"
   get "admin_search", to: redirect("/admin/users")
   post "admin_search", to: redirect("/admin/users")
-
-  get "/integrations/frankly" => "integrations#frankly"
-
-  post "twilio/messaging", to: "admin#twilio_messaging"
 
   resources :tours, only: [] do
     member do
@@ -581,6 +601,7 @@ Rails.application.routes.draw do
 
     get "documentation", to: "events#documentation", as: :documentation
     get "transfers", to: "events#transfers", as: :transfers
+    get "statements", to: "events#statements", as: :statements
     get "promotions", to: "events#promotions", as: :promotions
     get "reimbursements", to: "events#reimbursements", as: :reimbursements
     get "donations", to: "events#donation_overview", as: :donation_overview
@@ -622,6 +643,8 @@ Rails.application.routes.draw do
       resources :organizer_position_deletion_requests, path: "removal-requests", as: "remove", only: [:new]
     end
 
+    resources :payment_recipients, only: [:destroy]
+
     member do
       post "disable_feature"
       post "enable_feature"
@@ -629,6 +652,7 @@ Rails.application.routes.draw do
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
       get "audit_log"
+      post "validate_slug"
     end
   end
 

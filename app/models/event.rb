@@ -8,7 +8,6 @@
 #  aasm_state                      :string
 #  activated_at                    :datetime
 #  address                         :text
-#  beta_features_enabled           :boolean
 #  can_front_balance               :boolean          default(TRUE), not null
 #  category                        :integer
 #  country                         :integer
@@ -115,14 +114,14 @@ class Event < ApplicationRecord
   scope :organized_by_teenagers, -> { includes(:event_tags).where(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }) }
   scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(includes(:event_tags).where(event_tags: { name: nil })) }
 
-  scope :event_ids_with_pending_fees_greater_than_0_v2, -> do
+  scope :event_ids_with_pending_fees, -> do
     query = <<~SQL
       ;select event_id, fee_balance from (
       select
       q1.event_id,
       COALESCE(q1.sum, 0) as total_fees,
       COALESCE(q2.sum, 0) as total_fee_payments,
-      COALESCE(q1.sum, 0) + COALESCE(q2.sum, 0) as fee_balance
+      CEIL(COALESCE(q1.sum, 0)) + CEIL(COALESCE(q2.sum, 0)) as fee_balance
 
       from (
           select
@@ -148,7 +147,7 @@ class Event < ApplicationRecord
 
       on q1.event_id = q2.event_id
       ) q3
-      where fee_balance > 0
+      where fee_balance != 0
       order by fee_balance desc
     SQL
 
@@ -156,7 +155,7 @@ class Event < ApplicationRecord
   end
 
   scope :pending_fees_v2, -> do
-    where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees_greater_than_0_v2.to_a.map { |a| a["event_id"] })
+    where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees.to_a.map { |a| a["event_id"] })
   end
 
   scope :demo_mode, -> { where(demo_mode: true) }
@@ -231,6 +230,7 @@ class Event < ApplicationRecord
   has_many :organizer_position_invites, dependent: :destroy
   has_many :organizer_positions, dependent: :destroy
   has_many :users, through: :organizer_positions
+  has_many :signees, -> { where(organizer_positions: { is_signee: true }) }, through: :organizer_positions, source: :user
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
 
@@ -246,6 +246,7 @@ class Event < ApplicationRecord
   has_many :emburse_transactions
 
   has_many :ach_transfers
+  has_many :payment_recipients
   has_many :disbursements
   has_many :incoming_disbursements, class_name: "Disbursement"
   has_many :outgoing_disbursements, class_name: "Disbursement", foreign_key: :source_event_id
@@ -275,6 +276,8 @@ class Event < ApplicationRecord
   has_many :tags, -> { includes(:hcb_codes) }
   has_and_belongs_to_many :event_tags
 
+  has_many :pinned_hcb_codes, class_name: "HcbCode::Pin"
+
   has_many :check_deposits
 
   belongs_to :partner, optional: true
@@ -291,7 +294,7 @@ class Event < ApplicationRecord
   has_one :increase_account_number
 
   has_one :column_account_number, class_name: "Column::AccountNumber"
-  delegate :account_number, :routing_number, to: :column_account_number, allow_nil: true
+  delegate :account_number, :routing_number, :bic_code, to: :column_account_number, allow_nil: true
 
   has_many :grants
 
@@ -331,6 +334,9 @@ class Event < ApplicationRecord
     end
   end
 
+  # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
+  after_validation :move_friendly_id_error_to_slug
+
   comma do
     id
     name
@@ -363,6 +369,7 @@ class Event < ApplicationRecord
     'grant recipient': 9,
     salary: 10, # e.g. Sam's Shillings
     ai: 11,
+    'hcb internals': 12 # eg. https://hcb.hackclub.com/clearing
   }
 
   enum stripe_card_shipping_type: {
@@ -370,10 +377,6 @@ class Event < ApplicationRecord
     express: 1,
     priority: 2,
   }
-
-  def country_us?
-    country == "US"
-  end
 
   def admin_formatted_name
     "#{name} (#{id})"
@@ -439,7 +442,7 @@ class Event < ApplicationRecord
   # This calculates v2 cents of settled (Canonical Transactions)
   # @return [Integer] Balance in cents (v2 transaction engine)
   def settled_balance_cents(start_date: nil, end_date: nil)
-    @balance_settled ||=
+    @settled_balance_cents ||=
       settled_incoming_balance_cents(start_date:, end_date:) +
       settled_outgoing_balance_cents(start_date:, end_date:)
   end
@@ -513,7 +516,14 @@ class Event < ApplicationRecord
   end
 
   def balance_available_v2_cents
-    @balance_available_v2_cents ||= balance_v2_cents - (can_front_balance? ? fronted_fee_balance_v2_cents : fee_balance_v2_cents)
+    @balance_available_v2_cents ||= begin
+      fee_balance = can_front_balance? ? fronted_fee_balance_v2_cents : fee_balance_v2_cents
+      if fee_balance.positive?
+        balance_v2_cents - fee_balance
+      else # `fee_balance` is negative, indicating a fee credit
+        balance_v2_cents
+      end
+    end
   end
 
   alias balance balance_v2_cents
@@ -640,6 +650,11 @@ class Event < ApplicationRecord
     pt_sum_by_hcb_code.reduce 0 do |sum, (hcb_code, pt_sum)|
       sum + [pt_sum - (ct_sum_by_hcb_code[hcb_code] || 0), 0].max
     end
+  end
+
+
+  def move_friendly_id_error_to_slug
+    errors.add :slug, *errors.delete(:friendly_id) if errors[:friendly_id].present?
   end
 
 end

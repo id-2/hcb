@@ -118,7 +118,7 @@ class StripeCard < ApplicationRecord
   end
 
   def formatted_card_number
-    return "•••• •••• •••• #{last4}" unless virtual?
+    return hidden_card_number_with_last_four unless virtual?
 
     full_card_number.scan(/.{4}/).join(" ")
   end
@@ -132,6 +132,8 @@ class StripeCard < ApplicationRecord
   end
 
   def hidden_card_number_with_last_four
+    return hidden_card_number unless activated?
+
     "•••• •••• •••• #{last4}"
   end
 
@@ -181,8 +183,6 @@ class StripeCard < ApplicationRecord
     save!
   end
 
-  alias_method :activate!, :defrost!
-
   def cancel!
     StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
     sync_from_stripe!
@@ -191,6 +191,13 @@ class StripeCard < ApplicationRecord
 
   def frozen?
     activated? && stripe_status == "inactive"
+  end
+
+  def last_frozen_by
+    user_id = versions.where_object_changes_to(stripe_status: "inactive").last&.whodunnit
+    return nil unless user_id
+
+    User.find_by_id(user_id)
   end
 
   def active?
@@ -226,7 +233,7 @@ class StripeCard < ApplicationRecord
   end
 
   def shipping_has_tracking?
-    stripe_obj[:shipping][:tracking_number].present?
+    stripe_obj&.shipping&.tracking_number&.present?
   end
 
   def self.new_from_stripe_id(params)
@@ -304,19 +311,19 @@ class StripeCard < ApplicationRecord
     return 10 if virtual?
 
     cost = 300
-    cost_type = stripe_obj["shipping"]["type"] + "|" + stripe_obj["shipping"]["service"]
+    cost_type = [stripe_obj["shipping"]["type"], stripe_obj["shipping"]["service"]]
     case cost_type
-    when "individual|standard"
+    when ["individual", "standard"]
       cost += 50
-    when "individual|express"
+    when ["individual", "express"]
       cost += 1600
-    when "individual|priority"
+    when ["individual", "priority"]
       cost += 2200
-    when "bulk|standard"
+    when ["bulk", "standard"]
       cost += 2500
-    when "bulk|express"
+    when ["bulk", "express"]
       cost += 3000
-    when "bulk|priority"
+    when ["bulk", "priority"]
       cost += 4800
     end
 

@@ -63,9 +63,6 @@
   <div>
     <div class="flex items-center">
       <% if @organizers.any? %>
-        <%= pop_icon_to "email",
-          "mailto:#{@organizers.map(&:user).map(&:email).join(',')}",
-          class: "info mr2" if admin_signed_in? %>
         <div class="flex items-center">
           <% @organizers.limit(5).each do |position| %>
             <div class="avatar-grow line-height-0 tooltipped tooltipped--s mr1" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">
@@ -105,16 +102,19 @@
         <%= link_to "All transactions (CSV)", transactions_exports_path(event: @event, format: :csv), target: :_blank %>
         <%= link_to "All transactions (JSON)", transactions_exports_path(event: @event, format: :json), target: :_blank %>
         <%= link_to "All transactions (Ledger)", transactions_exports_path(event: @event, format: :ledger), target: :_blank %>
+        <%= link_to "All Statements", event_statements_path(@event) %>
       </div>
     </div>
   <% end %>
 </h2>
 
+<%= render "pinned_transactions" %>
+
 <%= turbo_frame_tag :ledger, data: { turbo_action: "advance" } do %>
 
   <%= render partial: "filter" %>
 
-  <% if @pending_transactions.any? || @transactions.any? || @event.demo_mode? %>
+  <% if @pending_transactions.any? || @transactions.any? || show_mock_data? %>
     <div class="table-container" data-tour-step="transactions">
         <table>
           <thead>

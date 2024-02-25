@@ -16,7 +16,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-<%= Rails.env %>-16x16.png">
     <%= yield(:head) if content_for?(:head) %>
   </head>
-  <body data-turbo="<%= Flipper.enabled?(:turbo_2023_01_23, current_user) %>">
+  <body>
     <% flash.each do |key, value| %>
       <% if key == "error" %>
         <p style="text-align:center;background:red;color:white;"><%= value %></p>
@@ -30,7 +30,6 @@
 
     <p>
       <a class="skip-to-main" href="#main">Skip to main content</a>
-
       <nav>
         <%= link_to root_path, class: "nav-item role-badge text-decoration-none badge-#{current_user.access_level}" do %>
           <%= inline_icon "bank-account", size: 24 %>
@@ -195,5 +194,6 @@
     </div>
 
     <%= render "application/footer" unless (@no_app_shell || @hide_footer) %>
+    <%= render "application/command_bar" %>
   </body>
 </html>

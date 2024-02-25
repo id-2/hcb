@@ -1,0 +1,45 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "P6PV2R9443.com.hackclub.hcb",
+          "P6PV2R9443.com.hackclub.hcb.dev"
+        ],
+        "components": [
+          {
+            "/": "/invites/*",
+            "comment": "Invitations"
+          },
+          {
+            "/": "/hcb/*",
+            "comment": "Transaction detail pages"
+          },
+          {
+            "/": "/api/*",
+            "comment": "API + OAuth",
+            "exclude": true
+          },
+          {
+            "/": "/users/auth",
+            "comment": "Login page",
+            "exclude": true
+          },
+          {
+            "/": "/",
+            "comment": "Homepage",
+            "exclude": true
+          },
+          {
+            "/": "/admin/*",
+            "exclude": true
+          },
+          {
+            "/": "/?*",
+            "comment": "Organization homepages"
+          }
+        ]
+      }
+    ]
+  }
+}

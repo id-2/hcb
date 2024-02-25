@@ -33,6 +33,10 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin? || present_in_events?
   end
 
+  def pin?
+    user&.admin? || present_in_events?
+  end
+
   def toggle_tag?
     user&.admin? || present_in_events?
   end
@@ -42,6 +46,10 @@ class HcbCodePolicy < ApplicationPolicy
   end
 
   def link_receipt_modal?
+    user&.admin? || present_in_events?
+  end
+
+  def breakdown?
     user&.admin? || present_in_events?
   end
 

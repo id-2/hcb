@@ -1,4 +1,5 @@
 <% submit_disable_with_false ||= false %>
+<% action_buttons ||= nil %>
 
 <div class="events-filter-select">
   <%= form.label :transparent do %>
@@ -122,17 +123,4 @@
   <% end %>
 </fieldset>
 
-<div style='display: inline; border-radius: 0.2rem; padding: 0.2rem; margin-right: 0.5rem;'>
-  <% if submit_disable_with_false %>
-    <%= button_tag("Search", disable_with: false) %>
-  <% else %>
-    <%= form.submit "Search" %>
-  <% end %>
-  <% if show_new %>
-    <%= link_to event_new_admin_index_path do %>
-      <button class="bg-primary">
-        New Organization
-      </button>
-    <% end %>
-  <% end %>
-</div>
+<%= action_buttons %>

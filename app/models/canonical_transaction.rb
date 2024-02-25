@@ -58,7 +58,6 @@ class CanonicalTransaction < ApplicationRecord
   scope :column_transaction,   -> { joins("INNER JOIN raw_column_transactions   ON transaction_source_type = 'RawColumnTransaction'   AND raw_column_transactions.id  =  transaction_source_id") }
 
   scope :likely_hack_club_bank_issued_cards, -> { where("memo ilike 'Hack Club Bank Issued car%' or memo ilike 'HCKCLB Issued car%'") }
-  scope :likely_fee_reimbursement, -> { where(memo: "Stripe fee reimbursement") }
   scope :likely_github, -> { where("memo ilike '%github grant%'") }
   scope :likely_clearing_checks, -> { where("memo ilike '%Withdrawal - Inclearing Check #%' or memo ilike '%Withdrawal - On-Us Deposited Ite #%'") }
   scope :likely_checks, -> { where("memo ilike '%Check TO ACCOUNT REDACTED'") }
@@ -349,8 +348,6 @@ class CanonicalTransaction < ApplicationRecord
     memo.include?("HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::INVOICE_CODE}")
   end
 
-  private
-
   def write_hcb_code
     safely do
       code = ::TransactionGroupingEngine::Calculate::HcbCode.new(canonical_transaction_or_canonical_pending_transaction: self).run
@@ -360,6 +357,8 @@ class CanonicalTransaction < ApplicationRecord
       ::HcbCodeService::FindOrCreate.new(hcb_code: code).run
     end
   end
+
+  private
 
   def hashed_transaction
     @hashed_transaction ||= begin

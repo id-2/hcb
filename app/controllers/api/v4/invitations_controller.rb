@@ -13,7 +13,7 @@ module Api
       def show; end
 
       def accept
-        unless @invitation.accept
+        unless @invitation.accept(show_onboarding: false)
           raise ActiveRecord::RecordInvalid.new(@invitation)
         end
 
@@ -31,7 +31,11 @@ module Api
       private
 
       def set_invitation
-        @invitation = authorize OrganizerPositionInvite.find_by_public_id!(params[:id])
+        @invitation = authorize OrganizerPositionInvite.find_by_public_id(params[:id]) || OrganizerPositionInvite.friendly.find(params[:id])
+
+        if @invitation.cancelled? || @invitation.rejected? || @invitation.user != current_user
+          raise ActiveRecord::RecordNotFound
+        end
       end
 
     end

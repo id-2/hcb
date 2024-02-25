@@ -2,35 +2,9 @@
 
 class AdminController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:twilio_messaging]
-  skip_before_action :verify_authenticity_token, only: [:twilio_messaging] # do not use CSRF token checking for API routes
-  before_action :signed_in_admin, except: [:twilio_messaging]
+  before_action :signed_in_admin
 
   layout "application"
-
-  def twilio_messaging
-    ::MfaCodeService::Create.new(message: params[:Body]).run
-
-    # Don't reply to incoming sms message
-    # https://support.twilio.com/hc/en-us/articles/223134127-Receive-SMS-and-MMS-Messages-without-Responding
-    respond_to do |format|
-      format.xml { render xml: "<Response></Response>" }
-    end
-  end
-
-  def tasks
-    @active = pending_tasks
-    @pending_actions = @active.values.any? { |e| e.nonzero? }
-    @blankslate_message = [
-      "You look great today, #{current_user.first_name}.",
-      "You’re a *credit* to your team, #{current_user.first_name}.",
-      "Everybody thinks you’re amazing, #{current_user.first_name}.",
-      "You’re every organizer’s favorite team member.",
-      "You’re so good at finances, even we think your balance is outstanding.",
-      "You’re sweeter than a savings account.",
-      "Though they don't show it off, those flowers sure are pretty."
-    ].sample
-  end
 
   def task_size
     starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -241,7 +215,7 @@ class AdminController < ApplicationController
   end
 
   def event_balance
-    @event = Event.find(params[:id])
+    @event = Event.friendly.find(params[:id])
     @balance = Rails.cache.fetch("admin_event_balance_#{@event.id}", expires_in: 5.minutes) do
       @event.balance.to_i
     end
@@ -987,18 +961,27 @@ class AdminController < ApplicationController
   def balances
     @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : nil
     @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : nil
+    @monthly_breakdown = params[:monthly_breakdown] || false
 
     if @start_date && @end_date && @start_date > @end_date
       flash[:info] = "Do you really want the Start Date to be after the End Date?"
     end
 
-    @events = filtered_events
+    @events = filtered_events.includes(:event_tags)
 
     render_balance = ->(event, type) {
       ApplicationController.helpers.render_money(event.send(type, start_date: @start_date, end_date: @end_date))
     }
+
+    render_monthly_revenue = ->(event, year, month) {
+      key = Date.new(year, month, 1).strftime("%Y-%m")
+      ApplicationController.helpers.render_money(
+        @monthly_revenue.dig(event.id, key) || 0
+      )
+    }
+
+    # Must be wrapped in lambdas
     template = [
-      # Must be wrapped in lambdas
       [:organization_id, ->(e) { e.id }],
       [:organization_name, ->(e) { e.name }],
       [:net_balance, ->(e) { render_balance.call(e, :settled_balance_cents) }],
@@ -1007,6 +990,38 @@ class AdminController < ApplicationController
       [:start_date, ->(_) { @start_date }],
       [:end_date, ->(_) { @end_date }]
     ]
+
+
+    if @monthly_breakdown
+      template.concat(
+        [
+          [:category, ->(e) { e.category }],
+          [:tags, ->(e) { e.event_tags.pluck(:name).join(",") }],
+          [:joined, ->(e) { e.activated_at || e.created_at }],
+        ]
+      )
+      @monthly_revenue =
+        begin
+          sql_query = CanonicalTransaction.joins(:canonical_event_mapping)
+                                          .where("canonical_transactions.amount_cents > ?", 0)
+                                          .group("canonical_event_mappings.event_id, date_trunc('month', canonical_transactions.created_at)")
+                                          .select("date_trunc('month', canonical_transactions.created_at) AS month,
+                               COALESCE(SUM(canonical_transactions.amount_cents), 0) AS revenue,
+                               canonical_event_mappings.event_id AS event_id")
+                                          .to_sql
+          ActiveRecord::Base.connection.exec_query(sql_query).each_with_object({}) do |item, result|
+            result[item["event_id"]] ||= {}
+            result[item["event_id"]][item["month"].strftime("%Y-%m")] = item["revenue"].to_i
+          end
+        end
+      monthly_revenue_columns = (2018..Date.current.year).flat_map do |year|
+        (1..12).take_while { |month| (year == Date.current.year && month <= Date.current.month) || year < Date.current.year }
+               .map { |month| ["monthly_revenue_#{Date::MONTHNAMES[month]}_#{year}", ->(e) { render_monthly_revenue.call(e, year, month) }] }
+      end
+
+      template.concat(monthly_revenue_columns)
+    end
+
     serializer = ->(event) do
       template.to_h.transform_values do |field|
         field.call(event)
@@ -1065,6 +1080,14 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @check_deposits = CheckDeposit.page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
+  def column_statements
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @statements = Column::Statement.page(@page).per(@per).order(created_at: :desc)
 
     render layout: "admin"
   end
@@ -1160,13 +1183,14 @@ class AdminController < ApplicationController
 
   def airtable_task_size(task_name)
     info = airtable_info[task_name]
-    task = Faraday
-           .new { |c| c.response :json }
-           .get(info[:url], { select: info[:query].to_json })
-           .body
+    task = Faraday.new { |c|
+      c.response :json
+      c.authorization :Bearer, Rails.application.credentials.airtable[:pat]
+    }.get("https://api.airtable.com/v0/#{info[:id]}/#{info[:table]}", info[:query]).body["records"]
 
     task.size
-  rescue Faraday::Error
+  rescue => e
+    Airbrake.notify(e)
     9999 # return something invalidly high to get the ops team to report it
   end
 

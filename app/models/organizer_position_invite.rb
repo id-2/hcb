@@ -70,7 +70,7 @@ class OrganizerPositionInvite < ApplicationRecord
   belongs_to :user
   belongs_to :sender, class_name: "User"
 
-  belongs_to :organizer_position, required: false
+  belongs_to :organizer_position, optional: true
 
   validate :not_already_organizer
   validate :not_already_invited, on: :create
@@ -85,7 +85,7 @@ class OrganizerPositionInvite < ApplicationRecord
     OrganizerPositionInvitesMailer.with(invite: self).notify.deliver_later
   end
 
-  def accept
+  def accept(show_onboarding: true)
     if cancelled?
       self.errors.add(:base, "was canceled!")
       return false
@@ -99,7 +99,8 @@ class OrganizerPositionInvite < ApplicationRecord
     self.organizer_position = OrganizerPosition.new(
       event:,
       user:,
-      is_signee:
+      is_signee:,
+      first_time: show_onboarding,
     )
 
     self.accepted_at = Time.current

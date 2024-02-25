@@ -41,6 +41,8 @@ class IncreaseChecksController < ApplicationController
 
     redirect_to increase_check_process_admin_path(@check), flash: { success: "Check has been sent!" }
 
+  rescue Faraday::Error => e
+    redirect_to increase_check_process_admin_path(@check), flash: { error: "Something went wrong: #{e.response_body["message"]}" }
   rescue => e
     redirect_to increase_check_process_admin_path(@check), flash: { error: e }
   end
@@ -65,6 +67,8 @@ class IncreaseChecksController < ApplicationController
       :address_line2,
       :address_city,
       :address_state,
+      :recipient_email,
+      :send_email_notification,
       :address_zip,
       file: []
     )

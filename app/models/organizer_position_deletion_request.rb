@@ -36,7 +36,7 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
   include Commentable
 
   belongs_to :submitted_by, class_name: "User"
-  belongs_to :closed_by, class_name: "User", required: false
+  belongs_to :closed_by, class_name: "User", optional: true
   belongs_to :organizer_position, with_deleted: true
   has_one :event, through: :organizer_position
 
@@ -80,6 +80,26 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
     self.closed_by = nil
     self.closed_at = nil
     self.save
+  end
+
+  def organizer_missing_receipts
+    organizer_position.user.transactions_missing_receipt.select do |hcb_code|
+      hcb_code.event == organizer_position.event
+    end
+  end
+
+  def organizer_active_cards
+    organizer_stripe_cards.active
+  end
+
+  def organizer_last_signee?
+    event.signees.size == 1 && organizer_position.signee?
+  end
+
+  private
+
+  def organizer_stripe_cards
+    organizer_position.user.stripe_cards.where(event: organizer_position.event)
   end
 
 end

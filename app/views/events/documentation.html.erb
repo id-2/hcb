@@ -9,19 +9,23 @@
   <ul class="grid">
     <%= link_to(v3_path) do %>
       <li class="card card--hover">
-        <span class="flex items-center">
-          <h3 class="mt1 mb0">API Docs</h3>
-          <span class="badge nowrap bg-success mt1">New</span>
-        </span>
+        <h3 class="mt1 mb0">API Docs</h3>
         <p class="mb1 mt1">The HCB API.</p>
       </li>
     <% end %>
 
-    <%= link_to(brand_guidelines_path) do %>
+    <%= link_to(branding_path) do %>
     <li class="card card--hover">
       <h3 class="mt1 mb0">Branding</h3>
       <p class="mb1 mt1">How and when to use our logo.</p>
     </li>
+    <% end %>
+
+    <%= link_to(event_statements_path(@event)) do %>
+      <li class="card card--hover">
+        <h3 class="mt1 mb0">Statements</h3>
+        <p class="mb1 mt1">A.K.A where'd all my money go?</p>
+      </li>
     <% end %>
 
     <% if organizer_signed_in? %>

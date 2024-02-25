@@ -9,7 +9,15 @@ module Column
     def webhook
       @object = params[:data]
       type = params[:type]
-      self.send "handle_#{type.tr(".", "_")}"
+      if type == "ach.incoming_transfer.scheduled"
+        handle_ach_incoming_transfer_scheduled
+      elsif type == "ach.outgoing_transfer.returned"
+        handle_ach_outgoing_transfer_returned
+      elsif type.start_with?("check.incoming_debit")
+        handle_outgoing_check_update
+      end
+    rescue => e
+      notify_airbrake(e)
     ensure
       head :ok
     end
@@ -30,6 +38,21 @@ module Column
       end
 
       # at this point, the ACH is approved!
+    end
+
+    def handle_ach_outgoing_transfer_returned
+      AchTransfer.find_by(column_id: @object[:id])&.mark_failed!(reason: @object[:return_details].pick(:description)&.gsub(/\(trace #: \d+\)\Z/, "")&.strip)
+    end
+
+    def handle_outgoing_check_update
+      check = IncreaseCheck.find_by(column_id: @object[:id])
+
+      check&.update!(
+        column_object: @object,
+        check_number: @object[:check_number],
+        column_status: @object[:status],
+        column_delivery_status: @object[:delivery_status],
+      )
     end
 
     def verify_signature
