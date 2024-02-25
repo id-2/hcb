@@ -116,6 +116,7 @@ html {
   --hcb-tx-2: #1a1a1a;
   --hcb-bg-1: #ffffff;
   --hcb-bg-2: #e0e6ed;
+  --hcb-bg-2-5: #f9fafc;
   --hcb-bg-3: #e0e6ed;
   --hcb-link-1: #8492a6;
   --hcb-link-2: #3c4858;
@@ -134,6 +135,7 @@ html[data-dark='true'] {
   --hcb-tx-2: #e0e6ed;
   --hcb-bg-1: #17171d;
   --hcb-bg-2: #121217;
+  --hcb-bg-2-5: #121217;
   --hcb-bg-3: #252429;
   --hcb-link-1: #8492a6;
   --hcb-link-2: #3c4858;
@@ -211,8 +213,6 @@ button {
 body {
   /* Center body in page */
   margin: 0 auto;
-  max-width: 1500px;
-  padding: 2rem;
   border-radius: 6px;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -596,7 +596,7 @@ video {
 .pagination span.current,
 .pagination span.gap {
   float: left;
-  padding: 0 8px 0 0;
+  padding: 8px;
   line-height: 19px;
   text-decoration: none;
   border-left-width: 0;
@@ -715,7 +715,24 @@ video {
 
 /* The navigation bar used for admin pages */
 
-@media screen and (min-width: 480px) {
+.nav-row {
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+
+.nav-row > *:not(:last-child) > summary {
+  border-right: 1px solid var(--hcb-bg-3)!important;
+}
+
+@media screen and (min-width: 800px) {
+  .nav-row {
+    flex-direction: row;
+  }
+
+  .details:active {
+    pointer-events: none;
+  }
+
   nav {
     display: flex; 
     align-items: center; 
@@ -762,21 +779,31 @@ video {
 .sub-items {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  background: var(--hcb-bg-2-5);
+  outline: 1px solid var(--hcb-bg-3);
+  border-radius: 0px 0px 4px 4px;
+  z-index: 999;
+  overflow: visible;
+  position: relative;
+  margin-top: 4px;
+}
+
+.sub-items > a:last-child {
+  border-radius: 0px 0px 4px 4px;
 }
 
 .sub-items > a {
   text-transform: capitalize;
-  color: white;
+  pointer-events: auto;
+  color: var(--hcb-tx-1);
   text-decoration: none;
-  background: map-get($palette, slate);
-  border-radius: 8px;
+  background: var(--hcb-bg-2-5);
   min-width: 220px;
-  border-radius: 8px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
+  &:not(:first-child) { border-top: 1px solid var(--hcb-bg-3); }
 }
 
 .badge {
@@ -788,23 +815,22 @@ video {
 }
 
 .sub-items > a:hover {
-  color: white;
-  background: map-get($palette, black);
-  background-image: linear-gradient(rgba(map-get($palette, info), 0.4), rgba(map-get($palette, info), 0.4));
+  color: var(--hcb-tx-1);
+  background: var(--hcb-bg-2);
 }
 
 .nav-item {
-  background: rgba(51, 142, 218, 0.4);
   padding: 4px 12px;
-  border-radius: 8px;
   display: flex;
   align-items: center;
-  color: white;
   gap: 4px;
 }
 
+.nav-item > .dropdown {
+  background: var(--hcb-bg-2-5);
+}
+
 .nav-item:hover {
-  color: white;
 }
 
 .role-badge {
@@ -860,4 +886,8 @@ summary {
 
 .events-filter-select > label > input {
   flex-grow: 1
+}
+
+.logo {
+  height: 36px;
 }
