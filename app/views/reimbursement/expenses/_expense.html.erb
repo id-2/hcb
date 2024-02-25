@@ -45,12 +45,12 @@
       <%= render partial: "reimbursement/expenses/receipts", locals: { expense: } %>
     </section>
   </article>
-  <section data-behavior="modal" role="dialog" id="move_<%= expense.hashid  %>" class="modal modal--scroll bg-snow">
+  <section data-behavior="modal" role="dialog" id="move_<%= expense.hashid %>" class="modal modal--scroll bg-snow">
     <%= modal_header "Move Expense" %>
     <%= form_with(model: expense, class: "mb3 mt1", style: "max-width: 600px;", local: true, data: { turbo: false }) do |form| %>
       <div class="field event-select-target">
         <%= form.label :reimbursement_report_id, "Move To A Pre-Existing Report", class: "mt2 bold" %>
-        <%= form.select(:reimbursement_report_id, 
+        <%= form.select(:reimbursement_report_id,
             current_user.admin? ?
               Reimbursement::Report.all.excluding(expense.report).reject { |r| r.locked? }.map { |report| [report.name, report.id] } :
               current_user.reimbursement_reports.excluding(expense.report).reject { |r| r.closed? || r.locked? }.map { |report| [report.name, report.id] },
@@ -61,7 +61,7 @@
       </div>
       <div class="field event-select-target">
         <%= form.label :event_id, "Create A New Report", class: "mt2 bold" %>
-        <%= form.select(:event_id, 
+        <%= form.select(:event_id,
             current_user.admin? ?
               Event.all.reorder(Event::CUSTOM_SORT).map { |event| [event.name, event.id] } :
               current_user.events.not_hidden.filter_demo_mode(false).map { |event| [event.name, event.id] },

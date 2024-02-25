@@ -28,7 +28,7 @@ module Reimbursement
       authorize @expense
 
       @expense.update!(expense_params.except(:event_id))
-      
+
       if expense_params[:event_id].presence
         event = Event.friendly.find(expense_params[:event_id])
         report = event.reimbursement_reports.build({
@@ -78,6 +78,7 @@ module Reimbursement
     def expense_params
       expense_params = params.require(:reimbursement_expense).permit(:amount, :memo, :description, :reimbursement_report_id, :event_id)
       return expense_params.except(:reimbursement_report_id) unless expense_params[:reimbursement_report_id].presence
+
       expense_params
     end
 
