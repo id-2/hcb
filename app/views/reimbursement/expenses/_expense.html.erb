@@ -22,6 +22,12 @@
           @<%= expense.hashid %>
         </code>
         <div style="flex-grow: 1"></div>
+        <%= pop_icon_to "enter",
+                  "#",
+                  size: 24,
+                  class: "purple tooltipped tooltipped--w",
+                  'aria-label': "Move this expense",
+                  data: { behavior: "modal_trigger", modal: "move_#{expense.hashid}" } %>
         <button id="edit-or-save" class="pop pointer" data-expense-form-target="button">
           <%= inline_icon "checkmark", style: new ? nil : "display: none;" %>
           <%= inline_icon expense.report.locked? ? "private" : "edit", style: new && !expense.report.locked? ? "display: none;" : nil %>
@@ -39,6 +45,34 @@
       <%= render partial: "reimbursement/expenses/receipts", locals: { expense: } %>
     </section>
   </article>
+  <section data-behavior="modal" role="dialog" id="move_<%= expense.hashid  %>" class="modal modal--scroll bg-snow">
+    <%= modal_header "Move Expense" %>
+    <%= form_with(model: expense, class: "mb3 mt1", style: "max-width: 600px;", local: true, data: { turbo: false }) do |form| %>
+      <div class="field event-select-target">
+        <%= form.label :reimbursement_report_id, "Move To A Pre-Existing Report", class: "mt2 bold" %>
+        <%= form.select(:reimbursement_report_id, 
+            current_user.admin? ?
+              Reimbursement::Report.all.excluding(expense.report).reject { |r| r.locked? }.map { |report| [report.name, report.id] } :
+              current_user.reimbursement_reports.excluding(expense.report).reject { |r| r.closed? || r.locked? }.map { |report| [report.name, report.id] },
+            { prompt: "Select a report…", required: true, include_blank: "Select a report..." }) %>
+        <% unless admin_signed_in? %>
+          <span class="muted mt1">You can transfer an expense to any report of yours.</span>
+        <% end %>
+      </div>
+      <div class="field event-select-target">
+        <%= form.label :event_id, "Create A New Report", class: "mt2 bold" %>
+        <%= form.select(:event_id, 
+            current_user.admin? ?
+              Event.all.reorder(Event::CUSTOM_SORT).map { |event| [event.name, event.id] } :
+              current_user.events.not_hidden.filter_demo_mode(false).map { |event| [event.name, event.id] },
+            { prompt: "Select an event…", required: true }) %>
+        <% unless admin_signed_in? %>
+          <span class="muted mt1">You can transfer an expense to any report of yours.</span>
+        <% end %>
+      </div>
+      <%= form.submit "Update Expense", class: "mt2" %>
+    <% end %>
+  </section>
 <% end %>
 
 <% if new %>

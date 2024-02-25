@@ -27,7 +27,17 @@ module Reimbursement
     def update
       authorize @expense
 
-      @expense.update!(expense_params)
+      @expense.update!(expense_params.except(:event_id))
+      
+      if expense_params[:event_id].presence
+        event = Event.friendly.find(expense_params[:event_id])
+        report = event.reimbursement_reports.build({
+          report_name: "Untitled Report"
+        }.merge(user: @expense.report.user))
+        report.save!
+        @expense.reimbursement_report_id = report.id
+        @expense.save!
+      end
 
       respond_to do |format|
         format.turbo_stream { render turbo_stream: on_update_streams }
@@ -66,7 +76,9 @@ module Reimbursement
     private
 
     def expense_params
-      params.require(:reimbursement_expense).permit(:amount, :memo, :description)
+      expense_params = params.require(:reimbursement_expense).permit(:amount, :memo, :description, :reimbursement_report_id, :event_id)
+      return expense_params.except(:reimbursement_report_id) unless expense_params[:reimbursement_report_id].presence
+      expense_params
     end
 
     def set_expense
