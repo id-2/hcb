@@ -16,7 +16,7 @@ class ReceiptPolicy < ApplicationPolicy
   private
 
   def unlocked?
-    !record&.receiptable&.respond_to?(:locked) ? true : !record.receiptable.locked?
+    !record&.receiptable.respond_to?(:locked) ? true : !record.receiptable.locked?
   end
 
 end
