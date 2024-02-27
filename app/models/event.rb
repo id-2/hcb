@@ -276,7 +276,7 @@ class Event < ApplicationRecord
   has_many :tags, -> { includes(:hcb_codes) }
   has_and_belongs_to_many :event_tags
 
-  has_many :hcb_code_pins, class_name: "HcbCode::Pin"
+  has_many :pinned_hcb_codes, class_name: "HcbCode::Pin"
 
   has_many :check_deposits
 
@@ -369,6 +369,7 @@ class Event < ApplicationRecord
     'grant recipient': 9,
     salary: 10, # e.g. Sam's Shillings
     ai: 11,
+    'hcb internals': 12 # eg. https://hcb.hackclub.com/clearing
   }
 
   enum stripe_card_shipping_type: {

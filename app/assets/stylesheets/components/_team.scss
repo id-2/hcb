@@ -25,3 +25,14 @@
     bottom: -2.5px;
   }
 }
+
+@media (max-width: 26rem) {
+  .organizer-position-invite__main-info, .organizer-position-invite__contact-block {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .organizer-position-invite__contact-block-separator {
+    display: none;
+  }
+}

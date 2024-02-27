@@ -499,6 +499,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.text "user_agent"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.datetime "deleted_at", precision: nil
     t.index ["document_id"], name: "index_document_downloads_on_document_id"
     t.index ["user_id"], name: "index_document_downloads_on_user_id"
   end
@@ -510,6 +511,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.text "slug"
+    t.datetime "deleted_at", precision: nil
     t.index ["event_id"], name: "index_documents_on_event_id"
     t.index ["slug"], name: "index_documents_on_slug", unique: true
     t.index ["user_id"], name: "index_documents_on_user_id"

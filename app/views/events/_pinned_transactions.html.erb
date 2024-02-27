@@ -1,6 +1,6 @@
-<% if @event.hcb_code_pins.any? && @event.hcb_code_pins.size > 0 %>
+<% if @event.pinned_hcb_codes.any? %>
   <div class="flex pinned__container">
-    <% @event.hcb_code_pins.each do |pin| %>
+    <% @event.pinned_hcb_codes.each do |pin| %>
       <%= link_to pin.hcb_code, style: "color: inherit !important" do %>
         <div class="pinned__transaction bg-smoke">
           <% if organizer_signed_in? %>
@@ -18,7 +18,7 @@
           <% end %>
 
           <p class="eyebrow mb1 mt1" style="font-weight: 900; opacity: 0.7">
-            <%= pin.hcb_code.date.strftime("%b #{pin.hcb_code.date.day.ordinalize}, %Y") %> &bull; <%= render_money pin.hcb_code.amount %>
+            <%= pin.hcb_code.date.strftime("%b #{pin.hcb_code.date.day.ordinalize}, %Y") %> &bull; <%= render_money pin.hcb_code.amount_cents_by_event(@event) %>
           </p>
           <p class="pinned__transaction__text pinned__transaction__text--memo">
             <%= pin.hcb_code.memo %>
