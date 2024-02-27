@@ -28,7 +28,7 @@ class HcbCodeMailbox < ApplicationMailbox
       end
     end
 
-    if @attachments&.any?
+    if @attachments&.any? && (@commands.empty? || mail.attachments.any?)
       result = ::ReceiptService::Create.new(
         receiptable: @hcb_code,
         uploader: @user,
