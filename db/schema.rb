@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1536,6 +1536,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_29_192145) do
     t.datetime "canceled_at"
     t.boolean "migrated_from_legacy_stripe_account", default: false
     t.text "message"
+    t.boolean "anonymous", default: false, null: false
     t.index ["event_id"], name: "index_recurring_donations_on_event_id"
     t.index ["stripe_subscription_id"], name: "index_recurring_donations_on_stripe_subscription_id", unique: true
     t.index ["url_hash"], name: "index_recurring_donations_on_url_hash", unique: true
