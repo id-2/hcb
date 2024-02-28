@@ -550,6 +550,9 @@
 .display-none {
   display: none !important;
 }
+.hidden {
+  display: none;
+}
 .h-fit-content {
   height: fit-content;
 }

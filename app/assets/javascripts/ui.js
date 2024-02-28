@@ -328,6 +328,19 @@ $(document).on('turbo:load', function () {
     })
   }
   
+  if (BK.thereIs('check_payout_method_inputs') && BK.thereIs('ach_transfer_payout_method_inputs')) {
+    const checkPayoutMethodInputs = BK.s('check_payout_method_inputs')
+    const achTransferPayoutMethodInputs = BK.s('ach_transfer_payout_method_inputs')
+    const checkPayoutMethodInput = $('#user_payout_method_type_userpayoutmethodcheck')
+    const achTransferPayoutMethodInput = $('#user_payout_method_type_userpayoutmethodachtransfer')
+    $(checkPayoutMethodInput).on('change', e => {
+      if (e.target.checked) checkPayoutMethodInputs.slideDown() && achTransferPayoutMethodInputs.slideUp()
+    })
+    $(achTransferPayoutMethodInput).on('change', e => {
+      if (e.target.checked) achTransferPayoutMethodInputs.slideDown() && checkPayoutMethodInputs.slideUp()
+    })
+  }
+  
   if (BK.s('reimbursement_report_email_input')) {
     const emailInput = $('#reimbursement_report_other_email')
     emailInput.hide()

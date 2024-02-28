@@ -10,6 +10,7 @@
 #  email                    :text
 #  full_name                :string
 #  locked_at                :datetime
+#  payout_method_type       :string
 #  phone_number             :text
 #  phone_number_verified    :boolean          default(FALSE)
 #  preferred_name           :string
@@ -23,6 +24,7 @@
 #  use_sms_auth             :boolean          default(FALSE)
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
+#  payout_method_id         :bigint
 #  webauthn_id              :string
 #
 # Indexes
@@ -97,6 +99,9 @@ class User < ApplicationRecord
   has_one_attached :profile_picture
 
   has_one :partner, inverse_of: :representative
+  
+  belongs_to :payout_method, polymorphic: true, optional: true
+  accepts_nested_attributes_for :payout_method
 
   has_encrypted :birthday, type: :date
 
@@ -236,6 +241,10 @@ class User < ApplicationRecord
 
       HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
     end
+  end
+  
+  def build_payout_method(params)
+    self.payout_method = payout_method_type.constantize.new(params)
   end
 
   private

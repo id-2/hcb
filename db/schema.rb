@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_21_211947) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_28_075719) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1805,6 +1805,24 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_21_211947) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "user_payout_method_ach_transfers", force: :cascade do |t|
+    t.text "account_number_ciphertext"
+    t.text "routing_number_ciphertext"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "user_payout_method_checks", force: :cascade do |t|
+    t.text "address_line1"
+    t.text "address_line2"
+    t.text "address_city"
+    t.text "address_country"
+    t.text "address_postal_code"
+    t.text "address_state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "user_sessions", force: :cascade do |t|
     t.bigint "user_id"
     t.datetime "created_at", null: false
@@ -1849,6 +1867,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_21_211947) do
     t.string "preferred_name"
     t.integer "access_level", default: 0, null: false
     t.text "birthday_ciphertext"
+    t.string "payout_method_type"
+    t.bigint "payout_method_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

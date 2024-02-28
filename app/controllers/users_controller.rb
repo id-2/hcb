@@ -6,6 +6,7 @@ class UsersController < ApplicationController
   skip_after_action :verify_authorized, except: [:edit, :update]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
   before_action :migrate_return_to, only: [:auth, :auth_submit, :choose_login_preference, :login_code, :exchange_login_code, :webauthn_auth]
+  before_action :set_states, only: [:edit_payout, :edit_address, :update]
 
   wrap_parameters format: :url_encoded_form
 
@@ -291,14 +292,15 @@ class UsersController < ApplicationController
 
   def edit_address
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
-    @states = [
-      ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] },
-      ISO3166::Country.new("CA").subdivisions.values.map { |s| [s.translations["en"], s.code] }
-    ].flatten(1)
     redirect_to edit_user_path(@user) unless @user.stripe_cardholder
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+    authorize @user
+  end
+  
+  def edit_payout
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     authorize @user
   end
 
@@ -359,6 +361,10 @@ class UsersController < ApplicationController
         @user.unlock!
       end
     end
+    
+    if user_params[:payout_method_type] && user_params[:payout_method_type] != @user.payout_method_type
+      @user.payout_method = nil
+    end
 
     if @user.update(user_params)
       confetti! if !@user.seasonal_themes_enabled_before_last_save && @user.seasonal_themes_enabled? # confetti if the user enables seasonal themes
@@ -380,6 +386,10 @@ class UsersController < ApplicationController
       if @user.stripe_cardholder&.errors&.any?
         flash.now[:error] = @user.stripe_cardholder.errors.first.full_message
         render :edit_address, status: :unprocessable_entity and return
+      end
+      if @user.payout_method&.errors&.any?
+        flash.now[:error] = @user.payout_method.errors.first.full_message
+        render :edit_payout, status: :unprocessable_entity and return
       end
       render :edit, status: :unprocessable_entity
     end
@@ -447,7 +457,8 @@ class UsersController < ApplicationController
       :session_duration_seconds,
       :receipt_report_option,
       :birthday,
-      :seasonal_themes_enabled
+      :seasonal_themes_enabled,
+      :payout_method_type
     ]
 
     if @user.stripe_cardholder
@@ -459,6 +470,28 @@ class UsersController < ApplicationController
           :stripe_billing_address_state,
           :stripe_billing_address_postal_code,
           :stripe_billing_address_country
+        ]
+      }
+    end
+    
+    if params.require(:user)[:payout_method_type] == User::PayoutMethod::Check.name
+      attributes << {
+        payout_method_attributes: [
+          :address_line1,
+          :address_line2,
+          :address_city,
+          :address_state,
+          :address_postal_code,
+          :address_country
+        ]
+      }
+    end
+    
+    if params.require(:user)[:payout_method_type] == User::PayoutMethod::AchTransfer.name
+      attributes << {
+        payout_method_attributes: [
+          :account_number,
+          :routing_number
         ]
       }
     end
@@ -490,6 +523,13 @@ class UsersController < ApplicationController
         params[:return_to] = uri.to_s
       end
     end
+  end
+  
+  def set_states 
+    @states = [
+      ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] },
+      ISO3166::Country.new("CA").subdivisions.values.map { |s| [s.translations["en"], s.code] }
+    ].flatten(1)
   end
 
 end
