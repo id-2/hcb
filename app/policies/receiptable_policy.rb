@@ -20,9 +20,9 @@ class ReceiptablePolicy < ApplicationPolicy
     events = record.try(:events) || [record.event]
     events.select { |e| e.try(:users).try(:include?, user) }.present?
   end
-  
+
   def user_made_expense?
-    record.is_a?(Reimbursement::Expense) && record&.report.user == user
+    record.is_a?(Reimbursement::Expense) && record&.report&.user == user
   end
 
   def user_made_purchase?
