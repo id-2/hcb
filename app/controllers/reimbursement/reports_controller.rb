@@ -8,7 +8,7 @@ module Reimbursement
     def create
       @event = Event.friendly.find(report_params[:event_id])
       user = User.find_or_create_by!(email: report_params[:email])
-      @report = @event.reimbursement_reports.build(report_params.merge(user:))
+      @report = @event.reimbursement_reports.build(report_params.except(:email).merge(user:))
 
       authorize @report
 
@@ -23,6 +23,7 @@ module Reimbursement
       @commentable = @report
       @comments = @commentable.comments
       @comment = Comment.new
+      @use_user_nav = true if current_user == @user && !@event.users.include?(@user)
 
       authorize @report
     end

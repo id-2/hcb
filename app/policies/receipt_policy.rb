@@ -6,7 +6,8 @@ class ReceiptPolicy < ApplicationPolicy
       (record&.receiptable&.event&.users&.include?(user) && unlocked?) ||
       # Checking if receiptable is nil prevents unauthorized
       # deletion when user no longer has access to an org
-      (record&.receiptable.nil? && record&.user == user)
+      (record&.receiptable.nil? && record&.user == user) ||
+      (record&.receiptable.instance_of?(Reimbursement::Expense) && record&.user == user)
   end
 
   def link?

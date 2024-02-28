@@ -26,7 +26,7 @@ module Reimbursement
       (admin || team_member || creator) && unlocked
     end
 
-    def toggle_approve?
+    def toggle_approved?
       admin || team_member
     end
 

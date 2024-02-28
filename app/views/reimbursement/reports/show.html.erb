@@ -1,6 +1,7 @@
 <% title @report.name %>
 <% page_md %>
-<%= render "events/nav", selected: :reimbursements %>
+<%= render "events/nav", selected: :reimbursements unless @use_user_nav %>
+<%= render "users/nav", selected: :reimbursements if @use_user_nav %>
 
 <div class="mt4">
     <h3 class="mt2 mb1 muted flex" style="font-weight: 400; gap: 4px;">
@@ -10,7 +11,8 @@
         <%= "was reimbursed " if @report.reimbursed? %>
         <%= "requested " if @report.rejected? %>
         <%= "is requesting " unless @report.closed? %>
-        <%= render "total", report: @report %> for
+        <%= render "total", report: @report %>
+        <%= "from #{@event.name}" if @use_user_nav %> for
       </span>
       <span class="ml0 badge bg-<%= @report.status_color %>"><%= @report.status_text %></span>
       <% if !@report.closed? %>

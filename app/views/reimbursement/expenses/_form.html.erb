@@ -25,15 +25,17 @@
     </div>
     <%= form.text_area :description, placeholder: "This was for...", class: "w-100 fit", data: { "expense-form-target": "field" } %>
   </div>
-  <% if !expense.approved? && expense.report.submitted? %>
-    <%= link_to reimbursement_expense_toggle_approved_path(expense_id: expense.id), class: "btn bg-info", method: :post do %>
-      <%= inline_icon "thumbsup" %>
-      Approve
-    <% end %>
-  <% elsif expense.report.submitted? %>
-    <%= link_to reimbursement_expense_toggle_approved_path(expense_id: expense.id), class: "btn bg-muted", method: :post do %>
-      <%= inline_icon "reply" %>
-      Revert Approval
+  <% if admin_signed_in? || expense.report.event.users.include?(current_user) %>
+    <% if !expense.approved? && expense.report.submitted? %>
+      <%= link_to reimbursement_expense_toggle_approved_path(expense_id: expense.id), class: "btn bg-info", method: :post do %>
+        <%= inline_icon "thumbsup" %>
+        Approve
+      <% end %>
+    <% elsif expense.report.submitted? %>
+      <%= link_to reimbursement_expense_toggle_approved_path(expense_id: expense.id), class: "btn bg-muted", method: :post do %>
+        <%= inline_icon "reply" %>
+        Revert Approval
+      <% end %>
     <% end %>
   <% end %>
 <% end %>
