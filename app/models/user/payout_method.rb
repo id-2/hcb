@@ -6,4 +6,5 @@ class User
       "user_payout_method_"
     end
   end
+
 end

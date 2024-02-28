@@ -11,7 +11,7 @@
 #  updated_at                :datetime         not null
 #
 class User
-  module User::PayoutMethod
+  module PayoutMethod
     class AchTransfer < ApplicationRecord
       has_one :user, as: :payment_method
       has_encrypted :account_number, :routing_number
@@ -20,4 +20,5 @@ class User
 
     end
   end
+
 end
