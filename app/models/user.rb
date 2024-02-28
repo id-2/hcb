@@ -99,7 +99,7 @@ class User < ApplicationRecord
   has_one_attached :profile_picture
 
   has_one :partner, inverse_of: :representative
-  
+
   belongs_to :payout_method, polymorphic: true, optional: true
   accepts_nested_attributes_for :payout_method
 
@@ -242,7 +242,7 @@ class User < ApplicationRecord
       HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
     end
   end
-  
+
   def build_payout_method(params)
     self.payout_method = payout_method_type.constantize.new(params)
   end

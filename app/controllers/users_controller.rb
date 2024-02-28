@@ -298,7 +298,7 @@ class UsersController < ApplicationController
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     authorize @user
   end
-  
+
   def edit_payout
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     authorize @user
@@ -361,7 +361,7 @@ class UsersController < ApplicationController
         @user.unlock!
       end
     end
-    
+
     if user_params[:payout_method_type] && user_params[:payout_method_type] != @user.payout_method_type
       @user.payout_method = nil
     end
@@ -473,7 +473,7 @@ class UsersController < ApplicationController
         ]
       }
     end
-    
+
     if params.require(:user)[:payout_method_type] == User::PayoutMethod::Check.name
       attributes << {
         payout_method_attributes: [
@@ -486,7 +486,7 @@ class UsersController < ApplicationController
         ]
       }
     end
-    
+
     if params.require(:user)[:payout_method_type] == User::PayoutMethod::AchTransfer.name
       attributes << {
         payout_method_attributes: [
@@ -524,8 +524,8 @@ class UsersController < ApplicationController
       end
     end
   end
-  
-  def set_states 
+
+  def set_states
     @states = [
       ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] },
       ISO3166::Country.new("CA").subdivisions.values.map { |s| [s.translations["en"], s.code] }

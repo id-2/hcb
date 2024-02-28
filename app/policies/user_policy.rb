@@ -16,7 +16,7 @@ class UserPolicy < ApplicationPolicy
   def edit_address?
     user.admin? || record == user
   end
-  
+
   def edit_payout?
     user.admin? || record == user
   end
