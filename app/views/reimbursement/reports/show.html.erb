@@ -125,7 +125,24 @@
     </div>
 
     <div style="flex-grow: 1;" class="flex justify-end">
-      <% if @report.draft? %>
+      <% if !@user.payout_method.present? %>
+        <% if @user == current_user %>
+          <%= link_to settings_payouts_path, class: "btn bg-warning" do %>
+            <%= inline_icon "profile" %>
+            Add Payout Information
+          <% end %>
+        <% elsif admin_signed_in? %>
+          <%= link_to payouts_user_path(@user), class: "btn bg-warning" do %>
+            <%= inline_icon "profile" %>
+            Add Payout Information
+          <% end %>
+        <% else %>
+          <div class="btn bg-warning disabled">
+            <%= inline_icon "profile" %>
+            Missing Payout Information
+          </div>
+        <% end %>
+      <% elsif @report.draft? %>
         <%= link_to reimbursement_report_submit_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
           <%= inline_icon "send" %>
           Submit & Request Review

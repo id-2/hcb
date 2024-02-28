@@ -57,7 +57,11 @@ module Reimbursement
       state :rejected
 
       event :mark_submitted do
-        transitions from: [:draft, :reimbursement_requested], to: :submitted
+        transitions from: [:draft, :reimbursement_requested], to: :submitted do
+          guard do
+            user.payout_method.present?
+          end
+        end
       end
 
       event :mark_reimbursement_requested do
