@@ -8,8 +8,16 @@
   <%= render "settings_nav", active: "payouts" %>
   <section>
     <%= form_with model: @user, data: { turbo: false } do |form| %>
+      <h2 class="h2">Reimbursement Payouts</h2>
+      <div class="card border b--info pb0 mt2 mb3">
+        When a <%= link_to "reimbursement report of yours", my_reimbursements_path %> is approved, HCB will use the information below to reimburse you. Without this information, you won't be able to submit reimbursement reports for review. You can update these settings at any time.
+        <div class="border-top card__banner card__darker secondary mt2">
+          <strong>Questions?</strong>
+          <%= help_message %>
+        </div>
+      </div>
       <fieldset>
-        <legend class="heading h2 pt2 pb2">How would you like to be reimbursed?</legend>
+        <legend class="heading h3 pb2">How would you like to reimbursed?</legend>
         <div class="field field--options">
           <%= form.radio_button :payout_method_type, "User::PayoutMethod::AchTransfer" %>
           <%= form.label :payout_method_type, value: "User::PayoutMethod::AchTransfer" do %>
