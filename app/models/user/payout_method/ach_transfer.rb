@@ -10,8 +10,8 @@
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #
-module User
-  module PayoutMethod
+class User
+  module User::PayoutMethod
     class AchTransfer < ApplicationRecord
       has_one :user, as: :payment_method
       has_encrypted :account_number, :routing_number

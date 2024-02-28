@@ -14,7 +14,7 @@
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #
-module User
+class User
   module PayoutMethod
     class Check < ApplicationRecord
       has_one :user, as: :payment_method
