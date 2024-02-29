@@ -293,12 +293,6 @@ class Donation < ApplicationRecord
     recurring_donation&.name || super
   end
 
-  def anonymous
-    recurring_donation&.anonymous || super
-  end
-
-  alias_method :anonymous?, :anonymous
-
   def email
     recurring_donation&.email || super
   end
