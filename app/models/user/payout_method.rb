@@ -5,6 +5,10 @@ class User
     def self.table_name_prefix
       "user_payout_method_"
     end
+
+    def type
+      "unknown"
+    end
   end
 
 end

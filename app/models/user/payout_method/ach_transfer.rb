@@ -17,6 +17,9 @@ class User
       has_encrypted :account_number, :routing_number
       validates :routing_number, format: { with: /\A\d{9}\z/, message: "must be 9 digits" }
       validates :account_number, format: { with: /\A\d+\z/, message: "must be only numbers" }
+      def type
+        "ach_transfer"
+      end
 
     end
   end
