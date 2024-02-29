@@ -3,6 +3,8 @@
 module Reimbursement
   class ReportsController < ApplicationController
     before_action :set_event_user_and_event, except: [:create]
+    skip_before_action :signed_in_user, only: [:show]
+    skip_after_action :verify_authorized, only: [:show]
 
     # POST /reimbursement_reports
     def create
@@ -20,6 +22,11 @@ module Reimbursement
     end
 
     def show
+      if !signed_in?
+        url_queries = { return_to: reimbursement_report_path(@report) }
+        url_queries[:email] = params[:email] if params[:email]
+        return redirect_to auth_users_path(url_queries), flash: { info: "To continue, please sign in with the email you received the invite to." }
+      end
       @commentable = @report
       @comments = @commentable.comments
       @comment = Comment.new
