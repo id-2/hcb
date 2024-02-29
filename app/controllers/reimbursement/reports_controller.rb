@@ -147,7 +147,7 @@ module Reimbursement
     end
 
     def report_params
-      report_params = params.require(:reimbursement_report).permit(:report_name, :maximum_amount, :event_id, :user_email, :other_email)
+      report_params = params.require(:reimbursement_report).permit(:report_name, :maximum_amount, :event_id, :user_email, :other_email, :invite_message)
       report_params[:maximum_amount] = report_params[:maximum_amount].presence
       report_params[:email] = report_params[:user_email] == "other" ? report_params[:other_email] : report_params[:user_email]
       report_params.except(:user_email, :other_email)

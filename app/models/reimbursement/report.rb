@@ -47,6 +47,10 @@ module Reimbursement
 
     include AASM
     include Commentable
+    
+    after_create_commit do
+      ReimbursementMailer.with(report: self).invitation.deliver_later
+    end
 
     aasm do
       state :draft, initial: true
@@ -62,6 +66,9 @@ module Reimbursement
             user.payout_method.present?
           end
         end
+        after do
+          ReimbursementMailer.with(report: self).review_requested.deliver_later if user.payout_method.present?
+        end
       end
 
       event :mark_reimbursement_requested do
@@ -70,10 +77,16 @@ module Reimbursement
 
       event :mark_reimbursement_approved do
         transitions from: :reimbursement_requested, to: :reimbursement_approved
+        after do
+          ReimbursementMailer.with(report: self).reimbursement_approved.deliver_later
+        end
       end
 
       event :mark_rejected do
         transitions from: [:draft, :submitted, :reimbursement_requested], to: :rejected
+        after do
+          ReimbursementMailer.with(report: self).rejected.deliver_later
+        end
       end
 
       event :mark_draft do

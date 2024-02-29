@@ -42,6 +42,9 @@ module Reimbursement
 
       event :mark_approved do
         transitions from: :pending, to: :approved
+        after do
+          ReimbursementMailer.with(report: self.report, expense: self).expense_approved.deliver_later
+        end
       end
 
       event :mark_pending do
