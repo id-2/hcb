@@ -45,7 +45,7 @@ class RawColumnTransaction < ApplicationRecord
 
     raise
   rescue
-    if amount_cents.positive?
+    if (amount_cents || column_transaction["available_amount"]).positive?
       "DEPOSIT"
     else
       "WITHDRAWAL"
