@@ -15,7 +15,7 @@ class ReimbursementMailer < ApplicationMailer
 
   def rejected
     @report = params[:report]
-  
+
     mail to: @report.user.email, subject: "#{@report.name}: Rejected", from: email_address_with_name("hcb@hackclub.com", "#{@report.event.name} via HCB")
   end
 

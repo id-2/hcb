@@ -47,7 +47,7 @@ module Reimbursement
 
     include AASM
     include Commentable
-    
+
     after_create_commit do
       ReimbursementMailer.with(report: self).invitation.deliver_later
     end

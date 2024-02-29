@@ -10,7 +10,7 @@ class ReimbursementMailerPreview < ActionMailer::Preview
     @report = Reimbursement::Report.last
     ReimbursementMailer.with(report: @report).reimbursement_approved
   end
-  
+
   def rejected
     @report = Reimbursement::Report.last
     ReimbursementMailer.with(report: @report).rejected
