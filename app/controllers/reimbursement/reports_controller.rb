@@ -25,7 +25,7 @@ module Reimbursement
       if !signed_in?
         url_queries = { return_to: reimbursement_report_path(@report) }
         url_queries[:email] = params[:email] if params[:email]
-        return redirect_to auth_users_path(url_queries), flash: { info: "To continue, please sign in with the email you received the invite to." }
+        return redirect_to auth_users_path(url_queries), flash: { info: "To continue, please sign in with the email you received the invite." }
       end
       @commentable = @report
       @comments = @commentable.comments
