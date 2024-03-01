@@ -1,6 +1,6 @@
 <%= turbo_frame_tag "receipts_for_" + expense.to_s do %>
   <div class="w-100 h-100 flex">
-    <%= form_with(url: upload_receipts_path, method: "post", class: "w-100 h-100 flex flex-column justify-center reimbursement-dropzone",
+    <%= form_with(url: receipts_path, method: "post", class: "w-100 h-100 flex flex-column justify-center reimbursement-dropzone",
       data: {
         turbo: "false",
         controller: "file-drop form",
