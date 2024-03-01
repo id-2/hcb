@@ -88,7 +88,7 @@
 
 <h2 class="heading">
   Transactions
-  <% if @event.canonical_transactions.exists? %>
+  <% if @event.canonical_transactions.any? %>
     <div data-controller="menu" data-menu-placement-value="bottom-end" class="ml-auto">
       <button
         type="button"
@@ -132,9 +132,9 @@
           <tbody data-behavior="transactions">
             <%= render "pending_fee_transaction" if @event.fronted_fee_balance_v2_cents > 0 %>
 
-            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true } %>
+            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true }, cached: !organizer_signed_in? %>
 
-            <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true } %>
+            <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true }, cached: !organizer_signed_in? %>
         </tbody>
         </table>
     </div>
