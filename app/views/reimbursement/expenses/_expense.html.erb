@@ -27,7 +27,7 @@
                   size: 24,
                   class: "purple tooltipped tooltipped--w",
                   'aria-label': "Move this expense",
-                  data: { behavior: "modal_trigger", modal: "move_#{expense.hashid}" } unless expense.locked? && !admin_signed_in? && !expense.report.event.users.include?(current_user) %>
+                  data: { behavior: "modal_trigger", modal: "move_#{expense.hashid}" } unless expense.locked? && (expense.report.closed? || (!admin_signed_in? && !expense.report.event.users.include?(current_user))) %>
         <button id="edit-or-save" class="pop pointer" data-expense-form-target="button">
           <%= inline_icon "checkmark", style: new ? nil : "display: none;" %>
           <%= inline_icon expense.report.locked? ? "private" : "edit", style: new && !expense.report.locked? ? "display: none;" : nil %>
@@ -38,7 +38,7 @@
                   size: 24,
                   class: "error tooltipped tooltipped--w",
                   'aria-label': "Delete this expense",
-                  data: { turbo: true } unless expense.locked? && !admin_signed_in? && !expense.report.event.users.include?(current_user) %>
+                  data: { turbo: true } unless expense.locked? && (expense.report.closed? || (!admin_signed_in? && !expense.report.event.users.include?(current_user))) %>
     </div>
     <section class="grid grid--split">
       <%= render partial: "reimbursement/expenses/form", locals: { expense:, new: } %>
