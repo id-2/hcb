@@ -100,7 +100,10 @@ class User < ApplicationRecord
 
   has_one :partner, inverse_of: :representative
 
-  belongs_to :payout_method, polymorphic: true, optional: true
+  # a user does not actually belong to its payout method,
+  # but this is a convenient way to set up the association.
+
+  belongs_to :payout_method, polymorphic: true, optional: true 
   accepts_nested_attributes_for :payout_method
 
   has_encrypted :birthday, type: :date
