@@ -16,7 +16,6 @@ module TransactionEngine
       CLEARING_CHECK_MEMO_PART2 = "WITHDRAWAL - ON-US DEPOSITED ITE #"
       DDA_CHECK_MEMO_PART1 = "FROM DDA#80007609524 ON"
       DDA_CHECK_MEMO_PART2 = "AT"
-      OUTGOING_BANK_FEE_MEMO = "HACK CLUB BANK FEE"
 
       private
 
@@ -30,10 +29,6 @@ module TransactionEngine
 
       def memo_upcase
         @memo_upcase ||= memo.upcase
-      end
-
-      def outgoing_bank_fee?
-        memo_upcase.include?(OUTGOING_BANK_FEE_MEMO)
       end
 
       def outgoing_check?
@@ -57,7 +52,8 @@ module TransactionEngine
       end
 
       def increase_check?
-        @canonical_transaction.raw_increase_transaction&.increase_transaction&.dig("source", "category").in? ["check_transfer_intention", "check_transfer_deposit"]
+        @canonical_transaction.raw_increase_transaction&.increase_transaction&.dig("source", "category").in?(["check_transfer_intention", "check_transfer_deposit"]) ||
+          @canonical_transaction.raw_column_transaction&.column_transaction&.dig("transaction_type")&.start_with?("check.incoming_debit")
       end
 
       def check_deposit?
