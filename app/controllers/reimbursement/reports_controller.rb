@@ -128,13 +128,19 @@ module Reimbursement
 
       @report.mark_draft!
 
-      @comment = @report.comments.build(params.require(:comment).permit(:content, :file, :admin_only, :action))
-      @comment.user = current_user
+      the_comment = params.require(:comment).permit(:content, :file, :admin_only, :action)
 
-      if @comment.save
-        flash[:success] = "We've notified #{@report.user.name} of your requested changes."
+      unless the_comment[:content].blank?
+        @comment = @report.comments.build(the_comment)
+        @comment.user = current_user
+
+        if @comment.save
+          flash[:success] = "We've notified #{@report.user.name} of your requested changes."
+        else
+          flash[:error] = @report.errors.full_messages.to_sentence
+        end
       else
-        flash[:error] = @report.errors.full_messages.to_sentence
+        flash[:success] = "We've sent this report back to #{@report.user.name} and marked it as a draft."
       end
 
       redirect_to @report
