@@ -11,7 +11,7 @@ module HasAttachments
         {
           io: StringIO.new(atta.decoded),
           content_type: atta.content_type,
-          filename: atta.filename
+          filename: atta.filename,
         }
       end
 
@@ -19,7 +19,7 @@ module HasAttachments
 
       if (content = html || text || body)
         @attachments = [{
-          io: StringIO.new(WickedPdf.new.pdf_from_string(content)),
+          io: StringIO.new(WickedPdf.new.pdf_from_string(content, encoding: "UTF-8")),
           content_type: "application/pdf",
           filename: "Email_#{(mail.subject || Time.now.strftime("%Y%m%d%H%M")).gsub(/[^0-9A-Za-z]/, '').slice(0, 30)}.pdf"
         }]
@@ -27,7 +27,7 @@ module HasAttachments
     end
 
     def bounce_missing_attachments
-      bounce_with HcbCodeReceiptsMailer.with(mail: inbound_email, reply_to: mail.to.first).bounce_missing_attachment
+      bounce_with HcbCodeMailer.with(mail: inbound_email, reply_to: mail.to.first).bounce_missing_attachment
     end
 
   end
