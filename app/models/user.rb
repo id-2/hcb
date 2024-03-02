@@ -248,6 +248,7 @@ class User < ApplicationRecord
 
   def build_payout_method(params)
     return unless payout_method_type
+
     self.payout_method = payout_method_type.constantize.new(params)
   end
 
