@@ -8,9 +8,9 @@
 </p>
 
 <p>
-  <% if @report.user&.payout_method&.type == "check" %>
+  <% if @report.user&.payout_method&.kind == "check" %>
     You'll receive a check for from us in approximately 10-12 business days.
-  <% elsif @report.user&.payout_method&.type == "ach_transfer" %>
+  <% elsif @report.user&.payout_method&.kind == "ach_transfer" %>
     You'll receive an ACH transfer from us in approximately 2-3 business days.
   <% else %>
     We don't have a payout method on file for you, <%= link_to "please configure one here", settings_payouts_url %>

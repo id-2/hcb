@@ -6,7 +6,7 @@ class User
       "user_payout_method_"
     end
 
-    def type
+    def kind
       "unknown"
     end
   end
