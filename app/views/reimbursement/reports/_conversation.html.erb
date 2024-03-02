@@ -4,13 +4,12 @@
      "reimbursement_requested" => ["thumbsup", "success", "approved this report as an organizer"],
      "reimbursement_approved"  => ["admin", "warning", "approved this report on behalf of the HCB team"],
      "draft"                   => ["docs", "muted", "converted this report to a draft"],
+     "draft_created"           => ["docs", "muted", "created this draft report"],
      "reimbursed"              => ["docs", "purple", "initiated a reimbursement"],
    } %>
-
 <h2 class="flex items-center">
   <span style="flex-grow: 1">Conversation</span>
 </h2>
-
 <article>
   <ul class="list-reset comments mb5">
     <% versions = @report.versions.select { |version| version.changeset.any? { |field, changes| changes.any?(&:present?) } } %>
@@ -24,7 +23,11 @@
         <% state_change = item.changeset["aasm_state"]&.second %>
         <li class="conversation_item mt2" style="margin-bottom: 24px;">
           <% if state_change %>
-            <% icon, color, message = changes[state_change] %>
+            <% if state_change == "draft" && item.changeset["aasm_state"]&.first.nil? %>
+              <% icon, color, message = changes["draft_created"] %>
+            <% else %>
+              <% icon, color, message = changes[state_change] %>
+            <% end %>
             <div class="flex flex-row items-center" style="gap: 16px">
               <div class="flex items-center justify-center z2 pop no_hover bg-<%= color %>-important" style="color: white;">
                 <%= inline_icon icon, width: 30 %>
@@ -52,7 +55,7 @@
                 </span>
                 <span class="align-middle"><%= item.event %>d this report</span>
                 <span class="tooltipped tooltipped--n align-middle" aria-label="<%= item.created_at.strftime("%b %e, %Y") %>">
-                <%= time_ago_in_words item.created_at %> ago</span>
+                  <%= time_ago_in_words item.created_at %> ago</span>
               </div>
             </div>
             <% if item.event == "update" %>
@@ -71,6 +74,5 @@
       <% end %>
     <% end %>
   </ul>
-
   <%= render "comments/form" %>
 </article>
