@@ -130,7 +130,9 @@ module Reimbursement
 
       the_comment = params.require(:comment).permit(:content, :file, :admin_only, :action)
 
-      unless the_comment[:content].blank?
+      if the_comment[:content].blank?
+        flash[:success] = "We've sent this report back to #{@report.user.name} and marked it as a draft."
+      else
         @comment = @report.comments.build(the_comment)
         @comment.user = current_user
 
@@ -139,8 +141,6 @@ module Reimbursement
         else
           flash[:error] = @report.errors.full_messages.to_sentence
         end
-      else
-        flash[:success] = "We've sent this report back to #{@report.user.name} and marked it as a draft."
       end
 
       redirect_to @report
