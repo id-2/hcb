@@ -25,7 +25,7 @@ module Reimbursement
       if !signed_in?
         url_queries = { return_to: reimbursement_report_path(@report) }
         url_queries[:email] = params[:email] if params[:email]
-        return redirect_to auth_users_path(url_queries), flash: { info: "To continue, please sign in with the email you received the invite." }
+        return redirect_to auth_users_path(url_queries), flash: { info: "To continue, please sign in with the email which received the invite." }
       end
       @commentable = @report
       @comments = @commentable.comments
@@ -40,14 +40,9 @@ module Reimbursement
     end
 
     def update
-      @report.assign_attributes(update_reimbursement_report_params)
       authorize @report
 
-      @allowed_events = if current_user.admin?
-                          Event.all.reorder(Event::CUSTOM_SORT)
-                        else
-                          current_user.events.not_hidden.without(@source_event).filter_demo_mode(false)
-                        end
+      @report.assign_attributes(update_reimbursement_report_params)
 
       if @report.save
         flash[:success] = "Report successfully updated."
@@ -137,7 +132,7 @@ module Reimbursement
       @comment.user = current_user
 
       if @comment.save
-        flash[:success] = "Changes requested; the creator will be notified."
+        flash[:success] = "We've notified #{@report.user.name} of your requested changes."
       else
         flash[:error] = @report.errors.full_messages.to_sentence
       end
