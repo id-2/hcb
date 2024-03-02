@@ -20,7 +20,7 @@ class User
       has_one :user, as: :payment_method
       validates_presence_of :address_line1, :address_city, :address_postal_code
       validates_presence_of :address_state, message: "Please select a state!"
-      validates :address_state, inclusion: { in: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"], message: "This isn't a valid US state!", allow_blank: true }
+      validates :address_state, inclusion: { in: ISO3166::Country["US"].states.keys, message: "This isn't a valid US state!", allow_blank: true }
       validates :address_postal_code, format: { with: /\A\d{5}(?:[-\s]\d{4})?\z/, message: "This isn't a valid ZIP code." }
       def type
         "check"
