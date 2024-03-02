@@ -132,7 +132,7 @@ module Reimbursement
       @comment.user = current_user
 
       if @comment.save
-        flash[:success] = "Changes requested; the creator will be notified."
+        flash[:success] = "We've notified #{@report.user.name} of your requested changes."
       else
         flash[:error] = @report.errors.full_messages.to_sentence
       end
