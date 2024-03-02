@@ -545,10 +545,7 @@ class UsersController < ApplicationController
   end
 
   def set_states
-    @states = [
-      ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] },
-      ISO3166::Country.new("CA").subdivisions.values.map { |s| [s.translations["en"], s.code] }
-    ].flatten(1)
+    @states = ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] }
   end
 
 end
