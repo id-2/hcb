@@ -44,12 +44,6 @@ module Reimbursement
 
       @report.assign_attributes(update_reimbursement_report_params)
 
-      @allowed_events = if current_user.admin?
-                          Event.all.reorder(Event::CUSTOM_SORT)
-                        else
-                          current_user.events.not_hidden.without(@source_event).filter_demo_mode(false)
-                        end
-
       if @report.save
         flash[:success] = "Report successfully updated."
         redirect_to @report
