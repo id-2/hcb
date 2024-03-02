@@ -34,7 +34,7 @@ module Reimbursement
       record&.report&.user == user
     end
 
-    alias receiptable_upload?, user_made_purchase?
+    alias receiptable_upload? user_made_expense?
 
     private
 

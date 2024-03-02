@@ -24,7 +24,7 @@ class ApplicationMailer < ActionMailer::Base
     else
       name = "HCB"
     end
-  
+
     email_address_with_name("hcb@hackclub.com", name)
   end
 

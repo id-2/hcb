@@ -2,11 +2,11 @@
 
 class ReceiptablePolicy < ApplicationPolicy
   def link?
-    user&.admin? || present_in_events? || user_made_purchase?
+    user&.admin? || present_in_events? || policy(record).try(:receiptable_upload?)
   end
 
   def link_modal?
-    user&.admin? || present_in_events? || user_made_purchase?
+    user&.admin? || present_in_events? || policy(record).try(:receiptable_upload?)
   end
 
   def upload?

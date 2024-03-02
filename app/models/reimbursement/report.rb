@@ -129,6 +129,12 @@ module Reimbursement
       expenses.sum(&:amount_cents)
     end
 
+    def amount_to_reimburse
+      return [expenses.approved.sum(&:amount), maximum_amount].min if maximum_amount
+
+      expenses.approved.sum(&:amount)
+    end
+
     def last_reimbursement_requested_by
       last_user_change_to(aasm_state: "reimbursement_requested")
     end

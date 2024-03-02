@@ -29,7 +29,7 @@ class ReimbursementMailer < ApplicationMailer
     @report = params[:report]
     @expense = params[:expense]
 
-    mail to: @report.user.email, subject: "#{@expense.memo} (#{@report.name}): Expense Approved", from: hcb_email_with_name_of(@report.event)
+    mail to: @report.user.email, subject: "An update on your reimbursement for #{@expense.memo}", from: hcb_email_with_name_of(@report.event)
   end
 
 end

@@ -57,7 +57,7 @@ class HcbCodePolicy < ApplicationPolicy
     record.stripe_card? && record.stripe_cardholder&.user == user
   end
 
-  alias receiptable_upload?, user_made_purchase?
+  alias receiptable_upload? user_made_purchase?
 
   private
 
