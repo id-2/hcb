@@ -4,19 +4,19 @@ class ReimbursementMailer < ApplicationMailer
   def invitation
     @report = params[:report]
 
-    mail to: @report.user.email, subject: "Get reimbursed by #{@report.event.name} for #{@report.name}", from: email_address_with_name("hcb@hackclub.com", "#{@report.event.name} via HCB")
+    mail to: @report.user.email, subject: "Get reimbursed by #{@report.event.name} for #{@report.name}", from: hcb_email_with_name_of(@report.event)
   end
 
   def reimbursement_approved
     @report = params[:report]
 
-    mail to: @report.user.email, subject: "#{@report.name}: Reimbursement Approved", from: email_address_with_name("hcb@hackclub.com", "#{@report.event.name} via HCB")
+    mail to: @report.user.email, subject: "#{@report.name}: Reimbursement Approved", from: hcb_email_with_name_of(@report.event)
   end
 
   def rejected
     @report = params[:report]
 
-    mail to: @report.user.email, subject: "#{@report.name}: Reimbursement Rejected", from: email_address_with_name("hcb@hackclub.com", "#{@report.event.name} via HCB")
+    mail to: @report.user.email, subject: "#{@report.name}: Reimbursement Rejected", from: hcb_email_with_name_of(@report.event)
   end
 
   def review_requested
@@ -29,7 +29,7 @@ class ReimbursementMailer < ApplicationMailer
     @report = params[:report]
     @expense = params[:expense]
 
-    mail to: @report.user.email, subject: "#{@expense.memo} (#{@report.name}): Expense Approved", from: email_address_with_name("hcb@hackclub.com", "#{@report.event.name} via HCB")
+    mail to: @report.user.email, subject: "#{@expense.memo} (#{@report.name}): Expense Approved", from: hcb_email_with_name_of(@report.event)
   end
 
 end
