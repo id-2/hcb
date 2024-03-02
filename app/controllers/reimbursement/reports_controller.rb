@@ -40,8 +40,8 @@ module Reimbursement
     end
 
     def update
-      @report.assign_attributes(update_reimbursement_report_params)
       authorize @report
+      @report.assign_attributes(update_reimbursement_report_params)
 
       @allowed_events = if current_user.admin?
                           Event.all.reorder(Event::CUSTOM_SORT)
