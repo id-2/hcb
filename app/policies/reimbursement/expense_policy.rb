@@ -7,7 +7,7 @@ module Reimbursement
     end
 
     def create?
-      (admin || team_member || creator) && unlocked
+      unlocked && (admin || team_member || creator)
     end
 
     def show?
@@ -15,20 +15,26 @@ module Reimbursement
     end
 
     def edit?
-      (admin || team_member || creator) && unlocked
+      unlocked && (admin || team_member || creator)
     end
 
     def update?
-      (admin || team_member || creator) && unlocked
+      unlocked && (admin || team_member || creator)
     end
 
     def destroy?
-      (admin || team_member || creator) && unlocked
+      unlocked && (admin || team_member || creator)
     end
 
     def toggle_approved?
       admin || team_member
     end
+
+    def user_made_expense?
+      record&.report&.user == user
+    end
+
+    alias receiptable_upload?, user_made_purchase?
 
     private
 

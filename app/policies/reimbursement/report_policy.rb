@@ -27,7 +27,7 @@ module Reimbursement
     end
 
     def submit?
-      (admin || team_member || creator) && unlocked
+      unlocked && (admin || team_member || creator)
     end
 
     def draft?
