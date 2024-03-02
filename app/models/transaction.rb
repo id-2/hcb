@@ -520,7 +520,7 @@ class Transaction < ApplicationRecord
       fee_applies: true
     )
 
-    self.display_name = "Donation from #{payout.donation.name}"
+    self.display_name = "Donation from #{payout.donation.name(raw: true)}"
     self.save
   end
 
