@@ -293,10 +293,6 @@ class Donation < ApplicationRecord
     anonymous? && !raw ? "Anonymous" : recurring_donation&.name(raw:) || super()
   end
 
-  def raw_name
-    name(raw: true)
-  end
-
   def email
     recurring_donation&.email || super
   end
