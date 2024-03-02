@@ -149,6 +149,22 @@ module Reimbursement
       [updated_at, expenses_updated_at].max
     end
 
+    def comment_recipients_for(comment)
+      users = []
+      users += self.comments.map(&:user)
+
+      if comment.admin_only?
+        users << self.event.point_of_contact
+        return users.select(&:admin?).collect(&:email).excluding(comment.user.email)
+      end
+
+      users.collect(&:email).excluding(comment.user.email)
+    end
+
+    def comment_mailer_subject
+      return "New comment on #{self.name}."
+    end
+
     private
 
     def last_user_change_to(**query)
