@@ -399,6 +399,9 @@ Rails.application.routes.draw do
       post "reject"
       post "submit"
       post "draft"
+      collection do
+        post "quick_expense"
+      end
     end
 
     resources :expenses, only: [:show, :create, :edit, :update, :destroy] do

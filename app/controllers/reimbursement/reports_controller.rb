@@ -2,7 +2,7 @@
 
 module Reimbursement
   class ReportsController < ApplicationController
-    before_action :set_event_user_and_event, except: [:create]
+    before_action :set_event_user_and_event, except: [:create, :quick_expense]
     skip_before_action :signed_in_user, only: [:show]
     skip_after_action :verify_authorized, only: [:show]
 
@@ -19,6 +19,31 @@ module Reimbursement
       else
         redirect_to event_reimbursements_path(@event), flash: { error: @report.errors.full_messages.to_sentence }
       end
+    end
+
+    def quick_expense
+      @event = Event.friendly.find(report_params[:event_id])
+      @report = @event.reimbursement_reports.build({
+                                                     report_name: "#{Time.now.strftime("%-m/%d/%Y")} Expenses",
+                                                     user: current_user
+                                                   })
+
+      authorize @report, :create?
+
+      if @report.save!
+        @expense = @report.expenses.build(report: @report, amount_cents: 0)
+        @expense.save!
+        ::ReceiptService::Create.new(
+          receiptable: @expense,
+          uploader: current_user,
+          attachments: params[:reimbursement_report][:file],
+          upload_method: :quick_expense
+        ).run!
+        redirect_to @report
+      else
+        redirect_to event_reimbursements_path(@event), flash: { error: @report.errors.full_messages.to_sentence }
+      end
+
     end
 
     def show

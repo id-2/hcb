@@ -68,7 +68,8 @@ class Receipt < ApplicationRecord
     sms: 11,
     transfer_create_page: 12,
     expense_report: 13,
-    expense_report_drag_and_drop: 14
+    expense_report_drag_and_drop: 14,
+    quick_expense: 15
   }
 
   scope :in_receipt_bin, -> { where(receiptable: nil) }
