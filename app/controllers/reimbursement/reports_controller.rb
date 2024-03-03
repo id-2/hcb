@@ -164,12 +164,12 @@ module Reimbursement
 
       @report.mark_draft!
 
-      the_comment = params.require(:comment).permit(:content, :file, :admin_only, :action)
+      comment_params = params.require(:comment).permit(:content, :file, :admin_only, :action)
 
-      if the_comment[:content].blank?
+      if comment_params[:content].blank?
         flash[:success] = "We've sent this report back to #{@report.user.name} and marked it as a draft."
       else
-        @comment = @report.comments.build(the_comment)
+        @comment = @report.comments.build(comment_params)
         @comment.user = current_user
 
         if @comment.save
