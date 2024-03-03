@@ -343,8 +343,10 @@ $(document).on('turbo:load', function () {
   
   if (BK.s('reimbursement_report_email_input')) {
     const emailInput = $('#reimbursement_report_other_email')
-    emailInput.hide()
     const input = $('#reimbursement_report_user_email')
+    if($('#reimbursement_report_user_email').length){
+      emailInput.hide()
+    }
     $(input).on('change', e => {
       if (e.target.value == "other") emailInput.slideDown()
       else emailInput.hide()

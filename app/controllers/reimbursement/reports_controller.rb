@@ -2,9 +2,11 @@
 
 module Reimbursement
   class ReportsController < ApplicationController
-    before_action :set_event_user_and_event, except: [:create, :quick_expense]
-    skip_before_action :signed_in_user, only: [:show]
-    skip_after_action :verify_authorized, only: [:show]
+    include SetEvent
+    before_action :set_event_user_and_event, except: [:create, :quick_expense, :start]
+    before_action :set_event, only: [:start]
+    skip_before_action :signed_in_user, only: [:show, :start, :create]
+    skip_after_action :verify_authorized, only: [:show, :start]
 
     # POST /reimbursement_reports
     def create
@@ -15,7 +17,12 @@ module Reimbursement
       authorize @report
 
       if @report.save!
-        redirect_to event_reimbursements_path(@event), flash: { success: "Report successfully created." }
+        if current_user && (admin_signed_in? || organizer_signed_in?)
+          redirect_to event_reimbursements_path(@event), flash: { success: "Report successfully created." }
+        else
+          flash[:success] = "We've sent an invitation to your email."
+          redirect_back(fallback_location: reimbursement_start_reimbursement_report_path(@event))
+        end
       else
         redirect_to event_reimbursements_path(@event), flash: { error: @report.errors.full_messages.to_sentence }
       end
@@ -43,6 +50,10 @@ module Reimbursement
       else
         redirect_to event_reimbursements_path(@event), flash: { error: @report.errors.full_messages.to_sentence }
       end
+
+    end
+
+    def start
 
     end
 
@@ -182,7 +193,7 @@ module Reimbursement
     def report_params
       report_params = params.require(:reimbursement_report).permit(:report_name, :maximum_amount, :event_id, :user_email, :other_email, :invite_message)
       report_params[:maximum_amount] = report_params[:maximum_amount].presence
-      report_params[:email] = report_params[:user_email] == "other" ? report_params[:other_email] : report_params[:user_email]
+      report_params[:email] = report_params[:user_email] == "other" || report_params[:user_email].nil? ? report_params[:other_email] : report_params[:user_email]
       report_params.except(:user_email, :other_email)
     end
 

@@ -4,7 +4,7 @@
 
 <p>
   <%= @report.event.name %> has invited you to submit a reimbursement report
-  <% if @report.maximum_amount.present? %>of up to <%= render_money @report.maximum_amount %><% end %>,
+  <% if @report.maximum_amount.present? %>of up to <%= render_money @report.maximum_amount %>,<% end %>
   for <em><%= @report.name %></em>.
 </p>
 
