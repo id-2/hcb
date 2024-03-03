@@ -1,4 +1,4 @@
-<p>Hi <%= @recurring_donation.name(raw: true) %>,</p>
+<p>Hi <%= @recurring_donation.name(show_anonymous: true) %>,</p>
 
 <p>Your monthly <% @recurring_donation.anonymous? ? "anonymous " : "" %>donation to <strong><%= @recurring_donation.event.name %></strong> was just changed from <%= render_money @previous_amount %> per month to <strong><%= render_money @recurring_donation.amount %> per month</strong>.</p>
 

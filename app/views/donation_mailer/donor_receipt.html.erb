@@ -1,4 +1,4 @@
-<p>Hi <%= @donation.name(raw: true) %>,</p>
+<p>Hi <%= @donation.name(show_anonymous: true) %>,</p>
 
 <% if @donation.recurring? %>
 <p>

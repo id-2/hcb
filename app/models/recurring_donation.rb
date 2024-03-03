@@ -124,7 +124,7 @@ class RecurringDonation < ApplicationRecord
     end
   end
 
-  def name(raw: false)
+  def name(show_anonymous: false)
     anonymous? && !raw ? "Anonymous" : super()
   end
 
