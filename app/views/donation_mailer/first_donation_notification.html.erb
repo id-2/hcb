@@ -1,7 +1,7 @@
 <p><%= @emails.length > 1 ? "Hi all," : "Hi there," %></p>
 
 <p>
-  Congrats! We're emailing to let you know that you've received your first-ever donation of <%= render_money @donation.amount %> from <%= @donation.anonymous? ? "an anonymous donor" : @donation.name %>.
+  Congrats! We're emailing to let you know that you've received your first-ever donation of <%= render_money @donation.amount %> from <%= @donation.name %>.
 </p>
 
 <p>
@@ -18,7 +18,7 @@
   </blockquote>
 <% end %>
 
-Reply to this email to get in touch with <%= @donation.anonymous? ? "the anonymous donor" : @donation.name %>.
+Reply to this email to get in touch with <%= @donation.name %>.
 
 <% if @donation.anonymous? %>
   <p>

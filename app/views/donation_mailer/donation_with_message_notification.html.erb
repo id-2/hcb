@@ -1,14 +1,14 @@
 <p><%= @emails.length > 1 ? "Hi all," : "Hi there," %></p>
 
 <p>
-  Congrats! We're emailing to let you know that you've received a donation of <%= link_to "#{render_money @donation.amount} from #{@donation.anonymous? ? "an anonymous donor" : @donation.name}", @donation %>. They left you a message:
+  Congrats! We're emailing to let you know that you've received <%= @donation.anonymous ? "an anonymous" : "a" %> donation of <%= link_to "#{render_money @donation.amount} from #{@donation.name}", @donation %>. They left you a message:
 </p>
 
 <blockquote>
   <%= @donation.message %>
 </blockquote>
 
-Reply to this email to get in touch with <%= @donation.anonymous? ? "the anonymous donor" : @donation.name %>.
+Reply to this email to get in touch with <%= @donation.name %>.
 
 <% if @donation.anonymous? %>
   <p>
