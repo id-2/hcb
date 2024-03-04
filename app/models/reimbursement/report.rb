@@ -4,21 +4,21 @@
 #
 # Table name: reimbursement_reports
 #
-#  id                    :bigint           not null, primary key
-#  aasm_state            :string
-#  reimbursement_approved_at     :datetime
-#  invite_message        :text
-#  maximum_amount_cents  :integer
-#  name                  :text
+#  id                         :bigint           not null, primary key
+#  aasm_state                 :string
+#  invite_message             :text
+#  maximum_amount_cents       :integer
+#  name                       :text
+#  reimbursed_at              :datetime
+#  reimbursement_approved_at  :datetime
 #  reimbursement_requested_at :datetime
-#  reimbursed_at         :datetime
-#  rejected_at           :datetime
-#  submitted_at          :datetime
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  event_id              :bigint           not null
-#  invited_by_id         :bigint
-#  user_id               :bigint           not null
+#  rejected_at                :datetime
+#  submitted_at               :datetime
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  event_id                   :bigint           not null
+#  invited_by_id              :bigint
+#  user_id                    :bigint           not null
 #
 # Indexes
 #
