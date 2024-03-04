@@ -22,7 +22,7 @@
   <h2 class="heading h2 line-height-4 mt0 ml0 pt1 pb1 pl2 pr2 border-none">Pending Reimbursement Reports</h2>
 
   <div class="grid grid--wide mb4">
-    <% current_user.reimbursement_reports.where(aasm_state: ['draft', 'submitted', 'reimbursement_requested']).each do |reimbursement_report| %>
+    <% current_user.reimbursement_reports.where(aasm_state: ["draft", "submitted", "reimbursement_requested"]).find_each do |reimbursement_report| %>
       <%= render "reimbursement/reports/reimbursement_report", reimbursement_report:, headless: true, href: reimbursement_report_path(reimbursement_report) %>
     <% end %>
   </div>
