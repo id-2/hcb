@@ -74,7 +74,16 @@
         <% @reports.each do |report| %>
           <tr>
             <td>
-               <span class="ml0 badge bg-<%= report.status_color %>"><%= report.status_text %></span>
+              <% items = (report.versions.select { |version| version.changeset.any? { |field, changes| changes.any?(&:present?) } } + policy_scope(report.comments)).sort_by(&:created_at) %>
+              <% changes_requested = false %>
+              <% items.each do |item| %>
+                <% if item.is_a?(Comment) %>
+                  <% changes_requested = item.changes_requested? %>
+                <% elsif changes_requested && item.changeset["aasm_state"]&.last == "submitted" %>
+                  <% changes_requested = false %>
+                <% end %>
+              <% end %>
+               <span class="ml0 badge bg-<%= changes_requested ? "warning" : report.status_color %>"><%= changes_requested ? "Changes Requested" : report.status_text %></span>
             </td>
             <td>
               <%= report.name %>
