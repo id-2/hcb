@@ -743,7 +743,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_04_000049) do
     t.text "donation_thank_you_message"
     t.text "donation_reply_to_email"
     t.string "postal_code"
-    t.boolean "self_service_reimbursement_page_enabled", default: false
+    t.boolean "public_reimbursement_page_enabled", default: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
