@@ -11,7 +11,7 @@ module Reimbursement
     end
 
     def create?
-      true || admin || team_member && !record.event.demo_mode && !record.event.outernet_guild?
+      record.event.public_reimbursement_page_enabled? || admin || team_member && !record.event.demo_mode && !record.event.outernet_guild?
     end
 
     def show?

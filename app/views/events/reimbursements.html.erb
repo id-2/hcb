@@ -4,13 +4,21 @@
 
 <h1 class="heading">
   Reimbursements
-  <%= link_to "#", class: "btn", data: { behavior: "modal_trigger", modal: "create" } do %>
+  <%= link_to reimbursement_start_reimbursement_report_url(@event), target: "_blank", class: "btn #{:disabled unless @event.public_reimbursement_page_enabled?}" do %>
+    <%= inline_icon "external" %>
+    Public Reimbursement Page
+  <% end %>
+  <%= link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "create" } do %>
     <%= inline_icon "docs" %>
     New
   <% end %>
 </h1>
 
 <%= render partial: "reimbursement/reports/create_form" %>
+
+<% unless @event.public_reimbursement_page_enabled? %>
+  <p>You can allow public reimbursements if you enable it in your project's <%= link_to "settings", edit_event_path(@event, anchor: "public-reimbursements") %>.</p>
+<% end %>
 
 <div class="statset mt3 mb2">
   <div class="stat stat--small">

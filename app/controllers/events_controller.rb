@@ -722,6 +722,8 @@ class EventsController < ApplicationController
       :hidden,
       :donation_page_enabled,
       :donation_page_message,
+      :public_reimbursement_page_enabled,
+      :public_reimbursement_page_message,
       :donation_thank_you_message,
       :donation_reply_to_email,
       :is_public,

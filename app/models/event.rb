@@ -40,6 +40,7 @@
 #  postal_code                       :string
 #  public_message                    :text
 #  public_reimbursement_page_enabled :boolean          default(FALSE)
+#  public_reimbursement_page_message :text
 #  redirect_url                      :string
 #  slug                              :text
 #  sponsorship_fee                   :decimal(, )

@@ -53,10 +53,6 @@ module Reimbursement
 
     end
 
-    def start
-
-    end
-
     def show
       if !signed_in?
         url_queries = { return_to: reimbursement_report_path(@report) }
@@ -69,6 +65,12 @@ module Reimbursement
       @use_user_nav = true if current_user == @user && !@event.users.include?(@user)
 
       authorize @report
+    end
+
+    def start
+      if !@event.public_reimbursement_page_enabled?
+        return not_found
+      end
     end
 
     def edit

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_04_000049) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_04_005108) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -744,6 +744,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_04_000049) do
     t.text "donation_reply_to_email"
     t.string "postal_code"
     t.boolean "public_reimbursement_page_enabled", default: false
+    t.text "public_reimbursement_page_message"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
