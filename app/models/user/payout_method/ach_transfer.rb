@@ -13,6 +13,8 @@
 class User
   module PayoutMethod
     class AchTransfer < ApplicationRecord
+      # this is here because otherwise the annotate gem would ignore namespaces and annotate this model as if it were the AchTransfer model.
+      self.table_name = "user_payout_method_ach_transfers"
       has_one :user, as: :payment_method
       has_encrypted :account_number, :routing_number
       validates :routing_number, format: { with: /\A\d{9}\z/, message: "must be 9 digits" }

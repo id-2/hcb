@@ -17,6 +17,8 @@
 class User
   module PayoutMethod
     class Check < ApplicationRecord
+      # this is here because otherwise the annotate gem would ignore namespaces and annotate this model as if it were the Check model.
+      self.table_name = "user_payout_method_checks"
       has_one :user, as: :payment_method
       validates_presence_of :address_line1, :address_city, :address_postal_code
       validates_presence_of :address_state, message: "Please select a state!"
