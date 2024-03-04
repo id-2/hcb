@@ -178,7 +178,7 @@
       </div>
       <div class="field">
         <%= form.label :public_reimbursement_page_message, "Message to show on public reimbursement page" %>
-        <%= form.text_area :public_reimbursement_page_message, placeholder: "If this is blank, we'll show the following message: \n\"#{@event.name} uses HCB to reimburse its volunteers and external contributors. After entering your email and the purpose of your reimbursement request, you'll receive an email from us with a portal to submit receipts and enter payout information.\"", class: "w-100 fit" %>
+        <%= form.text_area :public_reimbursement_page_message, placeholder: "#{@event.name} uses HCB to reimburse its volunteers...", class: "w-100 fit" %>
         <%= inline_icon "markdown", size: 32, class: "muted right" %>
       </div>
       <%= form.submit "Update" %>
