@@ -109,9 +109,15 @@ class StaticPagesController < ApplicationController
 
   def my_reimbursements
     @reports = current_user.reimbursement_reports
-    @reports = @reports.pending if params[:filter] == "pending"
+    @reports = @reports.draft if params[:filter] == "draft"
     @reports = @reports.reimbursed if params[:filter] == "reimbursed"
     @reports = @reports.search(params[:q]) if params[:q].present?
+  end
+
+  def my_draft_reimbursements_icon
+    @draft_reimbursements_count = current_user.reimbursement_reports.draft.count
+
+    render :my_draft_reimbursements_icon, layout: false
   end
 
   def receipt
