@@ -55,13 +55,14 @@ module Reimbursement
     aasm do
       state :draft, initial: true
       state :submitted
+      state :changes_requested
       state :reimbursement_requested
       state :reimbursement_approved
       state :reimbursed
       state :rejected
 
       event :mark_submitted do
-        transitions from: [:draft, :reimbursement_requested], to: :submitted do
+        transitions from: [:draft, :changes_requested, :reimbursement_requested], to: :submitted do
           guard do
             user.payout_method.present?
           end
@@ -93,6 +94,13 @@ module Reimbursement
         transitions from: [:submitted, :reimbursement_requested], to: :draft
       end
 
+      event :mark_changes_requested do
+        transitions from: :submitted, to: :changes_requested
+        after do
+          ReimbursementMailer.with(report: self).changes_requested.deliver_later
+        end
+      end
+
       event :mark_reimbursed do
         transitions from: :reimbursement_approved, to: :reimbursed
       end
@@ -107,14 +115,16 @@ module Reimbursement
     def status_color
       return "muted" if draft?
       return "info" if submitted?
+      return "warning" if changes_requested?
       return "purple" if reimbursement_requested?
       return "success" if reimbursement_approved? || reimbursed?
+      return "error" if rejected?
 
       return "primary"
     end
 
     def locked?
-      !draft?
+      !draft? && !changes_requested?
     end
 
     def unlockable?

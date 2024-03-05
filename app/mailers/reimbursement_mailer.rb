@@ -19,6 +19,12 @@ class ReimbursementMailer < ApplicationMailer
     mail to: @report.user.email, subject: "#{@report.name}: Reimbursement Rejected", from: hcb_email_with_name_of(@report.event)
   end
 
+  def changes_requested
+    @report = params[:report]
+
+    mail to: @report.user.email, subject: "#{@report.name}: Changes Requested", from: hcb_email_with_name_of(@report.event)
+  end
+
   def review_requested
     @report = params[:report]
 

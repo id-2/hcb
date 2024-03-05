@@ -4,6 +4,7 @@
      "reimbursement_requested" => ["thumbsup", "success", "approved this report as an organizer"],
      "reimbursement_approved"  => ["admin", "warning", "approved this report on behalf of the HCB team"],
      "draft"                   => ["docs", "muted", "converted this report to a draft"],
+     "changes_requested"       => ["view-reload", "warning", "requested changes to this report"],
      "draft_created"           => ["plus", "success", "created this draft report"],
      "reimbursed"              => ["docs", "purple", "initiated a reimbursement"],
    } %>
@@ -14,12 +15,13 @@
   <ul class="list-reset comments mb5">
     <% versions = @report.versions.select { |version| version.changeset.any? { |field, changes| changes.any?(&:present?) } } %>
     <% comments = policy_scope(@report.comments) %>
-    <% (versions + comments).sort_by(&:created_at).each do |item| %>
+    <% (versions + comments).sort_by(&:created_at).each_with_index do |item, index| %>
+      <% next_item = (versions + comments).sort_by(&:created_at)[index + 1] %>
       <% if item.instance_of?(Comment) %>
         <div class="conversation_item">
           <%= render "comments/item_v2", comment: item %>
         </div>
-      <% else %>
+      <% elsif !next_item&.instance_of?(Comment) || next_item&.instance_of?(Comment) && !next_item&.changes_requested? %>
         <% state_change = item.changeset["aasm_state"]&.second %>
         <li class="conversation_item mt2" style="margin-bottom: 24px;">
           <% if state_change %>

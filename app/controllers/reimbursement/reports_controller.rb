@@ -164,7 +164,7 @@ module Reimbursement
 
       authorize @report
 
-      @report.mark_draft!
+      @report.mark_changes_requested!
 
       comment_params = params.require(:comment).permit(:content, :file, :admin_only, :action)
 

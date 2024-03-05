@@ -144,7 +144,7 @@
             Missing Payout Information
           </div>
         <% end %>
-      <% elsif @report.draft? %>
+      <% elsif @report.draft? || @report.changes_requested? %>
         <%= link_to reimbursement_report_submit_path(report_id: @report.id), class: "btn bg-info", method: :post do %>
           <%= inline_icon "send" %>
           Submit & Request Review
