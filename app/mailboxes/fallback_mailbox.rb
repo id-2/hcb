@@ -8,6 +8,7 @@ class FallbackMailbox < ApplicationMailbox
 
   def process
     return if (blacklist & from.collect(&:downcase)).any?
+
     bounce_with MailboxMailer.forward(inbound_email:, to: "hcb@hackclub.com")
   end
 
