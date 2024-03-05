@@ -109,8 +109,10 @@ class StaticPagesController < ApplicationController
 
   def my_reimbursements
     @reports = current_user.reimbursement_reports
-    @reports = @reports.draft if params[:filter] == "draft"
-    @reports = @reports.reimbursed if params[:filter] == "reimbursed"
+    @reports = @reports.draft if params[:filter] == "drafts"
+    @reports = @reports.where(aasm_state: ["submitted", "changes_requested", "reimbursement_requested"]) if params[:filter] == "pending"
+    @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:filter] == "completed"
+    @reports = @reports.rejected if params[:filter] == "rejected"
     @reports = @reports.search(params[:q]) if params[:q].present?
   end
 

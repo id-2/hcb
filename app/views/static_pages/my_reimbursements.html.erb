@@ -28,7 +28,7 @@
   <div class="stat stat--small">
     <span class="stat__label">Pending</span>
     <span class="stat__value">
-      <%= render_money_amount(@reports.draft.sum { |report| report.expenses.sum { |expense| expense.amount_cents } }) %>
+      <%= render_money_amount(@reports.where(aasm_state: ["draft", "submitted", "reimbursement_requested"]).sum { |report| report.expenses.sum { |expense| expense.amount_cents } }) %>
     </span>
   </div>
 </div>
@@ -36,9 +36,11 @@
 <hr>
 
 <div style="text-align: center;">
-  <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["reimbursed", "pending"].include?(params[:filter]), role: "tab" %>
-  <%= link_to "Reimbursed", "?filter=reimbursed", class: "filterbar__item", "aria-selected": params[:filter] == "reimbursed", role: "tab" %>
+  <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["drafts", "pending", "completed", "rejected"].include?(params[:filter]), role: "tab" %>
+  <%= link_to "Drafts", "?filter=drafts", class: "filterbar__item", "aria-selected": params[:filter] == "drafts", role: "tab" %>
   <%= link_to "Pending", "?filter=pending", class: "filterbar__item", "aria-selected": params[:filter] == "pending", role: "tab" %>
+  <%= link_to "Completed", "?filter=completed", class: "filterbar__item", "aria-selected": params[:filter] == "completed", role: "tab" %>
+  <%= link_to "Rejected", "?filter=rejected", class: "filterbar__item", "aria-selected": params[:filter] == "rejected", role: "tab" %>
 </div>
 
 <%= form_with(model: nil, local: true, method: :get) do |form| %>
