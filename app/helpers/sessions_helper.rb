@@ -64,26 +64,16 @@ module SessionsHelper
   end
 
   def organizer_signed_in?(event = @event, as: :member)
-    run = -> do
-      next true if admin_signed_in?
-      next false unless signed_in? && event.present?
+    return true if admin_signed_in?
+    return false unless signed_in?
 
-      required_role_num = OrganizerPosition.roles[as]
-      raise ArgumentError, "invalid role #{as}" unless required_role_num.present?
+    as = as[:as] if as.instance_of?(Hash)
+    position = OrganizerPosition.find_by(user: current_user, event:)
+    return unless position
 
-      valid_position = event.organizer_positions.find do |op|
-        next false unless op.user == current_user
-
-        role_num = OrganizerPosition.roles[op.role]
-        next false unless role_num.present?
-
-        # Allows higher roles to succeed when checking for lower role
-        # For example, `organizer_signed_in?(as: :member)` returns true if you're a manager
-        role_num >= required_role_num
-      end
-
-      valid_position.present?
-    end
+    # We want to make sure the user position's role is >= `as`'s corresponding int.
+    position&.role_before_type_cast >= OrganizerPosition.roles[as]
+  end
 
     # Memoize results based on method arguments
     @organizer_signed_in ||= Hash.new do |h, key|
