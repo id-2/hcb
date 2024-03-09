@@ -72,15 +72,7 @@ module SessionsHelper
     return unless position
 
     # We want to make sure the user position's role is >= `as`'s corresponding int.
-    position&.role_before_type_cast >= OrganizerPosition.roles[as]
-  end
-
-    # Memoize results based on method arguments
-    @organizer_signed_in ||= Hash.new do |h, key|
-      h[key] = run.call
-    end
-    key = [event, as]
-    @organizer_signed_in[key]
+    position.role_before_type_cast >= OrganizerPosition.roles[as]
   end
 
   def current_user
