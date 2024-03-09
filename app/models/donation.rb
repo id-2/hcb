@@ -297,6 +297,10 @@ class Donation < ApplicationRecord
     recurring_donation&.email || super
   end
 
+  def message
+    recurring_donation&.message || super
+  end
+
   private
 
   def raw_pending_donation_transaction
