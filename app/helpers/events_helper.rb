@@ -3,19 +3,25 @@
 require "cgi"
 
 module EventsHelper
-  def dock_item(name, url = nil, icon:, tooltip: nil, async_badge: nil, disabled: false, selected: false, **options)
-    link_to (url unless disabled), options.merge(
-      class: "dock__item #{"dock__item--selected" if selected} #{"tooltipped tooltipped--e" if tooltip} #{"disabled" if disabled}",
-      'aria-label': tooltip
-    ) do
-      (content_tag :div, class: "line-height-0 relative" do
-        if async_badge
-          inline_icon(icon, size: 32) +
-          turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" })
-        else
-          inline_icon(icon, size: 32)
-        end
-      end) + content_tag(:span, name.html_safe, class: "line-height-3")
+  def dock_item(name, url = nil, icon:, tooltip: nil, async_badge: nil, disabled: false, selected: false, **options, &block)
+    content_tag(:div, "", data: { controller: "menu", 'menu-placement-value': "bottom-start" }) do
+      link_to (url unless disabled), options.merge(
+        class: "dock__item #{"dock__item--selected" if selected} #{"tooltipped tooltipped--e" if tooltip} #{"disabled" if disabled}",
+        'aria-label': tooltip,
+        data: { "action" => block ? "contextmenu->menu#toggle click@document->menu#close keydown@document->menu#keydown" : nil, "menu-target" => "toggle" }
+      ) do
+        (content_tag :div, class: "line-height-0 relative" do
+          if async_badge
+            inline_icon(icon, size: 32) +
+            turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" })
+          else
+            inline_icon(icon, size: 32)
+          end
+        end) + content_tag(:span, name.html_safe, class: "line-height-3") +
+          content_tag(:div, "", data: { "menu-target": "content" }, 'data-menu-target': "content", class: "menu__content menu__content--2 menu__content--compact") do
+            block.call if block
+          end
+      end
     end
   end
 

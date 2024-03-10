@@ -100,7 +100,12 @@
         event_documentation_path(event_id: @event.slug),
         tooltip: "Commonly asked questions and how-tos",
         icon: "info",
-        selected: local_assigns[:selected] == :documentation %>
+        selected: local_assigns[:selected] == :documentation do %>
+        <%= link_to "Legal Documents", event_documents_path(@event) %>
+        <%= link_to "Statements", event_statements_path(@event) %>
+        <div class="menu__divider"></div>
+        <a href="/" target="_blank">Open link in new tab</a>
+      <% end %>
       <%= dock_item "Settings",
         edit_event_path(@event),
         tooltip: "Edit organization settings",
