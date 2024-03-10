@@ -65,7 +65,7 @@ If you have more questions about development check out our [wiki](https://github
 
 Please see this part of the [wiki](https://github.com/hackclub/hcb/wiki/Development/#production-access) for more information on Production Access
 
-## Deployment
+## Delpoyment
 
 All pushes to the `main` branch are automatically deployed by Heroku.
 
