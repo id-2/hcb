@@ -10,90 +10,46 @@ module ReceiptService
       @textual_content = @receipt.textual_content || @receipt.extract_textual_content!
       return nil if @textual_content.nil?
 
-      fallback_features
-    end
-
-    private
-
-    def match_regex(regex, text, &block)
-      matches = if block_given?
-                  text.scan(regex).map { |match| block.call(match) }
-                else
-                  text.scan(regex)
-                end
-
-      positions = text.enum_for(:scan, regex).map { Regexp.last_match.begin(0) }
-
-      matches.map.with_index do |match, index|
-        position = positions[index]
-        before_fragment = index == 0 ? text[0..(position - 1)] : text[(positions[index - 1] + matches[index - 1].to_s.length)..(position - 1)]
-        after_fragment = index == matches.length - 1 ? text[(position + match.to_s.length)..] : text[(position + match.to_s.length)..(positions[index + 1] - 1)]
-
-        {
-          before_fragment:,
-          match:,
-          position:,
-          after_fragment:
+      conn = Faraday.new(
+        url: "https://api.openai.com",
+        headers: {
+          "Content-Type"  => "application/json",
+          "Authorization" => "Bearer #{Rails.application.credentials.openai.api_key}",
+          "OpenAI-Beta"   => "assistants=v1"
         }
+      )
+
+      prompt = <<~PROMPT
+        You are a helpful assistant that extracts important features from receipts. You must extract the following features in JSON format:
+
+        amount_cents_subtotal
+        amount_cents_total // the amount likely to be charged to a credit card
+        card_last_four
+        date // in the format of YYYY-MM-DD
+        merchant_url // URL for merchant's primary website, if available
+        merchant_name // without identifiers or oder numbers
+        transaction_memo // a good memo includes quantity (if it's more than one), the item(s) purchased, and the merchant. pretend someone will use the memos in the sentence, "In this transaction, I purchased (a) <memo>" where <memo> is what you generate. some good examples are "🏷️ 5,000 Event stickers from StickerMule", "💧 Office water supply from Culligan", "🔌 USB-C cable for MacBook", "💾 10 Airtable team seats for December", and "🚕 Uber to SFO Airport". avoid generic quantifiers like "multiple" and "many", using improper capitalization, unnecessarily verbose descriptions, addresses, and transaction/merchant/order IDs. Ensure memos are less than 60 characters.
+      PROMPT
+
+      response = conn.post("/v1/chat/completions") do |req|
+        req.body = {
+          model: "gpt-4",
+          messages: [
+            {
+              role: "system",
+              content: prompt
+            },
+            {
+              role: "user",
+              content: @textual_content
+            }
+          ]
+        }.to_json
       end
-    end
 
-    def fallback_features
-      {
-        amount_cents: begin
-          amount_cents_regex = /\$( ?[\d.,]+)(\s|\n|\\n)/
-
-          amounts = match_regex(amount_cents_regex, @textual_content, &:first).map do |match|
-            match[:amount] = (match[:match].to_f * 100).to_i
-
-            match
-          end.reverse
-
-          amounts.each_with_index do |amount, index|
-            if amount[:before_fragment].downcase.include?("total")
-              amounts = [amount] + amounts[0...index] + amounts[index + 1..]
-            end
-          end
-
-          amounts.map do |amount|
-            0 - amount[:amount]
-          end
-        end,
-
-        card_last_four: begin
-          text_regex = /(?:(?:ending ?(?:in|with)?|visa|card|digits|account|credit|debit|number) ?[-–—]? ?:? ?(?:\\n)?)(?:\(?(?<last4>\d{4})\)?)(?:\s|\\n|[^\d]|$)/i # such as "Card ending in 1234"
-          x_regex = /[*x•·]{1,12}? ?(?:-|—)? ?(?<last4>\d{4})(?:\s|\\n|\)|$)/i # such as "**** 1234"
-
-          (match_regex(text_regex, @textual_content, &:first) + match_regex(x_regex, @textual_content, &:first)).pluck(:match)
-        end,
-
-        date: begin
-          slash_regex = /(?:(?<month>\d{1,2})\/(?<day>\d{1,2})\/(?<year>\d{2,4}))/i
-          dash_regex = /(?:(?<month>\d{1,2})-(?<day>\d{1,2})-(?<year>\d{2,4}))/i
-
-          dates = [*match_regex(slash_regex, @textual_content), *match_regex(dash_regex, @textual_content)].map do |match|
-            integer_values = match[:match].map(&:to_i)
-
-            month, day, year = integer_values
-
-            [
-              [month, day, year],
-              [day, month, year],
-              [year, month, day]
-            ]
-          end.flatten(1).map do |date|
-            month, day, year = date
-
-            begin
-              Date.new(year, month, day)
-            rescue Date::Error => e
-              nil
-            end
-          end.compact.sort { |a, b| Date.parse(b) <=> Date.parse(a) }
-        end,
-
-        textual_content: @textual_content
-      }
+      JSON.parse(
+        JSON.parse(response.body).dig("choices", 0, "message", "content")
+      ).with_indifferent_access
     end
 
   end

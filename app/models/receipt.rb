@@ -4,15 +4,21 @@
 #
 # Table name: receipts
 #
-#  id                         :bigint           not null, primary key
-#  receiptable_type           :string
-#  suggested_memo             :string
-#  textual_content_ciphertext :text
-#  upload_method              :integer
-#  created_at                 :datetime         not null
-#  updated_at                 :datetime         not null
-#  receiptable_id             :bigint
-#  user_id                    :bigint
+#  id                              :bigint           not null, primary key
+#  receiptable_type                :string
+#  suggested_amount_cents_subtotal :integer
+#  suggested_amount_cents_total    :integer
+#  suggested_card_last4            :string
+#  suggested_date                  :datetime
+#  suggested_memo                  :string
+#  suggested_merchant_name         :string
+#  suggested_merchant_url          :string
+#  textual_content_ciphertext      :text
+#  upload_method                   :integer
+#  created_at                      :datetime         not null
+#  updated_at                      :datetime         not null
+#  receiptable_id                  :bigint
+#  user_id                         :bigint
 #
 # Indexes
 #

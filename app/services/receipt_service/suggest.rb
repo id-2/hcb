@@ -12,6 +12,8 @@ module ReceiptService
 
       @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
 
+      byebug
+
       transaction_distances(include_details:)
     end
 
@@ -79,11 +81,7 @@ module ReceiptService
       end
 
       distances[:date] =
-        if @extracted[:date].empty?
-          nil
-        else
-          best_distance(txn.date.to_time.to_i / 86400, @extracted[:date].map{ |d| d.to_time.to_i / 86400 })
-        end
+        best_distance(txn.date.to_time.to_i / 86400, [@extracted[:date]])
 
       distances
     end
