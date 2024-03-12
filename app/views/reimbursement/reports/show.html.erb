@@ -100,7 +100,7 @@
 
 <%= render partial: "actions", locals: { report: @report, user: @user } %>
 
-<%= render partial: "conversation" %>
+<%= render partial: "conversation", locals: { public_versions: @public_versions } %>
 
 <style>
   html { scroll-behavior: smooth; }

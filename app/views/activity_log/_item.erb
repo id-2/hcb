@@ -1,0 +1,62 @@
+<% if item[:type] == "comment" %>
+  <div class="conversation_item">
+    <%= render "comments/item_v2", comment: item[:record] %>
+  </div>
+<% elsif item[:type] == "create" %>
+  <li class="conversation_item mt2" style="margin-bottom: 24px;">
+    <div class="flex flex-row items-center" style="gap: 16px">
+      <div class="flex items-center justify-center z2 pop no_hover bg-success-important" style="color: white;">
+        <%= inline_icon :plus, width: 30 %>
+      </div>
+      <div style="display: flex; align-items: end; gap: 4px">
+        <span class="muted" style="margin-right: -0.25em;">
+          <%= user_mention User.find_by(id: item[:record].whodunnit), { avatar: { style: "vertical-align: sub;" } }, "Unknown User" %>
+        </span>
+        <span class="align-middle">
+          created this draft report
+        </span>
+        <span class="tooltipped tooltipped--n align-middle timestamp" style="cursor: default" aria-label="<%= item[:record].created_at.strftime("%b %e, %Y") %>">
+          <%= time_ago_in_words item[:record].created_at %> ago
+        </span>
+      </div>
+    </div>
+  </li>
+<% elsif item[:type] == "update" && item[:extra_fields] %>
+  <li class="conversation_item mt2" style="margin-bottom: 24px;">
+    <div class="flex flex-row items-center" style="gap: 16px">
+      <div class="flex items-center justify-center z2 pop no_hover bg-smoke-important" style="color: white;">
+        <%= inline_icon :post, width: 30 %>
+      </div>
+      <div style="display: flex; align-items: end; gap: 4px">
+        <span class="muted" style="margin-right: -0.25em;">
+          <%= user_mention User.find_by(id: item[:record].whodunnit), { avatar: { style: "vertical-align: sub;" } }, "Unknown User" %>
+        </span>
+        <span class="align-middle">
+          updated this report
+        </span>
+        <span class="tooltipped tooltipped--n align-middle timestamp" style="cursor: default" aria-label="<%= item[:record].created_at.strftime("%b %e, %Y") %>">
+          <%= time_ago_in_words item[:record].created_at %> ago
+        </span>
+      </div>
+    </div>
+    <ul class="list-reset" style="margin-left: 52px;">
+      <% item[:extra_fields].each do |field, changes| %>
+        <li>
+          <strong class="muted"><%= field.humanize %>:</strong>
+          <%= render_audit_log_value(field, changes[0], color: "primary") %> →
+          <%= render_audit_log_value(field, changes[1], color: "success") %>
+        </li>
+      <% end %>
+    </ul>
+  </li>
+<% else %>
+  <% admin_tool do %>
+    <li class="conversation_item mt2" style="margin-bottom: 24px;">
+      <div class="conversation_item">
+        <pre>
+          <%= item.to_json %>
+        </pre>
+      </div>
+    </li>
+  <% end %>
+<% end %>
