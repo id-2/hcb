@@ -41,6 +41,7 @@ module Reimbursement
     belongs_to :inviter, class_name: "User", foreign_key: "invited_by_id", optional: true, inverse_of: :created_reimbursement_reports
 
     has_paper_trail ignore: :expense_number
+    include HasActivityLog
 
     monetize :maximum_amount_cents, allow_nil: true
     monetize :amount_to_reimburse_cents, allow_nil: true

@@ -66,6 +66,9 @@ module Reimbursement
       @use_user_nav = current_user == @user && !@event.users.include?(@user) && !admin_signed_in?
       @editing = params[:edit].to_i
 
+      @history = @report.audit_log(public_fields: %w[aasm_state name maximum_amount_cents event_id],
+                                   include_comments: true)
+
     end
 
     def start
