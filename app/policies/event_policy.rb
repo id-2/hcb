@@ -162,7 +162,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def admin_or_user?
-    user&.admin? || record.users.include?(user)
+    record.users.include?(user)
   end
 
   private

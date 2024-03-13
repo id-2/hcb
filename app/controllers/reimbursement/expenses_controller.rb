@@ -40,7 +40,7 @@ module Reimbursement
         report = event.reimbursement_reports.build({ user: @expense.report.user, expense_number: 1 })
         authorize report
         ActiveRecord::Base.transaction do
-          report.save!
+          report.save! context: :transfer
           @expense.update!(reimbursement_report_id: report.id, expense_number: 1)
         end
       end

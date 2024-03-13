@@ -28,12 +28,14 @@
 #
 module Reimbursement
   class Expense < ApplicationRecord
+    acts_as_paranoid
+
     belongs_to :report, inverse_of: :expenses, foreign_key: "reimbursement_report_id", touch: true
     monetize :amount_cents
     validates :amount_cents, numericality: { greater_than_or_equal_to: 0 }
     has_one :expense_payout
     has_one :event, through: :report
-    attribute :expense_number, :integer, default: 0
+    # attribute :expense_number, :integer, default: 0
     include AASM
     include Receiptable
 
@@ -58,15 +60,15 @@ module Reimbursement
       end
     end
 
-    validates :expense_number, uniqueness: { scope: :reimbursement_report_id }
+    # validates :expense_number, uniqueness: { scope: :reimbursement_report_id }
 
-    before_validation do
-      if self.expense_number == 0
-        self.expense_number = self.report.expense_number + 1
-        self.report.expense_number += 1
-        self.report.save!
-      end
-    end
+    # before_validation do
+    #   if self.expense_number == 0
+    #     self.expense_number = self.report.expense_number + 1
+    #     self.report.expense_number += 1
+    #     self.report.save!
+    #   end
+    # end
 
     def receipt_required?
       true
