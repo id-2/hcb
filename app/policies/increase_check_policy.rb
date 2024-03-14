@@ -13,10 +13,6 @@ class IncreaseCheckPolicy < ApplicationPolicy
 
   private
 
-  def admin_or_user
-    user&.admin? || record.event.users.include?(user)
-  end
-
   def user_who_can_transfer?
     EventPolicy.new(user, record.event).new_transfer?
   end
