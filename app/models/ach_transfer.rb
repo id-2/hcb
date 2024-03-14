@@ -158,6 +158,7 @@ class AchTransfer < ApplicationRecord
         routing_number:,
       },
       company_name: event.name[0...16],
+      company_entry_description: reimbursement? ? "REIMBURSE" : "PAYMENT",
       description: payment_for,
       account_number_id:,
     }.compact_blank)
@@ -265,6 +266,10 @@ class AchTransfer < ApplicationRecord
     end
 
     save!
+  end
+
+  def reimbursement?
+    reimbursement_expense_payout.present?
   end
 
 end
