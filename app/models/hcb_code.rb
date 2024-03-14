@@ -347,10 +347,11 @@ class HcbCode < ApplicationRecord
   def reimbursement_payout_holding?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::PAYOUT_HOLDING_CODE
   end
-  
+
   def reimbursement_payout_transfer?
     return true if increase_check? && increase_check.reimbursement_payout_holding.present?
     return true if ach_transfer? && ach_transfer.reimbursement_payout_holding.present?
+
     false
   end
 
