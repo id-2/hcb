@@ -54,7 +54,7 @@ class IncreaseCheck < ApplicationRecord
 
   has_one :canonical_pending_transaction
   has_one :grant, required: false
-  has_one :reimbursement_expense_payout, class_name: "Reimbursement::ExpensePayout", inverse_of: :increase_check, optional: true
+  has_one :reimbursement_expense_payout, class_name: "Reimbursement::ExpensePayout", inverse_of: :increase_check, required: false
 
   after_create do
     create_canonical_pending_transaction!(event:, amount_cents: -amount, memo: "OUTGOING CHECK", date: created_at)
