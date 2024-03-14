@@ -349,12 +349,18 @@ class HcbCode < ApplicationRecord
   end
 
   def reimbursement_payout_transfer?
-    return true if increase_check? && increase_check.reimbursement_payout_holding.present?
-    return true if ach_transfer? && ach_transfer.reimbursement_payout_holding.present?
-
-    false
+    reimbursement_payout_holding.present?
   end
 
+  def reimbursement_payout_holding
+    if increase_check?
+      increase_check.reimbursement_payout_holding
+    elsif ach_transfer?
+      ach_transfer.reimbursement_payout_holding
+    else
+      nil
+    end
+  end
   def outgoing_fee_reimbursement?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::OUTGOING_FEE_REIMBURSEMENT_CODE
   end
