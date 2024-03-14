@@ -4,47 +4,47 @@ class HcbCodePolicy < ApplicationPolicy
   only_admins_can :memo_frame?, :send_receipt_sms?
 
   permit_admins_to def show?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def edit?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def update?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def comment?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def attach_receipt?
-    present_in_events? || user_made_purchase?
+    user_is_organizer? || user_made_purchase?
   end
 
   permit_admins_to def dispute?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def pin?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def toggle_tag?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def invoice_as_personal_transaction?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def link_receipt_modal?
-    present_in_events?
+    user_is_organizer?
   end
 
   permit_admins_to def breakdown?
-    present_in_events?
+    user_is_organizer?
   end
 
   def user_made_purchase?
@@ -55,7 +55,7 @@ class HcbCodePolicy < ApplicationPolicy
 
   private
 
-  def present_in_events?
+  def user_is_organizer?
     record.events.select { |e| e.try(:users).try(:include?, user) }.present?
   end
 
