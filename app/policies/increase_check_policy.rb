@@ -1,20 +1,14 @@
 # frozen_string_literal: true
 
 class IncreaseCheckPolicy < ApplicationPolicy
-  def new?
+  only_admins_can :approve?, :reject?
+
+  permit_admins_to def new?
     user_who_can_transfer?
   end
 
-  def create?
+  permit_admins_to def create?
     user_who_can_transfer? && !record.event.outernet_guild?
-  end
-
-  def approve?
-    user&.admin?
-  end
-
-  def reject?
-    user&.admin?
   end
 
   private
@@ -24,7 +18,7 @@ class IncreaseCheckPolicy < ApplicationPolicy
   end
 
   def user_who_can_transfer?
-    user&.admin? || EventPolicy.new(user, record.event).new_transfer?
+    EventPolicy.new(user, record.event).new_transfer?
   end
 
 end
