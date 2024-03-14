@@ -22,6 +22,9 @@ class HcbCode
         return ach_payment_memo if ach_payment?
         return grant_memo if grant?
         return outgoing_fee_reimbursement_memo if outgoing_fee_reimbursement?
+        return reimbursement_payout_holding_memo if reimbursement_payout_holding?
+        return reimbursement_expense_payout_memo if reimbursement_expense_payout?
+        return reimbursement_payout_transfer_memo if reimbursement_payout_transfer?
 
         ct.try(:smart_memo) || pt.try(:smart_memo) || ""
       end
@@ -93,6 +96,20 @@ class HcbCode
 
       def outgoing_fee_reimbursement_memo
         "🗂️ Stripe fee reimbursements for week of #{ct.date.beginning_of_week.strftime("%-m/%-d")}"
+      end
+      
+      def reimbursement_payout_holding_memo
+        "Payout Holding for Reimbursement Report #{reimbursement_payout_holding.report.id}"
+      end
+      
+      def reimbursement_expense_payout_memo
+        reimbursement_expense_payout.expense.memo
+      end
+      
+      def reimbursement_payout_transfer_memo
+        return "Payout Transfer for Reimbursement Report #{increase_check.reimbursement_payout_holding.report.id}" if increase_check?
+        return "Payout Transfer for Reimbursement Report #{ach_transfer.reimbursement_payout_holding.report.id}" if ach_transfer?
+        "Payout Transfer for Unknown Reimbursement Report"
       end
 
     end
