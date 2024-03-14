@@ -1,38 +1,28 @@
 # frozen_string_literal: true
 
 class CanonicalTransactionPolicy < ApplicationPolicy
-  def show?
-    admin_or_teammember
+  only_admins_can :waive_fee?, :unwaive_fee?, :mark_bank_fee?
+
+  permit_admins_to def show?
+    user_is_organizer?
   end
 
-  def edit?
-    admin_or_teammember
+  permit_admins_to def edit?
+    user_is_organizer?
   end
 
-  def set_custom_memo?
-    admin_or_teammember
+  permit_admins_to def set_custom_memo?
+    user_is_organizer?
   end
 
-  def export?
-    admin_or_teammember
-  end
-
-  def waive_fee?
-    user&.admin?
-  end
-
-  def unwaive_fee?
-    user&.admin?
-  end
-
-  def mark_bank_fee?
-    user&.admin?
+  permit_admins_to def export?
+    user_is_organizer?
   end
 
   private
 
-  def admin_or_teammember
-    user&.admin? || record&.event&.users&.include?(user)
+  def user_is_organizer?
+    record&.event&.users&.include?(user)
   end
 
 end
