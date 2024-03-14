@@ -1,56 +1,50 @@
 # frozen_string_literal: true
 
 class HcbCodePolicy < ApplicationPolicy
-  def show?
-    user&.admin? || present_in_events?
+  only_admins_can :memo_frame?, :send_receipt_sms?
+
+  permit_admins_to def show?
+    present_in_events?
   end
 
-  def memo_frame?
-    user&.admin?
+  permit_admins_to def edit?
+    present_in_events?
   end
 
-  def edit?
-    user&.admin? || present_in_events?
+  permit_admins_to def update?
+    present_in_events?
   end
 
-  def update?
-    user&.admin? || present_in_events?
+  permit_admins_to def comment?
+    present_in_events?
   end
 
-  def comment?
-    user&.admin? || present_in_events?
+  permit_admins_to def attach_receipt?
+    present_in_events? || user_made_purchase?
   end
 
-  def attach_receipt?
-    user&.admin? || present_in_events? || user_made_purchase?
+  permit_admins_to def dispute?
+    present_in_events?
   end
 
-  def send_receipt_sms?
-    user&.admin?
+  permit_admins_to def pin?
+    present_in_events?
   end
 
-  def dispute?
-    user&.admin? || present_in_events?
+  permit_admins_to def toggle_tag?
+    present_in_events?
   end
 
-  def pin?
-    user&.admin? || present_in_events?
+  permit_admins_to def invoice_as_personal_transaction?
+    present_in_events?
   end
 
-  def toggle_tag?
-    user&.admin? || present_in_events?
+  permit_admins_to def link_receipt_modal?
+    present_in_events?
   end
 
-  def invoice_as_personal_transaction?
-    user&.admin? || present_in_events?
-  end
-
-  def link_receipt_modal?
-    user&.admin? || present_in_events?
-  end
-
-  def breakdown?
-    user&.admin? || present_in_events?
+  permit_admins_to def breakdown?
+    present_in_events?
   end
 
   def user_made_purchase?
