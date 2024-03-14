@@ -54,4 +54,32 @@ class ApplicationPolicy
 
   end
 
+  # `permit_admins_to` is a helper to easily allowing admins to perform actions.
+  # Before, policies may have been written like this:
+  # ```ruby
+  # def show?
+  #   user&.admin? || (record.published? && user&.not_banned?)
+  # end
+  # ```
+  #
+  # Now, the policy above can be written as:
+  # ```ruby
+  # permit_admins_to def show?
+  #   record.published? && user&.not_banned?
+  # end
+  # ```
+  # This allows users to `show?` if they're an admin,
+  # or if the record is `published?` and the user is `not_banned?`.
+  #
+  # `user&.admin?` will always take precedence.
+  def self.permit_admins_to(method_name)
+    # To learn more about decorating methods, see Brandon's post:
+    # https://dev.to/baweaver/decorating-ruby-part-1-symbol-method-decoration-4po2
+    original_method = instance_method(method_name)
+
+    define_method(method_name) do |*args, &block|
+      user&.admin? || original_method.call(*args, &block)
+    end
+  end
+
 end
