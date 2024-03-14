@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 class ReceiptablePolicy < ApplicationPolicy
-  def link?
-    user&.admin? || present_in_events? || Pundit.policy(user, record).try(:receiptable_upload?)
+  permit_admins_to def link?
+    present_in_events? || Pundit.policy(user, record).try(:receiptable_upload?)
   end
 
-  def link_modal?
-    user&.admin? || present_in_events? || Pundit.policy(user, record).try(:receiptable_upload?)
+  permit_admins_to def link_modal?
+    present_in_events? || Pundit.policy(user, record).try(:receiptable_upload?)
   end
 
-  def upload?
-    user&.admin? || present_in_events? || Pundit.policy(user, record).try(:receiptable_upload?)
+  permit_admins_to def upload?
+    present_in_events? || Pundit.policy(user, record).try(:receiptable_upload?)
   end
 
   private
