@@ -82,4 +82,32 @@ class ApplicationPolicy
     end
   end
 
+  # A helper for defining policies actions that only admins can perform.
+  # Before, we had many policies actions that looked like:
+  # ```ruby
+  # def show?
+  #   user&.admin?
+  # end
+  #
+  # def edit?
+  #   user&.admin?
+  # end
+  #
+  # def update?
+  #   user&.admin?
+  # end
+  # ```
+  #
+  # Now, we can use `only_admins_can` to define these policies:
+  # ```ruby
+  # only_admins_can :show?, :edit?, :update?
+  # ```
+  def self.only_admins_can(*method_names)
+    method_names.each do |method_name|
+      define_method(method_name) do |*args, &block|
+        user&.admin?
+      end
+    end
+  end
+
 end
