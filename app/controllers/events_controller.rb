@@ -84,7 +84,7 @@ class EventsController < ApplicationController
     @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
-      @hide_holiday_features = true
+      @hide_seasonal_decorations = true
     end
 
     @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
@@ -145,6 +145,11 @@ class EventsController < ApplicationController
       "fiscal_sponsorship_fee" => {
         "settled" => ->(t) { t.local_hcb_code.fee_revenue? || t.fee_payment? },
         "pending" => ->(t) { t.raw_pending_bank_fee_transaction_id },
+        "icon"    => "minus-fill"
+      },
+      "reimbursement"          => {
+        "settled" => ->(t) { t.local_hcb_code.reimbursement_expense_payout? },
+        "pending" => ->(t) { false },
         "icon"    => "minus-fill"
       }
     }
@@ -585,8 +590,17 @@ class EventsController < ApplicationController
     authorize @event
   end
 
+  def expensify
+    authorize @event
+  end
+
   def reimbursements
     authorize @event
+    @reports = @event.reimbursement_reports
+    @reports = @reports.pending if params[:filter] == "pending"
+    @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:filter] == "reimbursed"
+    @reports = @reports.rejected if params[:filter] == "rejected"
+    @reports = @reports.search(params[:q]) if params[:q].present?
   end
 
   def toggle_hidden
@@ -718,6 +732,8 @@ class EventsController < ApplicationController
       :hidden,
       :donation_page_enabled,
       :donation_page_message,
+      :public_reimbursement_page_enabled,
+      :public_reimbursement_page_message,
       :donation_thank_you_message,
       :donation_reply_to_email,
       :is_public,
@@ -755,6 +771,8 @@ class EventsController < ApplicationController
       :end,
       :donation_page_enabled,
       :donation_page_message,
+      :public_reimbursement_page_enabled,
+      :public_reimbursement_page_message,
       :donation_thank_you_message,
       :donation_reply_to_email,
       :is_public,
