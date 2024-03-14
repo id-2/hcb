@@ -157,7 +157,7 @@ class AchTransfer < ApplicationRecord
         account_number:,
         routing_number:,
       },
-      company_name: event.name[0...16],
+      company_name: (reimbursement? ? reimbursement_expense_payout.report.event : event).name[0...16],
       company_entry_description: reimbursement? ? "REIMBURSE" : "PAYMENT",
       description: payment_for,
       account_number_id:,
