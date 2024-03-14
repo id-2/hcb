@@ -107,11 +107,7 @@ class HcbCode
       end
 
       def reimbursement_payout_transfer_memo
-        return "Payout Transfer for Reimbursement Report #{increase_check.reimbursement_payout_holding.report.id}" if increase_check?
-
-        return "Payout Transfer for Reimbursement Report #{ach_transfer.reimbursement_payout_holding.report.id}" if ach_transfer?
-
-        "Payout Transfer for Unknown Reimbursement Report"
+        return "Payout Transfer for Reimbursement Report #{reimbursement_payout_transfer_memo.report.id}"
       end
 
     end
