@@ -361,6 +361,7 @@ class HcbCode < ApplicationRecord
       nil
     end
   end
+
   def outgoing_fee_reimbursement?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::OUTGOING_FEE_REIMBURSEMENT_CODE
   end
