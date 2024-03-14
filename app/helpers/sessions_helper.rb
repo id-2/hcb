@@ -64,15 +64,17 @@ module SessionsHelper
   end
 
   def organizer_signed_in?(event = @event, as: :member)
-    return true if admin_signed_in?
-    return false unless signed_in?
+    memoization_key = [event, current_user, as]
+    @organizer_signed_in ||= {}
+    @organizer_signed_in[memoization_key] ||= begin
+      return true if admin_signed_in?
+      return false unless signed_in?
 
-    as = as[:as] if as.instance_of?(Hash)
-    position = OrganizerPosition.find_by(user: current_user, event:)
-    return unless position
+      as = as[:as] if as.instance_of?(Hash)
+      position = OrganizerPosition.find_by(user: current_user, event:)
 
-    # We want to make sure the user position's role is >= `as`'s corresponding int.
-    position.role_before_type_cast >= OrganizerPosition.roles[as]
+      position&.role_before_type_cast >= OrganizerPosition.roles[as]
+    end
   end
 
   def current_user
