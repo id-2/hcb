@@ -20,12 +20,21 @@ module ReceiptService
     def self.weights
       {
         amount_cents: 1,
-        date: 1000,
         card_last_four: 1000,
-        merchant_zip_code: 500,
-        merchant_city: 500,
-        merchant_phone: 500,
+        date: 1000,
+        # merchant_zip_code: 500,
+        # merchant_city: 500,
+        # merchant_phone: 500,
         merchant_name: 500
+      }
+    end
+
+    def distances
+      {
+        amount_cents_total: 0,
+        card_last_four: 0,
+        date: 0,
+        merchant_name: 0,
       }
     end
 
@@ -51,7 +60,7 @@ module ReceiptService
 
     def distances_hash(txn)
       distances = {
-        card_last_four: @extracted[:card_last_four].include?(txn.stripe_card.last4) ? 0 : 1,
+        card_last_four: @extracted[:card_last_four].include?(txn.stripe_card.last_four) ? 0 : 1,
         merchant_zip_code: if txn.stripe_merchant["postal_code"].nil?
                              nil
                            else
@@ -79,6 +88,9 @@ module ReceiptService
       else
         distances[:amount_cents] = best_distance(txn.amount_cents, @extracted[:amount_cents].take(2))
       end
+
+      distances[:date] =
+        best_distance(txn.date.to_time.to_i / 86400, [@extracted[:date]])
 
       distances[:date] =
         best_distance(txn.date.to_time.to_i / 86400, [@extracted[:date]])

@@ -47,9 +47,25 @@ module ReceiptService
         }.to_json
       end
 
-      JSON.parse(
-        JSON.parse(response.body).dig("choices", 0, "message", "content")
-      ).with_indifferent_access
+      body = JSON.parse(response.body)
+      ai_response = body.dig("choices", 0, "message", "content")
+      extracted = JSON.parse(ai_response).with_indifferent_access
+
+      data = OpenStruct.new(extracted)
+
+      @receipt.update(
+        suggested_amount_cents_subtotal: data.amount_cents_subtotal.to_i,
+        suggested_amount_cents_total: data.amount_cents_total.to_i,
+        suggested_card_last4: data.card_last_four,
+        suggested_date: data.date.to_date,
+        suggested_memo: data.memo,
+        suggested_merchant_name: data.merchant_name,
+        suggested_merchant_url: data.merchant_url
+      )
+
+      extracted[:textual_content] = @receipt.textual_content
+
+      extracted
     end
 
   end
