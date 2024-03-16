@@ -684,6 +684,9 @@ GEM
       sprockets-rails
       tilt
     scientist (1.6.4)
+    sequenced (4.0.0)
+      activerecord (>= 3.0)
+      activesupport (>= 3.0)
     sidekiq (7.1.3)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
@@ -899,6 +902,7 @@ DEPENDENCIES
   safely_block
   sassc-rails
   scientist
+  sequenced
   sidekiq (~> 7.1.3)
   sidekiq-cron (~> 1.10)
   simplecov

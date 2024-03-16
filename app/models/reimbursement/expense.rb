@@ -4,20 +4,23 @@
 #
 # Table name: reimbursement_expenses
 #
-#  id                      :bigint           not null, primary key
-#  aasm_state              :string
-#  amount_cents            :integer          default(0), not null
-#  approved_at             :datetime
-#  description             :text
-#  expense_number          :integer          default(1), not null
-#  memo                    :text
-#  created_at              :datetime         not null
-#  updated_at              :datetime         not null
-#  approved_by_id          :bigint
-#  reimbursement_report_id :bigint           not null
+#  id                        :bigint           not null, primary key
+#  aasm_state                :string
+#  amount_cents              :integer          default(0), not null
+#  approved_at               :datetime
+#  description               :text
+#  expense_number            :integer          default(1), not null
+#  memo                      :text
+#  reimbursable_amount_cents :integer
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  approved_by_id            :bigint
+#  reimbursement_report_id   :bigint           not null
+#  sequential_id             :integer          not null
 #
 # Indexes
 #
+#  index_expenses_on_sequential_id_and_report_id            (sequential_id,reimbursement_report_id) UNIQUE
 #  index_reimbursement_expenses_on_approved_by_id           (approved_by_id)
 #  index_reimbursement_expenses_on_reimbursement_report_id  (reimbursement_report_id)
 #
@@ -33,7 +36,7 @@ module Reimbursement
     validates :amount_cents, numericality: { greater_than_or_equal_to: 0 }
     has_one :expense_payout
     has_one :event, through: :report
-    attribute :expense_number, :integer, default: 0
+    acts_as_sequenced scope: :reimbursement_report_id
     include AASM
     include Receiptable
 
@@ -58,16 +61,6 @@ module Reimbursement
       end
     end
 
-    validates :expense_number, uniqueness: { scope: :reimbursement_report_id }
-
-    before_validation do
-      if self.expense_number == 0
-        self.expense_number = self.report.expense_number + 1
-        self.report.expense_number += 1
-        self.report.save!
-      end
-    end
-
     def receipt_required?
       true
     end
@@ -83,6 +76,13 @@ module Reimbursement
 
     def rejected?
       report.rejected? || pending? && report.closed?
+    end
+    
+    def set_sequential_ids
+      byebug
+      self.class.base_class.sequenced_options.each do |options|
+        Sequenced::Generator.new(self, options).set
+      end
     end
 
     delegate :locked?, to: :report

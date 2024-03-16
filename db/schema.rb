@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_16_063623) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1595,8 +1595,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "expense_number", default: 0, null: false
+    t.integer "sequential_id", null: false
     t.index ["approved_by_id"], name: "index_reimbursement_expenses_on_approved_by_id"
     t.index ["reimbursement_report_id"], name: "index_reimbursement_expenses_on_reimbursement_report_id"
+    t.index ["sequential_id", "reimbursement_report_id"], name: "index_expenses_on_sequential_id_and_report_id", unique: true
   end
 
   create_table "reimbursement_payout_holdings", force: :cascade do |t|

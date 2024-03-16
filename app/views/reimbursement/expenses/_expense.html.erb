@@ -4,7 +4,7 @@
 
 <%= turbo_frame_tag expense do %>
   <article
-    id="<%= expense.expense_number %>"
+    id="<%= expense.sequential_id %>"
     class="
       expense card mt2 pt0 border
       b--<%= expense.status_color %>
@@ -21,7 +21,7 @@
           data-mention-title="<%= expense.memo %>"
           class="bg-white tooltipped tooltipped--e pointer mention"
           aria-label="Click to reference in comment">
-          #<%= expense.expense_number %>
+          #<%= expense.sequential_id %>
         </code>
         <div style="flex-grow: 1" data-expense-form-target="memo" class="bold <%= "muted" unless expense.memo.presence %>">
           <%= expense.memo.presence || "Untitled Expense" %>
@@ -83,6 +83,6 @@
 
 <% if new %>
   <script>
-    document.getElementById("<%= expense.expense_number.to_json %>").scrollIntoView()
+    document.getElementById("<%= expense.sequential_id.to_json %>").scrollIntoView()
   </script>
 <% end %>
