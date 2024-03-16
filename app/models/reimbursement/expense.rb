@@ -77,13 +77,6 @@ module Reimbursement
       report.rejected? || pending? && report.closed?
     end
 
-    def set_sequential_ids
-      byebug
-      self.class.base_class.sequenced_options.each do |options|
-        Sequenced::Generator.new(self, options).set
-      end
-    end
-
     delegate :locked?, to: :report
 
     def status_color
