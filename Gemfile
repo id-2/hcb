@@ -150,7 +150,7 @@ gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # For reporting to HC Grafana
 
 gem "mrsk" # deployments
 
-gem 'sequenced' # incrementing expense numbers
+gem "sequenced" # incrementing expense numbers
 
 group :production do
   gem "skylight"

@@ -35,7 +35,7 @@ module Reimbursement
 
     def update
       authorize @expense
-      
+
       if @expense.reimbursement_report_id != expense_params[:reimbursement_report_id]
         @expense.assign_attributes(sequential_id: nil)
       end
