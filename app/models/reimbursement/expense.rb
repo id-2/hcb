@@ -4,18 +4,20 @@
 #
 # Table name: reimbursement_expenses
 #
-#  id                      :bigint           not null, primary key
-#  aasm_state              :string
-#  amount_cents            :integer          default(0), not null
-#  approved_at             :datetime
-#  description             :text
-#  expense_number          :integer          default(1), not null
-#  memo                    :text
-#  created_at              :datetime         not null
-#  updated_at              :datetime         not null
-#  approved_by_id          :bigint
-#  reimbursement_report_id :bigint           not null
-#  sequential_id           :integer          not null
+#  id                        :bigint           not null, primary key
+#  aasm_state                :string
+#  amount_cents              :integer          default(0), not null
+#  approved_at               :datetime
+#  deleted_at                :datetime
+#  description               :text
+#  expense_number            :integer          default(0), not null
+#  memo                      :text
+#  reimbursable_amount_cents :integer
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  approved_by_id            :bigint
+#  reimbursement_report_id   :bigint           not null
+#  sequential_id             :integer          not null
 #
 # Indexes
 #
@@ -35,9 +37,16 @@ module Reimbursement
     validates :amount_cents, numericality: { greater_than_or_equal_to: 0 }
     has_one :expense_payout
     has_one :event, through: :report
+
     acts_as_sequenced scope: :reimbursement_report_id
+    attribute :expense_number, :integer, default: 0
+
     include AASM
     include Receiptable
+    include Hashid::Rails
+
+    has_paper_trail
+    acts_as_paranoid
 
     scope :complete, -> { where.not(memo: nil, amount_cents: 0) }
 
