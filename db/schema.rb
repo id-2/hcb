@@ -31,26 +31,26 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "ach_transfers", force: :cascade do |t|
     t.bigint "event_id"
     t.bigint "creator_id"
-    t.string "routing_number"
-    t.string "bank_name"
-    t.string "recipient_name"
+    t.string "routing_number" # should we obfuscate?
+    t.string "bank_name", replibyte: :random
+    t.string "recipient_name", replibyte: "first-name"
     t.integer "amount"
     t.datetime "approved_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.string "recipient_tel"
+    t.string "recipient_tel", replibyte: "phone-number"
     t.datetime "rejected_at", precision: nil
     t.datetime "scheduled_arrival_date", precision: nil
     t.text "payment_for"
     t.string "aasm_state"
-    t.text "confirmation_number"
-    t.text "account_number_ciphertext"
+    t.text "confirmation_number", replibyte: :random
+    t.text "account_number_ciphertext", replibyte: :random
     t.bigint "processor_id"
     t.text "increase_id"
     t.date "scheduled_on"
     t.text "column_id"
     t.bigint "payment_recipient_id"
-    t.string "recipient_email"
+    t.string "recipient_email", replibyte: "email"
     t.boolean "send_email_notification", default: false
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
@@ -115,6 +115,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "updated_at", null: false
   end
 
+  # DROP
   create_table "ahoy_events", force: :cascade do |t|
     t.bigint "visit_id"
     t.bigint "user_id"
@@ -127,6 +128,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["visit_id"], name: "index_ahoy_events_on_visit_id"
   end
 
+  # DROP
   create_table "ahoy_visits", force: :cascade do |t|
     t.string "visit_token"
     t.string "visitor_token"
@@ -157,6 +159,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["visit_token"], name: "index_ahoy_visits_on_visit_token", unique: true
   end
 
+  # maybe drop entirely?
   create_table "api_tokens", force: :cascade do |t|
     t.text "token_ciphertext"
     t.string "token_bidx"
@@ -165,7 +168,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "updated_at", null: false
     t.bigint "application_id"
     t.datetime "revoked_at"
-    t.string "refresh_token"
+    t.string "refresh_token", replibyte: :random
     t.integer "expires_in"
     t.string "scopes"
     t.index ["application_id"], name: "index_api_tokens_on_application_id"
@@ -176,7 +179,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "bank_accounts", force: :cascade do |t|
     t.text "plaid_item_id"
     t.text "plaid_account_id"
-    t.text "name"
+    t.text "name", replibyte: :random
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "should_sync", default: true
@@ -199,6 +202,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["fee_revenue_id"], name: "index_bank_fees_on_fee_revenue_id"
   end
 
+  # drop table?
   create_table "blazer_audits", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "query_id"
@@ -209,6 +213,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["user_id"], name: "index_blazer_audits_on_user_id"
   end
 
+  # drop table?
   create_table "blazer_checks", force: :cascade do |t|
     t.bigint "creator_id"
     t.bigint "query_id"
@@ -225,6 +230,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["query_id"], name: "index_blazer_checks_on_query_id"
   end
 
+  # drop table?
   create_table "blazer_dashboard_queries", force: :cascade do |t|
     t.bigint "dashboard_id"
     t.bigint "query_id"
@@ -235,6 +241,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["query_id"], name: "index_blazer_dashboard_queries_on_query_id"
   end
 
+  # drop table?
   create_table "blazer_dashboards", force: :cascade do |t|
     t.bigint "creator_id"
     t.string "name"
@@ -243,6 +250,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["creator_id"], name: "index_blazer_dashboards_on_creator_id"
   end
 
+  # drop table?
   create_table "blazer_queries", force: :cascade do |t|
     t.bigint "creator_id"
     t.string "name"
@@ -304,6 +312,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["canonical_transaction_id"], name: "index_canonical_pending_settled_mappings_on_canonical_tx_id"
   end
 
+  # memo fields here
   create_table "canonical_pending_transactions", force: :cascade do |t|
     t.date "date", null: false
     t.text "memo", null: false
@@ -346,6 +355,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.check_constraint "fronted IS NOT NULL", name: "canonical_pending_transactions_fronted_null"
   end
 
+  #memo fields here
   create_table "canonical_transactions", force: :cascade do |t|
     t.date "date", null: false
     t.text "memo", null: false
@@ -366,7 +376,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.bigint "event_id", null: false
     t.string "merchant_lock"
     t.string "category_lock"
-    t.string "invite_message"
+    t.string "invite_message" # is this always admin generated?
     t.index ["event_id"], name: "index_card_grant_settings_on_event_id"
   end
 
@@ -380,7 +390,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "disbursement_id"
-    t.string "email", null: false
+    t.string "email", null: false, replibyte: :random
     t.string "merchant_lock"
     t.string "category_lock"
     t.integer "status", default: 0, null: false
@@ -412,7 +422,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.bigint "creator_id"
     t.bigint "lob_address_id"
     t.string "lob_id"
-    t.text "memo"
+    t.text "memo" # this one?
     t.integer "check_number"
     t.integer "amount"
     t.datetime "expected_delivery_date", precision: nil
@@ -427,7 +437,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "rejected_at", precision: nil
     t.text "payment_for"
     t.string "aasm_state"
-    t.text "lob_url"
+    t.text "lob_url", replibyte: :random
     t.text "description_ciphertext"
     t.index ["creator_id"], name: "index_checks_on_creator_id"
     t.index ["lob_address_id"], name: "index_checks_on_lob_address_id"
@@ -470,7 +480,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "disbursements", force: :cascade do |t|
     t.bigint "event_id"
     t.integer "amount"
-    t.string "name"
+    t.string "name", replibyte: :random
     t.datetime "rejected_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -496,8 +506,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "document_downloads", force: :cascade do |t|
     t.bigint "document_id"
     t.bigint "user_id"
-    t.inet "ip_address"
-    t.text "user_agent"
+    t.inet "ip_address", replibyte: :random
+    t.text "user_agent" # ?
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
@@ -507,7 +517,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "documents", force: :cascade do |t|
     t.bigint "event_id"
-    t.text "name"
+    t.text "name", replibyte: :random
     t.bigint "user_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -526,11 +536,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "stripe_balance_transaction_id"
     t.datetime "stripe_created_at", precision: nil
     t.text "currency"
-    t.text "description"
+    t.text "description", replibyte: :random
     t.text "stripe_destination_id"
     t.text "failure_stripe_balance_transaction_id"
     t.text "failure_code"
-    t.text "failure_message"
+    t.text "failure_message", replibyte: :random
     t.text "method"
     t.text "source_type"
     t.text "statement_descriptor"
@@ -544,9 +554,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   end
 
   create_table "donations", force: :cascade do |t|
-    t.text "email"
-    t.text "name"
-    t.string "url_hash"
+    t.text "email", replibyte: :email
+    t.text "name", replibyte: :random
+    t.string "url_hash", replibyte: :random
     t.integer "amount"
     t.integer "amount_received"
     t.string "status"
@@ -577,6 +587,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["recurring_donation_id"], name: "index_donations_on_recurring_donation_id"
   end
 
+  # drop?
   create_table "emburse_card_requests", force: :cascade do |t|
     t.bigint "creator_id"
     t.bigint "event_id"
@@ -604,6 +615,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["fulfilled_by_id"], name: "index_emburse_card_requests_on_fulfilled_by_id"
   end
 
+  # drop?
   create_table "emburse_cards", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "event_id"
@@ -625,6 +637,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["user_id"], name: "index_emburse_cards_on_user_id"
   end
 
+  # drop?
   create_table "emburse_transactions", force: :cascade do |t|
     t.string "emburse_id"
     t.integer "amount"
@@ -661,6 +674,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["event_id"], name: "index_emburse_transactions_on_event_id"
   end
 
+  # drop?
   create_table "emburse_transfers", force: :cascade do |t|
     t.bigint "emburse_card_id"
     t.bigint "creator_id"
@@ -680,7 +694,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   end
 
   create_table "event_tags", force: :cascade do |t|
-    t.string "name", null: false
+    t.string "name", null: false, replibyte: :random
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -722,12 +736,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.string "organization_identifier", null: false
     t.string "redirect_url"
     t.bigint "partner_id"
-    t.string "owner_name"
-    t.string "owner_email"
-    t.string "owner_phone"
-    t.string "owner_address"
+    t.string "owner_name", replibyte: "first-name"
+    t.string "owner_email", replibyte: :email
+    t.string "owner_phone", replibyte: :random
+    t.string "owner_address", replibyte: :random
     t.date "owner_birthdate"
-    t.string "webhook_url"
+    t.string "webhook_url", replibyte: :random # is this an external URL?
     t.integer "country"
     t.boolean "holiday_features", default: true, null: false
     t.string "custom_css_url"
@@ -754,7 +768,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "fee_reimbursements", force: :cascade do |t|
     t.bigint "amount"
-    t.string "transaction_memo"
+    t.string "transaction_memo" # this one?
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "processed_at", precision: nil
@@ -819,7 +833,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   end
 
   create_table "g_suite_accounts", force: :cascade do |t|
-    t.text "address"
+    t.text "address", replibyte: :random
     t.datetime "accepted_at", precision: nil
     t.datetime "rejected_at", precision: nil
     t.bigint "g_suite_id"
@@ -827,9 +841,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "verified_at", precision: nil
     t.bigint "creator_id"
-    t.text "backup_email"
-    t.string "first_name"
-    t.string "last_name"
+    t.text "backup_email", replibyte: :email
+    t.string "first_name", replibyte: "first-name"
+    t.string "last_name", replibyte: "first-name"
     t.datetime "suspended_at", precision: nil
     t.text "initial_password_ciphertext"
     t.index ["creator_id"], name: "index_g_suite_accounts_on_creator_id"
@@ -837,9 +851,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   end
 
   create_table "g_suites", force: :cascade do |t|
-    t.citext "domain"
+    t.citext "domain", replibyte: :random
     t.bigint "event_id"
-    t.text "verification_key"
+    t.text "verification_key", replibyte: :random
     t.datetime "deleted_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -862,12 +876,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "recipient_id", null: false
-    t.string "recipient_name"
+    t.string "recipient_name", replibyte: "first-name"
     t.integer "receipt_method"
     t.bigint "disbursement_id"
     t.bigint "ach_transfer_id"
     t.bigint "increase_check_id"
-    t.string "recipient_organization"
+    t.string "recipient_organization", replibyte: :random
     t.datetime "ends_at"
     t.integer "recipient_org_type"
     t.index ["ach_transfer_id"], name: "index_grants_on_ach_transfer_id"
@@ -890,7 +904,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.bigint "duplicate_of_hashed_transaction_id"
     t.bigint "raw_csv_transaction_id"
     t.bigint "raw_stripe_transaction_id"
-    t.text "unique_bank_identifier"
+    t.text "unique_bank_identifier", replibyte: :random
     t.date "date"
     t.bigint "raw_increase_transaction_id"
     t.index ["duplicate_of_hashed_transaction_id"], name: "index_hashed_transactions_on_duplicate_of_hashed_transaction_id"
@@ -951,14 +965,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "increase_checks", force: :cascade do |t|
     t.string "memo"
-    t.string "payment_for"
+    t.string "payment_for", replibyte: :random
     t.integer "amount"
-    t.string "address_city"
-    t.string "address_line1"
-    t.string "address_line2"
-    t.string "address_state"
-    t.string "address_zip"
-    t.string "recipient_name"
+    t.string "address_city", replibyte: :random
+    t.string "address_line1", replibyte: :random
+    t.string "address_line2", replibyte: :random
+    t.string "address_state", replibyte: :random
+    t.string "address_zip", replibyte: :random
+    t.string "recipient_name", replibyte: "first-name"
     t.string "increase_id"
     t.string "aasm_state"
     t.string "increase_state"
@@ -990,7 +1004,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "stripe_balance_transaction_id"
     t.datetime "stripe_created_at", precision: nil
     t.text "currency"
-    t.text "description"
+    t.text "description" # this one?
     t.text "stripe_destination_id"
     t.text "failure_stripe_balance_transaction_id"
     t.text "failure_code"
@@ -1031,8 +1045,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "auto_advance"
-    t.text "hosted_invoice_url"
-    t.text "invoice_pdf"
+    t.text "hosted_invoice_url", replibyte: :random
+    t.text "invoice_pdf", replibyte: :random
     t.bigint "creator_id"
     t.datetime "manually_marked_as_paid_at", precision: nil
     t.bigint "manually_marked_as_paid_user_id"
@@ -1043,7 +1057,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "payout_creation_queued_job_id"
     t.datetime "payout_creation_balance_available_at", precision: nil
     t.text "slug"
-    t.text "number"
+    t.text "number", replibyte: :random
     t.datetime "finalized_at", precision: nil
     t.text "status"
     t.integer "payout_creation_balance_net"
@@ -1053,14 +1067,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.boolean "livemode"
     t.text "payment_method_type"
     t.text "payment_method_card_brand"
-    t.text "payment_method_card_checks_address_line1_check"
-    t.text "payment_method_card_checks_address_postal_code_check"
-    t.text "payment_method_card_checks_cvc_check"
+    t.text "payment_method_card_checks_address_line1_check", replibyte: :random
+    t.text "payment_method_card_checks_address_postal_code_check", replibyte: :random
+    t.text "payment_method_card_checks_cvc_check", replibyte: :random
     t.text "payment_method_card_country"
-    t.text "payment_method_card_exp_month"
-    t.text "payment_method_card_exp_year"
+    t.text "payment_method_card_exp_month", replibyte: :random
+    t.text "payment_method_card_exp_year", replibyte: :random
     t.text "payment_method_card_funding"
-    t.text "payment_method_card_last4"
+    t.text "payment_method_card_last4", replibyte: :redacted
     t.text "payment_method_ach_credit_transfer_bank_name"
     t.text "payment_method_ach_credit_transfer_routing_number"
     t.text "payment_method_ach_credit_transfer_swift_code"
@@ -1085,6 +1099,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["voided_by_id"], name: "index_invoices_on_voided_by_id"
   end
 
+  # drop table?
   create_table "lab_tech_experiments", force: :cascade do |t|
     t.string "name"
     t.integer "percent_enabled", default: 0, null: false
@@ -1094,6 +1109,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["name"], name: "index_lab_tech_experiments_by_name", unique: true
   end
 
+  # drop table?
   create_table "lab_tech_observations", force: :cascade do |t|
     t.integer "result_id", null: false
     t.string "name", limit: 100
@@ -1108,6 +1124,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["result_id"], name: "index_lab_tech_observations_by_result_id"
   end
 
+  # drop table?
   create_table "lab_tech_results", force: :cascade do |t|
     t.integer "experiment_id", null: false
     t.text "context"
@@ -1125,13 +1142,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "lob_addresses", force: :cascade do |t|
     t.bigint "event_id"
-    t.text "description"
-    t.string "name"
-    t.string "address1"
-    t.string "address2"
-    t.string "city"
-    t.string "state"
-    t.string "zip"
+    t.text "description", replibyte: :random
+    t.string "name", replibyte: "first-name"
+    t.string "address1", replibyte: :random
+    t.string "address2", replibyte: :random
+    t.string "city", replibyte: :random
+    t.string "state", replibyte: :random
+    t.string "zip", replibyte: :random
     t.string "country"
     t.string "lob_id"
     t.datetime "created_at", precision: nil, null: false
@@ -1139,6 +1156,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["event_id"], name: "index_lob_addresses_on_event_id"
   end
 
+  # drop table?
   create_table "login_codes", force: :cascade do |t|
     t.bigint "user_id"
     t.text "code"
@@ -1152,18 +1170,19 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
 
+  # drop table? is this used?
   create_table "login_tokens", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.text "token", null: false
+    t.text "token", null: false, replibyte: :random
     t.datetime "expiration_at", precision: nil, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "ip"
+    t.string "ip", replibyte: :random
     t.string "aasm_state"
     t.bigint "user_session_id"
     t.bigint "partner_id"
-    t.decimal "latitude"
-    t.decimal "longitude"
+    t.decimal "latitude", replibyte: :random
+    t.decimal "longitude", replibyte: :random
     t.index ["partner_id"], name: "index_login_tokens_on_partner_id"
     t.index ["token"], name: "index_login_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
@@ -1171,7 +1190,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   end
 
   create_table "mailbox_addresses", force: :cascade do |t|
-    t.string "address", null: false
+    t.string "address", null: false, replibyte: :random
     t.string "aasm_state"
     t.bigint "user_id", null: false
     t.datetime "discarded_at"
@@ -1211,13 +1230,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "oauth_access_grants", force: :cascade do |t|
     t.bigint "resource_owner_id", null: false
     t.bigint "application_id", null: false
-    t.string "token", null: false
+    t.string "token", null: false, replibyte: :random
     t.integer "expires_in", null: false
     t.text "redirect_uri", null: false
     t.string "scopes", default: "", null: false
     t.datetime "created_at", null: false
     t.datetime "revoked_at"
-    t.string "code_challenge"
+    t.string "code_challenge", replibyte: :random
     t.string "code_challenge_method"
     t.index ["application_id"], name: "index_oauth_access_grants_on_application_id"
     t.index ["resource_owner_id"], name: "index_oauth_access_grants_on_resource_owner_id"
@@ -1225,7 +1244,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   end
 
   create_table "oauth_applications", force: :cascade do |t|
-    t.string "name", null: false
+    t.string "name", null: false, replibyte: :random
     t.string "uid", null: false
     t.string "secret", null: false
     t.text "redirect_uri", null: false
@@ -1241,7 +1260,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.bigint "submitted_by_id"
     t.bigint "closed_by_id"
     t.datetime "closed_at", precision: nil
-    t.text "reason"
+    t.text "reason" # this one?
     t.boolean "subject_has_outstanding_expenses_expensify", default: false, null: false
     t.boolean "subject_has_outstanding_transactions_emburse", default: false, null: false
     t.boolean "subject_emails_should_be_forwarded", default: false, null: false
@@ -1311,12 +1330,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   end
 
   create_table "partnered_signups", force: :cascade do |t|
-    t.string "owner_phone"
-    t.string "owner_email"
-    t.string "owner_name"
-    t.string "owner_address"
+    t.string "owner_phone", replibyte: "phone-number"
+    t.string "owner_email", replibyte: :email
+    t.string "owner_name", replibyte: "first-name"
+    t.string "owner_address", replibyte: :random
     t.string "redirect_url", null: false
-    t.date "owner_birthdate"
+    t.date "owner_birthdate", replibyte: :random
     t.integer "country"
     t.string "organization_name", null: false
     t.datetime "accepted_at", precision: nil
@@ -1329,11 +1348,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "submitted_at", precision: nil
     t.string "docusign_envelope_id"
     t.boolean "signed_contract"
-    t.string "owner_address_line1"
-    t.string "owner_address_line2"
-    t.string "owner_address_city"
-    t.string "owner_address_state"
-    t.text "owner_address_postal_code"
+    t.string "owner_address_line1", replibyte: :random
+    t.string "owner_address_line2", replibyte: :random
+    t.string "owner_address_city", replibyte: :random
+    t.string "owner_address_state", replibyte: :random
+    t.text "owner_address_postal_code", replibyte: :random
     t.integer "owner_address_country"
     t.string "aasm_state"
     t.datetime "applicant_signed_at", precision: nil
@@ -1349,11 +1368,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "external", default: true, null: false
-    t.text "name"
+    t.text "name", replibyte: :random
     t.text "logo"
     t.string "public_stripe_api_key"
     t.text "stripe_api_key_ciphertext"
-    t.string "webhook_url"
+    t.string "webhook_url", replibyte: :random
     t.string "docusign_template_id"
     t.bigint "representative_id"
     t.text "api_key_ciphertext"
@@ -1364,7 +1383,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "payment_recipients", force: :cascade do |t|
     t.bigint "event_id", null: false
-    t.string "name"
+    t.string "name", replibyte: :random
     t.text "account_number_ciphertext"
     t.string "routing_number_ciphertext"
     t.string "bank_name_ciphertext"
@@ -1377,7 +1396,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "raw_column_transactions", force: :cascade do |t|
     t.string "column_report_id"
     t.integer "transaction_index"
-    t.jsonb "column_transaction"
+    t.jsonb "column_transaction", replibyte: :random # or some kind of fake json generator
     t.text "description"
     t.date "date_posted"
     t.integer "amount_cents"
@@ -1389,23 +1408,23 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.integer "amount_cents"
     t.date "date_posted"
     t.text "memo"
-    t.jsonb "raw_data"
+    t.jsonb "raw_data", replibyte: :random # or some kind of fake json generator
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "unique_bank_identifier", null: false
+    t.string "unique_bank_identifier", null: false, replibyte: :random
     t.text "csv_transaction_id"
     t.index ["csv_transaction_id"], name: "index_raw_csv_transactions_on_csv_transaction_id", unique: true
   end
 
   create_table "raw_emburse_transactions", force: :cascade do |t|
     t.text "emburse_transaction_id"
-    t.jsonb "emburse_transaction"
+    t.jsonb "emburse_transaction", replibyte: :random # or some kind of fake json generator
     t.integer "amount_cents"
     t.date "date_posted"
     t.string "state"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "unique_bank_identifier", null: false
+    t.string "unique_bank_identifier", null: false, replibyte: :random
   end
 
   create_table "raw_increase_transactions", force: :cascade do |t|
@@ -1418,7 +1437,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.jsonb "increase_transaction"
+    t.jsonb "increase_transaction" # or some kind of fake json generator
     t.index ["increase_transaction_id"], name: "index_raw_increase_transactions_on_increase_transaction_id", unique: true
   end
 
@@ -1498,7 +1517,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "raw_pending_stripe_transactions", force: :cascade do |t|
     t.text "stripe_transaction_id"
-    t.jsonb "stripe_transaction"
+    t.jsonb "stripe_transaction", replibyte: :random # or some kind of fake json generator
     t.integer "amount_cents"
     t.date "date_posted"
     t.datetime "created_at", null: false
@@ -1513,24 +1532,24 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "plaid_account_id"
     t.text "plaid_item_id"
     t.text "plaid_transaction_id"
-    t.jsonb "plaid_transaction"
+    t.jsonb "plaid_transaction", replibyte: :random # or some kind of fake json generator
     t.integer "amount_cents"
     t.date "date_posted"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "pending", default: false
-    t.string "unique_bank_identifier", null: false
+    t.string "unique_bank_identifier", null: false, replibyte: :random
   end
 
   create_table "raw_stripe_transactions", force: :cascade do |t|
     t.text "stripe_transaction_id"
-    t.jsonb "stripe_transaction"
+    t.jsonb "stripe_transaction", replibyte: :random # or some kind of fake json generator
     t.integer "amount_cents"
     t.date "date_posted"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "stripe_authorization_id"
-    t.string "unique_bank_identifier", null: false
+    t.string "unique_bank_identifier", null: false, replibyte: :random
     t.index "(((stripe_transaction -> 'card'::text) ->> 'id'::text))", name: "index_raw_stripe_transactions_on_card_id_text", using: :hash
   end
 
@@ -1556,14 +1575,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "stripe_customer_id"
     t.text "stripe_subscription_id"
     t.text "stripe_payment_intent_id"
-    t.text "stripe_client_secret"
+    t.text "stripe_client_secret", replibyte: :random
     t.datetime "stripe_current_period_end"
     t.text "stripe_status"
     t.text "url_hash"
     t.text "last4_ciphertext"
     t.datetime "canceled_at"
     t.boolean "migrated_from_legacy_stripe_account", default: false
-    t.text "message"
+    t.text "message", replibyte: :random
     t.boolean "anonymous", default: false, null: false
     t.index ["event_id"], name: "index_recurring_donations_on_event_id"
     t.index ["stripe_subscription_id"], name: "index_recurring_donations_on_stripe_subscription_id", unique: true
@@ -1636,13 +1655,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "sponsors", force: :cascade do |t|
     t.bigint "event_id"
-    t.text "name"
-    t.text "contact_email"
-    t.text "address_line1"
-    t.text "address_line2"
-    t.text "address_city"
-    t.text "address_state"
-    t.text "address_postal_code"
+    t.text "name", replibyte: "first-name"
+    t.text "contact_email", replibyte: :email
+    t.text "address_line1", replibyte: :random
+    t.text "address_line2", replibyte: :random
+    t.text "address_city", replibyte: :random
+    t.text "address_state", replibyte: :random
+    t.text "address_postal_code", replibyte: :random
     t.text "stripe_customer_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -1673,8 +1692,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.integer "amount"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "name"
-    t.string "display_name"
+    t.string "name", replibyte: "first-name"
+    t.string "display_name", replibyte: "first-name"
     t.datetime "marked_no_or_lost_receipt_at", precision: nil
     t.index ["stripe_card_id"], name: "index_stripe_authorizations_on_stripe_card_id"
   end
@@ -1682,15 +1701,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "stripe_cardholders", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.text "stripe_id"
-    t.text "stripe_billing_address_line1"
-    t.text "stripe_billing_address_line2"
-    t.text "stripe_billing_address_city"
+    t.text "stripe_billing_address_line1", replibyte: :random
+    t.text "stripe_billing_address_line2", replibyte: :random
+    t.text "stripe_billing_address_city", replibyte: :random
     t.text "stripe_billing_address_country"
-    t.text "stripe_billing_address_postal_code"
-    t.text "stripe_billing_address_state"
-    t.text "stripe_name"
-    t.text "stripe_email"
-    t.text "stripe_phone_number"
+    t.text "stripe_billing_address_postal_code", replibyte: :random
+    t.text "stripe_billing_address_state", replibyte: :random
+    t.text "stripe_name", replibyte: "first-name"
+    t.text "stripe_email", replibyte: :email
+    t.text "stripe_phone_number", replibyte: "phone-number"
     t.integer "cardholder_type", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -1708,13 +1727,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "last4"
     t.integer "card_type", default: 0, null: false
     t.text "stripe_status"
-    t.text "stripe_shipping_address_city"
-    t.text "stripe_shipping_address_country"
-    t.text "stripe_shipping_address_line1"
-    t.text "stripe_shipping_address_postal_code"
-    t.text "stripe_shipping_address_line2"
-    t.text "stripe_shipping_address_state"
-    t.text "stripe_shipping_name"
+    t.text "stripe_shipping_address_city", replibyte: :random
+    t.text "stripe_shipping_address_country", replibyte: :random
+    t.text "stripe_shipping_address_line1", replibyte: :random
+    t.text "stripe_shipping_address_postal_code", replibyte: :random
+    t.text "stripe_shipping_address_line2", replibyte: :random
+    t.text "stripe_shipping_address_state", replibyte: :random
+    t.text "stripe_shipping_name", replibyte: "first-name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "purchased_at", precision: nil
@@ -1722,7 +1741,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.integer "spending_limit_amount"
     t.boolean "activated", default: false
     t.bigint "replacement_for_id"
-    t.string "name"
+    t.string "name", replibyte: "first-name"
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
     t.boolean "lost_in_shipping", default: false
@@ -1787,22 +1806,22 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "name"
     t.bigint "amount"
     t.date "date"
-    t.text "location_address"
-    t.text "location_city"
-    t.text "location_state"
-    t.text "location_zip"
-    t.decimal "location_lat"
-    t.decimal "location_lng"
-    t.text "payment_meta_reference_number"
+    t.text "location_address", replibyte: :random
+    t.text "location_city", replibyte: :random
+    t.text "location_state", replibyte: :random
+    t.text "location_zip", replibyte: :random
+    t.decimal "location_lat", replibyte: :random
+    t.decimal "location_lng", replibyte: :random
+    t.text "payment_meta_reference_number", replibyte: :random
     t.text "payment_meta_ppd_id"
     t.boolean "pending"
     t.text "pending_transaction_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.bigint "bank_account_id"
-    t.text "payment_meta_by_order_of"
-    t.text "payment_meta_payee"
-    t.text "payment_meta_payer"
+    t.text "payment_meta_by_order_of", replibyte: :random
+    t.text "payment_meta_payee", replibyte: :random
+    t.text "payment_meta_payer", replibyte: :random
     t.text "payment_meta_payment_method"
     t.text "payment_meta_payment_processor"
     t.text "payment_meta_reason"
@@ -1812,7 +1831,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.bigint "emburse_transfer_id"
     t.bigint "invoice_payout_id"
     t.text "slug"
-    t.text "display_name"
+    t.text "display_name", replibyte: "first-name"
     t.bigint "fee_reimbursement_id"
     t.bigint "check_id"
     t.bigint "ach_transfer_id"
@@ -1838,7 +1857,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "body"
     t.text "twilio_sid"
     t.text "twilio_account_sid"
-    t.jsonb "raw_data"
+    t.jsonb "raw_data", replibyte: :random
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -1861,6 +1880,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "updated_at", null: false
   end
 
+  # drop table?
   create_table "user_sessions", force: :cascade do |t|
     t.bigint "user_id"
     t.datetime "created_at", null: false
@@ -1888,9 +1908,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.text "email"
-    t.string "full_name"
-    t.text "phone_number"
+    t.text "email", replibyte: :email
+    t.string "full_name", replibyte: "first-name"
+    t.text "phone_number", replibyte: "phone-number"
     t.string "slug"
     t.boolean "pretend_is_not_admin", default: false, null: false
     t.boolean "sessions_reported", default: false, null: false
@@ -1902,7 +1922,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "locked_at", precision: nil
     t.boolean "running_balance_enabled", default: false, null: false
     t.integer "receipt_report_option", default: 0, null: false
-    t.string "preferred_name"
+    t.string "preferred_name", replibyte: "first-name"
     t.integer "access_level", default: 0, null: false
     t.text "birthday_ciphertext"
     t.string "payout_method_type"
@@ -1911,6 +1931,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
 
+  # drop versions?
   create_table "versions", force: :cascade do |t|
     t.string "item_type", null: false
     t.bigint "item_id", null: false
@@ -1924,7 +1945,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
 
   create_table "webauthn_credentials", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.string "name"
+    t.string "name", replibyte: "first-name"
     t.string "webauthn_id"
     t.string "public_key"
     t.integer "sign_count"
