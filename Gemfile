@@ -205,6 +205,8 @@ group :development do
   gem "foreman"
 end
 
+gem 'skeema', git: 'https://github.com/albertchae/skeema-replibyte', branch: 'skeema-replibyte'
+
 gem "jbuilder", "~> 2.11"
 
 gem "libledger"

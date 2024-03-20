@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/albertchae/skeema-replibyte
+  revision: c0becd4c6919735b79fd64f01861fe39041f3321
+  branch: skeema-replibyte
+  specs:
+    skeema (0.0.2)
+
+GIT
   remote: https://github.com/hackclub/yellow_pages
   revision: 117d13e5067c540e3ee2457a4aac070ca88f59c9
   ref: 117d13e
@@ -902,6 +909,7 @@ DEPENDENCIES
   sidekiq (~> 7.1.3)
   sidekiq-cron (~> 1.10)
   simplecov
+  skeema!
   skylight
   solargraph
   solargraph-rails (~> 0.2.0)
