@@ -17,6 +17,10 @@ class UserPolicy < ApplicationPolicy
     user.admin? || record == user
   end
 
+  def edit_notifications?
+    user.admin? || record == user
+  end
+
   def edit_payout?
     user.admin? || record == user
   end

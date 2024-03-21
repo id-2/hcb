@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_19_234849) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1285,6 +1285,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.boolean "first_time", default: true
     t.boolean "is_signee"
     t.integer "role", default: 100, null: false
+    t.integer "enabled_notifications", default: 0, null: false
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end
@@ -1907,6 +1908,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "birthday_ciphertext"
     t.string "payout_method_type"
     t.bigint "payout_method_id"
+    t.integer "enabled_notifications", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

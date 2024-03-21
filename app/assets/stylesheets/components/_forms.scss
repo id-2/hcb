@@ -256,6 +256,18 @@ legend {
   input:checked + label {
     box-shadow: 0 0 0 1px white, 0 0 0 3px map-get($palette, info);
   }
+
+  &.field--green {
+    input:checked + label {
+      // color: $green;
+      background-color: rgba($green, 0.15);
+      box-shadow: 0 0 0 1px white, 0 0 0 3px $green;
+
+      html[data-dark='true'] & {
+        box-shadow: 0 0 0 1px white, 0 0 0 3px rgba($green, 0.7)
+      }
+    }
+  }
 }
 
 textarea.card {

@@ -8,6 +8,7 @@
 #  access_level             :integer          default("user"), not null
 #  birthday_ciphertext      :text
 #  email                    :text
+#  enabled_notifications    :integer          default([]), not null
 #  full_name                :string
 #  locked_at                :datetime
 #  payout_method_type       :string
@@ -132,6 +133,8 @@ class User < ApplicationRecord
   validates :preferred_name, length: { maximum: 30 }
 
   validate :profile_picture_format
+
+  enummer enabled_notifications: %i[threads my_threads reimbursement_review_requests donations]
 
   # admin? takes into account an admin user's preference
   # to pretend to be a non-admin, normal user

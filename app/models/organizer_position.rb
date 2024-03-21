@@ -4,16 +4,17 @@
 #
 # Table name: organizer_positions
 #
-#  id         :bigint           not null, primary key
-#  deleted_at :datetime
-#  first_time :boolean          default(TRUE)
-#  is_signee  :boolean
-#  role       :integer          default("manager"), not null
-#  sort_index :integer
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  event_id   :bigint
-#  user_id    :bigint
+#  id                    :bigint           not null, primary key
+#  deleted_at            :datetime
+#  enabled_notifications :integer          default([]), not null
+#  first_time            :boolean          default(TRUE)
+#  is_signee             :boolean
+#  role                  :integer          default("manager"), not null
+#  sort_index            :integer
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  event_id              :bigint
+#  user_id               :bigint
 #
 # Indexes
 #
@@ -43,6 +44,8 @@ class OrganizerPosition < ApplicationRecord
 
   delegate :initial?, to: :organizer_position_invite, allow_nil: true
 
+  enummer enabled_notifications: %i[threads my_threads reimbursement_review_requests donations inherit_user_settings]
+
   alias_attribute :signee, :is_signee
 
   def tourable_options
@@ -51,6 +54,10 @@ class OrganizerPosition < ApplicationRecord
       category: event.category,
       initial: initial?
     }
+  end
+
+  def should_notify?(notification_type)
+    notification_type.in?(inherit_user_settings? ? user.enabled_notifications : enabled_notifications)
   end
 
   private

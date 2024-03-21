@@ -317,6 +317,11 @@ class UsersController < ApplicationController
     authorize @user
   end
 
+  def edit_notifications
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    authorize @user
+  end
+
   def edit_featurepreviews
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.full_name.blank?

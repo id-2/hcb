@@ -1,0 +1,47 @@
+<% title "Notifications" %>
+<% page_md %>
+<%= render "users/nav", selected: :notifications %>
+<h1>
+  Settings
+</h1>
+<turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
+  <%= render "settings_nav", active: "notifications" %>
+  <section>
+    <h2 id="notifications">Notifications</h2>
+
+    <p class="h5 muted mt0 mb1">
+      What would you like to be notified for?
+    </p>
+
+    <%= form_with model: @user, data: { turbo_frame: "_top" } do |form| %>
+      <fieldset>
+        <div class="field field--options field--green">
+          <%= form.check_box :my_threads %>
+          <%= form.label :my_threads do %>
+            <%= inline_icon "thread", size: 28 %>
+            <strong>My Threads</strong>
+          <% end %>
+          <%= form.check_box :threads %>
+          <%= form.label :threads do %>
+            <%= inline_icon "message", size: 28 %>
+            <strong>Every Thread</strong>
+          <% end %>
+          <%= form.check_box :donations %>
+          <%= form.label :donations do %>
+            <%= inline_icon "support", size: 28 %>
+            <strong>Donations</strong>
+          <% end %>
+           <%= form.check_box :reimbursements %>
+          <%= form.label :reimbursements do %>
+            <%= inline_icon "attachment", size: 28 %>
+            <strong>Reimbursements</strong>
+          <% end %>
+        </div>
+      </fieldset>
+
+      <div class="actions inline-block mt1">
+        <%= form.submit "Save" %>
+      </div>
+    <% end %>
+  </section>
+</turbo-frame>

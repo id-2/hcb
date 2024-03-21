@@ -7,7 +7,7 @@
 <turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
   <%= render "settings_nav", active: "payouts" %>
   <section>
-    <h2 class="h2">Reimbursement payouts</h2>
+    <h2 id="payouts">Reimbursement payouts</h2>
     <div class="card border b--info pb0 mt2 mb3">
       When a <%= link_to "reimbursement report of yours", my_reimbursements_path %> is approved, HCB will use the information below to reimburse you. Without this information, you won't be able to submit reimbursement reports. You can update these settings at any time.
       <% if @user.reimbursement_reports.pending.any? %>
