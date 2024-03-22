@@ -102,7 +102,7 @@
 
     <%= render "hcb_codes/tags", hcb_code: @hcb_code, event: (@event || @hcb_code.event) %>
 
-    <% if @hcb_code.disbursement.fulfilled? %>
+    <% if @hcb_code.disbursement.fulfilled? && policy(@event).new_transfer? %>
       <p>
         <strong>Confirmation letter</strong>
           <span class="muted">
