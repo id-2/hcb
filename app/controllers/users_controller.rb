@@ -319,6 +319,8 @@ class UsersController < ApplicationController
 
   def edit_notifications
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    @organizer_positions = @user.organizer_positions.includes(:event).where(events: { demo_mode: false })
+
     authorize @user
   end
 

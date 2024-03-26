@@ -7,10 +7,10 @@
 <turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
   <%= render "settings_nav", active: "notifications" %>
   <section>
-    <h2 id="notifications">Notifications</h2>
+    <h2 id="notifications">Global Notifications</h2>
 
     <p class="h5 muted mt0 mb1">
-      What would you like to be notified for?
+      These settings will apply to all organizations you're a part of, but they can be overridden on a per-organization basis.
     </p>
 
     <%= form_with model: @user, data: { turbo_frame: "_top" } do |form| %>
@@ -38,6 +38,88 @@
           <% end %>
         </div>
       </fieldset>
+
+      <h2 id="notifications">Organization Notifications</h2>
+
+      <p class="h5 muted mt0 mb1">
+        These settings will apply to all organizations you're a part of, but they can be overridden on a per-organization basis.
+      </p>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Organization</th>
+              <th>My Threads</th>
+              <th>Every Thread</th>
+              <th>Donations</th>
+              <th>Reimbursements</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @organizer_positions.each do |op| %>
+              <tr>
+                <td>
+                  <%= image_tag op.event.logo, height: 24, width: 24, class: "rounded display-inline align-bottom" if op.event.logo.present? %>
+                  <%= op.event.name %>
+                </td>
+                <% if false %>
+                  <td>
+
+                    <fieldset>
+                      <div class="field field--options field--green mb0">
+                        <%= form.check_box "#{op.event.id}_my_threads".to_sym %>
+                        <%= form.label "#{op.event.id}_my_threads".to_sym do %>
+                          <%= inline_icon "thread", size: 28 %>
+                        <% end %>
+                      </div>
+                    </fieldset>
+
+
+
+                  </td>
+                  <td>
+                    <fieldset>
+                      <div class="field field--options field--green mb0">
+                        <%= form.check_box "#{op.event.id}_threads".to_sym %>
+                        <%= form.label "#{op.event.id}_threads".to_sym do %>
+                          <%= inline_icon "message", size: 28 %>
+                        <% end %>
+                      </div>
+                    </fieldset>
+                  </td>
+                  <td>
+                    <fieldset>
+                      <div class="field field--options field--green mb0">
+                        <%= form.check_box "#{op.event.id}_donations".to_sym %>
+                        <%= form.label "#{op.event.id}_donations".to_sym do %>
+                          <%= inline_icon "support", size: 28 %>
+                        <% end %>
+                      </div>
+                    </fieldset>
+                  </td>
+                  <td>
+                    <fieldset>
+                      <div class="field field--options field--green mb0">
+                        <%= form.check_box "#{op.event.id}_reimbursements".to_sym %>
+                        <%= form.label "#{op.event.id}_reimbursements".to_sym do %>
+                          <%= inline_icon "attachment", size: 28 %>
+                        <% end %>
+                      </div>
+                    </fieldset>
+                  </td>
+                <% else %>
+                  <td colspan="4">
+                    <div style="background-color: #8492a640; border-radius: 0.75rem; padding: 0.5rem;">
+                      Using Default Settings
+                    </div>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>  
+          </tbody>
+        </table>
+      </div>
 
       <div class="actions inline-block mt1">
         <%= form.submit "Save" %>
