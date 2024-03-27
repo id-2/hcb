@@ -5,56 +5,26 @@ class EventPolicy < ApplicationPolicy
     user.present?
   end
 
-  def toggle_hidden?
-    user&.admin?
-  end
+  ⚡ :toggle_hidden?, :new?, :create?
 
-  def new?
-    user&.admin?
-  end
-
-  def create?
-    user&.admin?
-  end
-
-  def show?
-    is_public || admin_or_user?
-  end
+  🔎 ⚡ 👥 :show?
 
   # NOTE(@lachlanjc): this is bad, I’m sorry.
   # This is the StripeCardsController#shipping method when rendered on the event
   # card overview page. This should be moved out of here.
-  def shipping?
-    admin_or_user?
-  end
+  ⚡ 👥 :shipping?
 
-  def by_airtable_id?
-    user&.admin?
-  end
+  ⚡ :by_airtable_id?
 
-  def edit?
-    admin_or_user?
-  end
+  ⚡ 👥 :edit?
 
-  def update?
-    admin_or_manager?
-  end
+  ⚡ 🧑‍💼 :update?
 
   def destroy?
     user&.admin? && record.demo_mode?
   end
 
-  def team?
-    is_public || admin_or_user?
-  end
-
-  def emburse_card_overview?
-    is_public || admin_or_user?
-  end
-
-  def card_overview?
-    is_public || admin_or_user?
-  end
+  🔎 ⚡ 👥 :team?, :emburse_card_overview?, :card_overview?
 
   def new_stripe_card?
     create_stripe_card?
@@ -64,22 +34,14 @@ class EventPolicy < ApplicationPolicy
     admin_or_user? && is_not_demo_mode?
   end
 
-  def documentation?
-    is_public || admin_or_user?
-  end
-
-  def statements?
-    is_public || admin_or_user?
-  end
+  🔎 ⚡ 👥 :documentation?, :statements?
 
   def demo_mode_request_meeting?
     admin_or_manager? && record.demo_mode? && record.demo_mode_request_meeting_at.nil?
   end
 
   # (@eilla1) these pages are for the wip resources page and should be moved later
-  def connect_gofundme?
-    is_public || admin_or_user?
-  end
+  🔎 ⚡ 👥 :connect_gofundme?, :async_balance?
 
   def async_balance?
     is_public || admin_or_user?
