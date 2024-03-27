@@ -3,6 +3,9 @@
 class ApplicationPolicy
   attr_reader :user, :record
 
+  include EmojiPolicies
+  include BulkPolicies
+
   def initialize(user, record)
     @user = user
     @record = record

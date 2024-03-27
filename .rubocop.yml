@@ -190,3 +190,11 @@ Rails/Validation:
 
 Rails/UniqueValidationWithoutIndex:
   Enabled: false
+
+# Exclude emoji policies
+Naming/AsciiIdentifiers:
+  Exclude:
+    - 'app/policies/**/*'
+Naming/MethodName:
+  Exclude:
+    - 'app/policies/emoji_policies.rb'
