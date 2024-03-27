@@ -2,41 +2,19 @@
 
 module Api
   class EventPolicy < ApplicationPolicy
-    def show?
-      record.is_public?
-    end
+    get(:event) { record }
 
-    def transactions?
-      record.is_public?
-    end
-
-    def donations?
-      record.is_public?
-    end
-
-    def transfers?
-      record.is_public?
-    end
-
-    def invoices?
-      record.is_public?
-    end
-
-    def ach_transfers?
-      record.is_public?
-    end
-
-    def checks?
-      record.is_public?
-    end
-
-    def card_charges?
-      record.is_public?
-    end
-
-    def cards?
-      record.is_public?
-    end
+    policy_for(
+      :show?,
+      :transactions?,
+      :donations?,
+      :transfers?,
+      :invoices?,
+      :ach_transfers?,
+      :checks?,
+      :card_charges?,
+      :cards?
+    ) { 🔎 }
 
   end
 end
