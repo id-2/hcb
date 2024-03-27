@@ -13,27 +13,27 @@ class InvoicePolicy < ApplicationPolicy
   end
 
   def new?
-    !unapproved? && (is_public || admin_or_user)
+    (is_public? || admin_or_user?) && !unapproved?
   end
 
   def create?
-    !record.unapproved? && !record.outernet_guild? && (user&.admin? || record.users.include?(user))
+    admin_or_user? && !record.unapproved?
   end
 
   def show?
-    is_public || admin_or_user
+    is_public? || admin_or_user?
   end
 
   def archive?
-    admin_or_user
+    admin_or_user?
   end
 
   def void?
-    admin_or_user
+    admin_or_user?
   end
 
   def unarchive?
-    admin_or_user
+    admin_or_user?
   end
 
   def manual_payment?
@@ -45,17 +45,21 @@ class InvoicePolicy < ApplicationPolicy
   end
 
   def hosted?
-    admin_or_user
+    admin_or_user?
   end
 
   def pdf?
-    admin_or_user
+    admin_or_user?
   end
 
   private
 
-  def admin_or_user
+  def admin_or_user?
     user&.admin? || record.sponsor.event.users.include?(user)
+  end
+
+  def admin_or_manager?
+    user&.admin? || OrganizerPosition.find_by(user: event: record&.sponsor&.event)&.manager?
   end
 
   def is_public
