@@ -17,7 +17,8 @@ class InvoicePolicy < ApplicationPolicy
   end
 
   def create?
-    admin_or_user? && !record.unapproved?
+    # `record` is `Event` here.
+    (user&.admin || record&.users&.include?(user)) && !record.unapproved?
   end
 
   def show?
