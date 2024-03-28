@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -327,6 +327,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.bigint "increase_check_id"
     t.bigint "check_deposit_id"
     t.bigint "grant_id"
+    t.bigint "reimbursement_expense_payout_id"
     t.index ["ach_payment_id"], name: "index_canonical_pending_transactions_on_ach_payment_id"
     t.index ["check_deposit_id"], name: "index_canonical_pending_transactions_on_check_deposit_id"
     t.index ["grant_id"], name: "index_canonical_pending_transactions_on_grant_id"
@@ -341,6 +342,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.index ["raw_pending_outgoing_disbursement_transaction_id"], name: "index_cpts_on_raw_pending_outgoing_disbursement_transaction_id"
     t.index ["raw_pending_partner_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_partner_dntn_tx_id"
     t.index ["raw_pending_stripe_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_stripe_tx_id"
+    t.index ["reimbursement_expense_payout_id"], name: "index_canonical_pending_txs_on_reimbursement_expense_payout_id"
     t.check_constraint "fronted IS NOT NULL", name: "canonical_pending_transactions_fronted_null"
   end
 
@@ -459,6 +461,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.boolean "admin_only", default: false, null: false
     t.boolean "has_untracked_edit", default: false, null: false
     t.text "content_ciphertext"
+    t.integer "action", default: 0, null: false
     t.index ["commentable_id", "commentable_type"], name: "index_comments_on_commentable_id_and_commentable_type"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
@@ -741,7 +744,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.integer "stripe_card_shipping_type", default: 0, null: false
     t.text "donation_thank_you_message"
     t.text "donation_reply_to_email"
-    t.boolean "public_reimbursement_page_enabled", default: false
+    t.boolean "public_reimbursement_page_enabled", default: false, null: false
     t.text "public_reimbursement_page_message"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
@@ -1265,6 +1268,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.boolean "first_time", default: true
     t.boolean "is_signee"
     t.integer "role", default: 100, null: false
+    t.integer "enabled_notifications", default: 0, null: false
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end
@@ -1561,14 +1565,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.bigint "event_id", null: false
     t.string "hcb_code"
     t.string "aasm_state"
-    t.integer "amount_cents"
-    t.bigint "reimbursement_expense_payout_holdings_id"
+    t.integer "amount_cents", null: false
+    t.bigint "reimbursement_payout_holdings_id"
     t.bigint "reimbursement_expenses_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_reimbursement_expense_payouts_on_event_id"
-    t.index ["reimbursement_expense_payout_holdings_id"], name: "index_expense_payouts_on_expense_payout_holdings_id"
     t.index ["reimbursement_expenses_id"], name: "index_expense_payouts_on_expenses_id"
+    t.index ["reimbursement_payout_holdings_id"], name: "index_expense_payouts_on_expense_payout_holdings_id"
   end
 
   create_table "reimbursement_expenses", force: :cascade do |t|
@@ -1576,18 +1580,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.bigint "approved_by_id"
     t.text "memo"
     t.integer "amount_cents", default: 0, null: false
-    t.integer "reimbursable_amount_cents"
     t.text "description"
     t.string "aasm_state"
     t.datetime "approved_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "expense_number", default: 0, null: false
     t.index ["approved_by_id"], name: "index_reimbursement_expenses_on_approved_by_id"
     t.index ["reimbursement_report_id"], name: "index_reimbursement_expenses_on_reimbursement_report_id"
   end
 
   create_table "reimbursement_payout_holdings", force: :cascade do |t|
-    t.integer "amount_cents"
+    t.integer "amount_cents", null: false
     t.string "hcb_code"
     t.bigint "reimbursement_reports_id", null: false
     t.bigint "increase_checks_id"
@@ -1609,12 +1613,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.integer "maximum_amount_cents"
     t.string "aasm_state"
     t.datetime "submitted_at"
-    t.datetime "organizer_approved_at"
-    t.datetime "admin_approved_at"
+    t.datetime "reimbursement_requested_at"
+    t.datetime "reimbursement_approved_at"
     t.datetime "rejected_at"
     t.datetime "reimbursed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "expense_number", default: 0, null: false
     t.index ["event_id"], name: "index_reimbursement_reports_on_event_id"
     t.index ["invited_by_id"], name: "index_reimbursement_reports_on_invited_by_id"
     t.index ["user_id"], name: "index_reimbursement_reports_on_user_id"
@@ -1830,19 +1835,19 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
   end
 
   create_table "user_payout_method_ach_transfers", force: :cascade do |t|
-    t.text "account_number_ciphertext"
-    t.text "routing_number_ciphertext"
+    t.text "account_number_ciphertext", null: false
+    t.text "routing_number_ciphertext", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
   create_table "user_payout_method_checks", force: :cascade do |t|
-    t.text "address_line1"
+    t.text "address_line1", null: false
     t.text "address_line2"
-    t.text "address_city"
-    t.text "address_country"
-    t.text "address_postal_code"
-    t.text "address_state"
+    t.text "address_city", null: false
+    t.text "address_country", null: false
+    t.text "address_postal_code", null: false
+    t.text "address_state", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -1893,6 +1898,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
     t.text "birthday_ciphertext"
     t.string "payout_method_type"
     t.bigint "payout_method_id"
+    t.integer "enabled_notifications", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
@@ -1921,15 +1927,22 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
   end
 
   add_foreign_key "ach_payments", "stripe_ach_payment_sources"
+  add_foreign_key "ach_transfers", "events"
+  add_foreign_key "ach_transfers", "users", column: "creator_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "admin_ledger_audit_tasks", "admin_ledger_audits"
   add_foreign_key "admin_ledger_audit_tasks", "hcb_codes"
+  add_foreign_key "admin_ledger_audit_tasks", "users", column: "reviewer_id"
+  add_foreign_key "api_tokens", "users"
+  add_foreign_key "bank_fees", "events"
   add_foreign_key "canonical_event_mappings", "canonical_transactions"
+  add_foreign_key "canonical_event_mappings", "events"
   add_foreign_key "canonical_hashed_mappings", "canonical_transactions"
   add_foreign_key "canonical_hashed_mappings", "hashed_transactions"
   add_foreign_key "canonical_pending_declined_mappings", "canonical_pending_transactions"
   add_foreign_key "canonical_pending_event_mappings", "canonical_pending_transactions"
+  add_foreign_key "canonical_pending_event_mappings", "events"
   add_foreign_key "canonical_pending_settled_mappings", "canonical_pending_transactions"
   add_foreign_key "canonical_pending_settled_mappings", "canonical_transactions"
   add_foreign_key "canonical_pending_transactions", "raw_pending_stripe_transactions"
@@ -1937,10 +1950,22 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
   add_foreign_key "card_grants", "events"
   add_foreign_key "card_grants", "stripe_cards"
   add_foreign_key "card_grants", "subledgers"
+  add_foreign_key "card_grants", "users"
+  add_foreign_key "card_grants", "users", column: "sent_by_id"
+  add_foreign_key "check_deposits", "events"
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"
+  add_foreign_key "column_account_numbers", "events"
+  add_foreign_key "disbursements", "events"
+  add_foreign_key "disbursements", "events", column: "source_event_id"
+  add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
+  add_foreign_key "disbursements", "users", column: "requested_by_id"
   add_foreign_key "document_downloads", "documents"
+  add_foreign_key "document_downloads", "users"
+  add_foreign_key "documents", "events"
+  add_foreign_key "documents", "users"
   add_foreign_key "donations", "donation_payouts", column: "payout_id"
+  add_foreign_key "donations", "events"
   add_foreign_key "donations", "fee_reimbursements"
   add_foreign_key "emburse_card_requests", "emburse_cards"
   add_foreign_key "emburse_card_requests", "events"
@@ -1959,36 +1984,63 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
   add_foreign_key "fee_relationships", "events"
   add_foreign_key "fees", "canonical_event_mappings"
   add_foreign_key "g_suite_accounts", "g_suites"
+  add_foreign_key "g_suite_accounts", "users", column: "creator_id"
+  add_foreign_key "g_suites", "events"
+  add_foreign_key "g_suites", "users", column: "created_by_id"
   add_foreign_key "grants", "events"
   add_foreign_key "grants", "users", column: "processed_by_id"
   add_foreign_key "grants", "users", column: "submitted_by_id"
   add_foreign_key "hashed_transactions", "raw_plaid_transactions"
   add_foreign_key "hcb_code_personal_transactions", "hcb_codes"
   add_foreign_key "hcb_code_personal_transactions", "invoices"
+  add_foreign_key "hcb_code_personal_transactions", "users", column: "reporter_id"
+  add_foreign_key "hcb_code_pins", "events"
   add_foreign_key "hcb_code_pins", "hcb_codes"
+  add_foreign_key "increase_account_numbers", "events"
+  add_foreign_key "increase_checks", "events"
+  add_foreign_key "increase_checks", "users"
   add_foreign_key "invoices", "fee_reimbursements"
   add_foreign_key "invoices", "invoice_payouts", column: "payout_id"
   add_foreign_key "invoices", "sponsors"
+  add_foreign_key "invoices", "users", column: "archived_by_id"
+  add_foreign_key "invoices", "users", column: "creator_id"
+  add_foreign_key "invoices", "users", column: "manually_marked_as_paid_user_id"
+  add_foreign_key "invoices", "users", column: "voided_by_id"
   add_foreign_key "lob_addresses", "events"
+  add_foreign_key "login_codes", "users"
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
+  add_foreign_key "mailbox_addresses", "users"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
+  add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
+  add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"
+  add_foreign_key "organizer_position_invites", "events"
   add_foreign_key "organizer_position_invites", "organizer_positions"
+  add_foreign_key "organizer_position_invites", "users"
+  add_foreign_key "organizer_position_invites", "users", column: "sender_id"
+  add_foreign_key "organizer_positions", "events"
+  add_foreign_key "organizer_positions", "users"
   add_foreign_key "partner_donations", "events"
   add_foreign_key "partnered_signups", "events"
   add_foreign_key "partnered_signups", "partners"
   add_foreign_key "partnered_signups", "users"
   add_foreign_key "partners", "users", column: "representative_id"
+  add_foreign_key "payment_recipients", "events"
   add_foreign_key "raw_pending_incoming_disbursement_transactions", "disbursements"
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
+  add_foreign_key "receipts", "users"
+  add_foreign_key "recurring_donations", "events"
   add_foreign_key "reimbursement_expense_payouts", "events"
   add_foreign_key "reimbursement_expenses", "reimbursement_reports"
   add_foreign_key "reimbursement_expenses", "users", column: "approved_by_id"
   add_foreign_key "reimbursement_reports", "events"
   add_foreign_key "reimbursement_reports", "users"
   add_foreign_key "reimbursement_reports", "users", column: "invited_by_id"
+  add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_ach_payment_sources", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
+  add_foreign_key "stripe_cardholders", "users"
+  add_foreign_key "stripe_cards", "events"
   add_foreign_key "stripe_cards", "stripe_cardholders"
   add_foreign_key "subledgers", "events"
   add_foreign_key "transactions", "ach_transfers"
@@ -2000,4 +2052,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_27_002056) do
   add_foreign_key "transactions", "fee_reimbursements"
   add_foreign_key "transactions", "fee_relationships"
   add_foreign_key "transactions", "invoice_payouts"
+  add_foreign_key "user_sessions", "users"
+  add_foreign_key "user_sessions", "users", column: "impersonated_by_id"
+  add_foreign_key "webauthn_credentials", "users"
 end
