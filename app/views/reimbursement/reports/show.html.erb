@@ -51,6 +51,17 @@
   <% end %>
 </section>
 
+<section data-behavior="modal" role="dialog" id="submit" class="modal modal--scroll bg-snow">
+  <%= modal_header "Submit Report" %>
+  <%= form_with url: reimbursement_report_submit_path(report_id: @report.id), model: [@report, Comment.new] do |form| %>
+    <%= form.hidden_field :commentable_type, value: @commentable.class %>
+    <%= form.hidden_field :commentable_id, value: @report.id %>
+    <%= form.text_area :content, class: "card mb2 overflow-visible", placeholder: "(Optional) Describe your changes…", "data-behavior": "ctrl_enter_submit", style: "min-height: 100px" %>
+
+    <%= form.submit "Submit" %>
+  <% end %>
+</section>
+
 <% if @report.invite_message.presence %>
   <article class="card mt2 pt0">
     <%== MarkdownService.instance.renderer.render @report.invite_message %>
@@ -64,13 +75,17 @@
 
 <% if @report.draft? %>
   <section class="flex items-start justify-center mt2 mb2" style="gap: 16px; position: relative;">
-    <article class="card">
+    <article class="card w-100">
       <p class="mt0">
         Paid for something out of pocket? Get reimbursed by uploading your receipts.
       </p>
       <p>
-        Begin by adding an expense to this report below; for each expense, you'll need to attach
-        a receipt, provide a memo describing the expense, and specify the amount you are seeking reimbursement for.
+        Begin by adding an expense to this report below; for each expense, you'll need to:
+        <ol>
+          <li>Attach a receipt.</li>
+          <li>Provide a memo describing the expense.</li>
+          <li>Specify the amount you are seeking reimbursement for.</li>
+        </ol>
       </p>
       <p>
         Once you've added all of your expenses to the report, click <i>Submit</i> to begin the review process.
@@ -93,6 +108,12 @@
   <h2 class="flex items-center">
     <span style="flex-grow: 1">Expenses</span>
   </h2>
+<% elsif @report.submitted? && !organizer_signed_in? %>
+  <% admin_tool("card mt2 p2", "div") do %>
+    <p class="mt0 mb0">
+      This report is currently being reviewed by <%= @event.name %>'s team. As an admin you may approve expenses, however, keep in mind that <span class="bold">all actions you take at this point will be on behalf of <%= @event.name %>.</span>
+    </p>
+  <% end %>
 <% end %>
 
 <div id="expenses">
