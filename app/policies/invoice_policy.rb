@@ -62,7 +62,7 @@ class InvoicePolicy < ApplicationPolicy
     user&.admin? || OrganizerPosition.find_by(user: event: record&.sponsor&.event)&.manager?
   end
 
-  def is_public
+  def is_public?
     record&.sponsor&.event&.is_public?
   end
 
