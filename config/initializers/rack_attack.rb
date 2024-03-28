@@ -64,10 +64,10 @@ class Rack::Attack
       req.params["email"].to_s.downcase.gsub(/\s+/, "").presence
     end
   end
-  
-  throttle('limit code exchanges per email', limit: 3, period: 60.seconds) do |req|
-    if req.path == '/users/exchange_login_code' && req.post?
-      req.params['email'].to_s.downcase.gsub(/\s+/, "")
+
+  throttle("limit code exchanges per email", limit: 3, period: 60.seconds) do |req|
+    if req.path == "/users/exchange_login_code" && req.post?
+      req.params["email"].to_s.downcase.gsub(/\s+/, "")
     end
   end
 
