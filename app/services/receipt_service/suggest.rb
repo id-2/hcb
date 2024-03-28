@@ -29,14 +29,6 @@ module ReceiptService
       }
     end
 
-    def distances
-      {
-        amount_cents_total: 0,
-        card_last_four: 0,
-        date: 0,
-        merchant_name: 0,
-      }
-    end
 
     def sorted_transactions
       transaction_distances.sort_by { |match| match[:distance] }
@@ -58,49 +50,7 @@ module ReceiptService
       end
     end
 
-    def distances_hash(txn)
-      distances = {
-        card_last_four: @extracted[:card_last_four].include?(txn.stripe_card.last_four) ? 0 : 1,
-        merchant_zip_code: if txn.stripe_merchant["postal_code"].nil?
-                             nil
-                           else
-                             (@extracted[:textual_content].include?(txn.stripe_merchant["postal_code"]) ? 0 : 1)
-                           end,
-        merchant_city: if txn.stripe_merchant["city"].nil?
-                         nil
-                       else
-                         (@extracted[:textual_content].downcase.include?(txn.stripe_merchant["city"].downcase) ? 0 : 1)
-                       end,
-        merchant_phone: if txn.stripe_merchant["city"].nil?
-                          nil
-                        else
-                          (txn.stripe_merchant["city"].gsub(/\D/, "").length > 6 && @extracted[:textual_content].include?(txn.stripe_merchant["city"].gsub(/\D/, "")) ? 0 : 1)
-                        end,
-        merchant_name: if txn.stripe_merchant["name"].nil?
-                         nil
-                       else
-                         @extracted[:textual_content].downcase.include?(txn.stripe_merchant["name"].downcase) ? 0 : 1
-                       end
-      }
-
-      if @extracted[:amount_cents].include?(txn.amount_cents)
-        distances[:amount_cents] = @extracted[:amount_cents].index(txn.amount_cents) * 3
-      else
-        distances[:amount_cents] = best_distance(txn.amount_cents, @extracted[:amount_cents].take(2))
-      end
-
-      distances[:date] =
-        best_distance(txn.date.to_time.to_i / 86400, [@extracted[:date]])
-
-      distances[:date] =
-        best_distance(txn.date.to_time.to_i / 86400, [@extracted[:date]])
-
-      distances
-    end
-
     def distance(txn)
-      distances = distances_hash(txn)
-
       total_weight = self.class.weights.values.sum
       weight_applied = 0
       distance = 0
