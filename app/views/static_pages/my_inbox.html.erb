@@ -21,25 +21,27 @@
 
   <%= render partial: "suggested_pairings", locals: { pairings: @pairings, current_slide: 0 } %>
 
-  <h2>
-    Receipt Bin
-  </h2>
+  <details open>
+    <summary class="receipt_bin__header border-bottom flex items-center">
+      Receipt Bin
+    </summary>
 
-  <%= render partial: "receipts/form_v3", locals: {
-        upload_method: "receipt_center",
-        restricted_dropzone: true,
-        turbo: true
-      } %>
-
-  <%= render partial: "receipts/blankslate", locals: { count: @receipts.size } %>
-
-  <ul class="grid grid--medium-narrow left-align w-100 mt0" id="receipts_list">
-    <% @receipts.each do |receipt| %>
-      <li class="flex grid flex-col justify-between h-100 mx-auto" id="receipt_<%= receipt.id %>">
-        <%= render partial: "receipts/receipt", locals: { receipt:, show_delete_button: true, link_to_file: true, turbo_for_deletion: true } %>
-      </li>
-    <% end %>
-  </ul>
+    <%= render partial: "receipts/form_v3", locals: {
+          upload_method: "receipt_center",
+          restricted_dropzone: true,
+          turbo: true
+        } %>
+  
+    <%= render partial: "receipts/blankslate", locals: { count: @receipts.size } %>
+  
+    <ul class="grid grid--medium-narrow left-align w-100 mt0" id="receipts_list">
+      <% @receipts.each do |receipt| %>
+        <li class="flex grid flex-col justify-between h-100 mx-auto" id="receipt_<%= receipt.id %>">
+          <%= render partial: "receipts/receipt", locals: { receipt:, show_delete_button: true, link_to_file: true, turbo_for_deletion: true } %>
+        </li>
+      <% end %>
+    </ul>
+  </details>
 
 <% end %>
 
@@ -88,6 +90,27 @@
       max-width: calc(100vw - 20rem);
     }
   }
+  
+  .receipt_bin__header {
+    font-size: 1.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom-width: 0.5px;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+  }
+  
+  details .receipt_bin__header:after {
+    content: "▼";
+    transform: rotate(-90deg);
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-left: 6px;
+  }
+  
+  details[open] .receipt_bin__header:after {
+    transform: none;
+  }
+  
 </style>
 
 <%= paginate @hcb_codes %>
