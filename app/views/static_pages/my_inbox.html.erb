@@ -31,9 +31,9 @@
           restricted_dropzone: true,
           turbo: true
         } %>
-  
+
     <%= render partial: "receipts/blankslate", locals: { count: @receipts.size } %>
-  
+
     <ul class="grid grid--medium-narrow left-align w-100 mt0" id="receipts_list">
       <% @receipts.each do |receipt| %>
         <li class="flex grid flex-col justify-between h-100 mx-auto" id="receipt_<%= receipt.id %>">
@@ -90,7 +90,7 @@
       max-width: calc(100vw - 20rem);
     }
   }
-  
+
   .receipt_bin__header {
     font-size: 1.75rem;
     padding-bottom: 0.25rem;
@@ -98,7 +98,7 @@
     margin-bottom: 0.5rem;
     font-weight: 800;
   }
-  
+
   details .receipt_bin__header:after {
     content: "▼";
     transform: rotate(-90deg);
@@ -106,11 +106,11 @@
     font-weight: 800;
     margin-left: 6px;
   }
-  
+
   details[open] .receipt_bin__header:after {
     transform: none;
   }
-  
+
 </style>
 
 <%= paginate @hcb_codes %>
