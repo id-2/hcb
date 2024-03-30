@@ -59,24 +59,24 @@ module ReceiptService
         nil
       end
 
-      unless extracted.nil?
-        data = OpenStruct.new(extracted) # Protection against missing keys
-
-        @receipt.update(
-          suggested_amount_cents_subtotal: data.amount_cents_subtotal&.to_i,
-          suggested_amount_cents_total: data.amount_cents_total&.to_i,
-          suggested_card_last4: data.card_last_four,
-          suggested_date: data.date.to_date,
-          suggested_memo: data.memo,
-          suggested_merchant_name: data.merchant_name,
-          suggested_merchant_url: data.merchant_url,
-          suggested_merchant_zip_code: data.merchant_zip_code
-        )
-      end
+      return if extracted.nil?
 
       extracted[:textual_content] = @receipt.textual_content
 
-      extracted
+      data = OpenStruct.new(extracted) # Protection against missing keys
+
+      @receipt.update(
+        suggested_amount_cents_subtotal: data.amount_cents_subtotal&.to_i,
+        suggested_amount_cents_total: data.amount_cents_total&.to_i,
+        suggested_card_last4: data.card_last_four,
+        suggested_date: data.date.to_date,
+        suggested_memo: data.memo,
+        suggested_merchant_name: data.merchant_name,
+        suggested_merchant_url: data.merchant_url,
+        suggested_merchant_zip_code: data.merchant_zip_code
+      )
+
+      data
     end
 
   end

@@ -17,18 +17,43 @@ module ReceiptService
       transaction_distances(include_details:)
     end
 
-    def self.weights
-      {
-        amount_cents: 1,
-        card_last_four: 1000,
-        date: 1000,
-        # merchant_zip_code: 500,
-        # merchant_city: 500,
-        # merchant_phone: 500,
-        merchant_name: 500
-      }
-    end
+    def distance(txn)
+      return if @extracted.nil?
 
+      distances = {
+        amount_cents: {
+          value: begin
+            diff = (txn.amount_cents - @extracted.amount_cents).abs
+            diff == 0 ? 0 : [10 * Math.log((diff + 1) / 3.0) + 30, 20].max
+          end,
+          weight: 100,
+        },
+        card_last_four: {
+          value: @extracted.card_last_four == txn.card&.last4,
+          weight: 100,
+        },
+        date: {
+          value: @extracted.date.to_date == txn.date,
+          weight: 100,
+        },
+        merchant_zip_code: {
+          value: @extracted.merchant_zip_code == txn.postal_code,
+          weight: 50,
+        },
+        merchant_name: {
+          value: @extracted.merchant_name == txn.stripe_merchant.name,
+          weight: 100,
+        }
+      }
+
+      distances.each do |feature, *value|
+        puts value
+
+        # (value.in? [true, false] ? (value ? 1 : 0) : value) * weight
+      end
+
+      byebug
+    end
 
     def sorted_transactions
       transaction_distances.sort_by { |match| match[:distance] }
@@ -50,36 +75,36 @@ module ReceiptService
       end
     end
 
-    def distance(txn)
-      total_weight = self.class.weights.values.sum
-      weight_applied = 0
-      distance = 0
+    # def distance(txn)
+    #   total_weight = self.class.weights.values.sum
+    #   weight_applied = 0
+    #   distance = 0
 
-      self.class.weights.each do |key, weight|
-        unless distances[key].nil?
-          weight_applied += weight
-          distance += (distances[key] * weight)**2
-        end
-      end
+    #   self.class.weights.each do |key, weight|
+    #     unless distances[key].nil?
+    #       weight_applied += weight
+    #       distance += (distances[key] * weight)**2
+    #     end
+    #   end
 
-      # distance formula options
+    #   # distance formula options
 
-      # euclidian distance
-      # Math.sqrt(amount_cents**2 + date**2 + card_last_four**2)
+    #   # euclidian distance
+    #   # Math.sqrt(amount_cents**2 + date**2 + card_last_four**2)
 
-      # manhattan distance
-      # (amount_cents**1 + date**1 + card_last_four**1)**(1/1)
+    #   # manhattan distance
+    #   # (amount_cents**1 + date**1 + card_last_four**1)**(1/1)
 
-      # chebyshev distance
-      # [amount_cents, date, card_last_four].max
+    #   # chebyshev distance
+    #   # [amount_cents, date, card_last_four].max
 
-      # minkowski distance
-      # (amount_cents**3 + date**3 + card_last_four**3)**(1.0/3.0)
+    #   # minkowski distance
+    #   # (amount_cents**3 + date**3 + card_last_four**3)**(1.0/3.0)
 
-      distance *= (total_weight / weight_applied) # scale up to account for missing weights
+    #   distance *= (total_weight / weight_applied) # scale up to account for missing weights
 
-      Math.sqrt(distance)
-    end
+    #   Math.sqrt(distance)
+    # end
 
     def best_distance(one_point, multiple_values)
       multiple_values.map do |value|
