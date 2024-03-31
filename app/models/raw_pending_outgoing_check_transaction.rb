@@ -14,6 +14,7 @@
 #
 class RawPendingOutgoingCheckTransaction < ApplicationRecord
   monetize :amount_cents
+  belongs_to :check, foreign_key: :check_transaction_id, optional: true, inverse_of: :raw_pending_outgoing_check_transaction
 
   def date
     date_posted
@@ -29,10 +30,6 @@ class RawPendingOutgoingCheckTransaction < ApplicationRecord
 
   def likely_event_id
     @likely_event_id ||= check.event.id
-  end
-
-  def check
-    @check ||= ::Check.find_by(id: check_transaction_id)
   end
 
   private

@@ -8,9 +8,7 @@ describe PendingTransactionEngine::CanonicalPendingTransactionService::Import::O
     it "processes into a CanonicalPendingTransaction" do
       expect(RawPendingOutgoingCheckTransaction.count).to eq(0)
 
-      check = create(:check)
       raw_pending_outgoing_check_transaction = create(:raw_pending_outgoing_check_transaction,
-                                                      check_transaction_id: check.id,
                                                       date_posted: Date.current)
 
       expect do
@@ -34,9 +32,7 @@ describe PendingTransactionEngine::CanonicalPendingTransactionService::Import::O
 
     context "when there are also ready to process raw pending outgoing check transactions" do
       it "processes into a CanonicalPendingTransaction" do
-        check = create(:check)
         new_check_transaction = create(:raw_pending_outgoing_check_transaction,
-                                       check_transaction_id: check.id,
                                        date_posted: Date.current,
                                        amount_cents: 1000)
 

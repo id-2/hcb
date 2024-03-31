@@ -52,7 +52,7 @@ class Check < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :lob_address
   has_one :event, through: :lob_address
-
+  has_one :raw_pending_outgoing_check_transaction, foreign_key: :check_transaction_id, inverse_of: :check
   accepts_nested_attributes_for :lob_address
 
   has_many :t_transactions, class_name: "Transaction", inverse_of: :check
