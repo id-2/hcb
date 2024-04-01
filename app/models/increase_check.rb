@@ -54,6 +54,7 @@ class IncreaseCheck < ApplicationRecord
 
   has_one :canonical_pending_transaction
   has_one :grant, required: false
+  has_one :reimbursement_payout_holding, class_name: "Reimbursement::PayoutHolding", inverse_of: :increase_check, required: false, foreign_key: "increase_checks_id"
 
   after_create do
     create_canonical_pending_transaction!(event:, amount_cents: -amount, memo: "OUTGOING CHECK", date: created_at)
@@ -81,7 +82,7 @@ class IncreaseCheck < ApplicationRecord
   end
 
   validates :amount, numericality: { greater_than: 0, message: "can't be zero!" }
-  validates :memo, length: { in: 1..40 }, unless: :increase?
+  validates :memo, length: { in: 1..40 }, on: :create
   validates :recipient_name, length: { in: 1..250 }
   validates_presence_of :memo, :payment_for, :recipient_name, :address_line1, :address_city, :address_zip
   validates_presence_of :address_state, message: "Please select a state!"

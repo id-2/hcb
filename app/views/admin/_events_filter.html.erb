@@ -37,6 +37,11 @@
   <%= form.select :transparent, [["Both", "both"], ["Not Transparent", "not_transparent"], ["Transparent", "transparent"]], selected: @transparent %>
 <% end %>
 |
+<%= form.label :fee do %>
+  Current Fee
+  <%= form.select :fee, Event.unscoped.select(:sponsorship_fee).distinct.pluck(:sponsorship_fee).sort, { include_blank: "all", selected: @fee } %>
+<% end %>
+|
 <%= form.label :omitted do %>
   Omitted
   <%= form.select :omitted, [["Both", "both"], ["Not Omitted", "not_omitted"], ["Omitted", "omitted"]], selected: @omitted %>
@@ -55,6 +60,11 @@
 <%= form.label :funded do %>
   Funded
   <%= form.select :funded, [["Both", "both"], ["Not Funded", "not_funded"], ["Funded", "funded"]], selected: @funded %>
+<% end %>
+|
+<%= form.label :tagged_with do %>
+  Tagged with
+  <%= form.select :tagged_with, EventTag.all.map { |t| [t.full_name, t.id] }, { include_blank: "anything", selected: @tagged_with } %>
 <% end %>
 |
 <%= form.label :organized_by do %>

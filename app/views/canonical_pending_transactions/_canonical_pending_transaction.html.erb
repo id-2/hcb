@@ -15,7 +15,7 @@
       dragleave->file-drop#dragleave
     "
   <% end %>>
-  <%= render "canonical_pending_transactions/icon", pt: %>
+  <%= render "hcb_codes/icon", tx: pt, authorless: local_assigns[:authorless] %>
   <td>
     <%= pt.date %>
   </td>
@@ -23,11 +23,11 @@
     <div>
       <div class="flex-auto">
         <div class="flex items-center justify-start">
-          <%= turbo_frame_tag "#{pt.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis" do %>
-            <span title="<%= transaction_memo(pt) %>">
+          <%= turbo_frame_tag "#{pt.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis; flex-grow: 1" do %>
+            <span title="<%= transaction_memo(pt) %>" style="flex-grow: 1;">
               <% prepended_to_memo = pt.declined? ? "DECLINED:" : "PENDING:" %>
               <% if Flipper.enabled?(:rename_on_homepage_2023_12_06, current_user) && !defined?(disable_rename) %>
-                <%= render "hcb_codes/memo", hcb_code: pt.local_hcb_code, prepended_to_memo: %>
+                <%= render "hcb_codes/memo", hcb_code: pt.local_hcb_code, prepended_to_memo:, location: "ledger" %>
               <% else %>
                 <%= prepended_to_memo %>
                 <%= transaction_memo(pt) %>
@@ -35,7 +35,7 @@
             </span>
 
             <% if pt.amount_cents.negative? && name_contains_emoji?(pt.local_hcb_code.memo) %>
-              <% admin_tools("memo-frame__ai-button badge m0 ml1 p0 overflow-visible") do %>
+              <% admin_tool("memo-frame__ai-button badge m0 ml1 p0 overflow-visible") do %>
                 <a href="<%= memo_frame_hcb_code_path(pt.local_hcb_code, gen_memo: true) %>"
                    style="padding: 4px 6px"
                    data-turbo="true"
@@ -46,7 +46,7 @@
             <% end %>
           <% end %>
 
-          <% if !defined?(receipt_upload_button) && !defined?(hide_tags) && organizer_signed_in? && Flipper.enabled?(:transaction_tags_2022_07_29, @event || pt.local_hcb_code.event) %>
+          <% if !defined?(receipt_upload_button) && !defined?(hide_tags) && organizer_signed_in? && pt&.local_hcb_code&.event && !pt&.local_hcb_code&.event&.demo_mode? && Flipper.enabled?(:transaction_tags_2022_07_29, @event || pt.local_hcb_code.event) %>
             <div class="overflow-visible relative" style="margin-left: 0.5rem;" data-controller="menu" data-menu-append-to-value="turbo-frame#ledger">
               <button class="list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">+ Add tag</button>
               <div class="menu__content menu__content--2 menu__content--compact menu__content--left h6" data-menu-target="content">
@@ -82,7 +82,7 @@
       </div>
 
       <% if pt.local_hcb_code %>
-        <%= list_badge_for pt.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: pt.local_hcb_code.receipt_optional?, required: pt.local_hcb_code.needs_receipt? %>
+        <%= list_badge_for pt.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: pt.local_hcb_code.receipt_optional?, required: pt.local_hcb_code.missing_receipt? %>
         <%= list_badge_for admin_signed_in? ? pt.local_hcb_code.comments.size : pt.local_hcb_code.not_admin_only_comments_count, "note", "post", optional: true %>
       <% end %>
     </div>
@@ -98,8 +98,8 @@
   </td>
   <% if local_assigns[:receipt_upload_button] %>
     <td style="width: 1%">
-      <% if pt.local_hcb_code.needs_receipt? %>
-        <%= form_with url: upload_receipts_path, data: { controller: "form", "file-drop-target" => "form" } do |form| %>
+      <% if pt.local_hcb_code.missing_receipt? || !local_assigns[:updated_via_turbo_stream] %>
+        <%= form_with url: receipts_path, data: { controller: "form", "file-drop-target" => "form", "turbo" => true } do |form| %>
           <%= form.file_field :file, id: "file_#{pt.local_hcb_code.hashid}", multiple: true, include_hidden: false, required: true, class: "display-none", data: { action: "change->form#submit", "file-drop-target" => "fileInput" } %>
           <%= form.hidden_field :redirect_url, value: @card_grant ? card_grant_path(@card_grant) : my_inbox_path %>
           <% unless @card_grant.present? %>
@@ -122,13 +122,18 @@
             <% end %>
           </div>
         <% end %>
+      <% else %>
+        <div class="btn bg-success disabled" style="font-size: 0.875rem; font-weight: 600; padding: 0.25rem 1rem; width: 100%">
+          <%= inline_icon "attachment", size: 14 %>
+          <span>Uploaded!</span>
+        </div>
       <% end %>
     </td>
 
     <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
       <section class="modal modal--huge modal--scroll bg-snow" data-behavior="modal" role="dialog" id="link_receipt_<%= instance %>">
         <%= modal_header "Select receipt" %>
-        <%= async_frame_to link_modal_receipts_path(receiptable_type: "HcbCode", receiptable_id: pt.local_hcb_code.id), as: :span do %>
+        <%= turbo_frame_tag "link_modal_#{pt.local_hcb_code.id}", src: link_modal_receipts_path(receiptable_type: "HcbCode", receiptable_id: pt.local_hcb_code.id), turbo_frame: "_top" do %>
           <strong>Loading...</strong>
         <% end %>
       </section>

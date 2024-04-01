@@ -1,0 +1,132 @@
+<% title @report.name %>
+<% page_md %>
+<%= render "events/nav", selected: :reimbursements unless @use_user_nav %>
+<%= render "users/nav", selected: :reimbursements if @use_user_nav %>
+
+<div class="mt4">
+  <h3 class="mt2 mb1 muted flex" style="font-weight: 400; gap: 4px;">
+    <span style="flex-grow: 1;">
+      <%= user_mention @user, class: "tooltipped--s align-top" %>
+      <%= "will be reimbursed " if @report.reimbursement_approved? %>
+      <%= "was reimbursed " if @report.reimbursed? %>
+      <%= "requested " if @report.rejected? %>
+      <%= "is requesting " unless @report.closed? %>
+      <%= render "total", report: @report %>
+      <% if @report.maximum_amount_cents %>
+        (<%= render_money @report.maximum_amount_cents %> cap)
+      <% end %>
+      <%= "from #{@event.name}" if @use_user_nav %> for
+    </span>
+    <span class="ml0 badge bg-<%= @report.status_color %>"><%= @report.status_text %></span>
+  </h3>
+  <h2 class="heading mt0 mb1 flex justify-start">
+    <span><%= @report.name %></span>
+    <% if !@report.closed? %>
+      <%= link_to "#", class: "ml0 info text-decoration-none muted tooltipped tooltipped--e", data: { behavior: "modal_trigger", modal: "edit" }, style: "padding: 0px; line-height: 0px; align-self: center;", "aria-label": "Edit this report's properties." do %>
+        <%= inline_icon "settings", size: 30, style: "margin-left: 8px;" %>
+      <% end %>
+    <% end %>
+  </h2>
+</div>
+
+<section data-behavior="modal" role="dialog" id="edit" class="modal modal--scroll bg-snow">
+  <%= modal_header "Edit Report" %>
+  <%= render "edit_form" %>
+</section>
+
+<section data-behavior="modal" role="dialog" id="request_changes" class="modal modal--scroll bg-snow">
+  <%= modal_header "Return Report" %>
+  <p>
+    Returning the report to <%= @report.user.first_name %> will allow them (as well as you and other team members) to make changes
+    to the report. <span class="bold">If you have specific changes you'd like to see made, list them below:</span>
+  </p>
+  <%= form_with url: reimbursement_report_request_changes_path(report_id: @report.id), model: [@report, Comment.new] do |form| %>
+    <%= form.hidden_field :commentable_type, value: @commentable.class %>
+    <%= form.hidden_field :commentable_id, value: @report.id %>
+    <%= form.text_area :content, class: "card mb2 overflow-visible", placeholder: "Describe your requested changes…", "data-behavior": "ctrl_enter_submit", style: "min-height: 100px" %>
+
+    <%= form.hidden_field :action, value: :changes_requested %>
+
+    <%= form.submit "Return this report to #{@report.user.first_name}" %>
+  <% end %>
+</section>
+
+<section data-behavior="modal" role="dialog" id="submit" class="modal modal--scroll bg-snow">
+  <%= modal_header "Submit Report" %>
+  <%= form_with url: reimbursement_report_submit_path(report_id: @report.id), model: [@report, Comment.new] do |form| %>
+    <%= form.hidden_field :commentable_type, value: @commentable.class %>
+    <%= form.hidden_field :commentable_id, value: @report.id %>
+    <%= form.text_area :content, class: "card mb2 overflow-visible", placeholder: "(Optional) Describe your changes…", "data-behavior": "ctrl_enter_submit", style: "min-height: 100px" %>
+
+    <%= form.submit "Submit" %>
+  <% end %>
+</section>
+
+<% if @report.invite_message.presence %>
+  <article class="card mt2 pt0">
+    <%== MarkdownService.instance.renderer.render @report.invite_message %>
+    <section class="card__banner card__banner--bottom card__darker pt2 pb2">
+      <p class="muted mt0 mb0">
+        Message from <%= @report.event.name %>
+      </p>
+    </section>
+  </article>
+<% end %>
+
+<% if @report.draft? %>
+  <section class="flex items-start justify-center mt2 mb2" style="gap: 16px; position: relative;">
+    <article class="card w-100">
+      <p class="mt0">
+        Paid for something out of pocket? Get reimbursed by uploading your receipts.
+      </p>
+      <p>
+        Begin by adding an expense to this report below; for each expense, you'll need to:
+        <ol>
+          <li>Attach a receipt.</li>
+          <li>Provide a memo describing the expense.</li>
+          <li>Specify the amount you are seeking reimbursement for.</li>
+        </ol>
+      </p>
+      <p>
+        Once you've added all of your expenses to the report, click <i>Submit</i> to begin the review process.
+      </p>
+      <% if @report.maximum_amount_cents %>
+        <p>
+          <%= @event.name %> has restricted this report to <span class="bold"><%= render_money @report.maximum_amount_cents %></span> in total reimbursement.
+        </p>
+      <% end %>
+
+      <section class="card__banner card__banner--bottom card__darker pt2 pb2">
+        <p class="muted mt0 mb0">
+          <strong>Questions?</strong>
+          <%= help_message %>
+        </p>
+      </section>
+    </article>
+  </section>
+
+  <h2 class="flex items-center">
+    <span style="flex-grow: 1">Expenses</span>
+  </h2>
+<% elsif @report.submitted? && !organizer_signed_in? %>
+  <% admin_tool("card mt2 p2", "div") do %>
+    <p class="mt0 mb0">
+      This report is currently being reviewed by <%= @event.name %>'s team. As an admin you may approve expenses, however, keep in mind that <span class="bold">all actions you take at this point will be on behalf of <%= @event.name %>.</span>
+    </p>
+  <% end %>
+<% end %>
+
+<div id="expenses">
+  <%= render partial: "expenses", locals: { report: @report } %>
+  <%= render partial: "blankslate", locals: { report: @report } %>
+</div>
+
+<%= render partial: "actions", locals: { report: @report, user: @user } %>
+
+<% unless @report.initial_draft? %>
+  <%= render partial: "conversation" %>
+<% end %>
+
+<style>
+  html { scroll-behavior: smooth; }
+</style>

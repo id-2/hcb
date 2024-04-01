@@ -26,15 +26,22 @@ class HcbCode
     belongs_to :hcb_code
     belongs_to :event
     validate :validate_max_pins_for_event, on: :create
+    validate :validate_pinnable, on: :create
 
     private
 
     def validate_max_pins_for_event
-      count = event.hcb_code_pins.size
+      count = event.pinned_hcb_codes.size
       count += 1 if new_record?
 
       if count > 4
         errors.add(:base, "You can only pin up to four transactions.")
+      end
+    end
+
+    def validate_pinnable
+      unless hcb_code.pinnable?
+        errors.add(:base, "At the moment, this transaction can't be pinned.")
       end
     end
 

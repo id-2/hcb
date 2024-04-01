@@ -24,23 +24,6 @@
   line-height: 0;
 }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.ml-auto {
-  margin-left: auto;
-}
-
-.mr-auto {
-  margin-right: auto;
-}
-
-.inline-flex {
-  display: inline-flex;
-}
-
 .shrink-none {
   flex-shrink: 0;
 }
@@ -142,6 +125,18 @@ $shades: (
 
   .bg-#{'' + $name} {
     background-color: $value;
+
+    &-important {
+      background-color: $value !important;
+    }
+  }
+
+  .border-#{'' + $name} {
+    border-color: $value;
+
+    &-important {
+      border-color: $value !important;
+    }
   }
 }
 
@@ -163,6 +158,10 @@ $shades: (
 
 .b--success {
   border-color: map-get($palette, success);
+}
+
+.b--primary {
+  border-color: map-get($palette, primary);
 }
 
 .w-50 {
@@ -240,11 +239,6 @@ $shades: (
   flex-basis: 0;
   flex-grow: 1;
   flex-shrink: 0;
-}
-
-.mono {
-  font-family: 'Space Mono', 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas,
-    monospace;
 }
 
 details[open] .flip-when-open {

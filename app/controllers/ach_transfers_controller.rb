@@ -72,6 +72,12 @@ class AchTransfersController < ApplicationController
     redirect_to @ach_transfer.local_hcb_code
   end
 
+  def toggle_speed
+    authorize @ach_transfer
+    @ach_transfer.toggle!(:same_day)
+    redirect_back_or_to ach_start_approval_admin_path(@ach_transfer)
+  end
+
   def validate_routing_number
     return render json: { valid: true } if params[:value].empty?
     return render json: { valid: false, hint: "Bank not found for this routing number." } unless /\A\d{9}\z/.match?(params[:value])
@@ -101,7 +107,14 @@ class AchTransfersController < ApplicationController
   end
 
   def ach_transfer_params
-    params.require(:ach_transfer).permit(:routing_number, :account_number, :recipient_email, :bank_name, :recipient_name, :amount_money, :payment_for, :scheduled_on, :send_email_notification, file: [])
+    permitted_params = [:routing_number, :account_number, :recipient_email, :bank_name, :recipient_name, :amount_money, :payment_for, :send_email_notification, { file: [] }]
+
+    if admin_signed_in?
+      permitted_params << :scheduled_on
+      permitted_params << :same_day
+    end
+
+    params.require(:ach_transfer).permit(*permitted_params)
   end
 
 end

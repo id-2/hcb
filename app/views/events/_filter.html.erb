@@ -36,7 +36,7 @@
       <% elsif @start_date || @end_date %>
         <span class="xs-hide sm-hide md-hide flex items-center">
           <span class="nowrap">
-            <%= @start_date && @end_date ? "Between" : @end_date ? "After" : "Before" %>
+            <%= @start_date && @end_date ? "Between" : @end_date ? "Before" : "After" %>
           </span>
           <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1">
             <%= @start_date&.to_datetime&.strftime("%m/%d/%Y") || "" %>
@@ -113,7 +113,7 @@
       </div>
 
       <div data-filter-target="types" data-filter-menu-selected="<%= @type ? "true" : "false" %>">
-        <% ["ach_transfer", "mailed_check", "account_transfer", "card_charge", "check_deposit", "donation", "invoice", "refund", "fiscal_sponsorship_fee"].each do |type| %>
+        <% ["ach_transfer", "mailed_check", "account_transfer", "card_charge", "check_deposit", "donation", "invoice", "refund", "fiscal_sponsorship_fee", "reimbursement"].each do |type| %>
           <div class="flex items-center">
               <%= link_to({ type:, q: params[:q] }.compact, class: "flex-auto menu__action") do %>
                 <%= type.humanize.titleize.gsub("Ach", "ACH") %>

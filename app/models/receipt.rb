@@ -49,14 +49,16 @@ class Receipt < ApplicationRecord
   validates :file, attached: true
 
   before_create do
-    suppress(ActiveModel::MissingAttributeError) do
+    if receiptable&.has_attribute?(:marked_no_or_lost_receipt_at)
       receiptable&.update(marked_no_or_lost_receipt_at: nil)
     end
   end
 
   after_create_commit do
     # Queue async job to extract text from newly upload receipt
+    # and to suggest pairings
     ReceiptJob::ExtractTextualContent.perform_later(self)
+    ReceiptJob::SuggestPairings.perform_later(self)
   end
   validate :has_owner
 
@@ -73,7 +75,10 @@ class Receipt < ApplicationRecord
     api: 9,
     email_receipt_bin: 10,
     sms: 11,
-    transfer_create_page: 12
+    transfer_create_page: 12,
+    expense_report: 13,
+    expense_report_drag_and_drop: 14,
+    quick_expense: 15
   }
 
   scope :in_receipt_bin, -> { where(receiptable: nil) }

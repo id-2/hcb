@@ -1,20 +1,41 @@
 # frozen_string_literal: true
 
 class CommentPolicy < ApplicationPolicy
+  class Scope < ApplicationPolicy::Scope
+    def resolve
+      if user.admin?
+        scope.all
+      else
+        scope.not_admin_only
+      end
+    end
+
+  end
+
   def new?
-    user.admin? || record.commentable.event.users.include?(user)
+    user.admin? || users.include?(user)
   end
 
   def create?
-    user.admin? || record.commentable.event.users.include?(user)
+    user.admin? || users.include?(user)
   end
 
   def edit?
-    user.admin? || (record.commentable.event.users.include?(user) && record.user == user)
+    user.admin? || (users.include?(user) && record.user == user)
   end
 
   def update?
-    user.admin? || (record.commentable.event.users.include?(user) && record.user == user)
+    user.admin? || (users.include?(user) && record.user == user)
+  end
+
+  def show?
+    user.admin? || (users.include?(user) && !record.admin_only)
+  end
+
+  private
+
+  def users
+    record.commentable.respond_to?(:events) ? record.commentable.events.collect(&:users).flatten : record.commentable.event.users
   end
 
 end

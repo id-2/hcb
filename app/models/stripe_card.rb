@@ -118,7 +118,7 @@ class StripeCard < ApplicationRecord
   end
 
   def formatted_card_number
-    return "•••• •••• •••• #{last4}" unless virtual?
+    return hidden_card_number_with_last_four unless virtual?
 
     full_card_number.scan(/.{4}/).join(" ")
   end
@@ -132,6 +132,8 @@ class StripeCard < ApplicationRecord
   end
 
   def hidden_card_number_with_last_four
+    return hidden_card_number unless activated?
+
     "•••• •••• •••• #{last4}"
   end
 
@@ -181,8 +183,6 @@ class StripeCard < ApplicationRecord
     save!
   end
 
-  alias_method :activate!, :defrost!
-
   def cancel!
     StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
     sync_from_stripe!
@@ -223,17 +223,17 @@ class StripeCard < ApplicationRecord
   def stripe_obj
     @stripe_obj ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id)
   rescue => e
-    { number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered" } }
+    OpenStruct.new({ number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered", carrier: "USPS", eta: 2.weeks.ago, tracking_number: "12345678s9" } })
   end
 
   def secret_details
     @secret_details ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id, expand: ["cvc", "number"])
   rescue => e
-    { number: "XXXX", cvc: "XXX" }
+    OpenStruct.new({ number: "XXXX", cvc: "XXX" })
   end
 
   def shipping_has_tracking?
-    stripe_obj[:shipping][:tracking_number].present?
+    stripe_obj&.shipping&.tracking_number&.present?
   end
 
   def self.new_from_stripe_id(params)
@@ -361,6 +361,10 @@ class StripeCard < ApplicationRecord
     else
       event.balance_available_v2_cents
     end
+  end
+
+  def expired?
+    Time.now.utc > Time.new(stripe_exp_year, stripe_exp_month).end_of_month
   end
 
   private

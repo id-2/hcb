@@ -37,6 +37,7 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.1"
 gem "stripe", "8.5.0"
 gem "plaid", "~> 23.0"
+gem "yellow_pages", git: "https://github.com/hackclub/yellow_pages", ref: "117d13e"
 
 gem "aws-sdk-s3", require: false
 
@@ -108,6 +109,7 @@ gem "grape-swagger-entity", "~> 0.3"
 
 gem "maildown" # markdown for views
 gem "redcarpet" # markdown parsing
+gem "loofah" # html email parsing
 
 gem "namae" # multi-cultural human name parser
 gem "premailer-rails" # css to inline styles for emails
@@ -115,6 +117,8 @@ gem "safely_block"
 gem "strong_migrations" # protects against risky migrations
 gem "swagger-blocks"
 gem "xxhash" # fast hashing
+
+gem "diffy" # rendering diffs (comments)
 
 gem "webauthn", "~> 3.0"
 
@@ -130,6 +134,7 @@ gem "chronic" # time/date parsing
 gem "rinku", require: "rails_rinku" # auto-linking URLs in text
 
 gem "geocoder" # lookup lat/lng for Stripe Cards shipment tracking
+gem "validates_zipcode" # validation for event's zip codes
 
 gem "rqrcode" # QR code generation
 
@@ -203,5 +208,7 @@ end
 
 gem "jbuilder", "~> 2.11"
 
-gem "libledger"
+gem "ledgerjournal"
 gem "doorkeeper", "~> 5.6"
+
+gem "cssbundling-rails", "~> 1.4"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_27_170817) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -52,6 +52,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.bigint "payment_recipient_id"
     t.string "recipient_email"
     t.boolean "send_email_notification", default: false
+    t.boolean "same_day", default: false, null: false
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
@@ -729,6 +730,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.date "owner_birthdate"
     t.string "webhook_url"
     t.integer "country"
+    t.string "postal_code"
     t.boolean "holiday_features", default: true, null: false
     t.string "custom_css_url"
     t.integer "category"
@@ -1191,6 +1193,33 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
+  create_table "mfa_codes", force: :cascade do |t|
+    t.text "message"
+    t.string "code"
+    t.string "provider"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "mfa_requests", force: :cascade do |t|
+    t.string "provider"
+    t.bigint "mfa_code_id"
+    t.string "aasm_state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
+  end
+
+  create_table "metrics", force: :cascade do |t|
+    t.string "type", null: false
+    t.jsonb "metric"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
+  end
+
   create_table "oauth_access_grants", force: :cascade do |t|
     t.bigint "resource_owner_id", null: false
     t.bigint "application_id", null: false
@@ -1268,7 +1297,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.boolean "first_time", default: true
     t.boolean "is_signee"
     t.integer "role", default: 100, null: false
-    t.integer "enabled_notifications", default: 0, null: false
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end
@@ -1585,7 +1613,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "approved_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "expense_number", default: 0, null: false
+    t.integer "expense_number", null: false
+    t.datetime "deleted_at", precision: nil
     t.index ["approved_by_id"], name: "index_reimbursement_expenses_on_approved_by_id"
     t.index ["reimbursement_report_id"], name: "index_reimbursement_expenses_on_reimbursement_report_id"
   end
@@ -1620,6 +1649,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "expense_number", default: 0, null: false
+    t.datetime "deleted_at", precision: nil
     t.index ["event_id"], name: "index_reimbursement_reports_on_event_id"
     t.index ["invited_by_id"], name: "index_reimbursement_reports_on_invited_by_id"
     t.index ["user_id"], name: "index_reimbursement_reports_on_user_id"
@@ -1898,7 +1928,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
     t.text "birthday_ciphertext"
     t.string "payout_method_type"
     t.bigint "payout_method_id"
-    t.integer "enabled_notifications", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
@@ -2011,6 +2040,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_052941) do
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
+  add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"

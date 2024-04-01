@@ -100,7 +100,7 @@ class CanonicalTransaction < ApplicationRecord
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
-  after_create do
+  after_create_commit do
     if likely_stripe_card_transaction?
       PendingEventMappingEngine::Settle::Single::Stripe.new(canonical_transaction: self).run
       EventMappingEngine::Map::Single::Stripe.new(canonical_transaction: self).run
@@ -165,6 +165,10 @@ class CanonicalTransaction < ApplicationRecord
 
   def column_transaction_type
     raw_column_transaction&.transaction_type
+  end
+
+  def column_transaction_id
+    raw_column_transaction&.transaction_id
   end
 
   def bank_account_name
@@ -256,6 +260,18 @@ class CanonicalTransaction < ApplicationRecord
 
   def bank_fee
     return linked_object if linked_object.is_a?(BankFee)
+
+    nil
+  end
+
+  def reimbursement_expense_payout
+    return linked_object if linked_object.is_a?(Reimbursement::ExpensePayout)
+
+    nil
+  end
+
+  def reimbursement_payout_holding
+    return linked_object if linked_object.is_a?(Reimbursement::PayoutHolding)
 
     nil
   end

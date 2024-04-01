@@ -17,6 +17,7 @@
 #  recipient_tel             :string
 #  rejected_at               :datetime
 #  routing_number            :string
+#  same_day                  :boolean          default(FALSE), not null
 #  scheduled_arrival_date    :datetime
 #  scheduled_on              :date
 #  send_email_notification   :boolean          default(FALSE)
@@ -78,6 +79,7 @@ class AchTransfer < ApplicationRecord
   has_one :grant, required: false
   has_one :raw_pending_outgoing_ach_transaction, foreign_key: :ach_transaction_id
   has_one :canonical_pending_transaction, through: :raw_pending_outgoing_ach_transaction
+  has_one :reimbursement_payout_holding, class_name: "Reimbursement::PayoutHolding", inverse_of: :ach_transfer, required: false, foreign_key: "ach_transfers_id"
 
   has_one :raw_pending_outgoing_ach_transaction, foreign_key: :ach_transaction_id
   has_one :canonical_pending_transaction, through: :raw_pending_outgoing_ach_transaction
@@ -159,6 +161,7 @@ class AchTransfer < ApplicationRecord
       company_name: event.name[0...16],
       description: payment_for,
       account_number_id:,
+      same_day:,
     }.compact_blank)
 
     mark_in_transit
@@ -239,6 +242,20 @@ class AchTransfer < ApplicationRecord
 
   def local_hcb_code
     @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
+  end
+
+  def estimated_arrival
+    # https://column.com/docs/ach/timing
+
+    now = ActiveSupport::TimeZone.new("America/Los_Angeles").now
+
+    if same_day? && now.workday?
+      return now.change(hour: 10, minute: 0, second: 0) if now < now.change(hour: 7, min: 15, sec: 0)
+      return now.change(hour: 14, minute: 0, second: 0) if now < now.change(hour: 11, min: 30, sec: 0)
+      return now.change(hour: 15, minute: 0, second: 0) if now < now.change(hour: 13, min: 30, sec: 0)
+    end
+
+    return 1.business_day.after(now).change(hour: 5, min: 30, sec: 0)
   end
 
   private

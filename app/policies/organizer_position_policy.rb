@@ -17,4 +17,12 @@ class OrganizerPositionPolicy < ApplicationPolicy
     user.admin?
   end
 
+  def change_position_role?
+    return true if user.admin?
+    return false if record.user == user
+
+    current_user_position = OrganizerPosition.find_by(user:, event: record.event)
+    current_user_position&.manager?
+  end
+
 end

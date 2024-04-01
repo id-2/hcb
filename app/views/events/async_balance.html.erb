@@ -1,3 +1,9 @@
 <%= turbo_frame_tag "event_balance_#{@event.public_id}" do %>
-  <strong><%= render_money_amount(@event.balance_available_v2_cents) %></strong>
+  <strong>
+    <% if params[:symbol] == "true" || Flipper.enabled?(:april_fools_2024_04_01, @current_user) %>
+      <%= render_money(@event.balance_available_v2_cents) %>
+    <% else %>
+      <%= render_money_amount(@event.balance_available_v2_cents) %>
+    <% end %>
+  </strong>
 <% end %>

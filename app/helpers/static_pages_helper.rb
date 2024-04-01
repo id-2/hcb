@@ -11,12 +11,15 @@ module StaticPagesHelper
                 badge_for "⏳", class: "bg-muted pr2"
               end
             else
-              ""
+              content_tag(:div, "") # Empty div if no badge is present
             end
-    link_to content_tag(:li,
-                        [content_tag(:strong, name), badge].join.html_safe,
-                        class: "card card--item card--hover flex justify-between overflow-visible line-height-3 items-center"),
-            path, method: options[:method]
+    pin = inline_icon("pin", class: "pin", size: 28, ':color': "isPinned($el.closest('a').parentElement.id) ? 'orange' : 'inherit'", '@click.prevent': "pin($el.closest('a').parentElement.id, $el.closest('.grid').id)")
+    content_tag(:div, id: "card-#{name.parameterize}") do
+      link_to content_tag(:div,
+                          [pin, content_tag(:strong, name, class: "card-name"), badge].join.html_safe,
+                          class: "card card--item card--hover flex justify-between items-center"),
+              path, class: "link-reset", method: options[:method]
+    end
   end
 
   def flavor_text
@@ -138,5 +141,44 @@ module StaticPagesHelper
         destination: "https://airtable.com/appEzv7w2IBMoxxHe/tbl9CkfZHKZYrXf1T/viwgfJvrrD9Jn9VLj"
       }
     }
+  end
+
+  def render_permissions(permissions, depth = 0)
+    capture do
+      permissions.each_with_index do |(k, v), i|
+
+        # Nested title (for feature groups)
+        if v.is_a?(Hash)
+          concat(content_tag(:tr) do
+            content_tag(:th, class: "h#{depth + 2} #{"pt3" unless i.zero?}", style: "padding-left: #{depth * 2}rem") do
+              concat k
+
+              if v[:_preface]
+                concat content_tag(:span, v[:_preface], class: "muted regular pl2 h5")
+              end
+            end
+          end)
+
+          concat render_permissions(v, depth + 1)
+
+        # Row for feature with permission icons
+        elsif v.is_a?(Symbol)
+          concat(content_tag(:tr) do
+            concat content_tag(:th, k, class: "regular", style: "padding-left: #{depth * 2}rem")
+
+            needed_role_num = OrganizerPosition.roles[v]
+
+            OrganizerPosition.roles.each do |_role, role_num|
+              if role_num >= needed_role_num
+                concat content_tag(:td, "✅")
+              else
+                concat content_tag(:td, "❌")
+              end
+            end
+          end)
+        end
+
+      end
+    end
   end
 end

@@ -80,6 +80,21 @@ html[data-dark='true'] .feature-transaction-tags {
   }
 }
 
+.feature-reimbursements  {
+  background-color: $snow;
+  background-image:
+    linear-gradient(to right, rgba($snow, 0.9), rgba($snow, 0.9)),
+    #{image-url('feature-reimbursements.png')};
+  background-size: 4em;
+}
+
+html[data-dark='true'] {
+  .feature-reimbursements  {
+    background-color: $black;
+    background-image: #{image-url('feature-reimbursements.png')};
+  }
+}
+
 .feature-turbo {
   background-color: $snow;
   background-image:
@@ -133,6 +148,31 @@ html[data-dark='true'] .feature-anonymous-donations {
 
   &::after {
     opacity: 1;
+  }
+}
+
+.feature-user-permissions {
+  position: relative;
+  background-color: $snow;
+
+  & > * {
+    z-index: 100;
+  }
+
+  &::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    background-image: #{image-url('feature-user-perms-dark.png')};
+    background-size: 5em;
+    opacity: 0.1;
+  }
+
+  html[data-dark='true'] & {
+    background-color: $black;
+    &::before {
+      opacity: 0.3;
+    }
   }
 }
 

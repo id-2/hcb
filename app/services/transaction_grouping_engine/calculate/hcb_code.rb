@@ -8,6 +8,11 @@ module TransactionGroupingEngine
       HCB_CODE = "HCB"
       SEPARATOR = "-"
       UNKNOWN_CODE = "000"
+      # 001 — This type code exists in production to group transactions under
+      # `000` while preventing from the TX Engine from trying to re-group them.
+      # For context, `TransactionGroupingEngineJob::Nightly` will try to group
+      # any CanonicalTransactions with a `000`. `001` was used to manually group
+      # transactions together during an incident.
       INVOICE_CODE = "100"
       DONATION_CODE = "200"
       PARTNER_DONATION_CODE = "201"
@@ -21,6 +26,8 @@ module TransactionGroupingEngine
       BANK_FEE_CODE = "700"
       INCOMING_BANK_FEE_CODE = "701" # short-lived and deprecated
       FEE_REVENUE_CODE = "702"
+      EXPENSE_PAYOUT_CODE = "710"
+      PAYOUT_HOLDING_CODE = "712"
       ACH_PAYMENT_CODE = "800" # ALSO short-lived and deprecated
       OUTGOING_FEE_REIMBURSEMENT_CODE = "900" # Note: many old fee reimbursements are still grouped under HCB-000
 
@@ -43,6 +50,8 @@ module TransactionGroupingEngine
         return stripe_card_hcb_code if raw_stripe_transaction
         return stripe_card_hcb_code_pending if raw_pending_stripe_transaction
         return ach_payment_hcb_code if ach_payment
+        return reimbursement_expense_payout_hcb_code if reimbursement_expense_payout
+        return reimbursement_payout_holding_hcb_code if reimbursement_payout_holding
         return outgoing_fee_reimbursement_hcb_code if outgoing_fee_reimbursement?
 
         unknown_hcb_code
@@ -164,6 +173,30 @@ module TransactionGroupingEngine
 
       def disbursement
         @disbursement ||= @ct_or_cp.disbursement
+      end
+
+      def reimbursement_expense_payout
+        @reimbursement_expense_payout ||= @ct_or_cp.reimbursement_expense_payout
+      end
+
+      def reimbursement_expense_payout_hcb_code
+        [
+          HCB_CODE,
+          EXPENSE_PAYOUT_CODE,
+          reimbursement_expense_payout.id
+        ].join(SEPARATOR)
+      end
+
+      def reimbursement_payout_holding
+        @reimbursement_payout_holding ||= @ct_or_cp.reimbursement_payout_holding
+      end
+
+      def reimbursement_payout_holding_hcb_code
+        [
+          HCB_CODE,
+          PAYOUT_HOLDING_CODE,
+          reimbursement_payout_holding.id
+        ].join(SEPARATOR)
       end
 
       def stripe_card_hcb_code

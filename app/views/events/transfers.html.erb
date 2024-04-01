@@ -9,8 +9,11 @@
   </span>
 
   <% if organizer_signed_in? %>
-    <%= link_to "Reimbursement", event_reimbursements_path(@event), class: "btn" %>
-
+    <% if Flipper.enabled?(:reimbursements_2024_03_10, @event) %>
+      <%= link_to "Reimbursement", event_reimbursements_path(@event), class: "btn" %>
+    <% else %>
+      <%= link_to "Reimbursement", "expensify", class: "btn" %>
+    <% end %>
     <%= link_to event_transfers_new_path(event_id: @event.slug), class: "btn bg-success", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
       <%= inline_icon "payment-transfer" %>
       Send
@@ -141,9 +144,37 @@
   <%= blankslate "No transfers yet" %>
 <% end %>
 
-<section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="send_transfer">
-  <%= turbo_frame_tag :transfer_form do %>
-    <%= modal_header "Transfer money" %>
-    <%= render "transfer_form" %>
-  <% end %>
-</section>
+<% if organizer_signed_in? %>
+  <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="send_transfer">
+    <%= turbo_frame_tag :transfer_form do %>
+      <%= modal_header "Transfer money" %>
+      <% if !policy(@event).new_transfer? %>
+        <div class="card border b--info pb0 mt3 mb3">
+          <div class="flex items-center info">
+            <%= inline_icon "info", size: 32, class: "mr1" %>
+            <p class="bold mt0 mb0">You can't transfer money.</p>
+          </div>
+          <ul>
+            <% if @event.demo_mode? %>
+              <li>This is because your organization is in demo mode.</li>
+            <% else %>
+              <%# They're not authorized due to role lacking permissions %>
+              <li>
+                This is because you're not a Manager.
+                (You're a <%= OrganizerPosition.find_by(user: current_user, event: @event)&.role&.titleize %>)
+              </li>
+              <li>If you need to move money, ask your manager to change your role on the <%= link_to "team page", event_team_path, target: "_blank" %>.</li>
+            <% end %>
+            <li>You can view the forms, but not submit them.</li>
+          </ul>
+          <% unless @event.demo_mode? %>
+            <div class="border-top card__banner card__darker secondary">
+              <%= link_to "Read more about roles", roles_path, target: "_blank" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      <%= render "transfer_form" %>
+    <% end %>
+  </section>
+<% end %>

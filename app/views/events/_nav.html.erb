@@ -1,11 +1,8 @@
 <% content_for(:nav) do %>
-  <%= link_to @event, class: "text-decoration-none pt2" do %>
-    <h1 class="border-none h1 mt0 mb0 primary break-word">
-      <%= @event.name %>
-    </h1>
-  <% end %>
+  <%= render "events/title" %>
+
   <div>
-    <% admin_tools("m0 p0 badge mb2", "span") do %>
+    <% admin_tool("m0 p0 badge mb2", "span") do %>
       <span class="m0 badge bg-muted pointer" data-controller="clipboard" data-clipboard-text-value="<%= @event.name %>" data-action="click->clipboard#copy">
         copy event name
       </span>
@@ -23,8 +20,8 @@
         tooltip: "Manage team debit cards",
         icon: "card",
         data: { tour_step: "cards" },
-        selected: local_assigns[:selected] == :cards unless !@event.approved? %>
-      <% admin_tools do %>
+        selected: local_assigns[:selected] == :cards if @event.approved? %>
+      <% admin_tool do %>
         <%= dock_item "Settings",
           edit_event_path(@event),
           icon: "project-settings",
@@ -44,18 +41,18 @@
         tooltip: "Receive donations online",
         icon: "support",
         data: { tour_step: "donations" },
-        selected: local_assigns[:selected] == :donations unless !@event.approved? %>
+        selected: local_assigns[:selected] == :donations if @event.approved? %>
       <%= dock_item "Invoices",
         event_invoices_path(event_id: @event.slug),
         tooltip: "Collect sponsor payments",
         icon: "briefcase",
-        selected: local_assigns[:selected] == :invoices unless !@event.approved? %>
+        selected: local_assigns[:selected] == :invoices if @event.approved? %>
       <%= dock_item "Account & routing number",
         account_number_event_path(@event),
         tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
         icon: "bank-account",
         selected: local_assigns[:selected] == :account_number,
-        disabled: !organizer_signed_in? if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) %>
+        disabled: !organizer_signed_in? if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? %>
       <%= dock_item "Check deposit",
         event_check_deposits_path(@event),
         tooltip: "Deposit checks",
@@ -69,12 +66,18 @@
         tooltip: "Manage team debit cards",
         icon: "card",
         data: { tour_step: "cards" },
-        selected: local_assigns[:selected] == :cards unless !@event.approved? %>
+        selected: local_assigns[:selected] == :cards if @event.approved? %>
       <%= dock_item "Transfers",
         event_transfers_path(event_id: @event.slug),
         tooltip: "Send & transfer money",
         icon: "payment-transfer",
         selected: local_assigns[:selected] == :transfers %>
+      <%= dock_item "Reimbursements",
+        event_reimbursements_path(event_id: @event.slug),
+        async_badge: event_reimbursements_pending_review_icon_path(@event),
+        tooltip: "Reimburse team members & volunteers",
+        icon: "attachment",
+        selected: local_assigns[:selected] == :reimbursements if Flipper.enabled?(:reimbursements_2024_03_10, @event) && policy(@event).reimbursements? %>
       <%= dock_item "Grants",
         event_grants_path(@event),
         tooltip: "Send & manage grants",
@@ -92,23 +95,23 @@
         icon: "shirt",
         data: { tour_step: "perks" },
         disabled: @event.hardware_grant?,
-        selected: local_assigns[:selected] == :promotions unless !@event.approved? %>
+        selected: local_assigns[:selected] == :promotions if @event.approved? %>
       <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
         event_g_suite_overview_path(event_id: @event.slug),
         tooltip: (@event.hardware_grant? ? "Not available for Winter Hardware Wonderland accounts" : @event.outernet_guild? ? "Not available for Outernet Guilds" : @event.demo_mode? ? "Not available for Demo Mode accounts" : @event.g_suites.exists? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
         icon: "google",
         disabled: @event.hardware_grant? || @event.demo_mode? || !organizer_signed_in?,
         selected: local_assigns[:selected] == :google_workspace %>
-      <%= dock_item "Documentation",
+      <%= dock_item "Documents",
         event_documentation_path(event_id: @event.slug),
-        tooltip: "Commonly asked questions and how-tos",
-        icon: "info",
+        tooltip: "View legal documents, financial statements, and FAQ",
+        icon: "docs",
         selected: local_assigns[:selected] == :documentation %>
       <%= dock_item "Settings",
         edit_event_path(@event),
         tooltip: "Edit organization settings",
         icon: "project-settings",
-        disabled: !organizer_signed_in?,
+        disabled: !policy(@event).edit?,
         selected: local_assigns[:selected] == :settings %>
     <% end %>
   </nav>
@@ -148,6 +151,7 @@
           <div class="menu__divider"></div>
           <%= link_to "Cards", event_cards_overview_path(@event) %>
           <%= link_to "Transfers", event_transfers_path(@event) %>
+          <%= link_to "Reimbursements", event_reimbursements_path(@event) if Flipper.enabled?(:reimbursements_2024_03_10, @event) && policy(@event).reimbursements? %>
         </div>
       </button>
       <div class="dock__overflow">
@@ -156,7 +160,7 @@
           <div class="menu__content" data-behavior="menu_content">
             <%= link_to "Promotions & perks", event_promotions_path(event_id: @event.slug) unless !@event.approved? || @event.hardware_grant? %>
             <%= link_to "Google Workspace", event_g_suite_overview_path(event_id: @event.slug) unless @event.hardware_grant? || @event.outernet_guild? %>
-            <%= link_to "Documentation", event_documentation_path(event_id: @event.slug) %>
+            <%= link_to "Documents", event_documentation_path(event_id: @event.slug) %>
             <%= link_to "Settings", edit_event_path(@event) %>
           </div>
         </action>

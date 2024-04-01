@@ -327,6 +327,74 @@ $(document).on('turbo:load', function () {
       if (e.target.checked) shippingInputs.slideUp()
     })
   }
+  
+  if (BK.thereIs('check_payout_method_inputs') && BK.thereIs('ach_transfer_payout_method_inputs')) {
+    const checkPayoutMethodInputs = BK.s('check_payout_method_inputs')
+    const achTransferPayoutMethodInputs = BK.s('ach_transfer_payout_method_inputs')
+    const checkPayoutMethodInput = $('#user_payout_method_type_userpayoutmethodcheck')
+    const achTransferPayoutMethodInput = $('#user_payout_method_type_userpayoutmethodachtransfer')
+    $(checkPayoutMethodInput).on('change', e => {
+      if (e.target.checked) checkPayoutMethodInputs.slideDown() && achTransferPayoutMethodInputs.slideUp()
+    })
+    $(achTransferPayoutMethodInput).on('change', e => {
+      if (e.target.checked) achTransferPayoutMethodInputs.slideDown() && checkPayoutMethodInputs.slideUp()
+    })
+  }
+  
+  if (BK.s('reimbursement_report_create_form_type_selection').length) {
+    const dropdownInput = $('#reimbursement_report_user_email')
+    const emailInput = $('#reimbursement_report_email')
+    const maxInput = $('#reimbursement_report_maximum_amount_wrapper')
+    const inviteInput = $('#reimbursement_report_invite_message_wrapper')
+
+    const forMyselfInput = $('#reimbursement_report_for_myself')
+    const forOrganizerInput = $('#reimbursement_report_for_organizer')
+    const forExternalInput = $('#reimbursement_report_for_external')
+
+    dropdownInput.hide()
+    emailInput.hide()
+    maxInput.hide()
+    inviteInput.hide()
+
+    $(forMyselfInput).on('change', e => {
+      if (e.target.checked) {
+        dropdownInput.slideUp()
+        emailInput.slideUp()
+        maxInput.slideUp()
+        inviteInput.slideUp()
+        emailInput.val(emailInput[0].attributes["value"].value)
+      }
+    })
+    
+    $(forOrganizerInput).on('change', e => {
+      if (e.target.checked) {
+        emailInput.val(dropdownInput.val())
+        dropdownInput.slideDown()
+        emailInput.slideUp()
+        maxInput.slideDown()
+        inviteInput.slideUp()
+      }
+    })
+    
+    $(forExternalInput).on('change', e => {
+      if (e.target.checked) {
+        emailInput.val("")
+        dropdownInput.slideUp()
+        emailInput.slideDown()
+        maxInput.slideDown()
+        inviteInput.slideDown()
+      }
+    })
+    
+    $(dropdownInput).on('change', e => {
+      emailInput.val(e.target.value)
+    })
+  }
+
+  $('[data-behavior~=mention]').on('click', e => {
+    BK.s('comment').val(`${BK.s('comment').val() + (BK.s('comment').val().length > 0 ? " " : "")}${e.target.innerText}`)
+    BK.s('comment')[0].scrollIntoView();
+  })  
 
   if (BK.thereIs('additional_transparency_settings')) {
     const additionalTransparencySettings = BK.s(
@@ -375,6 +443,10 @@ $('[data-behavior~=ctrl_enter_submit]').keydown(function (event) {
   }
 })
 
+function hidePWAPrompt() {
+  document.body.classList.add("hide__pwa__prompt")
+}
+
 $(document).on('click', '[data-behavior~=expand_receipt]', function (e) {
   const controlOrCommandClick = e.ctrlKey || e.metaKey;
   if ($(this).attr('href') || $(e.target).attr('href')) {
@@ -400,6 +472,23 @@ document.addEventListener("turbo:load", () => {
   }
 })
 
+document.addEventListener("turbo:before-stream-render", ((event) => {
+  const fallbackToDefaultActions = event.detail.render
+  event.detail.render = function (streamElement) {
+    if (streamElement.action == "refresh_link_modals") {
+      const turboStreamElements = document.querySelectorAll('turbo-frame');
+      turboStreamElements.forEach(element => {
+        if (element.id.startsWith('link_modal')) {
+          element.innerHTML = "<strong>Loading...</strong>"
+          element.reload();
+        }
+      });
+    } else {
+      fallbackToDefaultActions(streamElement)
+    }
+  }
+}))
+
 let hankIndex = 0
 $(document).on('keydown', function (e) {
   if (e.originalEvent.key === 'hank'[hankIndex]) {
@@ -411,3 +500,4 @@ $(document).on('keydown', function (e) {
     return (hankIndex = 0)
   }
 })
+

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" data-dark="<%= !!@dark %>" <%= "data-ignore-theme" unless @dark.nil? %>>
+<% to_the_moon_enabled = Flipper.enabled?(:april_fools_2024_04_01, @current_user) %>
+<html lang="en" data-dark="<%= !!@dark %>" data-crater="<%= !!to_the_moon_enabled %>" <%= "data-ignore-theme" unless @dark.nil? %>>
+  <!-- come hack with us on hcb! <%= Rails.configuration.constants.hack_on_hcb_form_url %> -->
   <head>
     <title>
       <%= yield(:title).concat(" –") if content_for?(:title) %>
@@ -29,6 +31,51 @@
       <script async src="https://cdn.headwayapp.co/widget.js"></script>
     <% end %>
 
+    <% if signed_in? %>
+      <% april_fools_2024 = {
+           doge: {
+             text: "USD",
+             path: back_to_earth_path,
+             img: "https://cloud-d2rr6p9fp-hack-club-bot.vercel.app/1us_one_cent_obv.png"
+           },
+           usd: {
+             text: "DOGE",
+             img: "https://cloud-d2rr6p9fp-hack-club-bot.vercel.app/0dogecoin_logo.png",
+             path: to_the_moon_path
+           }
+         }[to_the_moon_enabled ? :doge : :usd] %>
+
+      <%= link_to april_fools_2024[:path], style: "position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; text-decoration: none; color: initial;", class: "tooltipped tooltipped--w", 'aria-label': "Switch to #{april_fools_2024[:text]}", data: { "turbo": true, "turbo-method": :post }, method: :post do %>
+        <img src="<%= april_fools_2024[:img] %>" height="24" width="24">
+      <% end %>
+    <% end %>
+
+    <script>
+      console.log(`%c                -*%@@%*-
+            .=#@@@@@@@@@@#=.
+         .=%@@@@@*-..-*@@@@@%=.
+       -#@@@@@+:        :+@@@@@#-
+    :*@@@@@*:              :*@@@@@*:
+  =%@@@@#-                    -#@@@@%=.
+*@@@@@+.                        .+@@@@@*
+*@@*-   *@@*      *@@*      *@@*   :*@@*
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        *@@*      *@@*      *@@*
+
+  *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
+  *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
+
+        Come hack on HCB with us!
+<%= Rails.configuration.constants.hack_on_hcb_form_url %>
+`, 'color: #ec3750; font-weight: bold; font-size: 10px;')
+    </script>
+
     <meta name="format-detection" content="telephone=no">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <% if user_birthday? %>
@@ -51,7 +98,14 @@
                         options: @tour&.tourable&.try(:tourable_options) || {},
                         back_to_tour: @back_to_tour %>
 
-    <% if @event&.is_public && !organizer_signed_in? && !@no_app_shell && !@no_transparency_header %>
+    <% if current_session&.impersonated? %>
+      <div class="w-100 px4 bg-white transparency-banner">
+        <p class="h5 medium center mt1 mb1">
+          <%= link_to "← Exit Impersonation", unimpersonate_user_path(current_user&.id, return_to: request.url), data: { turbo_method: "post", turbo_frame: "_top" } %> | You're currently impersonating <%= user_mention User.find(current_user&.id) %>
+        </p>
+      </div>
+    <% end %>
+    <% if @event&.is_public && !organizer_signed_in? && !@no_app_shell && !@no_transparency_header && !@use_user_nav %>
       <div class="w-100 px3 bg-white transparency-banner" data-behavior="hide_iframe">
         <p class="h5 medium center mt1 mb1">
           This HCB project has been made public so you can see all its finances.
@@ -59,6 +113,11 @@
         </p>
       </div>
     <% end %>
+
+    <%= render "maintenance_banner",
+               datetime: Time.parse("2024-04-03T22:00:00-0700"),
+               duration: 1.hour,
+               learn_more_url: "https://changelog.hcb.hackclub.com/scheduled-maintenance-289134" %>
 
     <% if @event&.demo_mode? && !@no_app_shell && !@no_transparency_header %>
       <style>
@@ -77,14 +136,27 @@
           }
         }
       </style>
-      <div class="w-full dev-banner dev-banner--info rounded-bottom">
-        <div class="flex flex-column container container--md center pb2">
-          <p class="bold center m0" style="font-size: 2rem;">Playground Mode</p>
+      <div class="w-full dev-banner dev-banner--info rounded-b">
+        <div class="flex flex-col container container--md center pb2">
+          <p class="h1 bold center m0">Playground Mode</p>
           <div class="grid g3 banner-content">
-            <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn bg-primary shrink-none nowrap #{"disabled" unless can_request_activation? }", data: { tour_step: "activate_account" } do %>
+            <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn bg-primary shrink-none nowrap #{"disabled" unless policy(@event).demo_mode_request_meeting? }", data: { tour_step: "activate_account" } do %>
               <%= inline_icon "welcome" %>Request Activation
             <% end %>
-            <p class="center m0 playground-desc">While in Playground mode, explore the dashboard with mock data, and invite your team.<br>To utilise financial features, activate your account!</p>
+            <div class="center h5 playground-desc" style="text-wrap: pretty;">
+              <% meeting_req = @event.demo_mode_request_meeting_at %>
+              <p class="m0 <%= "muted" if meeting_req %>">
+                While in Playground mode, explore the dashboard with mock data, and invite your team.
+                To utilise financial features, request activation!
+              </p>
+              <p class="m0">
+                <% if meeting_req %>
+                  You requested activation on <%= format_date meeting_req %>
+                  (<%= distance_of_time_in_words_to_now meeting_req %> ago).
+                  Please expect an email from our team soon.
+                <% end %>
+              </p>
+            </div>
             <button
               id="mock-data-toggle"
               data-mock-data-status="<%= show_mock_data? %>"
@@ -124,7 +196,7 @@
     <% end %>
 
     <%# LET THERE BE SNOW %>
-    <% unless @hide_holiday_features || !winter? %>
+    <% if winter? %>
       <%= react_component "holiday/SnowToggl", {}, { style: "position:fixed;left:1rem;bottom:1rem;z-index:99" } %>
       <%= react_component "holiday/Snow", {}, { style: "height:100%" } %>
     <% end %>
@@ -179,7 +251,7 @@
       </main>
     <% end %>
 
-    <%= render "application/feedback_form" if signed_in? %>
+    <%= render "application/feedback_form" if current_user&.events&.not_demo_mode&.any? %>
 
     <% if Rails.env.production? %>
       <%= render "application/fullstory" if current_user&.sessions_reported %>
@@ -205,4 +277,12 @@
       </script>
     <% end %>
   </body>
+
+  <% if Flipper.enabled?(:april_fools_2024_04_01, @current_user) %>
+    <style>
+      .stat:not(.stat--plain) .stat__value:before {
+        content: 'Ɖ'!important;
+      }
+    </style>
+  <% end %>
 </html>

@@ -84,7 +84,7 @@ class EventsController < ApplicationController
     @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
-      @hide_holiday_features = true
+      @hide_seasonal_decorations = true
     end
 
     @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
@@ -145,6 +145,11 @@ class EventsController < ApplicationController
       "fiscal_sponsorship_fee" => {
         "settled" => ->(t) { t.local_hcb_code.fee_revenue? || t.fee_payment? },
         "pending" => ->(t) { t.raw_pending_bank_fee_transaction_id },
+        "icon"    => "minus-fill"
+      },
+      "reimbursement"          => {
+        "settled" => ->(t) { t.local_hcb_code.reimbursement_expense_payout? },
+        "pending" => ->(t) { false },
         "icon"    => "minus-fill"
       }
     }
@@ -210,7 +215,7 @@ class EventsController < ApplicationController
     authorize @event
 
     @all_positions = @event.organizer_positions.includes(:user).order(created_at: :desc)
-    @positions = @all_positions.page(params[:page]).per(params[:per] || 5)
+    @positions = @all_positions.page(params[:page]).per(params[:per] || 10)
 
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
@@ -277,13 +282,30 @@ class EventsController < ApplicationController
   end
 
   def card_overview
-    @stripe_cards = @event.stripe_cards.where.missing(:card_grant)
-                          .includes(:stripe_cardholder, :user).order("created_at desc")
-    @session_user_stripe_card = []
+    @status = %w[virtual physical active inactive].include?(params[:status]) ? params[:status] : nil
 
-    unless current_user.nil?
-      @session_user_stripe_cards = @stripe_cards.filter { |card| card.user.id.eql?(current_user.id) }
-      @stripe_cards = @stripe_cards.filter { |card| !card.user.id.eql?(current_user.id) }
+    all_stripe_cards = @event.stripe_cards.where.missing(:card_grant).includes(:stripe_cardholder, :user)
+                             .order("stripe_status asc, created_at desc")
+
+    all_stripe_cards = case @status
+                       when "active"
+                         all_stripe_cards.active
+                       when "inactive"
+                         all_stripe_cards.deactivated
+                       when "virtual"
+                         all_stripe_cards.virtual
+                       when "physical"
+                         all_stripe_cards.physical
+                       else
+                         all_stripe_cards
+                       end
+
+    if current_user.present?
+      @stripe_cards = all_stripe_cards.where.not(stripe_cardholder: current_user.stripe_cardholder)
+      @user_stripe_cards = all_stripe_cards.where(stripe_cardholder: current_user.stripe_cardholder)
+    else
+      @stripe_cards = all_stripe_cards
+      @user_stripe_cards = StripeCard.none
     end
 
     @stripe_cardholders = StripeCardholder.where(user_id: @event.users.pluck(:id)).includes(:user).order("created_at desc")
@@ -292,12 +314,12 @@ class EventsController < ApplicationController
 
     # Generate mock data
     if helpers.show_mock_data?
-      @session_user_stripe_cards = []
+      @user_stripe_cards = []
 
       if organizer_signed_in?
         # The user's cards
-        (0..rand(1..3)).each do |_|
-          state = Faker::Boolean.boolean
+        2.times.each_with_index do |_, i|
+          state = i > 0
           virtual = rand > 0.5
           card = OpenStruct.new(
             id: Faker::Number.number(digits: 1),
@@ -315,17 +337,28 @@ class EventsController < ApplicationController
             hidden_card_number_with_last_four: "•••• •••• •••• #{Faker::Number.number(digits: 4)}",
             to_partial_path: "stripe_cards/stripe_card",
           )
-          @session_user_stripe_cards << card
+          @user_stripe_cards << card
         end
       end
       # Sort by date issued
-      @session_user_stripe_cards.sort_by! { |card| card.created_at }.reverse!
+      @user_stripe_cards.sort_by! { |card| card.created_at }.reverse!
     end
 
     page = (params[:page] || 1).to_i
     per_page = (params[:per] || 20).to_i
 
-    @paginated_stripe_cards = Kaminari.paginate_array(@stripe_cards).page(page).per(per_page)
+    display_cards = if helpers.show_mock_data? && organizer_signed_in?
+                      @user_stripe_cards
+                    else
+                      [
+                        @user_stripe_cards.active,
+                        @stripe_cards.active,
+                        @user_stripe_cards.deactivated,
+                        @stripe_cards.deactivated
+                      ].flatten
+                    end
+
+    @paginated_stripe_cards = Kaminari.paginate_array(display_cards).page(page).per(per_page)
 
   end
 
@@ -585,8 +618,24 @@ class EventsController < ApplicationController
     authorize @event
   end
 
+  def expensify
+    authorize @event
+  end
+
   def reimbursements
     authorize @event
+    @reports = @event.reimbursement_reports
+    @reports = @reports.pending if params[:filter] == "pending"
+    @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:filter] == "reimbursed"
+    @reports = @reports.rejected if params[:filter] == "rejected"
+    @reports = @reports.search(params[:q]) if params[:q].present?
+  end
+
+  def reimbursements_pending_review_icon
+    authorize @event
+    @reimbursements_pending_review_count = @event.reimbursement_reports.submitted.count
+
+    render :reimbursements_pending_review_icon, layout: false
   end
 
   def toggle_hidden
@@ -649,6 +698,11 @@ class EventsController < ApplicationController
     authorize @event
     feature = params[:feature]
     if Flipper.disable_actor(feature, @event)
+      # If it's the user permissions feature, make all the users & invites in the org managers.
+      if feature == "user_permissions_2024_03_09"
+        @event.organizer_positions.update_all(role: :manager)
+        @event.organizer_position_invites.pending.update_all(role: :manager)
+      end
       flash[:success] = "Opted out of beta"
     else
       flash[:error] = "Error while opting out of beta"
@@ -682,6 +736,25 @@ class EventsController < ApplicationController
     @end_date = Date.today.prev_month.beginning_of_month.to_date
   end
 
+  def termination
+    authorize @event
+
+    @successor = params[:successor] || "The Hack Foundation"
+
+    @start = params[:start]&.to_datetime || @event.activated_at || @event.created_at
+
+    @end = params[:end]&.to_datetime || Time.now
+
+    respond_to do |format|
+      format.html do
+        redirect_to @event
+      end
+      format.pdf do
+        render pdf: "Termination Letter for #{@event.name}", page_height: "11in", page_width: "8.5in"
+      end
+    end
+  end
+
   def validate_slug
     authorize @event
 
@@ -711,6 +784,7 @@ class EventsController < ApplicationController
       :can_front_balance,
       :emburse_department_id,
       :country,
+      :postal_code,
       :category,
       :club_airtable_id,
       :point_of_contact_id,
@@ -718,6 +792,8 @@ class EventsController < ApplicationController
       :hidden,
       :donation_page_enabled,
       :donation_page_message,
+      :public_reimbursement_page_enabled,
+      :public_reimbursement_page_message,
       :donation_thank_you_message,
       :donation_reply_to_email,
       :is_public,
@@ -755,6 +831,8 @@ class EventsController < ApplicationController
       :end,
       :donation_page_enabled,
       :donation_page_message,
+      :public_reimbursement_page_enabled,
+      :public_reimbursement_page_message,
       :donation_thank_you_message,
       :donation_reply_to_email,
       :is_public,

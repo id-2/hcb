@@ -31,10 +31,6 @@ module EventsHelper
     "show_mock_data_#{event.id}".to_sym
   end
 
-  def can_request_activation?(event = @event)
-    event.demo_mode? && event.demo_mode_request_meeting_at.nil? && organizer_signed_in?
-  end
-
   def paypal_transfers_airtable_form_url(embed: false, event: nil, user: nil)
     # The airtable form is located within the Bank Promotions base
     form_id = "4j6xJB5hoRus"
@@ -70,6 +66,14 @@ module EventsHelper
       return Event.categories.key(value.to_i)
     end
 
+    if field == "maximum_amount_cents"
+      return render_money(value.to_s)
+    end
+
+    if field == "event_id"
+      return Event.find(value).name
+    end
+
     return "Yes" if value == true
     return "No" if value == false
 
@@ -80,5 +84,9 @@ module EventsHelper
     return tag.span "unset", class: "muted" if value.nil? || value.try(:empty?)
 
     return tag.span humanize_audit_log_value(field, value), class: color
+  end
+
+  def show_org_switcher?
+    Flipper.enabled?(:org_switcher_2024_01_31, current_user) && current_user.events.not_hidden.count > 1
   end
 end

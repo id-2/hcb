@@ -6,6 +6,12 @@ class ColumnService
   module Accounts
     FS_MAIN = Rails.application.credentials.column.dig(ENVIRONMENT, :fs_main_account_id)
     FS_OPERATING = Rails.application.credentials.column.dig(ENVIRONMENT, :fs_operating_account_id)
+
+    def self.id_of(account_sym)
+      const_get(account_sym.upcase)
+    rescue
+      raise ArgumentError, "unknown Column account: #{account_sym.inspect}"
+    end
   end
 
   module AchCodes
@@ -45,7 +51,7 @@ class ColumnService
 
     reports.to_h do |report|
       url = get("/documents/#{report["json_document_id"]}")["url"]
-      transactions = JSON.parse(Faraday.get(url).body).select { |t| t["bank_account_id"] == bank_account && t["available_amount"] != 0 }
+      transactions = JSON.parse(Faraday.get(url).body).select { |t| t["bank_account_id"] == bank_account && t["available_amount"].present? && t["available_amount"] != 0 }
 
       [report["id"], transactions]
     end

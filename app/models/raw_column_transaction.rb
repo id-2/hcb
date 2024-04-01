@@ -37,15 +37,27 @@ class RawColumnTransaction < ApplicationRecord
       book_transfer = ColumnService.get "/transfers/book/#{transaction_id}"
 
       return book_transfer["description"]
+    elsif transaction_id.start_with? "wire"
+      wire = ColumnService.get "/transfers/wire/#{transaction_id}"
+
+      return wire["originator_name"]
     end
 
     raise
   rescue
-    "COLUMN TRANSACTION"
+    if amount_cents.positive?
+      "DEPOSIT"
+    else
+      "DEBIT"
+    end
   end
 
   def transaction_type
     column_transaction["transaction_type"]
+  end
+
+  def transaction_id
+    column_transaction["transaction_id"]
   end
 
 end

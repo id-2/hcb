@@ -58,7 +58,7 @@ module UsersHelper
   def avatar_for(user, size = 24, options = {})
     src = profile_picture_for(user, size)
 
-    klasses = ["circle", "shrink-none"]
+    klasses = ["rounded-full", "shrink-none"]
     klasses << "avatar--current-user" if user == current_user
     klasses << options[:class] if options[:class]
     klass = klasses.join(" ")
@@ -72,7 +72,7 @@ module UsersHelper
 
   def user_mention(user, options = {}, default_name = "No User")
     name = content_tag :span, (user&.initial_name || default_name)
-    avi = avatar_for user
+    avi = avatar_for user, 24, options[:avatar] || {}
 
     klasses = ["mention"]
     klasses << %w[mention--admin tooltipped tooltipped--n] if user&.admin?
@@ -88,9 +88,11 @@ module UsersHelper
              "#{user.name} is an admin"
            end
 
-    content = if user&.admin?
+    content = if user&.admin? && !options[:hide_avatar]
                 bolt = inline_icon "admin-badge", size: 20
                 avi + bolt + name
+              elsif options[:hide_avatar]
+                name
               else
                 avi + name
               end
@@ -98,10 +100,23 @@ module UsersHelper
     content_tag :span, content, class: klass, 'aria-label': aria
   end
 
-  def admin_tools(class_name = "", element = "div", override_pretend: false, **options, &block)
+  def admin_tool(class_name = "", element = "div", override_pretend: false, **options, &block)
     return unless current_user&.admin? || (override_pretend && current_user&.admin_override_pretend?)
 
     concat content_tag(element, class: "admin-tools #{class_name}", **options, &block)
+  end
+
+  def admin_tool_if(condition, *args, **options, &block)
+    # If condition is false, it displays the content for ALL users. Otherwise,
+    # it's only visible to admins.
+    yield and return unless condition
+
+    admin_tool(*args, **options, &block)
+  end
+
+  def admin_tools(*args, **options, &block)
+    concat content_tag(:span, "You're using the deprecated admin_tools. Replace it with the new admin_tool.", class: "error")
+    admin_tool(*args, **options, &block)
   end
 
   def admin_tools_if(condition, *args, **options, &block)
@@ -109,7 +124,8 @@ module UsersHelper
     # it's only visible to admins.
     yield and return unless condition
 
-    admin_tools(*args, **options, &block)
+    concat content_tag("span", "You're using the deprecated admin_tools_if. Replace it with the new admin_tool_if.", class: "error")
+    admin_tool_if(condition, *args, **options, &block)
   end
 
   def creator_bar(object, options = {})
