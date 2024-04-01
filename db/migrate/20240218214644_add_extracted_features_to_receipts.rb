@@ -7,5 +7,6 @@ class AddExtractedFeaturesToReceipts < ActiveRecord::Migration[7.0]
     add_column :receipts, :suggested_card_last4, :string
     add_column :receipts, :suggested_merchant_name, :string
     add_column :receipts, :suggested_merchant_url, :string
+    add_column :receipts, :suggested_merchant_zip_code, :string
   end
 end
