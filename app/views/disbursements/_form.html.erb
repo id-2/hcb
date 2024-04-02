@@ -2,7 +2,7 @@
 
 <%= form_with(model: disbursement, local: true, url: disbursements_path, html: { "x-data" => "{fee: null, sourceEventInput: #{@source_event.id}, managerEvents: #{current_user.organizer_positions.where(role: :manager).pluck(:event_id)}, rails_disabled: #{disabled}, disabled: #{disabled}}", "x-effect": "disabled = rails_disabled && !JSON.parse(JSON.stringify(managerEvents)).includes(parseInt(sourceEventInput))" }) do |form| %>
 
-  <div x-show="!JSON.parse(JSON.stringify(managerEvents)).includes(parseInt(sourceEventInput))" x-transition x-cloak>
+  <div x-show="!disabled" x-transition x-cloak>
     <%= render "events/transfers/unauthorized_callout" %>
   </div>
 
