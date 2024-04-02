@@ -1,6 +1,11 @@
 <% disabled = @source_event.present? && !policy(@source_event).new_transfer? %>
 
-<%= form_with(model: disbursement, local: true, url: disbursements_path, html: { "x-data" => "{fee: null}" }) do |form| %>
+<%= form_with(model: disbursement, local: true, url: disbursements_path, html: { "x-data" => "{fee: null, fromOrgInput: null, managerEvents: #{current_user.organizer_positions.where(role: :manager).pluck(:event_id)}}" }) do |form| %>
+  
+  <div x-show="!JSON.parse(JSON.stringify(managerEvents)).includes(parseInt(fromOrgInput))" x-transition>
+    <%= render "events/no_transfer_permission_callout" %>
+  </div>
+
   <%= form_errors(disbursement, "Disbursements") %>
 
   <div class="field event-select-target">
@@ -10,6 +15,7 @@
                                 :id,
                                 current_user.admin? ? :admin_dropdown_description : :disbursement_dropdown_description,
                                 { prompt: "Select one…", disabled: ->(e) { e != @source_event && !current_user.admin? && e.balance_available <= 0 } },
+                                "x-model": "fromOrgInput",
                                 required: true,
                                 disabled: ) %>
   </div>
