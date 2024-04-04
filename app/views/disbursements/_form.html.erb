@@ -75,7 +75,7 @@
 
   <div
       class="actions inline-block tooltipped tooltipped--e"
-      :aria-label="playgroundSourceEvent ? 'Transfers are disabled in Playground mode' : disabled ? 'Only managers can make transfers!' : 'Initiate the HCB transfer'">
+      :aria-label="disabled ? 'You're not allowed to make an HCB Transfer' : 'Initiate the HCB Transfer'">
       <%= form.submit "Make transfer", class: "btn", "x-bind:disabled": "disabled" %>
   </div>
 <% end %>
