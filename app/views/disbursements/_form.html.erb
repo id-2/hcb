@@ -1,14 +1,14 @@
 <%= form_with(model: disbursement,
               local: true,
               url: disbursements_path,
-              html: {"x-data" => "{
-                fee: null,
-                sourceEventInput: null,
-                managerEvents: #{current_user.organizer_positions.where(role: :manager).pluck(:event_id)},
-                playgroundEvents: #{current_user.events.where(demo_mode: true).pluck(:event_id)},
-                disabled: null,
-                playgroundSourceEvent: null
-              }",
+              html: {"x-data" => {
+                fee: nil,
+                sourceEventInput: nil,
+                managerEvents: current_user.organizer_positions.where(role: :manager).pluck(:event_id),
+                playgroundEvents: current_user.events.where(demo_mode: true).pluck(:event_id),
+                disabled: nil,
+                playgroundSourceEvent: nil
+              }.to_json,
               "x-effect": "
                 console.log(JSON.parse(JSON.stringify(managerEvents)).includes(parseInt(sourceEventInput)), sourceEventInput, playgroundEvents, playgroundSourceEvent);  
                 playgroundSourceEvent = JSON.parse(JSON.stringify(playgroundEvents)).includes(parseInt(sourceEventInput))
