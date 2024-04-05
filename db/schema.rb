@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_27_170817) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_28_050450) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -49,6 +49,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_170817) do
     t.text "increase_id"
     t.date "scheduled_on"
     t.text "column_id"
+    t.boolean "same_day", default: false, null: false
     t.bigint "payment_recipient_id"
     t.string "recipient_email"
     t.boolean "send_email_notification", default: false
@@ -748,6 +749,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_170817) do
     t.text "donation_reply_to_email"
     t.boolean "public_reimbursement_page_enabled", default: false, null: false
     t.text "public_reimbursement_page_message"
+    t.string "postal_code"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -972,12 +974,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_170817) do
     t.string "increase_status"
     t.string "check_number"
     t.jsonb "increase_object"
+    t.string "recipient_email"
+    t.boolean "send_email_notification", default: false
     t.string "column_id"
     t.string "column_status"
     t.jsonb "column_object"
     t.string "column_delivery_status"
-    t.string "recipient_email"
-    t.boolean "send_email_notification", default: false
     t.index "(((increase_object -> 'deposit'::text) ->> 'transaction_id'::text))", name: "index_increase_checks_on_transaction_id"
     t.index ["column_id"], name: "index_increase_checks_on_column_id", unique: true
     t.index ["event_id"], name: "index_increase_checks_on_event_id"
@@ -1747,6 +1749,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_170817) do
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
     t.boolean "lost_in_shipping", default: false
+    t.text "stripe_personalization_design_id"
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
     t.index ["stripe_cardholder_id"], name: "index_stripe_cards_on_stripe_cardholder_id"

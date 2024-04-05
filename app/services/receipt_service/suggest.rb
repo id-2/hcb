@@ -37,11 +37,11 @@ module ReceiptService
           weight: 100,
         },
         merchant_zip_code: {
-          value: @extracted.merchant_zip_code == txn.postal_code,
+          value: @extracted.merchant_zip_code == txn.stripe_merchant[:postal_code],
           weight: 50,
         },
         merchant_name: {
-          value: @extracted.merchant_name == txn.stripe_merchant.name,
+          value: @extracted.merchant_name == txn.stripe_merchant[:name],
           weight: 100,
         }
       }
