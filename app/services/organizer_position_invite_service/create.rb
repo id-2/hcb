@@ -2,13 +2,14 @@
 
 module OrganizerPositionInviteService
   class Create
-    def initialize(event:, sender: nil, user_email: nil, initial: false, is_signee: nil, role: nil)
+    def initialize(event:, sender: nil, user_email: nil, initial: false, is_signee: nil, role: nil, auto_accept: false)
       @event = event
       @sender = sender
       @user_email = normalize_email(user_email)
       @initial = initial
       @is_signee = is_signee
       @role = role
+      @auto_accept = auto_accept
 
       args = {}
       args[:event] = @event
@@ -16,6 +17,7 @@ module OrganizerPositionInviteService
       args[:initial] = @initial
       args[:is_signee] = @is_signee
       args[:role] = @role if role
+      args[:auto_accept] = @auto_accept
 
       @model = OrganizerPositionInvite.new(args)
     end
