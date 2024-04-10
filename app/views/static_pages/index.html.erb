@@ -94,17 +94,23 @@
           <% end %>
         <% end %>
 
-        <%= link_to "https://hackclub.com/hcb/apply/?#{URI.encode_www_form({ userEmail: current_user.email, firstName: current_user.first_name, lastName: current_user.last_name, returningUser: "Yes, I have used HCB before", userPhone: current_user.phone_number, userBirthday: current_user.birthday }.compact)}" do %>
+        <%= link_to "#", class: "ml0 info text-decoration-none muted tooltipped tooltipped--e", data: { behavior: "modal_trigger", modal: "edit" }, style: "padding: 0px; line-height: 0px; align-self: center;", "aria-label": "Edit this report's properties." do %>
           <li class="card card--hover bold brand-sans flex items-center justify-center align-center h-100" style="max-width: 90vw">
             <div class="center">
               <div class="pop success mx-auto" style="display: flex; margin-bottom: 4px;">
                 <%= inline_icon "plus", size: 28 %>
               </div>
-              New Project
+              New project
             </div>
           </li>
         <% end %>
       </ul>
+
+      <!--"https://hackclub.com/hcb/apply/?#{URI.encode_www_form({ userEmail: current_user.email, firstName: current_user.first_name, lastName: current_user.last_name, returningUser: "Yes, I have used HCB before", userPhone: current_user.phone_number, userBirthday: current_user.birthday }.compact)}"-->
+      <section data-behavior="modal" role="dialog" id="edit" class="modal modal--scroll bg-snow">
+        <%= modal_header "New project" %>
+        <%= render "new_project_form" %>
+      </section>
 
       <% if @events.hidden.any? %>
         <details class="w-100 left-align">
