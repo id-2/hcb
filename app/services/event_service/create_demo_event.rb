@@ -4,11 +4,12 @@ module EventService
   class CreateDemoEvent
     # include ::UserService::CanOpenDemoMode
 
-    def initialize(email:, name:, country:, category: nil, point_of_contact_id: nil, partner_id: nil, is_public: true)
+    def initialize(email:, name:, country:, category: nil, point_of_contact_id: nil, partner_id: nil, is_public: true, auto_accept_invite: false)
       @email = email
       @point_of_contact = point_of_contact_id ? User.find(point_of_contact_id) : User.find_by_email("bank@hackclub.com")
       @default_partner = ::Partner.find_by!(slug: "bank")
       @partner = partner_id ? ::Partner.find(partner_id) : @default_partner
+      @auto_accept_invite = auto_accept_invite
       @event = ::Event.new(
         name:,
         country:,
@@ -30,7 +31,7 @@ module EventService
 
         @event.save!
 
-        OrganizerPositionInviteService::Create.new(event: @event, sender: @point_of_contact, user_email: @email, initial: true).run!
+        OrganizerPositionInviteService::Create.new(event: @event, sender: @point_of_contact, user_email: @email, initial: true, auto_accept: @auto_accept_invite).run!
 
         @event
       end
