@@ -13,7 +13,7 @@
       <%= dock_item "Transactions",
         event_path(id: @event.slug),
         tooltip: "View your transactions",
-        icon: "transactions",
+        icon: "list",
         selected: local_assigns[:selected] == :transactions %>
       <%= dock_item "Cards",
         event_cards_overview_path(event_id: @event.slug),
@@ -31,7 +31,7 @@
       <%= dock_item "Transactions",
         event_path(id: @event.slug),
         tooltip: "View your transactions",
-        icon: "transactions",
+        icon: "list",
         selected: local_assigns[:selected] == :transactions %>
       <h4 class="mb0 h5 muted">Receive</h4>
       <hr>
