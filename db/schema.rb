@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_11_012600) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -52,6 +52,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.bigint "payment_recipient_id"
     t.string "recipient_email"
     t.boolean "send_email_notification", default: false
+    t.string "company_name"
+    t.string "company_entry_description"
     t.boolean "same_day", default: false, null: false
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
@@ -451,6 +453,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "end_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "starting_balance"
+    t.integer "closing_balance"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -462,10 +466,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.boolean "admin_only", default: false, null: false
     t.boolean "has_untracked_edit", default: false, null: false
     t.text "content_ciphertext"
-    t.integer "action", default: 0, null: false
+    t.integer "action"
     t.index ["commentable_id", "commentable_type"], name: "index_comments_on_commentable_id_and_commentable_type"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "contractor_positions", force: :cascade do |t|
+    t.bigint "gusto_contractor_id", null: false
+    t.bigint "event_id", null: false
+    t.index ["event_id"], name: "index_contractor_positions_on_event_id"
+    t.index ["gusto_contractor_id"], name: "index_contractor_positions_on_gusto_contractor_id"
   end
 
   create_table "disbursements", force: :cascade do |t|
@@ -730,7 +741,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.date "owner_birthdate"
     t.string "webhook_url"
     t.integer "country"
-    t.string "postal_code"
     t.boolean "holiday_features", default: true, null: false
     t.string "custom_css_url"
     t.integer "category"
@@ -746,8 +756,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.integer "stripe_card_shipping_type", default: 0, null: false
     t.text "donation_thank_you_message"
     t.text "donation_reply_to_email"
-    t.boolean "public_reimbursement_page_enabled", default: false, null: false
+    t.string "postal_code"
+    t.boolean "public_reimbursement_page_enabled", default: false
     t.text "public_reimbursement_page_message"
+    t.boolean "reimbursements_require_organizer_review_for_organizers", default: false, null: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -879,6 +891,37 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.index ["processed_by_id"], name: "index_grants_on_processed_by_id"
     t.index ["recipient_id"], name: "index_grants_on_recipient_id"
     t.index ["submitted_by_id"], name: "index_grants_on_submitted_by_id"
+  end
+
+  create_table "gusto_access_tokens", force: :cascade do |t|
+    t.string "access_token", null: false
+    t.string "refresh_token", null: false
+    t.datetime "expires_at", null: false
+  end
+
+  create_table "gusto_contractor_payments", force: :cascade do |t|
+    t.string "gusto_id", null: false
+    t.string "gusto_version", null: false
+    t.jsonb "gusto_object"
+    t.bigint "contractor_position_id", null: false
+    t.integer "amount_cents", null: false
+    t.index ["contractor_position_id"], name: "index_gusto_contractor_payments_on_contractor_position_id"
+  end
+
+  create_table "gusto_contractors", force: :cascade do |t|
+    t.string "gusto_id", null: false
+    t.string "gusto_version", null: false
+    t.jsonb "gusto_object"
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_gusto_contractors_on_user_id"
+  end
+
+  create_table "gusto_departments", force: :cascade do |t|
+    t.string "gusto_id", null: false
+    t.string "gusto_version", null: false
+    t.jsonb "gusto_object"
+    t.bigint "event_id", null: false
+    t.index ["event_id"], name: "index_gusto_departments_on_event_id"
   end
 
   create_table "hashed_transactions", force: :cascade do |t|
@@ -1577,14 +1620,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.bigint "event_id", null: false
     t.string "hcb_code"
     t.string "aasm_state"
-    t.integer "amount_cents", null: false
-    t.bigint "reimbursement_payout_holdings_id"
+    t.integer "amount_cents"
+    t.bigint "reimbursement_expense_payout_holdings_id"
     t.bigint "reimbursement_expenses_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_reimbursement_expense_payouts_on_event_id"
+    t.index ["reimbursement_expense_payout_holdings_id"], name: "index_expense_payouts_on_expense_payout_holdings_id"
     t.index ["reimbursement_expenses_id"], name: "index_expense_payouts_on_expenses_id"
-    t.index ["reimbursement_payout_holdings_id"], name: "index_expense_payouts_on_expense_payout_holdings_id"
   end
 
   create_table "reimbursement_expenses", force: :cascade do |t|
@@ -1592,6 +1635,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.bigint "approved_by_id"
     t.text "memo"
     t.integer "amount_cents", default: 0, null: false
+    t.integer "reimbursable_amount_cents"
     t.text "description"
     t.string "aasm_state"
     t.datetime "approved_at"
@@ -1604,7 +1648,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
   end
 
   create_table "reimbursement_payout_holdings", force: :cascade do |t|
-    t.integer "amount_cents", null: false
+    t.integer "amount_cents"
     t.string "hcb_code"
     t.bigint "reimbursement_reports_id", null: false
     t.bigint "increase_checks_id"
@@ -1626,8 +1670,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.integer "maximum_amount_cents"
     t.string "aasm_state"
     t.datetime "submitted_at"
-    t.datetime "reimbursement_requested_at"
-    t.datetime "reimbursement_approved_at"
+    t.datetime "organizer_approved_at"
+    t.datetime "admin_approved_at"
     t.datetime "rejected_at"
     t.datetime "reimbursed_at"
     t.datetime "created_at", null: false
@@ -1686,6 +1730,21 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.index ["stripe_card_id"], name: "index_stripe_authorizations_on_stripe_card_id"
   end
 
+  create_table "stripe_card_personalization_designs", force: :cascade do |t|
+    t.string "stripe_id"
+    t.string "stripe_status"
+    t.string "stripe_name"
+    t.jsonb "stripe_carrier_text"
+    t.string "stripe_card_logo"
+    t.string "stripe_physical_bundle"
+    t.bigint "event_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "stale", default: false, null: false
+    t.boolean "common", default: false, null: false
+    t.index ["event_id"], name: "index_stripe_card_personalization_designs_on_event_id"
+  end
+
   create_table "stripe_cardholders", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.text "stripe_id"
@@ -1733,6 +1792,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
     t.boolean "lost_in_shipping", default: false
+    t.integer "stripe_card_personalization_design_id"
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
     t.index ["stripe_cardholder_id"], name: "index_stripe_cards_on_stripe_cardholder_id"
@@ -1851,19 +1911,19 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
   end
 
   create_table "user_payout_method_ach_transfers", force: :cascade do |t|
-    t.text "account_number_ciphertext", null: false
-    t.text "routing_number_ciphertext", null: false
+    t.text "account_number_ciphertext"
+    t.text "routing_number_ciphertext"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
   create_table "user_payout_method_checks", force: :cascade do |t|
-    t.text "address_line1", null: false
+    t.text "address_line1"
     t.text "address_line2"
-    t.text "address_city", null: false
-    t.text "address_country", null: false
-    t.text "address_postal_code", null: false
-    t.text "address_state", null: false
+    t.text "address_city"
+    t.text "address_country"
+    t.text "address_postal_code"
+    t.text "address_state"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -1972,6 +2032,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"
   add_foreign_key "column_account_numbers", "events"
+  add_foreign_key "contractor_positions", "events"
+  add_foreign_key "contractor_positions", "gusto_contractors"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
   add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
@@ -2006,6 +2068,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
   add_foreign_key "grants", "events"
   add_foreign_key "grants", "users", column: "processed_by_id"
   add_foreign_key "grants", "users", column: "submitted_by_id"
+  add_foreign_key "gusto_contractor_payments", "contractor_positions"
+  add_foreign_key "gusto_contractors", "users"
+  add_foreign_key "gusto_departments", "events"
   add_foreign_key "hashed_transactions", "raw_plaid_transactions"
   add_foreign_key "hcb_code_personal_transactions", "hcb_codes"
   add_foreign_key "hcb_code_personal_transactions", "invoices"
@@ -2056,6 +2121,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
   add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_ach_payment_sources", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
+  add_foreign_key "stripe_card_personalization_designs", "events"
   add_foreign_key "stripe_cardholders", "users"
   add_foreign_key "stripe_cards", "events"
   add_foreign_key "stripe_cards", "stripe_cardholders"
