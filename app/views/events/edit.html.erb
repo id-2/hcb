@@ -31,6 +31,17 @@
       <span><%= @event.plan_name.titleize %></span>
     </p>
 
+<% settings = [
+  { title: "Feature previews", id: "feature-previews", icon: "rep", preview: "#{feature_previews.map {|f| Flipper.enabled?(f[:flipper])}.count} features enabled" },
+  { title: "Organization profile", id: "org-profile", icon: "flag", preview: "#{@event.website}", partial: "events/settings_forms/organization_profile" },
+  { title: "Donations", id: "donations", icon: "support", preview: "#{@event.donation_page_enabled ? "Enabled" : "Disabled"}", partial: "events/settings_forms/donations" },
+  { title: "Reimbursements", id: "reimbursements", icon: "attachment", preview: "#{@event.public_reimbursement_page_enabled ? "Enabled" : "Disabled"}", partial: "events/settings_forms/reimbursements" },
+  { title: "Transparency mode", id: "transparency-mode", icon: "view", preview: "#{@event.is_public ? "Enabled" : "Disabled"}", partial: "events/settings_forms/transparency_mode" },
+  { title: "Danger zone", id: "danger-zone", icon: "important", partial: "events/settings_forms/danger_zone", class: "border b--warning" }
+] %>
+
+<%= render "callout", type: "info", title: "#{@event.name} #{@event.prepositioned_plan_name}." do %>
+  <p class="m0">
     <% unless @event.demo_mode? %>
       <p>
         <strong>Fee on revenue</strong>
