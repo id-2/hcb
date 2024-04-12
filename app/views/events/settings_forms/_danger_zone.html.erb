@@ -1,0 +1,100 @@
+    <div
+      data-controller="external-validation"
+      data-external-validation-url-value="<%= validate_slug_event_path(@event) %>"
+      data-external-validation-hint-success-class="success">
+
+      <div class="flex items-center warning">
+        <%= inline_icon "important", size: 32, class: "mr1" %>
+        <p class="bold mt0 mb0">If you change your URL, beware:</p>
+      </div>
+
+      <ul class="mt1 mb2">
+        <li>
+          We'll automatically redirect most pages to your organization's new URL, including:
+          <ul>
+            <li>Your donation page</li>
+            <li>Transparency Mode pages</li>
+            <li>Transaction bookmarks</li>
+          </ul>
+        </li>
+        <li>However, another organization may claim your current URL and you could be
+          <span class="bold">unable to get it back.</span>
+        </li>
+      </ul>
+
+      <%= form.label :slug, "Organization URL", class: "bold" %>
+
+      <div style="display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto">
+        <span class="secondary flex items-center">hcb.hackclub.com/</span>
+        <%= form.text_field :slug, placeholder: event.persisted? ? event.name.parameterize : nil, data: { action: "input->external-validation#validate" }, disabled: !policy(@event).update? %>
+        <span data-external-validation-target="hint" style="grid-column-start: 2"></span>
+      </div>
+
+      <div class="actions">
+        <%= form.submit "Update", class: ("disabled" unless policy(@event).update?) %>
+      </div>
+    </div>
+
+    <% admin_tool do %>
+      <%= link_to (event.hidden? ? "Un-hide project" : "Hide project"),
+                  event_toggle_hidden_path(event),
+                  method: :put,
+                  "data-confirm": "Do you really want to #{event.hidden? ? "un-hide" : "hide"} #{event.name}?",
+                  class: "btn bg-success" if event.persisted? %>
+    <% end %>
+
+    <% admin_tool do %>
+      <div class="field" id="admin_settings">
+        <%= form.label :name %>
+        <%= form.text_field :name %>
+      </div>
+
+      <div class="field">
+        <%= form.label :sponsorship_fee, "Sponsorship fee (as fraction of revenue)" %>
+        <%= form.text_field :sponsorship_fee, value: event.sponsorship_fee || 0.07, placeholder: "0.07", required: true %>
+      </div>
+
+      <div class="field">
+        <%= form.label :stripe_card_shipping_type, "Card shipping method" %>
+        <%= form.collection_select :stripe_card_shipping_type, Event.stripe_card_shipping_types, :first, :first %>
+      </div>
+
+      <div class="field">
+        <%= form.label :postal_code %>
+        <%= form.text_field :postal_code, placeholder: "90069" %>
+      </div>
+
+      <div class="field">
+        <%= form.label :country %>
+        <%= form.collection_select :country, Event.countries_for_select, :first, :last, { include_blank: "Select a country" } %>
+      </div>
+
+      <div class="field">
+        <%= form.label :category %>
+        <%= form.collection_select :category, Event.categories, :first, :first, { include_blank: "Select a category" } %>
+      </div>
+
+      <div class="field">
+        <%= form.label :point_of_contact_id, "Point of contact" %>
+        <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email %>
+      </div>
+
+      <div class="field field--checkbox">
+        <%= form.check_box :demo_mode %>
+        <%= form.label :demo_mode, "Is in Playground Mode?" %>
+      </div>
+
+      <div class="field field--checkbox">
+        <%= form.check_box :omit_stats %>
+        <%= form.label :omit_stats, "Omit from public stats?" %>
+      </div>
+
+      <div class="field field--checkbox">
+        <%= form.check_box :can_front_balance %>
+        <%= form.label :can_front_balance, "Front incoming transactions?" %>
+      </div>
+
+      <div class="action">
+        <%= form.submit "Update", class: ("disabled" unless policy(@event).update?) %>
+      </div>
+    <% end %>
