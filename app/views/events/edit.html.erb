@@ -40,25 +40,17 @@
   { title: "Danger zone", id: "danger-zone", icon: "important", partial: "events/settings_forms/danger_zone", class: "border b--warning" }
 ] %>
 
-<%= render "callout", type: "info", title: "#{@event.name} #{@event.prepositioned_plan_name}." do %>
-  <p class="m0">
-    <% unless @event.demo_mode? %>
-      <p>
-        <strong>Fee on revenue</strong>
-        <span><%= number_to_percentage(@event.sponsorship_fee_in_database * 100, significant: true, strip_insignificant_zeros: true) %></span>
-      </p>
-      <% if @event.high_school_hackathon? && @event.sponsorship_fee == 0 %>
-        <p>
-          <strong>
-            <a
-              href="https://changelog.hcb.hackclub.com/bank-now-provides-free-durian-241524">Fee waiver</a> expiration
-          </strong>
-          <span>December 31st, 2024</span>
-        </p>
-      <% end %>
+<article class="mixed-grid grid--spacious">
+  <% settings.each do |setting| %>
+    <%= link_to "#", data: { behavior: "modal_trigger", modal: "#{setting[:id]}" }, class: "card flex justify-between" do %>
+      <div class="flex flex-col">
+        <p class="bold black"><%= setting[:title] %></p>
+        <p class="muted"><%= setting[:preview] %></p>
+      </div>
+      <%= inline_icon setting[:icon] %>
     <% end %>
-  </section>
-</div>
+  <% end %>
+</article>
 
 <div data-behavior="modal" role="dialog" id="feature-previews" class="modal modal--scroll bg-snow">
   <%= modal_header "Feature previews" %>
