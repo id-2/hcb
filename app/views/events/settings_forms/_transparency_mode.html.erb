@@ -1,0 +1,33 @@
+<ul class="mt0 pl2 mb2">
+  <li>Unauthenticated users will be able to access a <strong>read-only</strong> version of your account.</li>
+  <li>None of HCB’s pages will change for signed in team members.</li>
+  <li>We’ll do our best to redact contact info, but we can’t guarantee it doesn't show up in these
+    fields:
+    <ul>
+      <li>Transaction display names</li>
+      <li>Sponsor company names</li>
+      <li>ACH transfer recipients</li>
+      <li>Check recipients</li>
+    </ul>
+  </li>
+</ul>
+<div class="field field--checkbox">
+  <%= form.check_box :is_public, disabled: !policy(@event).update? %>
+  <%= form.label :is_public, "Enable Transparency Mode" %>
+</div>
+<div class="field field--checkbox" data-behavior="additional_transparency_settings <% if !event.is_public? %>autohide<% end %>">
+  <%= form.check_box :is_indexable, disabled: !policy(@event).update? %>
+  <%= form.label :is_indexable, "List #{@event.name} in HCB's public directory" %>
+</div>
+<% unless !winter?(override_preference: true) %>
+  <div class="field field--checkbox" data-behavior="additional_transparency_settings <% if !event.is_public? %>autohide<% end %>">
+    <%= form.check_box :holiday_features, disabled: !policy(@event).update? %>
+    <%= form.label :holiday_features, "Enable Holiday Features ⛄ for Transparency Mode" %>
+  </div>
+<% end %>
+<div class="field">
+  <%= form.label :public_message, "Message to show visitors" %>
+  <%= form.text_area :public_message, class: "w-100 fit", disabled: !policy(@event).update? %>
+  <%= inline_icon "markdown", size: 32, class: "muted right" %>
+</div>
+<%= form.submit "Update", class: ("disabled" unless policy(@event).update?) %>
