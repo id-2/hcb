@@ -101,69 +101,13 @@
   </div>
 </div>
 
-<% if @event.card_grant_setting.present? %>
-  <h3 class="mb1" id="card-grants">Card Grants</h3>
-  <div class="card">
-    <%= form.fields_for :card_grant_setting, @event.card_grant_setting do |card_grant_setting_fields| %>
-      <%= card_grant_setting_fields.hidden_field :id, value: @event.card_grant_setting.id %>
-      <div class="field">
-        <%= card_grant_setting_fields.label :merchant_lock, "Update Approved Merchants" %>
-        <%= card_grant_setting_fields.text_field :merchant_lock, placeholder: "123456789", class: "w-100 fit", value: @event.card_grant_setting.merchant_lock.join(", "), disabled: !policy(@event).update? %>
-        <p class="h5 muted mt0 mb1">
-          Provide a comma-separated list of merchant network IDs to lock all card grants issued from this event to.
-        </p>
-      </div>
-
-<div class="card pb0 mb3" id="transaction-tags">
-  <div class="card__banner card__banner--top flex justify-between items-center feature-transaction-tags <%= "b--info" if Flipper.enabled?(:transaction_tags_2022_07_29, @event) %> ">
-    <h3 class="h1 pt2 pb2 my0 color-black">Transaction Tags</h3>
-    <% if Flipper.enabled?(:transaction_tags_2022_07_29) %>
-      <%# Feature is enabled for all users, don't include a choice %>
-      <div class="actions tooltipped tooltipped--w inline-block mt1" aria-label="This feature is now generally available!">
-        <span class="btn bg-accent disabled">Shipped!</span>
-      </div>
-      <%# link_to "Shipped!", enable_feature_path(feature: :transfers_2022_04_21), method: :post, class: 'btn bg-accent' %>
-    <% elsif @event.demo_mode? %>
-      <div class="actions tooltipped tooltipped--w inline-block mt1" aria-label="Not available in demo mode.">
-        <span class="btn bg-accent disabled">Enable</span>
-      </div>
-    <% elsif Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
-      <%# Feature is enabled, let the user opt-out %>
-      <%= link_to "Disable", disable_feature_event_path(feature: :transaction_tags_2022_07_29), method: :post, class: "btn bg-accent #{"disabled" unless policy(@event).disable_feature?} tooltipped tooltipped--w", "aria-label": "Only managers can disable feature previews." %>
-    <% else %>
-      <%# Feature is disabled, let the user opt-in %>
-      <%= link_to "Enable", enable_feature_event_path(feature: :transaction_tags_2022_07_29), method: :post, class: "btn bg-info #{"disabled" unless policy(@event).enable_feature?} tooltipped tooltipped--w", "aria-label": "Only managers can enable feature previews." %>
-    <% end %>
-  </div>
-  <p>
-    Categorize and filter transactions using tags!
-  </p>
-</div>
-
-<div class="card pb0 mb3" id="anonymous-donations">
-  <div class="card__banner card__banner--top flex justify-between items-center feature-anonymous-donations <%= "b--info" if Flipper.enabled?(:anonymous_donations_2024_01_29, @event) %> ">
-    <h3 class="h1 pt2 pb2 my0 color-black">Anonymous Donations</h3>
-    <% if Flipper.enabled?(:anonymous_donations_2024_01_29) %>
-      <%# Feature is enabled for all users, don't include a choice %>
-      <div class="actions tooltipped tooltipped--w inline-block mt1" aria-label="This feature is now generally available!">
-        <span class="btn bg-accent disabled">Shipped!</span>
-      </div>
-      <%# link_to "Shipped!", enable_feature_path(feature: :transfers_2022_04_21), method: :post, class: 'btn bg-accent' %>
-    <% elsif @event.demo_mode? %>
-      <div class="actions tooltipped tooltipped--w inline-block mt1" aria-label="Not available in demo mode.">
-        <span class="btn bg-accent disabled">Enable</span>
-      </div>
-    <% elsif Flipper.enabled?(:anonymous_donations_2024_01_29, @event) %>
-      <%# Feature is enabled, let the user opt-out %>
-      <%= link_to "Disable", disable_feature_event_path(feature: :anonymous_donations_2024_01_29), method: :post, class: "btn bg-accent #{"disabled" unless policy(@event).disable_feature?}" %>
-    <% else %>
-      <%# Feature is disabled, let the user opt-in %>
-      <%= link_to "Enable", enable_feature_event_path(feature: :anonymous_donations_2024_01_29), method: :post, class: "btn bg-info #{"disabled" unless policy(@event).enable_feature?}" %>
-    <% end %>
-  </div>
-  <p>
-    Allow donors to appear anonymously in Transparency Mode!
-  </p>
-</div>
-
-<%= render "form", event: @event %>
+<% settings.each do |setting| %>
+  <% if setting[:partial] %>
+    <div data-behavior="modal" role="dialog" id="<%= setting[:id] %>" class="modal modal--scroll bg-snow <%= setting[:class] %>">
+      <%= modal_header setting[:title] %>
+      <%= form_with(model: @event) do |form| %>
+        <%= render setting[:partial], event: @event, form: %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
