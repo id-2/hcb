@@ -40,6 +40,18 @@
   { title: "Danger zone", id: "danger-zone", icon: "important", partial: "events/settings_forms/danger_zone", class: "border b--warning" }
 ] %>
 
+<%= render "callout", type: "info", title: "#{@event.name} #{@event.prepositioned_plan_name}." do %>
+  <p class="m0">
+    <% unless @event.demo_mode? %>
+      The fee on revenue is <%= number_to_percentage(@event.sponsorship_fee_in_database * 100, significant: true, strip_insignificant_zeros: true) %>.
+      <% if @event.high_school_hackathon? && @event.sponsorship_fee == 0 %>
+        Your <%= link_to "fee waiver", "https://changelog.hcb.hackclub.com/bank-now-provides-free-durian-241524" %>
+        expires December 31st, 2024.
+      <% end %>
+    <% end %>
+  </p>
+<% end %>
+
 <article class="mixed-grid grid--spacious">
   <% settings.each do |setting| %>
     <%= link_to "#", data: { behavior: "modal_trigger", modal: "#{setting[:id]}" }, class: "card flex justify-between" do %>
