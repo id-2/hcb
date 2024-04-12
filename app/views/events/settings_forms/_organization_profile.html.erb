@@ -1,0 +1,65 @@
+<%= form_errors event, "organization" %>
+
+<div class="field">
+  <%= form.label :logo %>
+  <p class="h5 muted mt0 mb1">
+    Displayed on your
+    <%= link_to "donation page",
+                @event.donation_page_enabled? ? start_donation_donations_path(@event) : { anchor: "donations" },
+                target: @event.donation_page_enabled? ? "_blank" : nil %>
+    and your
+    <%= link_to "public reimbursement page",
+                @event.public_reimbursement_page_enabled? ? reimbursement_start_reimbursement_report_url(@event) : { anchor: "public-reimbursements" },
+                target: @event.public_reimbursement_page_enabled? ? "_blank" : nil %>.
+  </p>
+  <% if @event.logo.attached? %>
+    <%= image_tag @event.logo, height: 72 %>
+  <% end %>
+
+  <% if policy(@event).update? %>
+    <div class="field--fileupload">
+      <%= form.label :logo, "Choose File", class: "field--fileupload__label" %>
+      <%= form.file_field :logo, accept: "image/*,image/heic", class: "field--fileupload__field" %>
+    </div>
+
+    <% if @event.logo.attached? %>
+      <%= link_to "Remove logo", event_remove_logo_path(@event), class: "btn btn-small bg-error mt1", method: :post %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="field mt3">
+  <%= form.label :background_image %>
+  <p class="h5 muted mt0 mb1">
+    Displayed as the background of your organization's card on the homepage.
+  </p>
+  <% if @event.background_image.attached? %>
+    <%= image_tag @event.background_image, width: 256 %>
+  <% end %>
+
+  <% if policy(@event).update? %>
+    <div class="field--fileupload">
+      <%= form.label :background_image, "Choose File", class: "field--fileupload__label" %>
+      <%= form.file_field :background_image, accept: "image/*,image/heic", class: "field--fileupload__field" %>
+    </div>
+
+    <% if @event.background_image.attached? %>
+      <%= link_to "Remove background image", event_remove_background_image_path(@event), class: "btn btn-small bg-error mt1", method: :post %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="field mt3">
+  <%= form.label :description, "Mission Statement" %>
+  <p class="h5 muted mt0 mb1">
+    A short description of your organization's goals and impacts.
+  </p>
+  <%= form.text_area :description, placeholder: "Focusing on...", class: "w-100 fit", disabled: !policy(@event).update? %>
+</div>
+
+<div class="field mt2">
+  <%= form.label :website, "Website URL" %>
+  <%= form.text_field :website, type: :url, placeholder: "https://hackclub.com", class: "w-100 fit", disabled: !policy(@event).update? %>
+</div>
+
+<%= form.submit "Update", class: ("disabled" unless policy(@event).update?) %>
