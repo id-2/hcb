@@ -101,6 +101,13 @@
   </div>
 </div>
 
+<%# if @event.card_grant_setting.present? %>
+<!--  <h3 class="mb1" id="card-grants">Card Grants</h3>-->
+<!--  <div class="card">-->
+    <%# render "events/settings_forms/card_grants" %>
+<!--  </div>-->
+<%# end %>
+
 <% settings.each do |setting| %>
   <% if setting[:partial] %>
     <div data-behavior="modal" role="dialog" id="<%= setting[:id] %>" class="modal modal--scroll bg-snow <%= setting[:class] %>">
