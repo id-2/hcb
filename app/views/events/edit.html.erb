@@ -20,9 +20,9 @@
   </details>
 <% end %>
 
-<h3 class="mb1 flex items-center">
-  Account information
-</h3>
+
+<% non_manager_count = @event.organizer_positions.where.not(role: :manager).count %>
+<% non_manager_invite_count = @event.organizer_position_invites.pending.where.not(role: :manager).count %>
 
 <div class="card mb3">
   <section class="details">
