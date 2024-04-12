@@ -579,6 +579,22 @@ class Event < ApplicationRecord
     end
   end
 
+  def prepositioned_plan_name
+    if demo_mode?
+      "in playground mode"
+    elsif unapproved?
+      "is pending approval"
+    elsif hack_club_hq?
+      "is a hack club affiliated project"
+    elsif salary?
+      "is a salary account"
+    elsif sponsorship_fee == 0
+      "has full fiscal sponsorship (fee waived)"
+    else
+      "has full fiscal sponsorship"
+    end
+  end
+
   def used_emburse?
     emburse_cards.any?
   end
