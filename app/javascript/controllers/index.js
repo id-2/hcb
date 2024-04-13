@@ -3,15 +3,14 @@
 
 import { Application } from '@hotwired/stimulus'
 import { definitionsFromContext } from '@hotwired/stimulus-webpack-helpers'
-import { appsignal } from '../appsignal'
-import { installErrorHandler } from "@appsignal/stimulus";
+import { installErrorHandler } from '@appsignal/stimulus'
+import appsignal from '../appsignal'
 import airbrake from '../airbrake'
 
 const application = Application.start()
-const environment = process.env.NODE_ENV || 'development'
 
 if (appsignal) {
-  installErrorHandler(appsignal, application);
+  installErrorHandler(appsignal, application)
 }
 
 if (airbrake) {
