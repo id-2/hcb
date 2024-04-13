@@ -129,5 +129,15 @@ class FeeReimbursement < ApplicationRecord
   def canonical_transaction
     @canonical_transaction ||= event.canonical_transactions.where("memo ilike '#{transaction_memo}%' and date >= ?", created_at - 1.day).first
   end
+  
+  def hcb_code
+    return nil unless canonical_transaction
+
+    [
+      ::TransactionGroupingEngine::Calculate::HcbCode::HCB_CODE,
+      ::TransactionGroupingEngine::Calculate::HcbCode::OUTGOING_FEE_REIMBURSEMENT_CODE,
+      canonical_transaction.date.strftime("%G_%V"),
+    ].join(::TransactionGroupingEngine::Calculate::HcbCode::SEPARATOR)
+  end
 
 end
