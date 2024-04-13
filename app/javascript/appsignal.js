@@ -1,7 +1,5 @@
 import Appsignal from '@appsignal/javascript'
 
-const environment = process.env.NODE_ENV || 'development'
-
 const appsignal =
   environment != 'development'
     ? new Appsignal({
