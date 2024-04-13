@@ -3,6 +3,7 @@
 
 import { Application } from '@hotwired/stimulus'
 import { definitionsFromContext } from '@hotwired/stimulus-webpack-helpers'
+import { appsignal } from '../appsignal'
 import airbrake from '../airbrake'
 
 const application = Application.start()
