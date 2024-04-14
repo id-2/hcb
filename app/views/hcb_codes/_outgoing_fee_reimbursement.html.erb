@@ -36,14 +36,14 @@
     <table class="mt1">
       <tbody>
         <% FeeReimbursement
-            .where("processed_at > ? AND processed_at < ?", @hcb_code.ct.date.beginning_of_week - 7.days, @hcb_code.ct.date.end_of_week + 7.days)
-            .select { |fr| fr.hcb_code == @hcb_code.hcb_code }.reverse.each do |fr| %>
+             .where("processed_at > ? AND processed_at < ?", @hcb_code.ct.date.beginning_of_week - 7.days, @hcb_code.ct.date.end_of_week + 7.days)
+             .select { |fr| fr.hcb_code == @hcb_code.hcb_code }.reverse.each do |fr| %>
           <tr>
             <td style="padding-left: 0rem" class="medium">
               <%= fr.canonical_transaction.date.strftime("%Y-%m-%d") %>
             </td>
             <td style="white-space: normal;">
-              <%= link_to (fr.invoice || fr.donation)&.local_hcb_code.memo || "Unknown", fr.invoice || fr.donation || fr.transaction %>
+              <%= link_to (fr.invoice || fr.donation)&.local_hcb_code&.memo || "Unknown", fr.invoice || fr.donation || fr.transaction %>
               (reimbursed to <%= fr.event.name %>)
             </td>
             <td><%= render_money fr.amount %></td>
