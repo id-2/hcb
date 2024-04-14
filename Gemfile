@@ -75,7 +75,7 @@ gem "rounding"
 gem "business_time"
 
 
-gem "poppler" # PDF parsing
+gem "poppler", "4.2.2" # PDF parsing
 gem "wicked_pdf" # HTML to PDF conversion
 
 
