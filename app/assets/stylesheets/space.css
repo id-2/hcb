@@ -1,3 +1,6 @@
+.ma {
+  margin: auto;
+ }
 .m0 {
   margin: 0px;
 }
@@ -15,6 +18,10 @@
 }
 .m5 {
   margin: 64px;
+}
+
+.mta {
+  margin-top: auto;
 }
 .mt0 {
   margin-top: 0px;
@@ -40,6 +47,10 @@
 .mt7 {
   margin-top: 96px;
 }
+
+.mra {
+  margin-right: auto;
+}
 .mr0 {
   margin-right: 0px;
 }
@@ -57,6 +68,10 @@
 }
 .mr5 {
   margin-right: 64px;
+}
+
+.mba {
+  margin-bottom: auto;
 }
 .mb0 {
   margin-bottom: 0px;
@@ -76,6 +91,10 @@
 .mb5 {
   margin-bottom: 64px;
 }
+
+.mla {
+  margin-left: auto;
+}
 .ml0 {
   margin-left: 0px;
 }
@@ -94,6 +113,7 @@
 .ml5 {
   margin-left: 64px;
 }
+
 .p0 {
   padding: 0px;
 }
