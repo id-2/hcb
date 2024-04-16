@@ -193,8 +193,6 @@ class EventPolicy < ApplicationPolicy
     user&.admin?
   end
 
-  private
-
   def admin_or_user?
     user&.admin? || record.users.include?(user)
   end
@@ -202,6 +200,8 @@ class EventPolicy < ApplicationPolicy
   def admin_or_manager?
     user&.admin? || OrganizerPosition.find_by(user:, event: record)&.manager?
   end
+
+  private
 
   def is_not_demo_mode?
     !record.demo_mode?
