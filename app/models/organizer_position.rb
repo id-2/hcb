@@ -4,16 +4,17 @@
 #
 # Table name: organizer_positions
 #
-#  id         :bigint           not null, primary key
-#  deleted_at :datetime
-#  first_time :boolean          default(TRUE)
-#  is_signee  :boolean
-#  role       :integer          default("manager"), not null
-#  sort_index :integer
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  event_id   :bigint
-#  user_id    :bigint
+#  id             :bigint           not null, primary key
+#  deleted_at     :datetime
+#  first_time     :boolean          default(TRUE)
+#  is_signee      :boolean
+#  role           :integer          default("manager"), not null
+#  sort_index     :integer
+#  spending_limit :integer
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  event_id       :bigint
+#  user_id        :bigint
 #
 # Indexes
 #
