@@ -7,7 +7,6 @@
     position: sticky;
     top: 0;
     width: 100%;
-    // background-color: rgba(map-get($palette, primary), 0.2);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.125);
     backdrop-filter: blur(2rem);
     z-index: 100;
@@ -24,17 +23,13 @@
     }
 }
 
-.banner-content {
-	grid-template-columns: 1fr 2fr 1fr;
-	place-items: center;
-  
+.banner-content {	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+
 	@media (max-width: 660px) {
-		display: flex;
-		flex-direction: column-reverse;
-		gap: 1rem;
-		
-		.playground-desc {
-			order: 1;
-		}
+		flex-direction: column;
 	}
 }
