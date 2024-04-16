@@ -116,17 +116,17 @@
           <% if meeting_req %>
             You requested activation on <%= format_date meeting_req %>
             (<%= distance_of_time_in_words_to_now meeting_req %> ago).
-            <br />
+            <br>
             We are prioritizing organizations ran by Hack Clubbers, teens,
             FIRST teams, as well as groups with an annual budget greater than $50k.
-            <br />
+            <br>
             If you fall outside of these categories, you will hear back from us by May 1st, 2024.
           <% else %>
             While in Playground mode, explore the dashboard with mock data, and invite your team.
             To utilize financial features, request activation!
           <% end %>
         </p>
-        
+
         <button id="mock-data-toggle" data-mock-data-status="<%= show_mock_data? %>" class="btn">
           <%= inline_icon "view" %>
           <%= show_mock_data? ? "Hide" : "Show" %> Mock Data
