@@ -49,8 +49,7 @@
     <div class="flex justify-center">
       <button class="btn bg-success" data-behavior="modal_trigger" data-modal="request_spending_auth">Request spending authorization</button>
     </div>
-
-    <hr />
+  <hr />
 
     <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="request_spending_auth">
       <%= modal_header "Request authorization" %>
@@ -73,30 +72,30 @@
     </section>
   <% end %>
 
-  <% unless show_mock_data? %>
-    <div style="text-align: center;" class="mb2">
-      <%= link_to "All", event_cards_overview_path(event_id: @event.slug), class: "filterbar__item", "aria-selected": @status.nil?, role: "tab" %>
-      <% %w[virtual physical active inactive].each do |status| %>
-        <%= link_to status.humanize, "?status=#{status}#{"&q=#{@q}" if @q}", class: "filterbar__item", "aria-selected": @status == status, role: "tab" %>
-      <% end %>
-    </div>
-  <% end %>
-
   <% if organizer_signed_in? %>
-
     <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="order_card">
       <%= modal_header "Order a card" %>
       <%= render "stripe_cards/form", stripe_card: StripeCard.new %>
     </section>
-
   <% end %>
 
-  <%= form_with method: :get do |form| %>
-    <% if @status %>
-      <%= form.hidden_field :status, value: @status %>
+  <div class="flex g2 items-center mb2">
+    <%= form_with method: :get, class: "grow" do |form| %>
+      <% if @status %>
+        <%= form.hidden_field :status, value: @status %>
+      <% end %>
+      <%= form.text_field :q, value: @q, placeholder: "Search by cardholder", class: "w-100", style: "max-width: 100%" %>
     <% end %>
-    <%= form.text_field :q, value: @q, placeholder: "Search by cardholder", class: "mb3 w-100", style: "max-width: 100%" %>
-  <% end %>
+
+    <% unless show_mock_data? %>
+      <div style="text-align: center;">
+        <%= link_to "All", event_cards_overview_path(event_id: @event.slug), class: "filterbar__item", "aria-selected": @status.nil?, role: "tab" %>
+        <% %w[virtual physical active inactive].each do |status| %>
+          <%= link_to status.humanize, "?status=#{status}#{"&q=#{@q}" if @q}", class: "filterbar__item", "aria-selected": @status == status, role: "tab" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 
   <% if params[:view] == "list" %>
     <%= render "event_cards_table", stripe_cards: @paginated_stripe_cards, status: @status %>
@@ -122,9 +121,9 @@
       <section class="grid">
         <% if organizer_signed_in? %>
           <div class="flex justify-center">
-            <%= link_to my_cards_path, class: "btn btn-small flex w-fit" do %>
+            <%= link_to my_cards_path, class: "btn btn-small flex w-fit mx-auto" do %>
+              <%= inline_icon "view-back", style: "margin-left: -8px; height: 100%; width: fit-content;" %>
               <p class="m0">See all your cards across organizations</p>
-              <%= inline_icon "view-back", style: "margin-left: 0.2em; margin-right: 0; height: 100%; width: fit-content; rotate: 180deg;" %>
             <% end %>
           </div>
         <% end %>
