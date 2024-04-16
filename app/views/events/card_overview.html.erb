@@ -38,6 +38,41 @@
     </button>
   </h1>
 
+  <% unless policy(@event).admin_or_manager? %>
+    <%= render "callout", type: "info", title: "Card spending limits are enabled for this organization." do %>
+      <ul class="m0">
+        <li>Since you're a <%= OrganizerPosition.find_by(event: @event, user: current_user).role %>, you must request spending authorization.</li>
+        <li>Managers can approve requests from this page.</li>
+      </ul>
+    <% end %>
+
+    <div class="flex justify-center">
+      <button class="btn bg-success" data-behavior="modal_trigger" data-modal="request_spending_auth">Request spending authorization</button>
+    </div>
+
+    <hr />
+
+    <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="request_spending_auth">
+      <%= modal_header "Request authorization" %>
+
+      <%= render "callout", type: "info", title: "Info about spending controls" do %>
+        <ul class="m0">
+          <li>A manager must accept your request from the cards page before you can spend this money.</li>
+          <li>Spend </li>
+        </ul>
+      <% end %>
+      <%= form_with do |form| %>
+        <%= form.label :amount %>
+        <%= form.number_field :amount, placeholder: "500.00", step: 0.01, min: 0.00 %>
+
+        <%= form.label :reason %>
+        <%= form.text_field :reason, placeholder: "🍕 Team pizza" %>
+
+        <%= form.submit "Submit", class: "mt2" %>
+      <% end %>
+    </section>
+  <% end %>
+
   <% unless show_mock_data? %>
     <div style="text-align: center;" class="mb2">
       <%= link_to "All", event_cards_overview_path(event_id: @event.slug), class: "filterbar__item", "aria-selected": @status.nil?, role: "tab" %>
@@ -86,10 +121,12 @@
     <div class="flex flex-col justify-center mt4">
       <section class="grid">
         <% if organizer_signed_in? %>
-          <%= link_to my_cards_path,
-                      class: "card card--hover block pt4 pb4 card--promo card--sunset cursor-pointer" do %>
-            <h3 class="mt0 mb0">See all your cards →</h3>
-          <% end %>
+          <div class="flex justify-center">
+            <%= link_to my_cards_path, class: "btn btn-small flex w-fit" do %>
+              <p class="m0">See all your cards across organizations</p>
+              <%= inline_icon "view-back", style: "margin-left: 0.2em; margin-right: 0; height: 100%; width: fit-content; rotate: 180deg;" %>
+            <% end %>
+          </div>
         <% end %>
         <% if @event.used_emburse? %>
           <%= link_to event_emburse_cards_overview_path(event_id: @event.slug),
