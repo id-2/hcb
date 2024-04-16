@@ -10,10 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_16_155801) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
-  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "ach_payments", force: :cascade do |t|
@@ -40,8 +39,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "recipient_tel"
     t.datetime "rejected_at", precision: nil
-    t.datetime "scheduled_arrival_date", precision: nil
     t.text "payment_for"
+    t.datetime "scheduled_arrival_date", precision: nil
     t.string "aasm_state"
     t.text "confirmation_number"
     t.text "account_number_ciphertext"
@@ -318,11 +317,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.bigint "raw_pending_invoice_transaction_id"
     t.text "hcb_code"
     t.bigint "raw_pending_bank_fee_transaction_id"
-    t.bigint "raw_pending_partner_donation_transaction_id"
     t.text "custom_memo"
     t.bigint "raw_pending_incoming_disbursement_transaction_id"
     t.bigint "raw_pending_outgoing_disbursement_transaction_id"
     t.boolean "fronted", default: false
+    t.bigint "raw_pending_partner_donation_transaction_id"
     t.boolean "fee_waived", default: false
     t.bigint "ach_payment_id"
     t.bigint "increase_check_id"
@@ -730,7 +729,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.date "owner_birthdate"
     t.string "webhook_url"
     t.integer "country"
-    t.string "postal_code"
     t.boolean "holiday_features", default: true, null: false
     t.string "custom_css_url"
     t.integer "category"
@@ -743,9 +741,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.string "increase_account_id", null: false
     t.string "website"
     t.text "description"
-    t.integer "stripe_card_shipping_type", default: 0, null: false
     t.text "donation_thank_you_message"
     t.text "donation_reply_to_email"
+    t.integer "stripe_card_shipping_type", default: 0, null: false
+    t.string "postal_code"
     t.boolean "public_reimbursement_page_enabled", default: false, null: false
     t.text "public_reimbursement_page_message"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
@@ -972,12 +971,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.string "increase_status"
     t.string "check_number"
     t.jsonb "increase_object"
+    t.string "recipient_email"
+    t.boolean "send_email_notification", default: false
     t.string "column_id"
     t.string "column_status"
     t.jsonb "column_object"
     t.string "column_delivery_status"
-    t.string "recipient_email"
-    t.boolean "send_email_notification", default: false
     t.index "(((increase_object -> 'deposit'::text) ->> 'transaction_id'::text))", name: "index_increase_checks_on_transaction_id"
     t.index ["column_id"], name: "index_increase_checks_on_column_id", unique: true
     t.index ["event_id"], name: "index_increase_checks_on_event_id"
@@ -1193,23 +1192,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
-  create_table "mfa_codes", force: :cascade do |t|
-    t.text "message"
-    t.string "code"
-    t.string "provider"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "mfa_requests", force: :cascade do |t|
-    t.string "provider"
-    t.bigint "mfa_code_id"
-    t.string "aasm_state"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
-  end
-
   create_table "oauth_access_grants", force: :cascade do |t|
     t.bigint "resource_owner_id", null: false
     t.bigint "application_id", null: false
@@ -1288,6 +1270,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.boolean "first_time", default: true
     t.boolean "is_signee"
     t.integer "role", default: 100, null: false
+    t.integer "spending_limit"
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end
@@ -2027,7 +2010,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
-  add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"
