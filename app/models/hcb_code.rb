@@ -523,4 +523,10 @@ class HcbCode < ApplicationRecord
     !reimbursement_expense_payout?
   end
 
+  def suggested_memos
+    receipts.map do |receipt|
+      receipt.suggested_memo
+    end.compact
+  end
+
 end

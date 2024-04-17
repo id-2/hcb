@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_28_050450) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -53,7 +53,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_28_050450) do
     t.bigint "payment_recipient_id"
     t.string "recipient_email"
     t.boolean "send_email_notification", default: false
-    t.boolean "same_day", default: false, null: false
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
@@ -1563,6 +1562,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_28_050450) do
     t.string "suggested_card_last4"
     t.string "suggested_merchant_name"
     t.string "suggested_merchant_url"
+    t.string "suggested_merchant_zip_code"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["user_id"], name: "index_receipts_on_user_id"
   end

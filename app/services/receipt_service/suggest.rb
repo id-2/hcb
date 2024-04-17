@@ -12,47 +12,42 @@ module ReceiptService
 
       @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
 
-      byebug
-
       transaction_distances(include_details:)
     end
 
-    def distance(txn)
+    def distance(hcb_code)
       return if @extracted.nil?
 
       distances = {
         amount_cents: {
           value: begin
-            diff = (txn.amount_cents - @extracted.amount_cents).abs
+            diff = (hcb_code.amount_cents - @extracted.amount_cents).abs
             diff == 0 ? 0 : [10 * Math.log((diff + 1) / 3.0) + 30, 20].max
           end,
           weight: 100,
         },
         card_last_four: {
-          value: @extracted.card_last_four == txn.card&.last4,
+          value: @extracted.card_last_four == hcb_code.card&.last4 ? 1 : 0,
           weight: 100,
         },
         date: {
-          value: @extracted.date.to_date == txn.date,
+          value: @extracted.date.to_date == hcb_code.date ? 1 : 0,
           weight: 100,
         },
         merchant_zip_code: {
-          value: @extracted.merchant_zip_code == txn.stripe_merchant[:postal_code],
+          value: @extracted.merchant_zip_code == hcb_code.stripe_merchant[:postal_code] ? 1 : 0,
           weight: 50,
         },
         merchant_name: {
-          value: @extracted.merchant_name == txn.stripe_merchant[:name],
+          value: @extracted.merchant_name == hcb_code.stripe_merchant[:name] ? 1 : 0,
           weight: 100,
         }
       }
 
-      distances.each do |feature, *value|
-        puts value
+      value = distances.values.map { |data| data[:value] * data[:weight] }.sum
+      weight = distances.values.map { |data| data[:weight] }.sum
 
-        # (value.in? [true, false] ? (value ? 1 : 0) : value) * weight
-      end
-
-      byebug
+      value / weight
     end
 
     def sorted_transactions
@@ -66,11 +61,10 @@ module ReceiptService
     private
 
     def transaction_distances(include_details: false)
-      potential_txns.map do |txn|
+      potential_hcb_codes.map do |hcb_code|
         {
-          hcb_code: txn,
-          distance: distance(txn),
-          details: include_details ? distances_hash(txn) : nil
+          hcb_code:,
+          distance: distance(hcb_code)
         }
       end
     end
@@ -106,17 +100,11 @@ module ReceiptService
     #   Math.sqrt(distance)
     # end
 
-    def best_distance(one_point, multiple_values)
-      multiple_values.map do |value|
-        (one_point - value).abs
-      end.min || 100
-    end
-
     def user
       @receipt.user
     end
 
-    def potential_txns
+    def potential_hcb_codes
       user.stripe_cards.flat_map(&:hcb_codes).select { |hcb_code| hcb_code.missing_receipt? }
     end
 
