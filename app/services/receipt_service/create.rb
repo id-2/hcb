@@ -16,7 +16,7 @@ module ReceiptService
 
       @attachments.map do |attachment|
         receipt = Receipt.create!(attrs(attachment))
-        if ["receipt_center", "receipt_center_drag_and_drop"].include?(@upload_method)
+        if ["receipt_center", "receipt_center_drag_and_drop", "transaction_page", "transaction_page_drag_and_drop"].include?(@upload_method)
           ::ReceiptService::Suggest.new(receipt:).run!
         end
 
