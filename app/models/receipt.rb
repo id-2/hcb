@@ -95,8 +95,13 @@ class Receipt < ApplicationRecord
            when "application/pdf"
              pdf_text
            else
-             # Unable to extract text from this file type
-             return nil
+            begin
+              file.blob.open do |tempfile|
+                RTesseract.new(tempfile.path).to_s
+              end
+            rescue
+               nil
+            end
            end
 
     # Clean the text
