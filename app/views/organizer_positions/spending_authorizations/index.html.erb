@@ -4,13 +4,16 @@
 
 <h1 class="heading flex">
   <span style="flex"><%= @user.name %>'s Spending Controls</span>
-  <%= link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "create" } do %>
+  <%= link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "new" } do %>
     <%= inline_icon "docs" %>
     New
   <% end %>
 </h1>
 
-<%= render "form" %>
+<div class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="new">
+  <%= modal_header "New spending authorization" %>
+  <%= render "form" %>
+</div>
 
 <div class="statset mt3 mb2">
   <div class="stat stat--small">
@@ -51,7 +54,7 @@
 <% end %>
 
 <% if @reports.blank? %>
-  <%= blankslate "No reports found!" %>
+  <%= blankslate "No spending authorizations yet" %>
 <% else %>
   <article class="table-container">
     <table>
