@@ -4,17 +4,16 @@
 #
 # Table name: organizer_positions
 #
-#  id             :bigint           not null, primary key
-#  deleted_at     :datetime
-#  first_time     :boolean          default(TRUE)
-#  is_signee      :boolean
-#  role           :integer          default("manager"), not null
-#  sort_index     :integer
-#  spending_limit :integer
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  event_id       :bigint
-#  user_id        :bigint
+#  id         :bigint           not null, primary key
+#  deleted_at :datetime
+#  first_time :boolean          default(TRUE)
+#  is_signee  :boolean
+#  role       :integer          default("manager"), not null
+#  sort_index :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  event_id   :bigint
+#  user_id    :bigint
 #
 # Indexes
 #
@@ -38,6 +37,7 @@ class OrganizerPosition < ApplicationRecord
 
   has_one :organizer_position_invite
   has_many :organizer_position_deletion_requests
+  has_many :spending_authorizations, class_name: 'OrganizerPosition::SpendingAuthorization'
   has_many :tours, as: :tourable
 
   validates :user, uniqueness: { scope: :event, conditions: -> { where(deleted_at: nil) } }
