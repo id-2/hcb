@@ -213,4 +213,4 @@ gem "doorkeeper", "~> 5.6"
 
 gem "cssbundling-rails", "~> 1.4"
 
-gem 'rtesseract'
+gem "rtesseract"
