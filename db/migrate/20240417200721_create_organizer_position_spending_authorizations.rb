@@ -1,12 +1,15 @@
 class CreateOrganizerPositionSpendingAuthorizations < ActiveRecord::Migration[7.0]
   def change
     create_table :organizer_position_spending_authorizations do |t|
-      t.references :organizer_position, null: false, foreign_key: true, index: { name: 'idx_org_pos_spend_auths_on_org_pos' }
+      t.references :organizer_position, null: false, foreign_key: true, index: { name: "idx_org_pos_spend_auths_on_org_pos_id" }
       t.references :authorized_by, null: false, foreign_key: { to_table: :users }
       t.integer :amount_cents, null: false
       t.text :memo
 
       t.timestamps
     end
+
+    add_index :organizer_position_spending_authorizations, :organizer_position_id, name: 'idx_op_spend_auths_on_op'
   end
 end
+
