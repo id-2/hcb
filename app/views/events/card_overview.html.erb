@@ -39,39 +39,12 @@
   </h1>
 
   <% unless policy(@event).admin_or_manager? %>
-    <%= render "callout", type: "info", title: "Card spending limits are enabled for this organization." do %>
+    <%= render "callout", type: "info", title: "Card spending authorizations are enabled for this organization." do %>
       <ul class="m0">
         <li>Since you're a <%= OrganizerPosition.find_by(event: @event, user: current_user).role %>, you must request spending authorization.</li>
         <li>Managers can approve requests from this page.</li>
       </ul>
     <% end %>
-
-    <% org_pos = OrganizerPosition.find_by(event: @event, user: current_user) %>
-    <p><%= org_pos.spending_limit ? "Spending limit: #{render_money org_pos.spending_limit}" : "No spending limit" %> 
-    <div class="flex justify-center">
-      <button class="btn bg-success" data-behavior="modal_trigger" data-modal="request_spending_auth">Request spending authorization</button>
-    </div>
-  <hr />
-
-    <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="request_spending_auth">
-      <%= modal_header "Request authorization" %>
-
-      <%= render "callout", type: "info", title: "Info about spending controls" do %>
-        <ul class="m0">
-          <li>A manager must accept your request from the cards page before you can spend this money.</li>
-          <li>Spending limits do not expire.</li>
-        </ul>
-      <% end %>
-      <%= form_with do |form| %>
-        <%= form.label :amount %>
-        <%= form.number_field :amount, placeholder: "500.00", step: 0.01, min: 0.00 %>
-
-        <%= form.label :reason %>
-        <%= form.text_field :reason, placeholder: "🍕 Team pizza" %>
-
-        <%= form.submit "Submit", class: "mt2" %>
-      <% end %>
-    </section>
   <% end %>
 
   <% if organizer_signed_in? %>

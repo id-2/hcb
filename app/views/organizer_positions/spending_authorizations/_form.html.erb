@@ -1,9 +1,9 @@
-<%= form_with(model: [@organizer_position, @spending_limit], local: true) do |form| %>
-  <% if @spending_limit.errors.any? %>
+<%= form_with(model: [@organizer_position, @spending_authorization], local: true) do |form| %>
+  <% if @spending_authorization.errors.any? %>
     <div id="error_explanation">
-      <h2><%= pluralize(@spending_limit.errors.count, "error") %> prohibited this spending limit from being saved:</h2>
+      <h2><%= pluralize(@spending_authorization.errors.count, "error") %> prohibited this spending auth from being saved:</h2>
       <ul>
-      <% @spending_limit.errors.full_messages.each do |message| %>
+      <% @spending_authorization.errors.full_messages.each do |message| %>
         <li><%= message %></li>
       <% end %>
       </ul>

@@ -9,15 +9,15 @@ class OrganizerPositions::SpendingAuthorizationsController < ApplicationControll
   def new
     authorize @op, :foo?
 
-    @spending_limit = @op.spending_authorizations.build
+    @spending_authorization = @op.spending_authorizations.build
   end
 
   def create
     authorize @op, :foo?
 
-    @spending_limit = @op.spending_authorizations.build(spending_limit_params)
-    if @spending_limit.save
-      redirect_to @op, notice: 'Spending limit was successfully created.'
+    @spending_authorization = @op.spending_authorizations.build(spending_authorization_params)
+    if @spending_authorization.save
+      redirect_to @op, notice: 'Spending auth was successfully created.'
     else
       render :new
     end
@@ -35,7 +35,7 @@ class OrganizerPositions::SpendingAuthorizationsController < ApplicationControll
     end
   end
 
-  def spending_limit_params
-    params.require(:spending_limit).permit(:amount_cents, :memo)
+  def spending_authorization_params
+    params.require(:spending_authorization).permit(:amount_cents, :memo)
   end
 end
