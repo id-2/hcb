@@ -85,7 +85,7 @@ class EventPolicy < ApplicationPolicy
     is_public || admin_or_user?
   end
 
-  def new_transfer?
+  def create_transfer?
     admin_or_manager? && !record.demo_mode?
   end
 
@@ -187,6 +187,10 @@ class EventPolicy < ApplicationPolicy
 
   def can_invite_user?
     admin_or_manager?
+  end
+
+  def claim_point_of_contact?
+    user&.admin?
   end
 
   private

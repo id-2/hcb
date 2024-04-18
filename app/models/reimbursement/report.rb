@@ -20,12 +20,14 @@
 #  updated_at                 :datetime         not null
 #  event_id                   :bigint           not null
 #  invited_by_id              :bigint
+#  reviewer_id                :bigint
 #  user_id                    :bigint           not null
 #
 # Indexes
 #
 #  index_reimbursement_reports_on_event_id       (event_id)
 #  index_reimbursement_reports_on_invited_by_id  (invited_by_id)
+#  index_reimbursement_reports_on_reviewer_id    (reviewer_id)
 #  index_reimbursement_reports_on_user_id        (user_id)
 #
 # Foreign Keys
@@ -40,6 +42,7 @@ module Reimbursement
     belongs_to :user
     belongs_to :event
     belongs_to :inviter, class_name: "User", foreign_key: "invited_by_id", optional: true, inverse_of: :created_reimbursement_reports
+    belongs_to :reviewer, class_name: "User", optional: true, inverse_of: :reimbursement_reports_to_review
 
     has_paper_trail ignore: :expense_number
 
@@ -176,14 +179,25 @@ module Reimbursement
     def comment_recipients_for(comment)
       users = []
       users += self.comments.map(&:user)
+      users += self.comments.flat_map(&:mentioned_users)
       users << self.user
 
       if comment.admin_only?
         users << self.event.point_of_contact
-        return users.select(&:admin?).reject(&:no_threads?).excluding(comment.user).collect(&:email_address_with_name)
+        return users.uniq.select(&:admin?).reject(&:no_threads?).excluding(comment.user).collect(&:email_address_with_name)
       end
 
-      users.excluding(comment.user).reject(&:no_threads?).collect(&:email_address_with_name)
+      users.uniq.excluding(comment.user).reject(&:no_threads?).collect(&:email_address_with_name)
+    end
+
+    def comment_mentionable(current_user: nil)
+      users = []
+      users += self.comments.includes(:user).map(&:user)
+      users += self.comments.flat_map(&:mentioned_users)
+      users += self.event.users
+      users << self.user
+
+      users.uniq
     end
 
     def comment_mailer_subject

@@ -6,6 +6,12 @@ $font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 $brand-font-family: ui-rounded, $font-family;
 $mono: 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
 
+:root {
+  @each $name, $value in $palette {
+    --#{$name}: #{$value};
+  }
+}
+
 * {
   box-sizing: border-box;
   font-family: inherit;
@@ -33,20 +39,6 @@ body {
   margin: 0;
   padding-bottom: 2rem;
   min-height: 100vh;
-}
-
-h1,
-h2,
-h3,
-h4,
-.heading,
-.stat__value,
-.brand-sans {
-  font-family: $brand-font-family;
-}
-
-.sans {
-  font-family: $font-family;
 }
 
 a {

@@ -1129,6 +1129,18 @@
   dependencies:
     "@floating-ui/dom" "^1.0.0"
 
+"@github/combobox-nav@^2.0.2":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@github/combobox-nav/-/combobox-nav-2.3.1.tgz#76da4c47f1e33af56392c5c9cf661a28d5b4168e"
+  integrity sha512-gwxPzLw8XKecy1nP63i9lOBritS3bWmxl02UX6G0TwMQZbMem1BCS1tEZgYd3mkrkiDrUMWaX+DbFCuDFo3K+A==
+
+"@github/text-expander-element@^2.6.1":
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/@github/text-expander-element/-/text-expander-element-2.6.1.tgz#2e1517af471b2132a965ea167b9fb776ab2d79f0"
+  integrity sha512-i6krPGXJRABfKXut0WArFd365Je4PT0MljtDoXUoCOEp+lGrmdosDMxmO0EfOYc97jBn+Hd2XO1mMsuI5+fwmQ==
+  dependencies:
+    "@github/combobox-nav" "^2.0.2"
+
 "@github/webauthn-json@^1.0.0":
   version "1.0.0"
   resolved "https://registry.npmjs.org/@github/webauthn-json/-/webauthn-json-1.0.0.tgz"
@@ -1293,6 +1305,11 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
+
+"@oddbird/popover-polyfill@^0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@oddbird/popover-polyfill/-/popover-polyfill-0.4.1.tgz#e28a9ac4ca8d473402e35153006e4d193c597ad7"
+  integrity sha512-1MBMy92urkxoIy3qQecs6DzSgtVg9WElUhPXZ7GejqH8AmoakP6uMZGO1vyf0Cf9dBujqb0C+cXyZTTBLHWs0A==
 
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
@@ -2447,6 +2464,11 @@ escape-string-regexp@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-4.0.0.tgz"
   integrity sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==
+
+eslint-plugin-react-hooks@^4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-4.6.0.tgz#4c3e697ad95b77e93f8646aaa1630c1ba607edd3"
+  integrity sha512-oFc7Itz9Qxh2x4gNHStv3BqJq54ExXmfC+a1NjAta66IAN87Wu0R/QArgIS9qKzX3dXKPI9H5crl9QchNMY9+g==
 
 eslint-plugin-react@7.33.2:
   version "7.33.2"
@@ -4169,6 +4191,11 @@ reusify@^1.0.4:
   resolved "https://registry.npmjs.org/reusify/-/reusify-1.0.4.tgz"
   integrity sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==
 
+rich-textarea@^0.24.4:
+  version "0.24.4"
+  resolved "https://registry.yarnpkg.com/rich-textarea/-/rich-textarea-0.24.4.tgz#4ec2f557cc4884ccc32007d41f48ac7cb06a2c85"
+  integrity sha512-bbKYYkLNwo0BxX2/e5rcwqKsw3cTQaNuczUjBPPLkxMWEW3INb+7yg6ZTdkdtgOD1r2oHVMK6XPw3X8NnSWEeQ==
+
 rimraf@^3.0.2:
   version "3.0.2"
   resolved "https://registry.npmjs.org/rimraf/-/rimraf-3.0.2.tgz"
@@ -4353,6 +4380,7 @@ stackframe@^1.3.4:
   integrity sha512-oeVtt7eWQS+Na6F//S4kJ2K2VbRlS9D43mAlMyVpVWovy9o+jfgH8O9agzANzaiLjclA0oYzUXEM4PurhSUChw==
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==

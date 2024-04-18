@@ -189,6 +189,10 @@ html[data-dark='true'] {
   a > .card {
     color: map-get($palette, smoke);
   }
+  
+  .dock__item.disabled span {
+    color: map-get($palette, muted);
+  }
 
   pre,
   .transparency-banner {
@@ -231,8 +235,9 @@ html[data-dark='true'] {
   .transaction--negative {
     background-color: rgba(map-get($palette, error), 0.25);
   }
-  .shade-neutral {
-    background: $darkless;
+  .shade-neutral,
+  .transaction--zero {
+    background-color: $darkless;
   }
   .shade-yellow {
     background-color: rgba(map-get($palette, pending), 0.125);
@@ -295,7 +300,7 @@ html[data-dark='true'] {
 
   .filterbar__item:active,
   .filterbar__item[aria-selected='true'] {
-    background-color: rgba(map-get($palette, primary), 0.125);
+    background-color: rgba(map-get($palette, info), 0.125);
   }
   .badge.bg-info,
   .flash.info,
@@ -439,5 +444,9 @@ html[data-dark='true'] {
     &:hover:not(:focus) {
       @include gradient(info);
     }
+  }
+  
+  .mention-suggestions {
+    border: 1px solid map-get($palette, slate);
   }
 }

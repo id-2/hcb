@@ -79,6 +79,8 @@ class EventsController < ApplicationController
     @type = params[:type]
     @start_date = params[:start].presence
     @end_date = params[:end].presence
+    @minimum_amount = params[:minimum_amount].presence ? Money.from_amount(params[:minimum_amount].to_f) : nil
+    @maximum_amount = params[:maximum_amount].presence ? Money.from_amount(params[:maximum_amount].to_f) : nil
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
@@ -87,7 +89,13 @@ class EventsController < ApplicationController
       @hide_seasonal_decorations = true
     end
 
-    @all_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id, search: params[:q], tag_id: @tag&.id).run
+    @all_transactions = TransactionGroupingEngine::Transaction::All.new(
+      event_id: @event.id,
+      search: params[:q],
+      tag_id: @tag&.id,
+      minimum_amount: @minimum_amount,
+      maximum_amount: @maximum_amount
+    ).run
 
     if @user
       @all_transactions = @all_transactions.select { |t| t.stripe_cardholder&.user == @user }
@@ -293,9 +301,12 @@ class EventsController < ApplicationController
 
   def card_overview
     @status = %w[virtual physical active inactive].include?(params[:status]) ? params[:status] : nil
+    @q = params[:q].presence
 
-    all_stripe_cards = @event.stripe_cards.where.missing(:card_grant).includes(:stripe_cardholder, :user)
+    all_stripe_cards = @event.stripe_cards.where.missing(:card_grant).joins(:stripe_cardholder, :user)
                              .order("stripe_status asc, created_at desc")
+
+    all_stripe_cards = all_stripe_cards.where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.name ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
 
     all_stripe_cards = case @status
                        when "active"
@@ -775,6 +786,18 @@ class EventsController < ApplicationController
     else
       render json: { valid: false, hint: "This URL is unavailable." }
     end
+  end
+
+  def claim_point_of_contact
+    authorize @event
+
+    if @event.update(point_of_contact: current_user)
+      flash[:success] = "You're now the point of contact for #{@event.name}."
+    else
+      flash[:error] = "Failed to assign you as point of contact."
+    end
+
+    redirect_back fallback_location: edit_event_path(@event.slug)
   end
 
   private

@@ -189,6 +189,7 @@ Rails.application.routes.draw do
       get "grants", to: "admin#grants"
       get "check_deposits", to: "admin#check_deposits"
       get "column_statements", to: "admin#column_statements"
+      get "hq_receipts", to: "admin#hq_receipts"
 
       resources :grants, only: [] do
         post "approve"
@@ -544,6 +545,7 @@ Rails.application.routes.draw do
         resources :stripe_cards, path: "cards", only: [:show, :update] do
           member do
             get "transactions"
+            get "ephemeral_keys"
           end
         end
 
@@ -599,11 +601,15 @@ Rails.application.routes.draw do
   match "/404", to: "errors#not_found", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
+  get "/search" => "search#index"
+
   get "/events" => "events#index"
   get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
   resources :events, except: [:new, :create], path_names: { edit: "settings" }, path: "/" do
     get "edit", to: redirect("/%{event_id}/settings")
     put "toggle_hidden", to: "events#toggle_hidden"
+
+    post "claim_point_of_contact", to: "events#claim_point_of_contact"
 
     post "remove_header_image"
     post "remove_background_image"

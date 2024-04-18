@@ -6,7 +6,7 @@
 <div class="mt4">
   <h3 class="mt2 mb1 muted flex" style="font-weight: 400; gap: 4px;">
     <span style="flex-grow: 1;">
-      <%= user_mention @user, class: "tooltipped--s align-top" %>
+      <%= user_mention @user, { class: "tooltipped--s align-top" } %>
       <%= "will be reimbursed " if @report.reimbursement_approved? %>
       <%= "was reimbursed " if @report.reimbursed? %>
       <%= "requested " if @report.rejected? %>
@@ -17,6 +17,9 @@
       <% end %>
       <%= "from #{@event.name}" if @use_user_nav %> for
     </span>
+    <% if @report.reviewer.present? && @report.submitted? %>
+      <span class="mr1 badge bg-muted">Review requested from <%= @report.reviewer.initial_name %></span>
+    <% end %>
     <span class="ml0 badge bg-<%= @report.status_color %>"><%= @report.status_text %></span>
   </h3>
   <h2 class="heading mt0 mb1 flex justify-start">
@@ -126,6 +129,11 @@
 <% unless @report.initial_draft? %>
   <%= render partial: "conversation" %>
 <% end %>
+
+<section data-behavior="modal" role="dialog" id="edit_payout" class="modal modal--scroll bg-snow">
+  <%= modal_header "Add Payout Information" %>
+  <%= render "/users/payout_form", user: @report.user, report: @report %>
+</section>
 
 <style>
   html { scroll-behavior: smooth; }

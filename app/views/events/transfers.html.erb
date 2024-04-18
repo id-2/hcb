@@ -117,7 +117,7 @@
           </td>
           <td style="text-align: right;">
             <% if d.is_a? CardGrant %>
-              <span class="<%= "muted strikethrough" if d.balance.zero? %>"><%= d.balance.format %></span>
+              <span class="<%= "muted line-through" if d.balance.zero? %>"><%= d.balance.format %></span>
             <% else %>
               <%= render_money(d.amount) %>
             <% end %>
@@ -149,7 +149,7 @@
     <%= turbo_frame_tag :transfer_form do %>
       <%= modal_header "Transfer money" %>
 
-      <%= render "events/transfers/unauthorized_callout" unless policy(@event).new_transfer? %>
+      <%= render "events/transfers/unauthorized_callout" unless policy(@event).create_transfer? %>
 
       <%= render "transfer_form" %>
     <% end %>

@@ -284,7 +284,7 @@ class Event < ApplicationRecord
   has_many :tags, -> { includes(:hcb_codes) }
   has_and_belongs_to_many :event_tags
 
-  has_many :pinned_hcb_codes, class_name: "HcbCode::Pin"
+  has_many :pinned_hcb_codes, -> { includes(hcb_code: [:canonical_transactions, :canonical_pending_transactions]) }, class_name: "HcbCode::Pin"
 
   has_many :check_deposits
 
@@ -643,6 +643,17 @@ class Event < ApplicationRecord
     ]
 
     options[hashid.codepoints.first % options.size]
+  end
+
+  def service_level
+    return 1 if robotics_team?
+    return 1 if hack_club_hq?
+    return 1 if organized_by_hack_clubbers?
+    return 1 if organized_by_teenagers?
+    return 1 if canonical_transactions.revenue.where("date >= ?", 1.year.ago).sum(:amount_cents) >= 50_000_00
+    return 1 if balance_available_v2_cents > 50_000_00
+
+    2
   end
 
   private

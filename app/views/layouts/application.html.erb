@@ -94,46 +94,27 @@
       </div>
     <% end %>
 
-    <%= render "maintenance_banner",
-               datetime: Time.parse("2024-04-03T22:00:00-0700"),
-               duration: 1.hour,
-               learn_more_url: "https://changelog.hcb.hackclub.com/scheduled-maintenance-289134" %>
-
     <% if @event&.demo_mode? && !@no_app_shell && !@no_transparency_header %>
-      <style>
-        .banner-content {
-          grid-template-columns: 1fr 2fr 1fr;
-          place-items: center;
-
-          @media (max-width: 660px) {
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 1rem;
-
-            .playground-desc {
-              order: 1;
-            }
-          }
-        }
-      </style>
       <div class="w-full dev-banner dev-banner--info rounded-b">
-        <div class="flex flex-col container container--md center pb2">
+        <div class="flex flex-col container container--md center pb2" style="max-width: unset;">
           <p class="h1 bold center m0">Playground Mode</p>
-          <div class="grid g3 banner-content">
+          <div class="flex g3 banner-content">
             <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn bg-primary shrink-none nowrap #{"disabled" unless policy(@event).demo_mode_request_meeting? }", data: { tour_step: "activate_account" } do %>
               <%= inline_icon "welcome" %>Request Activation
             <% end %>
             <div class="center h5 playground-desc" style="text-wrap: pretty;">
               <% meeting_req = @event.demo_mode_request_meeting_at %>
-              <p class="m0 <%= "muted" if meeting_req %>">
-                While in Playground mode, explore the dashboard with mock data, and invite your team.
-                To utilise financial features, request activation!
-              </p>
               <p class="m0">
                 <% if meeting_req %>
                   You requested activation on <%= format_date meeting_req %>
                   (<%= distance_of_time_in_words_to_now meeting_req %> ago).
-                  Please expect an email from our team soon.
+                  We are prioritizing organizations ran by Hack Clubbers, teens,
+                  FIRST teams, as well as groups with an annual budget greater
+                  than $50k. If you fall outside of these categories, you will
+                  hear back from us by May 1st, 2024.
+                <% else %>
+                  While in Playground mode, explore the dashboard with mock data, and invite your team.
+                  To utilize financial features, request activation!
                 <% end %>
               </p>
             </div>
