@@ -8,8 +8,6 @@ class CreateOrganizerPositionSpendingAuthorizations < ActiveRecord::Migration[7.
 
       t.timestamps
     end
-
-    add_index :organizer_position_spending_authorizations, :organizer_position_id, name: 'idx_op_spend_auths_on_op'
   end
 end
 
