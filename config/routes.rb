@@ -5,6 +5,11 @@ require "sidekiq/cron/web"
 require "admin_constraint"
 
 Rails.application.routes.draw do
+  namespace :organizer_position do
+    namespace :spending do
+      resources :limits
+    end
+  end
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 
   mount Sidekiq::Web => "/sidekiq", :constraints => AdminConstraint.new
