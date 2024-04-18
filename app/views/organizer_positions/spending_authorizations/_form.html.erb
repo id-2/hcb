@@ -1,23 +1,12 @@
-<%= form_with(model: [@organizer_position, @spending_authorization], local: true) do |form| %>
-  <% if @spending_authorization.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@spending_authorization.errors.count, "error") %> prohibited this spending auth from being saved:</h2>
-      <ul>
-      <% @spending_authorization.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
-
+<%= form_with(model: nil, local: true) do |form| %>
   <div class="field">
-    <%= form.label :amount_cents %>
-    <%= form.number_field :amount_cents %>
+    <%= form.label :amount %>
+    <%= form.number_field :amount_cents, placeholder: "500.00", required: true, step: 0.01, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()" %>
   </div>
 
   <div class="field">
-    <%= form.label :memo %>
-    <%= form.text_area :memo %>
+    <%= form.label :memo, "Memo" %>
+    <%= form.text_field :memo, placeholder: "Lunch during layover at SFO", required: true, data: { "expense-form-target": "field memoField", "action": "dblclick->expense-form#edit" }, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()" %>
   </div>
 
   <div class="actions">
