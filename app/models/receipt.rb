@@ -95,13 +95,13 @@ class Receipt < ApplicationRecord
            when "application/pdf"
              pdf_text
            else
-            begin
-              file.blob.open do |tempfile|
-                RTesseract.new(tempfile.path).to_s
-              end
-            rescue
+             begin
+               file.blob.open do |tempfile|
+                 RTesseract.new(tempfile.path).to_s
+               end
+             rescue
                nil
-            end
+             end
            end
 
     # Clean the text
