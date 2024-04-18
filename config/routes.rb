@@ -683,6 +683,7 @@ Rails.application.routes.draw do
 
     resources :organizer_positions, path: "team", as: "organizer", only: [] do
       resources :organizer_position_deletion_requests, path: "removal-requests", as: "remove", only: [:new]
+      resources :spending_limits, path: "spending-authorizations", controller: "organizer_positions/spending_authorizations"
     end
 
     resources :payment_recipients, only: [:destroy]
