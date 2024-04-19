@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_04_16_155801) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_17_200721) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "plpgsql"
@@ -1260,6 +1260,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_16_155801) do
     t.index ["user_id"], name: "index_organizer_position_invites_on_user_id"
   end
 
+  create_table "organizer_position_spending_authorizations", force: :cascade do |t|
+    t.bigint "organizer_position_id", null: false
+    t.bigint "authorized_by_id", null: false
+    t.integer "amount_cents", null: false
+    t.text "memo"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["authorized_by_id"], name: "idx_org_pos_spend_auths_on_authed_by_id"
+    t.index ["organizer_position_id"], name: "idx_org_pos_spend_auths_on_org_pos_id"
+  end
+
   create_table "organizer_positions", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "event_id"
@@ -1270,7 +1281,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_16_155801) do
     t.boolean "first_time", default: true
     t.boolean "is_signee"
     t.integer "role", default: 100, null: false
-    t.integer "spending_limit"
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end
@@ -2017,6 +2027,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_16_155801) do
   add_foreign_key "organizer_position_invites", "organizer_positions"
   add_foreign_key "organizer_position_invites", "users"
   add_foreign_key "organizer_position_invites", "users", column: "sender_id"
+  add_foreign_key "organizer_position_spending_authorizations", "organizer_positions"
+  add_foreign_key "organizer_position_spending_authorizations", "users", column: "authorized_by_id"
   add_foreign_key "organizer_positions", "events"
   add_foreign_key "organizer_positions", "users"
   add_foreign_key "partner_donations", "events"
