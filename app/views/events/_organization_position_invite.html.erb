@@ -43,7 +43,7 @@
           <% end %>
         <% end %>
         <div class="tooltipped tooltipped--w" aria-label="<%= position.user.name.humanize %>'s spending authorizations">
-          <%= pop_icon_to "payment", event_organizer_spending_authorizations_path(organizer_id: position.user.slug), data: { turbo_method: "post", turbo_frame: "_top" }, class: "admin-tools rounded-full overflow-hidden" %>
+          <%= pop_icon_to "payment", event_organizer_spending_authorizations_path(organizer_id: position.user.slug), data: { turbo_frame: "_top" }, class: "admin-tools rounded-full overflow-hidden" %>
         </div>
         <% if position.organizer_position_deletion_requests.under_review.exists? %>
           <div class="tooltipped tooltipped--w" aria-label="Pending removal request">
