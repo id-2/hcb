@@ -7,19 +7,25 @@ class OrganizerPositions::SpendingAuthorizationsController < ApplicationControll
   end
 
   def new
-    authorize @op, :foo?
-
     @spending_authorization = @op.spending_authorizations.build
+
+    authorize @op, :foo?
   end
 
   def create
+    attributes = filtered_params
+    attributes[:amount_cents] = (attributes[:amount_cents].to_f.round(2) * 100).to_i
+    attributes[:organizer_position_id] = attributes.delete(:organizer_id)
+    attributes[:authorized_by_id] = current_user.id
+    @authorization = @op.spending_authorizations.build(attributes)
+
     authorize @op, :foo?
 
-    @spending_authorization = @op.spending_authorizations.build(spending_authorization_params)
-    if @spending_authorization.save
-      redirect_to @op, notice: 'Spending auth was successfully created.'
+    if @authorization.save
+      flash[:success] = "Spending authorization created."
+      redirect_to event_organizer_spending_authorizations_path organizer_id: @authorization.organizer_position.user.slug
     else
-      render :new
+#      render :new, status: :unprocessable_entity
     end
   end
 
@@ -35,7 +41,7 @@ class OrganizerPositions::SpendingAuthorizationsController < ApplicationControll
     end
   end
 
-  def spending_authorization_params
-    params.require(:spending_authorization).permit(:amount_cents, :memo)
+  def filtered_params
+    params.permit(:organizer_id, :amount_cents, :memo)
   end
 end
