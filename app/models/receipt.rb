@@ -54,11 +54,16 @@ class Receipt < ApplicationRecord
     end
   end
 
+  SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS = %w[receipt_center receipt_center_drag_and_drop transaction_page transaction_page_drag_and_drop].freeze
+
   after_create_commit do
     # Queue async job to extract text from newly upload receipt
     # and to suggest pairings
-    ReceiptJob::ExtractTextualContent.perform_later(self)
-    ReceiptJob::SuggestPairings.perform_later(self)
+    unless Receipt::SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS.include?(upload_method.to_s)
+      # certain interfaces run suggestions synchronously
+      ReceiptJob::ExtractTextualContent.perform_later(self)
+      ReceiptJob::SuggestPairings.perform_later(self)
+    end
   end
   validate :has_owner
 
