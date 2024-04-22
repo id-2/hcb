@@ -32,6 +32,9 @@
     </div>
     <% if organizer_signed_in? %>
       <div class="flex g1 h-fit-content">
+        <div class="tooltipped tooltipped--w" aria-label="<%= position.user.name.humanize %>'s spending authorizations">
+          <%= pop_icon_to "payment", event_organizer_spending_authorizations_path(organizer_id: position.user.slug), data: { turbo_frame: "_top" }, class: "rounded-full overflow-hidden" %>
+        </div>
         <% if admin_signed_in? %>
           <div class="tooltipped tooltipped--w" aria-label="Edit user's settings">
             <%= pop_icon_to "controls", edit_user_path(position.user.slug), data: { turbo_frame: "_top" }, class: "admin-tools rounded-full overflow-hidden" %>
@@ -42,9 +45,6 @@
             </div>
           <% end %>
         <% end %>
-        <div class="tooltipped tooltipped--w" aria-label="<%= position.user.name.humanize %>'s spending authorizations">
-          <%= pop_icon_to "payment", event_organizer_spending_authorizations_path(organizer_id: position.user.slug), data: { turbo_frame: "_top" }, class: "admin-tools rounded-full overflow-hidden" %>
-        </div>
         <% if position.organizer_position_deletion_requests.under_review.exists? %>
           <div class="tooltipped tooltipped--w" aria-label="Pending removal request">
             <%= pop_icon_to "clock", "#", class: "muted", disabled: true %>
