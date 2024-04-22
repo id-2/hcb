@@ -3,7 +3,7 @@
 
 <%= render "users/nav", selected: :home if signed_in? %>
 
-<h1 class="heading items-center sm:items-baseline justify-center sm:justify-between center sm:text-left w-auto">
+<h1 class="heading items-center sm:items-start justify-center sm:justify-between center sm:text-left w-auto">
   <div>
     <% if current_user.hack_clubber? %>
       <a
@@ -13,8 +13,8 @@
         <%= @hcb_expansion %>
       </a>
     <% end %>
-    <span class="<%= "warning" if fall? %>">
-      Welcome to <span class="primary">HCB</span>
+    <span class="<%= "warning" if fall? %> tooltipped tooltipped--e" aria-label="Happy Earth Day">
+      Welcome to 🌎 <span class="info">HCB</span>
     </span>
   </div>
   <span class="badge ml-0 text-sm caps <%= Rails.env.development? ? "bg-success" : by_season("bg-muted", fall: "bg-warning") %>" id="flavor-text" data-turbo-permanent><%= flavor_text %></span>

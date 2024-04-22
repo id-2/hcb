@@ -22,7 +22,6 @@ gem "mini_magick"
 
 gem "jsbundling-rails", "~> 1.1"
 gem "terser", "~> 1.1" # JS compressor
-gem "sassc-rails"
 gem "jquery-rails"
 gem "react-rails"
 gem "turbo-rails", "~> 1.4"
@@ -147,6 +146,7 @@ gem "dry-validation"
 gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching; required in config/boot.rb
 
 gem "appsignal" # error tracking + performance monitoring
+gem "lograge" # Log formatting
 gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # For reporting to HC Grafana
 
 gem "mrsk" # deployments
@@ -214,3 +214,5 @@ gem "doorkeeper", "~> 5.6"
 gem "cssbundling-rails", "~> 1.4"
 
 gem "rtesseract"
+
+gem "sprockets-rails", "~> 3.4"
