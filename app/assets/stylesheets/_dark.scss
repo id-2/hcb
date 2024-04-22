@@ -300,7 +300,7 @@ html[data-dark='true'] {
 
   .filterbar__item:active,
   .filterbar__item[aria-selected='true'] {
-    background-color: rgba(map-get($palette, primary), 0.125);
+    background-color: rgba(map-get($palette, info), 0.125);
   }
   .badge.bg-info,
   .flash.info,
@@ -345,26 +345,6 @@ html[data-dark='true'] {
     background-color: rgba(map-get($palette, pending), 0.125);
     border-color: rgba(map-get($palette, pending), 0.625);
     color: map-get($palette, smoke);
-  }
-
-  .check,
-  .transfer-preview--check {
-    background: #193046;
-    color: inherit;
-  }
-  .check__field {
-    color: map-get($palette, white);
-
-    &:before {
-      border-color: #193046;
-      color: map-get($palette, smoke);
-    }
-  }
-  .check__field--num {
-    border-color: map-get($palette, slate);
-  }
-  .check__sig {
-    filter: invert(1) hue-rotate(180deg);
   }
 
   pre.bg-smoke {
