@@ -368,11 +368,11 @@ class StripeCard < ApplicationRecord
     Time.now.utc > Time.new(stripe_exp_year, stripe_exp_month).end_of_month
   end
 
-  private
-
   def canonical_transaction_hcb_codes
     @canonical_transaction_hcb_codes ||= canonical_transactions.pluck(:hcb_code)
   end
+
+  private
 
   def issued?
     stripe_id.present?
