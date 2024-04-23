@@ -1,2 +1,0 @@
-module OrganizerPosition::SpendingAuthorizationsHelper
-end
