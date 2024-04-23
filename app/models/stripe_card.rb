@@ -335,6 +335,10 @@ class StripeCard < ApplicationRecord
     @canonical_transactions ||= CanonicalTransaction.stripe_transaction.where("raw_stripe_transactions.stripe_transaction->>'card' = ?", stripe_id)
   end
 
+  def canonical_pending_transactions
+    @canonical_pending_transactions ||= RawPendingStripeTransaction.pending.where("stripe_transaction->'card'->>'id' = ?", stripe_id).map(&:canonical_pending_transaction)
+  end
+
   def hcb_codes
     all_hcb_codes = canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes
     if Flipper.enabled?(:transaction_tags_2022_07_29, self.event)
