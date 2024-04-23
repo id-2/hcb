@@ -91,17 +91,14 @@ class Receipt < ApplicationRecord
   end
 
   def extract_textual_content
-    text = case file.content_type
-           when "application/pdf"
+    text = if file.content_type == "application/pdf"
              pdf_text
-           else
-             begin
-               file.blob.open do |tempfile|
-                 RTesseract.new(tempfile.path).to_s
-               end
-             rescue
-               nil
+           elsif file.content_type.starts_with?("image")
+             file.blob.open do |tempfile|
+               RTesseract.new(tempfile.path).to_s
              end
+           else
+             nil
            end
 
     # Clean the text
