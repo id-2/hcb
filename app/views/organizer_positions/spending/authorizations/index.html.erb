@@ -52,8 +52,8 @@
   </div>
 </div>
 
-<% if @op.spending_authorizations.blank? %>
-  <%= blankslate "No spending authorizations yet" %>
+<% if @spending_items.blank? %>
+  <%= blankslate "Nothing here yet" %>
 <% else %>
   <article class="table-container">
     <table>
