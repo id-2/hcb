@@ -19,19 +19,19 @@
   <div class="stat stat--small">
     <span class="stat__label">Balance</span>
     <span class="stat__value">
-      ???
+      <%= render_money_amount @authorization_balance %>
     </span>
   </div>
   <div class="stat stat--small">
     <span class="stat__label">Total Allocated</span>
     <span class="stat__value">
-      <%= render_money_amount @op.spending_authorizations.sum(:amount_cents) %>
+      <%= render_money_amount @authorizations_total %>
     </span>
   </div>
   <div class="stat stat--small">
     <span class="stat__label">Spent</span>
     <span class="stat__value">
-      ???
+      <%= render_money_amount @transactions_total %>
     </span>
   </div>
 </div>
@@ -46,9 +46,9 @@
   <% end %>
 
   <div style="text-align: center;">
-    <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["reimbursed", "pending", "rejected"].include?(params[:filter]), role: "tab" %>
-    <%= link_to "Authorizations", "?filter=authorizations", class: "filterbar__item", "aria-selected": params[:filter] == "positive", role: "tab" %>
-    <%= link_to "Transactions", "?filter=negative", class: "filterbar__item", "aria-selected": params[:filter] == "negative", role: "tab" %>
+    <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["authorizations", "transactions"].include?(params[:filter]), role: "tab" %>
+    <%= link_to "Authorizations", "?filter=authorizations", class: "filterbar__item", "aria-selected": params[:filter] == "authorizations", role: "tab" %>
+    <%= link_to "Transactions", "?filter=transactions", class: "filterbar__item", "aria-selected": params[:filter] == "transactions", role: "tab" %>
   </div>
 </div>
 
@@ -61,25 +61,26 @@
       <tr>
         <th>Amount</th>
         <th>Memo</th>
-        <th>Authorized by</th>
-        <th>Created</th>
+        <th>Created by</th>
+        <th>Date</th>
       </tr>
       </thead>
       <tbody>
-        <% @op.spending_authorizations.order(created_at: :desc).each do |authorization| %>
-          <tr>
+        <% @spending_items.each do |item| %>
+          <tr class="<%= item.is_a?(HcbCode) ? "transaction--negative" : "transaction--positive" %>">
             <td>
-              <%= render_money authorization.amount_cents %>
+              <%= render_money item.amount_cents %>
             </td>
             <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
-              <%= authorization.memo %>
+              <%= item.memo %>
             </td>
             <td class="flex items-center g1">
-              <%= avatar_for authorization.authorized_by.user, 24 %>
-              <%= authorization.authorized_by.user.name %>
+              <% item_user = item.is_a?(HcbCode) ? item.stripe_cardholder.user : item.organizer_position.user %>
+              <%= avatar_for item_user, 24 %>
+              <%= item_user.name %>
             </td>
             <td>
-              <%= format_date authorization.created_at %>
+              <%= format_date item.created_at %>
             </td>
           </tr>
         <% end %>
