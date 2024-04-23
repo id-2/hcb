@@ -4,11 +4,11 @@ class OrganizerPositions::Spending::AuthorizationsController < ApplicationContro
   def index
     skip_authorization
 
-    hcb_codes = HcbCode.where(hcb_code: @op.stripe_cards.where(event: @op.event).flat_map{|card| card.canonical_transaction_hcb_codes + card.canonical_pending_transaction_hcb_codes})
+    transactions = @op.stripe_cards.map{|c| c.canonical_pending_transactions}.flatten
 
     @authorizations = @op.spending_authorizations.order(created_at: :desc)
-    @transactions = hcb_codes.order(created_at: :desc)
-    @spending_items_all = (hcb_codes + @op.spending_authorizations).sort_by(&:created_at).reverse
+    @transactions = transactions.sort_by(&:created_at).reverse
+    @spending_items_all = (transactions + @op.spending_authorizations).sort_by(&:created_at).reverse
 
     if params[:filter] == "authorizations"
       @spending_items = @authorizations
