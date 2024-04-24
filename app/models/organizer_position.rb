@@ -38,7 +38,7 @@ class OrganizerPosition < ApplicationRecord
 
   has_one :organizer_position_invite
   has_many :organizer_position_deletion_requests
-  has_many :spending_authorizations, class_name: 'OrganizerPosition::Spending::Authorization'
+  has_many :spending_authorizations, class_name: "OrganizerPosition::Spending::Authorization"
   has_many :tours, as: :tourable
 
   validates :user, uniqueness: { scope: :event, conditions: -> { where(deleted_at: nil) } }
