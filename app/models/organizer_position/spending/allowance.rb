@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: organizer_position_spending_authorizations
+# Table name: organizer_position_spending_allowances
 #
 #  id                    :bigint           not null, primary key
 #  amount_cents          :integer          not null
@@ -21,7 +21,7 @@
 #  fk_rails_...  (organizer_position_id => organizer_positions.id)
 #
 module OrganizerPosition::Spending
-  class Authorization < ApplicationRecord
+  class Allowance < ApplicationRecord
     belongs_to :organizer_position
 
     def total_spent

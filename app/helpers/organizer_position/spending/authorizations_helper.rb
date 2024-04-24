@@ -1,2 +1,2 @@
-module OrganizerPosition::Spending::AuthorizationsHelper
+module OrganizerPosition::Spending::AllowancesHelper
 end

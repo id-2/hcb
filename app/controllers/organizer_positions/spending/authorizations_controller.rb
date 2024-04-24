@@ -1,4 +1,4 @@
-class OrganizerPositions::Spending::AuthorizationsController < ApplicationController
+class OrganizerPositions::Spending::AllowancesController < ApplicationController
   before_action :set_organizer_position
 
   def index
@@ -6,25 +6,25 @@ class OrganizerPositions::Spending::AuthorizationsController < ApplicationContro
 
     transactions = @op.stripe_cards.map{ |c| c.canonical_pending_transactions }.flatten
 
-    @authorizations = @op.spending_authorizations.order(created_at: :desc)
+    @allowances = @op.spending_allowances.order(created_at: :desc)
     @transactions = transactions.sort_by(&:created_at).reverse
-    @spending_items_all = (transactions + @op.spending_authorizations).sort_by(&:created_at).reverse
+    @spending_items_all = (transactions + @op.spending_allowances).sort_by(&:created_at).reverse
 
-    if params[:filter] == "authorizations"
-      @spending_items = @authorizations
+    if params[:filter] == "allowances"
+      @spending_items = @allowances
     elsif params[:filter] == "transactions"
       @spending_items = @transactions
     else
       @spending_items = @spending_items_all
     end
 
-    @authorizations_total = @authorizations.sum(:amount_cents)
+    @allowances_total = @aallowances.sum(:amount_cents)
     @transactions_total = @op.stripe_cards.where(event: @op.event).sum(&:total_spent)
-    @authorization_balance = @authorizations_total - @transactions_total
+    @aallowance_balance = @allowances_total - @transactions_total
   end
 
   def new
-    @spending_authorization = @op.spending_authorizations.build
+    @spending_allowance = @op.spending_allowances.build
 
     authorize @op, :foo?
   end
@@ -34,13 +34,13 @@ class OrganizerPositions::Spending::AuthorizationsController < ApplicationContro
     attributes[:amount_cents] = (attributes[:amount_cents].to_f.round(2) * 100).to_i
     attributes[:organizer_position_id] = attributes.delete(:organizer_id)
     attributes[:authorized_by_id] = current_user.id
-    @authorization = @op.spending_authorizations.build(attributes)
+    @allowance = @op.spending_allowances.build(attributes)
 
     authorize @op, :foo?
 
-    if @authorization.save
-      flash[:success] = "Spending authorization created."
-      redirect_to event_organizer_authorizations_path organizer_id: @authorization.organizer_position.user.slug
+    if @allowance.save
+      flash[:success] = "Spending allowance created."
+      redirect_to event_organizer_allowances_path organizer_id: @allowance.organizer_position.user.slug
     else
       #      render :new, status: :unprocessable_entity
     end

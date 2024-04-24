@@ -17,7 +17,7 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
         .update_all(active: false)
 
       flash[:success] = "Spending control successfully created!"
-      redirect_to event_organizer_authorizations_path organizer_id: @op.user.slug
+      redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
     else
       # render :new, status: :unprocessable_entity
     end
