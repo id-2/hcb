@@ -33,7 +33,7 @@
     <% if organizer_signed_in? %>
       <div class="flex g1 h-fit-content">
         <div class="tooltipped tooltipped--w" aria-label="<%= position.user.name.humanize %>'s spending authorizations">
-          <%= pop_icon_to "payment", event_organizer_authorizations_path(organizer_id: position.user.slug), data: { turbo_frame: "_top" }, class: "rounded-full overflow-hidden" %>
+          <%= pop_icon_to "payment", event_organizer_allowances_path(organizer_id: position.user.slug), data: { turbo_frame: "_top" }, class: "rounded-full overflow-hidden" %>
         </div>
         <% if admin_signed_in? %>
           <div class="tooltipped tooltipped--w" aria-label="Edit user's settings">
