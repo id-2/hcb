@@ -36,6 +36,20 @@
   </div>
 </div>
 
+<% spending_controls_callout_footer = capture do %>
+  <%= link_to "#", class: "btn btn-small bg-error" do %>
+    <%#= inline_icon "forbidden" %>
+    Disable controls for <%= @op.user.first_name %>
+  <% end %>
+<% end %>
+<%= render "callout", type: "info", title: "Spending controls are enabled for #{@op.user.first_name}.", footer: spending_controls_callout_footer  do %>
+  <ul>
+    <li>Spending controls lets managers pre-authorize a defined portion of your organization's fund to be spent by a user.</li>
+    <li>Your organization's balance will not change when an allowance is created.</li>
+    <li>Allowances do not expire.
+  </ul>
+<% end %>
+
 <hr>
 
 <div class="flex g2 items-center">
