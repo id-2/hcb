@@ -12,9 +12,9 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
 
     if @control.save
       @op.spending_controls
-        .where(active: true)
-        .where.not(id: @control.id)
-        .update_all(active: false)
+         .where(active: true)
+         .where.not(id: @control.id)
+         .update_all(active: false)
 
       flash[:success] = "Spending control successfully created!"
       redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
