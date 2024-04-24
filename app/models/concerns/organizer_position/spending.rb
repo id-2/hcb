@@ -3,12 +3,13 @@ class OrganizerPosition
     extend ActiveSupport::Concern
     included do
       has_many :spending_controls
+      has_one :active_spending_control, -> { where(active: true) }
     end
 
     def spending_control_enabled?
       active_spending_control
     end
-
+  
     def spending_control_disabled?
       !spending_control_enabled?
     end
