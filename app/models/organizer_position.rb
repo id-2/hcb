@@ -55,9 +55,7 @@ class OrganizerPosition < ApplicationRecord
     }
   end
 
-  def stripe_cards
-    user.stripe_cards
-  end
+  delegate :stripe_cards, to: :user
 
   private
 
