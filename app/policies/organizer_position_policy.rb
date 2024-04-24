@@ -31,7 +31,7 @@ class OrganizerPositionPolicy < ApplicationPolicy
   def foo?
     true
   end
-  
+
   private
 
   def admin_or_manager?

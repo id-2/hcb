@@ -9,4 +9,5 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
       errors.add(:organizer_position, "may only have one active spending control")
     end
   end
+
 end

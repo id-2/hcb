@@ -40,8 +40,9 @@ module OrganizerPosition::Spending
     def authorized_by
       OrganizerPosition.find(authorized_by_id)
     end
+
   end
-  
+
   def self.table_name_prefix
     "organizer_position_spending_"
   end
