@@ -1,7 +1,7 @@
 class OrganizerPositions::Spending::ControlsController < ApplicationController
   before_action :set_organizer_position
 
-  def create
+  def new
     skip_authorization
 
     attributes = filtered_params
