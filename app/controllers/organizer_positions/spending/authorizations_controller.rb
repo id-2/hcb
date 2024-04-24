@@ -1,10 +1,10 @@
 class OrganizerPositions::Spending::AuthorizationsController < ApplicationController
   before_action :set_organizer_position
-  
+
   def index
     skip_authorization
 
-    transactions = @op.stripe_cards.map{|c| c.canonical_pending_transactions}.flatten
+    transactions = @op.stripe_cards.map{ |c| c.canonical_pending_transactions }.flatten
 
     @authorizations = @op.spending_authorizations.order(created_at: :desc)
     @transactions = transactions.sort_by(&:created_at).reverse
@@ -42,7 +42,7 @@ class OrganizerPositions::Spending::AuthorizationsController < ApplicationContro
       flash[:success] = "Spending authorization created."
       redirect_to event_organizer_authorizations_path organizer_id: @authorization.organizer_position.user.slug
     else
-#      render :new, status: :unprocessable_entity
+      #      render :new, status: :unprocessable_entity
     end
   end
 
@@ -61,4 +61,5 @@ class OrganizerPositions::Spending::AuthorizationsController < ApplicationContro
   def filtered_params
     params.permit(:organizer_id, :amount_cents, :memo)
   end
+
 end
