@@ -1267,8 +1267,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_24_170843) do
     t.text "memo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["authorized_by_id"], name: "idx_org_pos_spend_auths_on_authed_by_id"
-    t.index ["organizer_position_id"], name: "idx_org_pos_spend_auths_on_org_pos_id"
+    t.index ["authorized_by_id"], name: "idx_org_pos_spend_allows_on_authed_by_id"
+    t.index ["organizer_position_id"], name: "idx_org_pos_spend_allows_on_org_pos_id"
   end
 
   create_table "organizer_position_spending_controls", force: :cascade do |t|
