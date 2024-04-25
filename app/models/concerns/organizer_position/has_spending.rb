@@ -4,7 +4,7 @@ class OrganizerPosition
     included do
       has_many :spending_allowances, class_name: "OrganizerPosition::Spending::Allowance"
       has_many :spending_controls, class_name: "OrganizerPosition::Spending::Control"
-      # has_one :active_spending_control, -> { where(spending_controls: { active: true }) }
+      has_one :active_spending_control, -> { where(active: true) }, class_name: "OrganizerPosition::Spending::Control"
     end
 
     def spending_control_enabled?
