@@ -8,7 +8,7 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
     attributes[:active] = true
     attributes[:started_at] = Time.current
 
-    @control = @op.spending_controls.create(filtered_params)
+    @control = @op.spending_controls.create(attributes)
 
     if @control.save
       @op.spending_controls
@@ -21,6 +21,13 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
     else
       # render :new, status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    skip_authorization
+    @op.spending_controls.each { |c| c.update(active: false) }
+    flash[:success] = "Spending control successfully created!"
+    redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
   end
 
   private
@@ -36,7 +43,7 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
   end
 
   def filtered_params
-    params.permit(:organizer_position_id, :amount_cents, :memo)
+    params.permit(:organizer_position_id)
   end
 
 end
