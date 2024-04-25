@@ -1,5 +1,5 @@
 class OrganizerPosition
-  module Spending
+  module HasSpending
     extend ActiveSupport::Concern
     included do
       has_many :spending_allowances, class_name: "OrganizerPosition::Spending::Allowance"
