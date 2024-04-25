@@ -1260,7 +1260,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_24_170843) do
     t.index ["user_id"], name: "index_organizer_position_invites_on_user_id"
   end
 
-  create_table "organizer_position_spending_authorizations", force: :cascade do |t|
+  create_table "organizer_position_spending_allowances", force: :cascade do |t|
     t.bigint "organizer_position_id", null: false
     t.bigint "authorized_by_id", null: false
     t.integer "amount_cents", null: false
