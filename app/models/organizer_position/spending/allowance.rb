@@ -12,8 +12,8 @@
 #
 # Indexes
 #
-#  idx_org_pos_spend_auths_on_authed_by_id  (authorized_by_id)
-#  idx_org_pos_spend_auths_on_org_pos_id    (organizer_position_id)
+#  idx_org_pos_spend_allows_on_authed_by_id  (authorized_by_id)
+#  idx_org_pos_spend_allows_on_org_pos_id    (organizer_position_id)
 #
 # Foreign Keys
 #
