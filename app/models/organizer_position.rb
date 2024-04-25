@@ -29,7 +29,7 @@ class OrganizerPosition < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
   include OrganizerPosition::HasRole
-  include OrganizerPosition::Spending
+  include OrganizerPosition::HasSpending
 
   scope :not_hidden, -> { where(event: { hidden_at: nil }) }
 
