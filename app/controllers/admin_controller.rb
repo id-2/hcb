@@ -277,6 +277,7 @@ class AdminController < ApplicationController
     @q = params[:q].present? ? params[:q] : nil
     @access_level = params[:access_level]
     @event_id = params[:event_id].present? ? params[:event_id] : nil
+    @params = params.permit(:page, :per, :q, :access_level, :event_id)
 
     if @event_id
       @event = Event.find(@event_id)
@@ -294,7 +295,12 @@ class AdminController < ApplicationController
 
     @users = relation.page(@page).per(@per).order(created_at: :desc)
 
-    render layout: "admin"
+    respond_to do |format|
+      format.html do
+        render layout: "admin"
+      end
+      format.csv { render csv: @users.includes(:stripe_cards, :emburse_cards) }
+    end
   end
 
   def stripe_cards
@@ -514,6 +520,7 @@ class AdminController < ApplicationController
     @count = relation.count
     @reports = relation.page(@page).per(@per).order(
       Arel.sql("aasm_state = 'reimbursement_requested' DESC"),
+      Arel.sql("aasm_state = 'draft' ASC"),
       "reimbursement_reports.created_at desc"
     )
 
@@ -793,8 +800,8 @@ class AdminController < ApplicationController
 
     relation = HcbCode
 
-    relation = relation.where("hcb_code ilike '%#{@q}%'") if @q
-    relation = relation.missing_receipt if @has_receipt == "no"
+    relation = relation.where("hcb_codes.hcb_code ilike '%#{@q}%'") if @q
+    relation = relation.receipt_required.missing_receipt if @has_receipt == "no"
     relation = relation.has_receipt_or_marked_no_or_lost if @has_receipt == "yes"
     relation = relation.lost_receipt if @has_receipt == "lost"
 
@@ -935,30 +942,6 @@ class AdminController < ApplicationController
     @g_suite = GSuite.find(params[:id])
 
     render layout: "admin"
-  end
-
-  def transaction_csvs
-    @page = params[:page] || 1
-    @per = params[:per] || 20
-    @q = params[:q].present? ? params[:q] : nil
-
-    relation = TransactionCsv
-
-    @count = relation.count
-    @transaction_csvs = relation.page(@page).per(@per).order("created_at desc")
-
-    render layout: "admin"
-  end
-
-  def upload
-    attrs = {
-      file: params[:file]
-    }
-    transaction_csv = TransactionCsv.create!(attrs)
-
-    ::TransactionEngineJob::TransactionCsvUpload.perform_later(transaction_csv.id)
-
-    redirect_to transaction_csvs_admin_index_path, flash: { success: "CSV Uploaded" }
   end
 
   def google_workspace_approve
@@ -1178,6 +1161,7 @@ class AdminController < ApplicationController
   def filtered_events(events: Event.all)
     @q = params[:q].present? ? params[:q] : nil
     @demo_mode = params[:demo_mode].present? ? params[:demo_mode] : "full" # full accounts only by default
+    @engaged = params[:engaged] == "1" # unchecked by default
     @pending = params[:pending] == "0" ? nil : true # checked by default
     @unapproved = params[:unapproved] == "0" ? nil : true # checked by default
     @approved = params[:approved] == "0" ? nil : true # checked by default
@@ -1208,6 +1192,7 @@ class AdminController < ApplicationController
     # Omit orgs if they were created after the end date
     relation = relation.where("events.created_at <= ?", @end_date) if @end_date
     relation = relation.search_name(@q) if @q
+    relation = relation.engaged if @engaged
     relation = relation.transparent if @transparent == "transparent"
     relation = relation.not_transparent if @transparent == "not_transparent"
     relation = relation.omitted if @omitted == "omitted"

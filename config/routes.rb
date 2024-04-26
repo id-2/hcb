@@ -152,8 +152,6 @@ Rails.application.routes.draw do
 
   resources :admin, only: [] do
     collection do
-      get "transaction_csvs", to: "admin#transaction_csvs"
-      post "upload", to: "admin#upload"
       get "bank_accounts", to: "admin#bank_accounts"
       get "hcb_codes", to: "admin#hcb_codes"
       get "bank_fees", to: "admin#bank_fees"
@@ -307,8 +305,6 @@ Rails.application.routes.draw do
   resources :emburse_cards, except: %i[new create]
 
   resources :checks, only: [:show] do
-    get "view_scan"
-
     resources :comments
   end
 

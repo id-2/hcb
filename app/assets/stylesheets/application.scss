@@ -8,7 +8,7 @@ $mono: 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
 
 :root {
   @each $name, $value in $palette {
-    --#{$name}: #{$value};
+    --#{"" + $name}: #{$value};
   }
 }
 
@@ -191,7 +191,6 @@ summary {
 @import 'components/forms';
 @import 'components/header';
 @import 'components/headings';
-@import 'components/incoming_deposits';
 @import 'components/layouts';
 @import 'components/lists';
 @import 'components/menus';
@@ -203,15 +202,11 @@ summary {
 @import 'components/steps';
 @import 'components/tooltips';
 @import 'components/transactions';
-@import 'components/withdraw_breakdown';
-@import 'components/faq';
 @import 'components/promos';
 @import 'components/features';
-@import 'components/settings';
 @import 'components/loading';
 @import 'components/partner_signup';
 @import 'components/file_dropzone';
-@import 'components/footer';
 @import 'components/feedback_form';
 @import 'components/welcome';
 @import 'components/tabs';
@@ -318,6 +313,28 @@ summary {
   animation-delay: 50s;
 }
 
+.card.hash-highlight {
+  animation: highlight 2s;
+  border: 1px solid;
+  border-color: rgba(map-get($palette, warning), 0.25);
+  
+  .card__banner {
+    border-color: inherit;
+  }
+}
+
+@keyframes highlight {
+  from {
+    border: 1px solid map-get($palette, warning);
+    background-color: map-get($palette, warning);
+  }
+  to {
+    border: 1px solid rgba(map-get($palette, warning), 0.25);
+    background-color: unset;
+  }
+}
+
+
 // Make mobile views nice. Full-bleed separator lines
 @media screen and (max-width: 32em) {
 
@@ -403,4 +420,39 @@ summary {
 @import 'kbar';
 @import 'utilities';
 @import 'dark';
-@import '../builds/application-tailwind'
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  pre,
+  code {
+    @apply font-mono;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .heading,
+  .stat__value {
+    @apply font-brand;
+  }
+}
+
+@layer utilities {
+  .caps {
+    @apply uppercase tracking-widest;
+  }
+
+  .line-height-0 {
+    @apply leading-[0];
+  }
+
+  .text-shadow {
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.25),
+      0 2px 4px rgba(0, 0, 0, 0.125);
+  }
+}
