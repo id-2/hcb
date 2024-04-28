@@ -9,6 +9,7 @@ module ReceiptService
     def run!(include_details: false)
       return nil if user.nil?
       return nil unless @receipt.has_textual_content?
+      return nil unless @receipt.pdf_text?
 
       @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
 
