@@ -112,7 +112,7 @@ class HcbCode < ApplicationRecord
 
   def amount_cents
     @amount_cents ||= begin
-      return canonical_transactions.sum(:amount_cents) if canonical_transactions.exists?
+      return canonical_transactions.sum(:amount_cents) if canonical_transactions.any?
 
       # ACH transfers that haven't been sent don't have any CPTs
       return -ach_transfer.amount if ach_transfer?
@@ -122,7 +122,7 @@ class HcbCode < ApplicationRecord
   end
 
   def amount_cents_by_event(event)
-    if canonical_transactions.exists?
+    if canonical_transactions.any?
       return canonical_transactions
              .includes(:canonical_event_mapping)
              .where(canonical_event_mapping: { event_id: event.id })
@@ -183,7 +183,7 @@ class HcbCode < ApplicationRecord
       end
   end
 
-  def pretty_title(show_event_name: true, show_amount: false)
+  def pretty_title(show_event_name: true, show_amount: false, event_name: event.name, amount_cents: self.amount_cents)
     event_preposition = [:unknown, :invoice, :ach, :check, :card_charge, :bank_fee].include?(type || :unknown) ? "in" : "to"
     amount_preposition = [:transaction, :donation, :partner_donation, :disbursement, :card_charge, :bank_fee].include?(type || :unknown) ? "of" : "for"
 
@@ -191,7 +191,7 @@ class HcbCode < ApplicationRecord
 
     title = [humanized_type]
     title << amount_preposition << ApplicationController.helpers.render_money(stripe_card? ? amount_cents.abs : amount_cents) if show_amount
-    title << event_preposition << event.name if show_event_name
+    title << event_preposition << event_name if show_event_name
 
     title.join(" ")
   end
@@ -217,7 +217,7 @@ class HcbCode < ApplicationRecord
   end
 
   def stripe_refund?
-    (stripe_force_capture? || (stripe_card? && amount_cents > 0)) && ct&.stripe_refund?
+    ct&.stripe_refund? && (stripe_force_capture? || (stripe_card? && amount_cents > 0))
   end
 
   def stripe_auth_dashboard_url
@@ -450,18 +450,30 @@ class HcbCode < ApplicationRecord
   def comment_recipients_for(comment)
     users = []
     users += self.comments.map(&:user)
-    users += self.events.flat_map(&:users)
+    users += self.comments.flat_map(&:mentioned_users)
+    users += self.events.flat_map(&:users).reject(&:my_threads?)
 
     if comment.admin_only?
       users += self.events.map(&:point_of_contact)
-      return users.select(&:admin?).collect(&:email).excluding(comment.user.email)
+      return users.uniq.select(&:admin?).reject(&:no_threads?).excluding(comment.user).collect(&:email_address_with_name)
     end
 
-    users.excluding(comment.user).collect(&:email_address_with_name)
+    users.uniq.excluding(comment.user).reject(&:no_threads?).collect(&:email_address_with_name)
   end
 
   def comment_mailer_subject
     return "New comment on #{self.memo}."
+  end
+
+
+  def comment_mentionable(current_user: nil)
+    users = []
+    users += self.comments.includes(:user).map(&:user)
+    users += self.comments.flat_map(&:mentioned_users)
+    users += self.events.includes(:users).select { |e| !current_user || Pundit.policy(current_user, e).team? }.flat_map(&:users)
+    users += self.events.includes(:point_of_contact).map(&:point_of_contact)
+
+    users.compact.uniq
   end
 
   def not_admin_only_comments_count

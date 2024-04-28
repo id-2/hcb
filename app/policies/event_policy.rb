@@ -85,6 +85,10 @@ class EventPolicy < ApplicationPolicy
     is_public || admin_or_user?
   end
 
+  def create_transfer?
+    admin_or_manager? && !record.demo_mode?
+  end
+
   def new_transfer?
     admin_or_manager? && !record.demo_mode?
   end
@@ -178,6 +182,18 @@ class EventPolicy < ApplicationPolicy
   end
 
   def termination?
+    user&.admin?
+  end
+
+  def finish_signee_backfill?
+    user&.admin?
+  end
+
+  def can_invite_user?
+    admin_or_manager?
+  end
+
+  def claim_point_of_contact?
     user&.admin?
   end
 

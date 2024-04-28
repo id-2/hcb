@@ -64,8 +64,15 @@ class AchTransfer < ApplicationRecord
   belongs_to :payment_recipient, optional: true
 
   validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
-  validates :routing_number, format: { with: /\A\d{9}\z/, message: "must be 9 digits" }
-  validates :account_number, format: { with: /\A\d+\z/, message: "must be only numbers" }
+
+  validates :routing_number, presence: true, unless: :payment_recipient
+  validates :account_number, presence: true, unless: :payment_recipient
+  validates :recipient_name, presence: true, unless: :payment_recipient
+
+  validates :account_number, format: { with: /\A\d+\z/, message: "must be only numbers" }, allow_blank: true
+  validates :routing_number, format: { with: /\A\d{9}\z/, message: "must be 9 digits" }, allow_blank: true
+  validates :bank_name, presence: true, on: :create, unless: :payment_recipient
+
   validates :recipient_email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }, allow_nil: true
   validates_presence_of :recipient_email, on: :create
   validate :scheduled_on_must_be_in_the_future, on: :create
@@ -74,6 +81,7 @@ class AchTransfer < ApplicationRecord
       errors.add(:base, "You don't have enough money to send this transfer! Your balance is #{(event.balance_available_v2_cents / 100).to_money.format}.")
     end
   end
+  validate { errors.add(:base, "Recipient must be in the same org") if payment_recipient && event != payment_recipient.event }
 
   has_one :t_transaction, class_name: "Transaction", inverse_of: :ach_transfer
   has_one :grant, required: false
@@ -119,18 +127,25 @@ class AchTransfer < ApplicationRecord
 
     event :mark_failed do
       after do |reason: nil|
-        AchTransferMailer.with(ach_transfer: self, reason:).notify_failed.deliver_later
+        if reimbursement_payout_holding.present?
+          ReimbursementMailer.with(reimbursement_payout_holding:, reason:).ach_failed.deliver_later
+          reimbursement_payout_holding.mark_failed!
+        else
+          AchTransferMailer.with(ach_transfer: self, reason:).notify_failed.deliver_later
+        end
       end
       transitions from: [:in_transit, :deposited], to: :failed
     end
   end
 
   before_validation { self.recipient_name = recipient_name.presence&.strip }
+  before_create :set_fields_from_payment_recipient, if: -> { payment_recipient.present? }
+  before_create :create_payment_recipient, if: -> { payment_recipient_id.nil? }
+
+  after_create :update_payment_recipient
 
   # Eagerly create HcbCode object
   after_create :local_hcb_code
-
-  after_create :create_or_link_payment_recipient, if: -> { Flipper.enabled?(:payment_recipients_2024_01_10, event) }
 
   after_create unless: -> { scheduled_on.present? } do
     create_raw_pending_outgoing_ach_transaction!(amount_cents: -amount, date_posted: scheduled_on || created_at)
@@ -266,21 +281,30 @@ class AchTransfer < ApplicationRecord
     end
   end
 
-  def create_or_link_payment_recipient
-    self.payment_recipient = event.payment_recipients.find_by("name ILIKE ?", AchTransfer.sanitize_sql_like(recipient_name))
+  def set_fields_from_payment_recipient
+    self.account_number ||= payment_recipient&.account_number
+    self.routing_number ||= payment_recipient&.routing_number
+    self.bank_name      ||= payment_recipient&.bank_name
+    self.recipient_name ||= payment_recipient&.name
+  end
 
-    if payment_recipient.nil? ||
-       payment_recipient.account_number != account_number ||
-       payment_recipient.routing_number != routing_number
-      self.payment_recipient = event.payment_recipients.create!(
-        name: recipient_name,
-        bank_name:,
-        account_number:,
-        routing_number:,
-      )
-    end
+  def create_payment_recipient
+    create_payment_recipient!(
+      event:,
+      name: recipient_name,
+      account_number:,
+      routing_number:,
+      bank_name:,
+    )
+  end
 
-    save!
+  def update_payment_recipient
+    payment_recipient.update!(
+      name: recipient_name,
+      account_number:,
+      routing_number:,
+      bank_name:,
+    )
   end
 
 end

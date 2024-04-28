@@ -6,6 +6,12 @@ $font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 $brand-font-family: ui-rounded, $font-family;
 $mono: 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
 
+:root {
+  @each $name, $value in $palette {
+    --#{"" + $name}: #{$value};
+  }
+}
+
 * {
   box-sizing: border-box;
   font-family: inherit;
@@ -33,20 +39,6 @@ body {
   margin: 0;
   padding-bottom: 2rem;
   min-height: 100vh;
-}
-
-h1,
-h2,
-h3,
-h4,
-.heading,
-.stat__value,
-.brand-sans {
-  font-family: $brand-font-family;
-}
-
-.sans {
-  font-family: $font-family;
 }
 
 a {
@@ -182,16 +174,6 @@ summary {
   cursor: pointer;
 }
 
-html[data-crater='true'] body {
-  background-image: url('https://cloud-rl9eflauk-hack-club-bot.vercel.app/0adobestock_512255822_preview_1.png');
-  background-repeat: repeat;
-  background-size: 300px;
-}
-
-html[data-crater='true'][data-dark='true'] body {
-  background-image: url('https://cloud-ep7ue7slm-hack-club-bot.vercel.app/0adobestock_512255822_preview_1__1_.png');
-}
-
 @import 'components/avatars';
 @import 'components/badges';
 @import 'components/banners'; //TODO: Rename
@@ -209,7 +191,6 @@ html[data-crater='true'][data-dark='true'] body {
 @import 'components/forms';
 @import 'components/header';
 @import 'components/headings';
-@import 'components/incoming_deposits';
 @import 'components/layouts';
 @import 'components/lists';
 @import 'components/menus';
@@ -221,15 +202,11 @@ html[data-crater='true'][data-dark='true'] body {
 @import 'components/steps';
 @import 'components/tooltips';
 @import 'components/transactions';
-@import 'components/withdraw_breakdown';
-@import 'components/faq';
 @import 'components/promos';
 @import 'components/features';
-@import 'components/settings';
 @import 'components/loading';
 @import 'components/partner_signup';
 @import 'components/file_dropzone';
-@import 'components/footer';
 @import 'components/feedback_form';
 @import 'components/welcome';
 @import 'components/tabs';
@@ -336,6 +313,28 @@ html[data-crater='true'][data-dark='true'] body {
   animation-delay: 50s;
 }
 
+.card.hash-highlight {
+  animation: highlight 2s;
+  border: 1px solid;
+  border-color: rgba(map-get($palette, warning), 0.25);
+  
+  .card__banner {
+    border-color: inherit;
+  }
+}
+
+@keyframes highlight {
+  from {
+    border: 1px solid map-get($palette, warning);
+    background-color: map-get($palette, warning);
+  }
+  to {
+    border: 1px solid rgba(map-get($palette, warning), 0.25);
+    background-color: unset;
+  }
+}
+
+
 // Make mobile views nice. Full-bleed separator lines
 @media screen and (max-width: 32em) {
 
@@ -421,4 +420,39 @@ html[data-crater='true'][data-dark='true'] body {
 @import 'kbar';
 @import 'utilities';
 @import 'dark';
-@import '../builds/application-tailwind'
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  pre,
+  code {
+    @apply font-mono;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .heading,
+  .stat__value {
+    @apply font-brand;
+  }
+}
+
+@layer utilities {
+  .caps {
+    @apply uppercase tracking-widest;
+  }
+
+  .line-height-0 {
+    @apply leading-[0];
+  }
+
+  .text-shadow {
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.25),
+      0 2px 4px rgba(0, 0, 0, 0.125);
+  }
+}

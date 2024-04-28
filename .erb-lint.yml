@@ -1,6 +1,8 @@
 EnableDefaultLinters: true
 exclude:
   - app/views/grants/_activate_form.html.erb
+  - app/views/ach_transfers/_form.html.erb # erb-lint _really_ doesn't like Alpine
+  - app/views/doorkeeper/authorizations/new.html.erb
 linters:
   ErbSafety:
     enabled: true
@@ -67,3 +69,9 @@ linters:
         suggestion: 'Use font-mono instead'
       - deprecated: ['rounded-top', 'rounded-bottom']
         suggestion: 'Use rounded-t/rounded-b instead'
+      - deprecated: ['strikethrough']
+        suggestion: 'Use line-through instead'
+      - deprecated: ['brand-sans']
+        suggestion: 'Use font-brand instead'
+      - deprecated: ['sans']
+        suggestion: 'Use font-sans instead'

@@ -90,9 +90,6 @@ Rails.application.routes.draw do
     end
   end
 
-  post "/to/the/moon", to: "users#to_the_moon"
-  post "/back/to/earth", to: "users#back_to_earth"
-
   resources :users, only: [:edit, :update] do
     collection do
       get "auth", to: "users#auth"
@@ -155,8 +152,6 @@ Rails.application.routes.draw do
 
   resources :admin, only: [] do
     collection do
-      get "transaction_csvs", to: "admin#transaction_csvs"
-      post "upload", to: "admin#upload"
       get "bank_accounts", to: "admin#bank_accounts"
       get "hcb_codes", to: "admin#hcb_codes"
       get "bank_fees", to: "admin#bank_fees"
@@ -192,6 +187,7 @@ Rails.application.routes.draw do
       get "grants", to: "admin#grants"
       get "check_deposits", to: "admin#check_deposits"
       get "column_statements", to: "admin#column_statements"
+      get "hq_receipts", to: "admin#hq_receipts"
 
       resources :grants, only: [] do
         post "approve"
@@ -309,8 +305,6 @@ Rails.application.routes.draw do
   resources :emburse_cards, except: %i[new create]
 
   resources :checks, only: [:show] do
-    get "view_scan"
-
     resources :comments
   end
 
@@ -547,6 +541,7 @@ Rails.application.routes.draw do
         resources :stripe_cards, path: "cards", only: [:show, :update] do
           member do
             get "transactions"
+            get "ephemeral_keys"
           end
         end
 
@@ -602,11 +597,15 @@ Rails.application.routes.draw do
   match "/404", to: "errors#not_found", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
+  get "/search" => "search#index"
+
   get "/events" => "events#index"
   get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
   resources :events, except: [:new, :create], path_names: { edit: "settings" }, path: "/" do
     get "edit", to: redirect("/%{event_id}/settings")
     put "toggle_hidden", to: "events#toggle_hidden"
+
+    post "claim_point_of_contact", to: "events#claim_point_of_contact"
 
     post "remove_header_image"
     post "remove_background_image"
@@ -640,6 +639,7 @@ Rails.application.routes.draw do
     get "donations", to: "events#donation_overview", as: :donation_overview
     get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overview
     post "demo_mode_request_meeting", to: "events#demo_mode_request_meeting", as: :demo_mode_request_meeting
+    post "finish_signee_backfill"
     resources :disbursements, only: [:new, :create]
     resources :increase_checks, only: [:new, :create], path: "checks"
     resources :ach_transfers, only: [:new, :create]

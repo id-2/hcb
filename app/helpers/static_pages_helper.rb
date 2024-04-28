@@ -13,10 +13,15 @@ module StaticPagesHelper
             else
               content_tag(:div, "") # Empty div if no badge is present
             end
-    pin = inline_icon("pin", class: "pin", size: 28, ':color': "isPinned($el.closest('a').parentElement.id) ? 'orange' : 'inherit'", '@click.prevent': "pin($el.closest('a').parentElement.id, $el.closest('.grid').id)")
-    content_tag(:div, id: "card-#{name.parameterize}") do
+    pin = inline_icon("pin", class: "pin transition-opacity group-hover:opacity-100 absolute top-0 right-0", size: 24, ':color': "isPinned($el.closest('a').parentElement.id) ? 'orange' : 'var(--muted)'", '@click.prevent': "pin($el.closest('a').parentElement.id, $el.closest('.grid').id)", ":class": "isPinned($el.closest('a').parentElement.id) ? 'opacity-100' : 'opacity-0'")
+    content_tag(:div, id: "card-#{name.parameterize}", class: "group relative") do
       link_to content_tag(:div,
-                          [pin, content_tag(:strong, name, class: "card-name"), badge].join.html_safe,
+                          [
+                            content_tag(:strong, name, class: "card-name"),
+                            pin,
+                            content_tag(:span, "", style: "flex-grow: 1"),
+                            badge
+                          ].join.html_safe,
                           class: "card card--item card--hover flex justify-between items-center"),
               path, class: "link-reset", method: options[:method]
     end

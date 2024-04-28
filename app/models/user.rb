@@ -7,6 +7,7 @@
 #  id                       :bigint           not null, primary key
 #  access_level             :integer          default("user"), not null
 #  birthday_ciphertext      :text
+#  comment_notifications    :integer          default(0), not null
 #  email                    :text
 #  full_name                :string
 #  locked_at                :datetime
@@ -94,6 +95,7 @@ class User < ApplicationRecord
 
   has_many :reimbursement_reports, class_name: "Reimbursement::Report"
   has_many :created_reimbursement_reports, class_name: "Reimbursement::Report", foreign_key: "invited_by_id", inverse_of: :inviter
+  has_many :reimbursement_reports_to_review, class_name: "Reimbursement::Report", foreign_key: "reviewer_id", inverse_of: :reviewer
 
   has_many :card_grants
 
@@ -132,6 +134,16 @@ class User < ApplicationRecord
   validates :preferred_name, length: { maximum: 30 }
 
   validate :profile_picture_format
+
+  enum comment_notifications: { all_threads: 0, my_threads: 1, no_threads: 2 }
+
+  comma do
+    id
+    name
+    slug "url" do |slug| "https://hcb.hackclub.com/users/#{slug}/admin" end
+    email
+    transactions_missing_receipt_count "Missing Receipts"
+  end
 
   # admin? takes into account an admin user's preference
   # to pretend to be a non-admin, normal user
@@ -243,12 +255,20 @@ class User < ApplicationRecord
   def transactions_missing_receipt
     @transactions_missing_receipt ||= begin
       user_cards = stripe_cards.includes(:event).where.not(event: { category: :salary }) + emburse_cards.includes(:emburse_transactions)
+      return HcbCode.none unless user_cards.any?
+
       user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
+      return HcbCode.none unless user_hcb_code_ids.any?
+
       user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
 
-      hcb_codes_missing_ids = user_hcb_codes.missing_receipt.receipt_required.pluck(:id)
+      user_hcb_codes.missing_receipt.receipt_required.order(created_at: :desc)
+    end
+  end
 
-      HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
+  def transactions_missing_receipt_count
+    @transactions_missing_receipt_count ||= begin
+      transactions_missing_receipt.size
     end
   end
 
@@ -260,6 +280,10 @@ class User < ApplicationRecord
 
   def email_address_with_name
     ActionMailer::Base.email_address_with_name(email, name)
+  end
+
+  def hack_clubber?
+    return events.organized_by_hack_clubbers.any?
   end
 
   private

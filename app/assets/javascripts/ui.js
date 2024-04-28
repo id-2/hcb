@@ -328,19 +328,6 @@ $(document).on('turbo:load', function () {
     })
   }
   
-  if (BK.thereIs('check_payout_method_inputs') && BK.thereIs('ach_transfer_payout_method_inputs')) {
-    const checkPayoutMethodInputs = BK.s('check_payout_method_inputs')
-    const achTransferPayoutMethodInputs = BK.s('ach_transfer_payout_method_inputs')
-    const checkPayoutMethodInput = $('#user_payout_method_type_userpayoutmethodcheck')
-    const achTransferPayoutMethodInput = $('#user_payout_method_type_userpayoutmethodachtransfer')
-    $(checkPayoutMethodInput).on('change', e => {
-      if (e.target.checked) checkPayoutMethodInputs.slideDown() && achTransferPayoutMethodInputs.slideUp()
-    })
-    $(achTransferPayoutMethodInput).on('change', e => {
-      if (e.target.checked) achTransferPayoutMethodInputs.slideDown() && checkPayoutMethodInputs.slideUp()
-    })
-  }
-  
   if (BK.s('reimbursement_report_create_form_type_selection').length) {
     const dropdownInput = $('#reimbursement_report_user_email')
     const emailInput = $('#reimbursement_report_email')
@@ -392,7 +379,7 @@ $(document).on('turbo:load', function () {
   }
 
   $('[data-behavior~=mention]').on('click', e => {
-    BK.s('comment').val(`${BK.s('comment').val() + (BK.s('comment').val().length > 0 ? " " : "")}${e.target.innerText}`)
+    BK.s('comment').val(`${BK.s('comment').val() + (BK.s('comment').val().length > 0 ? " " : "")}${e.target.dataset.mentionValue || e.target.innerText}`)
     BK.s('comment')[0].scrollIntoView();
   })  
 
@@ -435,6 +422,19 @@ $(document).on('turbo:load', function () {
   return window
     .matchMedia('(prefers-reduced-motion: reduce)')
     .addListener(() => setTilt())
+})
+
+$(document).on('turbo:frame-load', function () {
+  if (BK.thereIs('check_payout_method_inputs') && BK.thereIs('ach_transfer_payout_method_inputs')) {
+    const checkPayoutMethodInputs = BK.s('check_payout_method_inputs')
+    const achTransferPayoutMethodInputs = BK.s('ach_transfer_payout_method_inputs')
+    $(document).on("change", "#user_payout_method_type_userpayoutmethodcheck", e => {
+      if (e.target.checked) checkPayoutMethodInputs.slideDown() && achTransferPayoutMethodInputs.slideUp()
+    })
+    $(document).on("change", "#user_payout_method_type_userpayoutmethodachtransfer", e => {
+      if (e.target.checked) achTransferPayoutMethodInputs.slideDown() && checkPayoutMethodInputs.slideUp()
+    })
+  }
 })
 
 $('[data-behavior~=ctrl_enter_submit]').keydown(function (event) {
@@ -501,3 +501,8 @@ $(document).on('keydown', function (e) {
   }
 })
 
+// Disable scrolling on <input type="number" /> elements
+$(document).on("wheel", "input[type=number]", e => {
+  e.preventDefault()
+  e.target.blur()
+})

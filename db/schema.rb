@@ -749,6 +749,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.boolean "public_reimbursement_page_enabled", default: false, null: false
     t.text "public_reimbursement_page_message"
     t.string "postal_code"
+    t.boolean "reimbursements_require_organizer_peer_review", default: false, null: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -1246,6 +1247,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.boolean "confidential", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "trusted", default: false, null: false
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
 
@@ -1652,8 +1654,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "updated_at", null: false
     t.integer "expense_number", default: 0, null: false
     t.datetime "deleted_at", precision: nil
+    t.bigint "reviewer_id"
     t.index ["event_id"], name: "index_reimbursement_reports_on_event_id"
     t.index ["invited_by_id"], name: "index_reimbursement_reports_on_invited_by_id"
+    t.index ["reviewer_id"], name: "index_reimbursement_reports_on_reviewer_id"
     t.index ["user_id"], name: "index_reimbursement_reports_on_user_id"
   end
 
@@ -1931,6 +1935,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.text "birthday_ciphertext"
     t.string "payout_method_type"
     t.bigint "payout_method_id"
+    t.integer "comment_notifications", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

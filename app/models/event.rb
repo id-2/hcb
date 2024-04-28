@@ -4,58 +4,60 @@
 #
 # Table name: events
 #
-#  id                                :bigint           not null, primary key
-#  aasm_state                        :string
-#  activated_at                      :datetime
-#  address                           :text
-#  can_front_balance                 :boolean          default(TRUE), not null
-#  category                          :integer
-#  country                           :integer
-#  custom_css_url                    :string
-#  deleted_at                        :datetime
-#  demo_mode                         :boolean          default(FALSE), not null
-#  demo_mode_request_meeting_at      :datetime
-#  description                       :text
-#  donation_page_enabled             :boolean          default(TRUE)
-#  donation_page_message             :text
-#  donation_reply_to_email           :text
-#  donation_thank_you_message        :text
-#  end                               :datetime
-#  expected_budget                   :integer
-#  has_fiscal_sponsorship_document   :boolean
-#  hidden_at                         :datetime
-#  holiday_features                  :boolean          default(TRUE), not null
-#  is_indexable                      :boolean          default(TRUE)
-#  is_public                         :boolean          default(TRUE)
-#  last_fee_processed_at             :datetime
-#  name                              :text
-#  omit_stats                        :boolean          default(FALSE)
-#  organization_identifier           :string           not null
-#  owner_address                     :string
-#  owner_birthdate                   :date
-#  owner_email                       :string
-#  owner_name                        :string
-#  owner_phone                       :string
-#  pending_transaction_engine_at     :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
-#  public_message                    :text
-#  public_reimbursement_page_enabled :boolean          default(FALSE), not null
-#  public_reimbursement_page_message :text
-#  redirect_url                      :string
-#  slug                              :text
-#  sponsorship_fee                   :decimal(, )
-#  start                             :datetime
-#  stripe_card_shipping_type         :integer          default("standard"), not null
-#  transaction_engine_v2_at          :datetime
-#  webhook_url                       :string
-#  website                           :string
-#  created_at                        :datetime         not null
-#  updated_at                        :datetime         not null
-#  club_airtable_id                  :text
-#  emburse_department_id             :string
-#  increase_account_id               :string           not null
-#  partner_id                        :bigint
-#  point_of_contact_id               :bigint
-#  postal_code                       :string
+#  id                                           :bigint           not null, primary key
+#  aasm_state                                   :string
+#  activated_at                                 :datetime
+#  address                                      :text
+#  can_front_balance                            :boolean          default(TRUE), not null
+#  category                                     :integer
+#  country                                      :integer
+#  custom_css_url                               :string
+#  deleted_at                                   :datetime
+#  demo_mode                                    :boolean          default(FALSE), not null
+#  demo_mode_request_meeting_at                 :datetime
+#  description                                  :text
+#  donation_page_enabled                        :boolean          default(TRUE)
+#  donation_page_message                        :text
+#  donation_reply_to_email                      :text
+#  donation_thank_you_message                   :text
+#  end                                          :datetime
+#  expected_budget                              :integer
+#  has_fiscal_sponsorship_document              :boolean
+#  hidden_at                                    :datetime
+#  holiday_features                             :boolean          default(TRUE), not null
+#  is_indexable                                 :boolean          default(TRUE)
+#  is_public                                    :boolean          default(TRUE)
+#  last_fee_processed_at                        :datetime
+#  name                                         :text
+#  omit_stats                                   :boolean          default(FALSE)
+#  organization_identifier                      :string           not null
+#  owner_address                                :string
+#  owner_birthdate                              :date
+#  owner_email                                  :string
+#  owner_name                                   :string
+#  owner_phone                                  :string
+#  pending_transaction_engine_at                :datetime         default(Sat, 13 Feb 2021 22:49:40.981965000 UTC +00:00)
+#  postal_code                                  :string
+#  public_message                               :text
+#  public_reimbursement_page_enabled            :boolean          default(FALSE)
+#  public_reimbursement_page_message            :text
+#  redirect_url                                 :string
+#  reimbursements_require_organizer_peer_review :boolean          default(FALSE), not null
+#  slug                                         :text
+#  sponsorship_fee                              :decimal(, )
+#  start                                        :datetime
+#  stripe_card_shipping_type                    :integer          default("standard"), not null
+#  transaction_engine_v2_at                     :datetime
+#  webhook_url                                  :string
+#  website                                      :string
+#  created_at                                   :datetime         not null
+#  updated_at                                   :datetime         not null
+#  club_airtable_id                             :text
+#  emburse_department_id                        :string
+#  increase_account_id                          :string           not null
+#  partner_id                                   :bigint
+#  point_of_contact_id                          :bigint
+#
 # Indexes
 #
 #  index_events_on_club_airtable_id                        (club_airtable_id) UNIQUE
@@ -278,13 +280,21 @@ class Event < ApplicationRecord
   has_many :canonical_event_mappings, -> { on_main_ledger }
   has_many :canonical_transactions, through: :canonical_event_mappings
 
+  scope :engaged, -> {
+    Event.where(id: Event.joins(:canonical_transactions)
+        .where("canonical_transactions.date >= ?", 6.months.ago)
+        .distinct)
+  }
+
+  scope :dormant, -> { where.not(id: Event.engaged) }
+
   has_many :fees, through: :canonical_event_mappings
   has_many :bank_fees
 
   has_many :tags, -> { includes(:hcb_codes) }
   has_and_belongs_to_many :event_tags
 
-  has_many :pinned_hcb_codes, class_name: "HcbCode::Pin"
+  has_many :pinned_hcb_codes, -> { includes(hcb_code: [:canonical_transactions, :canonical_pending_transactions]) }, class_name: "HcbCode::Pin"
 
   has_many :check_deposits
 
@@ -643,6 +653,25 @@ class Event < ApplicationRecord
     ]
 
     options[hashid.codepoints.first % options.size]
+  end
+
+  def service_level
+    return 1 if robotics_team?
+    return 1 if hack_club_hq?
+    return 1 if organized_by_hack_clubbers?
+    return 1 if organized_by_teenagers?
+    return 1 if canonical_transactions.revenue.where("date >= ?", 1.year.ago).sum(:amount_cents) >= 50_000_00
+    return 1 if balance_available_v2_cents > 50_000_00
+
+    2
+  end
+
+  def engaged?
+    canonical_transactions.where("date >= ?", 6.months.ago).any?
+  end
+
+  def dormant?
+    !engaged?
   end
 
   private

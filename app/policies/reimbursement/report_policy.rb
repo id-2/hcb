@@ -19,7 +19,7 @@ module Reimbursement
     end
 
     def update?
-      admin || team_member || (creator && unlocked)
+      admin || team_member || (creator && open)
     end
 
     def submit?
@@ -31,7 +31,7 @@ module Reimbursement
     end
 
     def request_reimbursement?
-      (admin || team_member) && open
+      (admin || (team_member && !creator)) && open
     end
 
     def request_changes?
@@ -39,7 +39,7 @@ module Reimbursement
     end
 
     def approve_all_expenses?
-      (admin || team_member) && open
+      (admin || (team_member && !creator)) && open
     end
 
     def reject?

@@ -2,7 +2,7 @@
 
 class UsersController < ApplicationController
   skip_before_action :signed_in_user, only: [:auth, :auth_submit, :choose_login_preference, :set_login_preference, :webauthn_options, :webauthn_auth, :login_code, :exchange_login_code]
-  skip_before_action :redirect_to_onboarding, only: [:edit, :update, :logout]
+  skip_before_action :redirect_to_onboarding, only: [:edit, :update, :logout, :unimpersonate]
   skip_after_action :verify_authorized, except: [:edit, :update]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
   before_action :migrate_return_to, only: [:auth, :auth_submit, :choose_login_preference, :login_code, :exchange_login_code, :webauthn_auth]
@@ -82,6 +82,8 @@ class UsersController < ApplicationController
     initialize_sms_params
 
     resp = LoginCodeService::Request.new(email: @email, sms: @use_sms_auth, ip_address: request.ip, user_agent: request.user_agent).run
+
+    @use_sms_auth = resp[:method] == :sms
 
     if resp[:error].present?
       flash[:error] = resp[:error]
@@ -290,20 +292,6 @@ class UsersController < ApplicationController
     redirect_back fallback_location: settings_previews_path
   end
 
-  def to_the_moon
-    Flipper.enable_actor(:april_fools_2024_04_01, current_user)
-    confetti!(emojis: %w[🚀 🌕 💸 👩‍🚀])
-    flash[:success] = "👩‍🚀 Welcome to the moon, my friend. Enjoy..."
-    redirect_back fallback_location: root_path
-  end
-
-  def back_to_earth
-    Flipper.disable_actor(:april_fools_2024_04_01, current_user)
-    confetti!(emojis: %w[🌍 🌎 🌏])
-    flash[:success] = "🌍 Things are a bit more familiar down here, aren't they now?"
-    redirect_back fallback_location: root_path
-  end
-
   def edit
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.onboarding?
@@ -495,7 +483,8 @@ class UsersController < ApplicationController
       :receipt_report_option,
       :birthday,
       :seasonal_themes_enabled,
-      :payout_method_type
+      :payout_method_type,
+      :comment_notifications
     ]
 
     if @user.stripe_cardholder
@@ -560,6 +549,9 @@ class UsersController < ApplicationController
         params[:return_to] = uri.to_s
       end
     end
+
+  rescue URI::InvalidURIError
+    params.delete(:return_to)
   end
 
 end
