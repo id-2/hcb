@@ -35,12 +35,17 @@
             <%= expense.memo.presence || "Untitled Expense" %>
           </div>
           <% if latest_state_change && latest_state_change.changeset["reimbursement_report_id"]&.first.nil? && latest_state_change.whodunnit %>
-            <% if latest_state_change.changeset["aasm_state"].second == "approved" %>
-              Approved by
-            <% else %>
-              Approval removed by
+            <% reviewed_by = User.find_by(id: latest_state_change.whodunnit || 2891) %>
+            <%# if reviewed_by is the report's creator, team review was not required for this report. %>
+            <%# if a team re-enables team reviews, we'll show each expense as approved by it's creator.  %>
+            <% if reviewed_by != expense.report.user || expense.report.team_review_required? %>
+              <% if latest_state_change.changeset["aasm_state"].second == "approved" %>
+                Approved by
+              <% else %>
+                Approval removed by
+              <% end %>
+              <%= user_mention reviewed_by, { avatar: { style: "vertical-align: sub;" } }, "Unknown User" %>
             <% end %>
-            <%= user_mention User.find_by(id: latest_state_change.whodunnit || 2891), { avatar: { style: "vertical-align: sub;" } }, "Unknown User" %>
           <% end %>
           <%= pop_icon_to "enter",
                     "#",
@@ -73,7 +78,7 @@
   </div>
   <section data-behavior="modal" role="dialog" id="move_<%= expense.id %>" class="modal modal--scroll bg-snow">
     <%= modal_header "Move Expense" %>
-    <%= form_with(model: expense, class: "mb3 mt1", style: "max-width: 600px;", html: { "x-data" => "{valid: false}" }, local: true, data: { turbo: false }) do |form| %>
+    <%= form_with(model: expense, class: "mb3 mt1", style: "max-width: 600px;", html: { "x-data" => "{reportId: null, eventId: null}" }, local: true, data: { turbo: false }) do |form| %>
       <div class="field event-select-target">
         <%= form.label :reimbursement_report_id, "Move To A Pre-Existing Report", class: "mt2 bold" %>
         <%= form.select(:reimbursement_report_id,
@@ -82,7 +87,7 @@
             current_user == expense.report.user ?
               current_user.reimbursement_reports.excluding(expense.report).reject(&:locked?).map { |report| [report.name, report.id] } :
               expense.report.event.reimbursement_reports.excluding(expense.report).reject(&:locked?).map { |report| [report.name, report.id] },
-            { prompt: "Select a report…", required: true, include_blank: "Select a report..." }, "x-model": "valid") %>
+            { prompt: "Select a report…", required: true, include_blank: "Select a report..." }, "x-model": "reportId") %>
         <% unless admin_signed_in? %>
           <span class="muted mt1">You can transfer an expense to any report of yours.</span>
         <% end %>
@@ -93,12 +98,12 @@
             current_user.admin? ?
               Event.all.reorder(Event::CUSTOM_SORT).map { |event| [event.name, event.id] } :
               current_user.events.not_hidden.filter_demo_mode(false).map { |event| [event.name, event.id] },
-            { prompt: "Select an event…", required: true }, "x-model": "valid") %>
+            { prompt: "Select an event…", required: true }, "x-model": "eventId") %>
         <% unless admin_signed_in? %>
           <span class="muted mt1">You can transfer an expense to any report of yours.</span>
         <% end %>
       </div>
-      <%= form.submit "Update Expense", class: "mt2", 'x-show': "valid", 'x-transition.duration.500ms': "" %>
+      <%= form.submit "Update Expense", class: "mt2", 'x-show': "reportId || eventId", 'x-transition.duration.500ms': "" %>
     <% end %>
   </section>
 <% end %>

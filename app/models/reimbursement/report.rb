@@ -84,7 +84,14 @@ module Reimbursement
           end
         end
         after do
-          ReimbursementMailer.with(report: self).review_requested.deliver_later
+          if team_review_required?
+            ReimbursementMailer.with(report: self).review_requested.deliver_later
+          else
+            expenses.pending.each do |expense|
+              expense.mark_approved!
+            end
+            self.mark_reimbursement_requested!
+          end
         end
       end
 
@@ -128,6 +135,13 @@ module Reimbursement
       return "Approved" if reimbursement_approved?
 
       aasm_state.humanize.titleize
+    end
+
+    def admin_status_text
+      return "Review Required" if reimbursement_requested?
+      return "Organizers Reviewing" if submitted?
+
+      status_text
     end
 
     def status_color
@@ -206,6 +220,10 @@ module Reimbursement
 
     def initial_draft?
       draft? && submitted_at.nil?
+    end
+
+    def team_review_required?
+      !event.users.include?(user) || (event.reimbursements_require_organizer_peer_review && event.users.size > 1)
     end
 
     private
