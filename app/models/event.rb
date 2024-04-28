@@ -653,7 +653,7 @@ class Event < ApplicationRecord
     options[hashid.codepoints.first % options.size]
   end
 
-  def service_level
+  def computed_service_level
     return 1 if robotics_team?
     return 1 if hack_club_hq?
     return 1 if organized_by_hack_clubbers?

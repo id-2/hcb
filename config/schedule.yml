@@ -126,3 +126,7 @@ ledger_audit_weekly_job:
 send_admin_reminders_job:
   cron: "0 7 * * *" # run at 7am UTC each morning
   class: "SendAdminRemindersJob"
+
+event_nightly_job:
+  cron: "0 0 * * *" # run every 1 day
+  class: "EventJob::Nightly"
