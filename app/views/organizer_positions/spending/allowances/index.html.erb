@@ -3,7 +3,7 @@
 <%= render "events/nav", selected: :reimbursements %>
 
 <h1 class="heading flex">
-  <span style="flex"><%= @user.name %>'s Spending Controls</span>
+  <span style="flex"><%= @user.name %>'s Spending</span>
   <%= link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "new" } do %>
     <%= inline_icon "docs" %>
     New
