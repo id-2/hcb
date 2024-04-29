@@ -6,8 +6,9 @@ module ExportService
   class Csv
     BATCH_SIZE = 1000
 
-    def initialize(event_id:)
+    def initialize(event_id:, public_only: false)
       @event_id = event_id
+      @public_only = public_only
     end
 
     def run
@@ -36,7 +37,7 @@ module ExportService
         [
           ct.date,
           ct.local_hcb_code.memo,
-          ct.amount_cents,
+          @public_only && ct.likely_account_verification_related? ? 0 : ct.amount_cents,
           ct.local_hcb_code.tags.filter { |tag| tag.event_id == @event_id }.pluck(:label).join(", ")
         ]
       )

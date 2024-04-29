@@ -135,14 +135,14 @@ module ApplicationHelper
     end
   end
 
-  def carousel(content, &block)
-    content_tag :div, class: "carousel", data: { "controller": "carousel", "carousel-target": "carousel", "carousel-slide-value": "0", "carousel-length-value": content.length.to_s } do
+  def carousel(content, current_slide, &block)
+    content_tag :div, class: "carousel", data: { "controller": "carousel", "carousel-target": "carousel", "carousel-slide-value": current_slide.to_s, "carousel-length-value": content.length.to_s } do
       (content_tag :button, class: "carousel__button carousel__button--left pop", data: { "carousel-target": "left" } do
         inline_icon "view-back", size: 40
       end) +
         (content_tag :div, class: "carousel__items" do
           (content.map.with_index do |item, index|
-            content_tag :div, class: "carousel__item #{index == 0 ? 'carousel__item--active' : ''}" do
+            content_tag :div, class: "carousel__item #{index == current_slide ? 'carousel__item--active' : ''}" do
               block.call(item, index)
             end
           end).join.html_safe
@@ -154,7 +154,7 @@ module ApplicationHelper
   end
 
   def relative_timestamp(time, options = {})
-    content_tag :span, "#{options[:prefix]}#{time_ago_in_words time} ago", options.merge(title: time)
+    content_tag :span, "#{options[:prefix]}#{time_ago_in_words time} ago#{options[:suffix]}", options.merge(title: time)
   end
 
   def auto_link_new_tab(text)
@@ -186,7 +186,7 @@ module ApplicationHelper
   end
 
   def anchor_link(id)
-    link_to "##{id}", class: "anchor-link tooltipped tooltipped--s", 'aria-label': "Copy link", 'data-anchor': id, 'data-turbo': false do
+    link_to "##{id}", class: "absolute top-0 -left-8 transition-opacity opacity-0 group-hover/summary:opacity-100 group-target/item:opacity-100 anchor-link tooltipped tooltipped--s", 'aria-label': "Copy link", data: { turbo: false, controller: "clipboard", clipboard_text_value: url_for(only_path: false, anchor: id), action: "clipboard#copy" } do
       inline_icon "link", size: 28
     end
   end
@@ -198,11 +198,15 @@ module ApplicationHelper
   end
 
   def help_message
-    content_tag :span, "Contact the HCB team at #{help_email}.".html_safe
+    content_tag :span, "Contact the HCB team at #{help_email} or #{help_phone}.".html_safe
   end
 
   def help_email
     mail_to "hcb@hackclub.com"
+  end
+
+  def help_phone
+    phone_to "+18442372290", "+1 (844) 237 2290"
   end
 
   def format_date(date)

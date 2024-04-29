@@ -40,6 +40,13 @@ class AdminController < ApplicationController
     @canonical_pending_transactions = CanonicalPendingTransaction.unmapped.where(amount_cents: @canonical_transaction.amount_cents)
     @ahoy_events = Ahoy::Event.where("name in (?) and (properties->'canonical_transaction'->>'id')::int = ?", [::SystemEventService::Write::SettledTransactionMapped::NAME, ::SystemEventService::Write::SettledTransactionCreated::NAME], @canonical_transaction.id).order("time desc")
 
+    # Mapping confirm message
+    @mapping_confirm_msg = if !@canonical_transaction.local_hcb_code.unknown?
+                             "Woaaahaa! 😯 This seems like a transaction that SHOULD NOT be manually mapped! Are you sure you want to do this? 👀"
+                           elsif @canonical_transaction.amount_cents.abs >= 5_000_00 # $5k
+                             "Are you really really sure you want to map this transaction? 🤔 it seems like a big one :)"
+                           end
+
     render layout: "admin"
   end
 
@@ -167,6 +174,7 @@ class AdminController < ApplicationController
   def events
     @page = params[:page] || 1
     @per = params[:per] || 100
+    @csv_export = params[:format] == "csv"
 
     @events = filtered_events
     @count = @events.count
@@ -269,14 +277,16 @@ class AdminController < ApplicationController
     @q = params[:q].present? ? params[:q] : nil
     @access_level = params[:access_level]
     @event_id = params[:event_id].present? ? params[:event_id] : nil
+    @params = params.permit(:page, :per, :q, :access_level, :event_id)
 
     if @event_id
       @event = Event.find(@event_id)
 
-      relation = @event.users.includes(:events)
+      relation = @event.users
     else
-      relation = User.includes(:events)
+      relation = User.all
     end
+    relation = relation.includes(:events).includes(:card_grants)
 
     relation = relation.search_name(@q) if @q
     relation = relation.where(access_level: @access_level) if @access_level.present?
@@ -285,7 +295,12 @@ class AdminController < ApplicationController
 
     @users = relation.page(@page).per(@per).order(created_at: :desc)
 
-    render layout: "admin"
+    respond_to do |format|
+      format.html do
+        render layout: "admin"
+      end
+      format.csv { render csv: @users.includes(:stripe_cards, :emburse_cards) }
+    end
   end
 
   def stripe_cards
@@ -477,6 +492,36 @@ class AdminController < ApplicationController
     @ach_transfers = relation.page(@page).per(@per).order(
       Arel.sql("aasm_state = 'pending' DESC"),
       "created_at desc"
+    )
+
+    render layout: "admin"
+  end
+
+  def reimbursements
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @q = params[:q].present? ? params[:q] : nil
+    @pending = params[:pending] == "1" ? true : nil
+
+    @event_id = params[:event_id].present? ? params[:event_id] : nil
+
+    if @event_id
+      @event = Event.find(@event_id)
+
+      relation = @event.reimbursement_reports.includes(:event)
+    else
+      relation = Reimbursement::Report.includes(:event)
+    end
+
+    relation = relation.search(@q) if @q
+
+    relation = relation.reimbursement_requested if @pending
+
+    @count = relation.count
+    @reports = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'reimbursement_requested' DESC"),
+      Arel.sql("aasm_state = 'draft' ASC"),
+      "reimbursement_reports.created_at desc"
     )
 
     render layout: "admin"
@@ -755,8 +800,8 @@ class AdminController < ApplicationController
 
     relation = HcbCode
 
-    relation = relation.where("hcb_code ilike '%#{@q}%'") if @q
-    relation = relation.missing_receipt if @has_receipt == "no"
+    relation = relation.where("hcb_codes.hcb_code ilike '%#{@q}%'") if @q
+    relation = relation.receipt_required.missing_receipt if @has_receipt == "no"
     relation = relation.has_receipt_or_marked_no_or_lost if @has_receipt == "yes"
     relation = relation.lost_receipt if @has_receipt == "lost"
 
@@ -788,6 +833,7 @@ class AdminController < ApplicationController
     @missing_payout = params[:missing_payout] == "1" ? true : nil
     @missing_fee_reimbursement = params[:missing_fee_reimbursement] == "1" ? true : nil
     @past_due = params[:past_due] == "1" ? true : nil
+    @voided = params[:voided] == "1" ? true : nil
 
     @event_id = params[:event_id].present? ? params[:event_id] : nil
 
@@ -814,6 +860,8 @@ class AdminController < ApplicationController
     relation = relation.missing_payout if @missing_payout
     relation = relation.missing_fee_reimbursement if @missing_fee_reimbursement
     relation = relation.past_due if @past_due
+    relation = relation.void_v2 if @voided
+
 
     @count = relation.count
     @invoices = relation.page(@page).per(@per).order(created_at: :desc)
@@ -896,30 +944,6 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
-  def transaction_csvs
-    @page = params[:page] || 1
-    @per = params[:per] || 20
-    @q = params[:q].present? ? params[:q] : nil
-
-    relation = TransactionCsv
-
-    @count = relation.count
-    @transaction_csvs = relation.page(@page).per(@per).order("created_at desc")
-
-    render layout: "admin"
-  end
-
-  def upload
-    attrs = {
-      file: params[:file]
-    }
-    transaction_csv = TransactionCsv.create!(attrs)
-
-    ::TransactionEngineJob::TransactionCsvUpload.perform_later(transaction_csv.id)
-
-    redirect_to transaction_csvs_admin_index_path, flash: { success: "CSV Uploaded" }
-  end
-
   def google_workspace_approve
     @g_suite = GSuite.find(params[:id])
 
@@ -951,6 +975,25 @@ class AdminController < ApplicationController
     redirect_to transaction_admin_path(params[:id]), flash: { error: e.message }
   end
 
+  def set_event_multiple_transactions
+    ActiveRecord::Base.transaction do
+      params.each do |key, value|
+        next unless value == "1" && CanonicalTransaction.find(key)
+
+        begin
+          @canonical_transaction = ::CanonicalTransactionService::SetEvent.new(
+            canonical_transaction_id: key,
+            event_id: params[:event_id],
+            user: current_user
+          ).run
+        rescue => e
+          return redirect_to transaction_admin_path(id), flash: { error: e.message }
+        end
+      end
+    end
+    redirect_back fallback_location: ledger_admin_index_path
+  end
+
   def audit
     @topups = StripeService::Topup.list[:data]
   end
@@ -967,7 +1010,7 @@ class AdminController < ApplicationController
       flash[:info] = "Do you really want the Start Date to be after the End Date?"
     end
 
-    @events = filtered_events.includes(:event_tags)
+    @events = filtered_events
 
     render_balance = ->(event, type) {
       ApplicationController.helpers.render_money(event.send(type, start_date: @start_date, end_date: @end_date))
@@ -982,22 +1025,24 @@ class AdminController < ApplicationController
 
     # Must be wrapped in lambdas
     template = [
-      [:organization_id, ->(e) { e.id }],
-      [:organization_name, ->(e) { e.name }],
-      [:net_balance, ->(e) { render_balance.call(e, :settled_balance_cents) }],
-      [:expenses, ->(e) { render_balance.call(e, :settled_outgoing_balance_cents) }],
-      [:revenue, ->(e) { render_balance.call(e, :settled_incoming_balance_cents) }],
-      [:start_date, ->(_) { @start_date }],
-      [:end_date, ->(_) { @end_date }]
+      ["ID", ->(e) { e.id }],
+      [:organization, ->(e) { e.name }],
+      [:current_balance, ->(e) { render_balance.call(e, :settled_balance_cents) }],
+      [:total_expenses, ->(e) { render_balance.call(e, :settled_outgoing_balance_cents) }],
+      [:total_income, ->(e) { render_balance.call(e, :settled_incoming_balance_cents) }]
     ]
 
+    unless @monthly_breakdown
+      template.append([:start_date, ->(_) { @start_date }])
+      template.append([:end_date, ->(_) { @end_date }])
+    end
 
     if @monthly_breakdown
       template.concat(
         [
           [:category, ->(e) { e.category }],
           [:tags, ->(e) { e.event_tags.pluck(:name).join(",") }],
-          [:joined, ->(e) { e.activated_at || e.created_at }],
+          [:joined, ->(e) { (e.activated_at || e.created_at).strftime("%Y-%m-%d") }],
         ]
       )
       @monthly_revenue =
@@ -1016,10 +1061,10 @@ class AdminController < ApplicationController
         end
       monthly_revenue_columns = (2018..Date.current.year).flat_map do |year|
         (1..12).take_while { |month| (year == Date.current.year && month <= Date.current.month) || year < Date.current.year }
-               .map { |month| ["monthly_revenue_#{Date::MONTHNAMES[month]}_#{year}", ->(e) { render_monthly_revenue.call(e, year, month) }] }
+               .map { |month| ["#{Date::ABBR_MONTHNAMES[month]} #{year} Income", ->(e) { render_monthly_revenue.call(e, year, month) }] }
       end
 
-      template.concat(monthly_revenue_columns)
+      template.concat(monthly_revenue_columns.reverse)
     end
 
     serializer = ->(event) do
@@ -1030,7 +1075,7 @@ class AdminController < ApplicationController
 
     @data = @events.map { |event| serializer.call(event) }
     header_syms = template.transpose.first
-    @headers = header_syms.map { |h| h.to_s.titleize(keep_id_suffix: true) }
+    @headers = header_syms.map { |h| h.is_a?(String) ? h : h.to_s.titleize(keep_id_suffix: true) }
     @rows = @data.map { |d| d.values }
     @count = @rows.count
 
@@ -1045,6 +1090,7 @@ class AdminController < ApplicationController
         require "csv"
 
         csv = Enumerator.new do |y|
+          y << ::CSV::Row.new(header_syms, ["", "Report generated on #{Time.now.in_time_zone('Eastern Time (US & Canada)').strftime("%Y-%m-%d at %l:%M %p %Z")}"], true).to_s
           y << ::CSV::Row.new(header_syms, @headers, true).to_s
 
           @rows.each do |row|
@@ -1092,6 +1138,14 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
+  def hq_receipts
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @users = User.where(id: Event.hack_club_hq.or(Event.omitted).includes(:users).flat_map(&:users).map(&:id)).page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
   private
 
   def stream_data(content_type, filename, data, download = true)
@@ -1107,6 +1161,7 @@ class AdminController < ApplicationController
   def filtered_events(events: Event.all)
     @q = params[:q].present? ? params[:q] : nil
     @demo_mode = params[:demo_mode].present? ? params[:demo_mode] : "full" # full accounts only by default
+    @engaged = params[:engaged] == "1" # unchecked by default
     @pending = params[:pending] == "0" ? nil : true # checked by default
     @unapproved = params[:unapproved] == "0" ? nil : true # checked by default
     @approved = params[:approved] == "0" ? nil : true # checked by default
@@ -1116,12 +1171,14 @@ class AdminController < ApplicationController
     @funded = params[:funded].present? ? params[:funded] : "both" # both by default
     @hidden = params[:hidden].present? ? params[:hidden] : "both" # both by default
     @organized_by = params[:organized_by].presence || "anyone"
+    @tagged_with = params[:tagged_with].presence || "anything"
     if params[:category] == "none"
       @category = "none"
     else
       @category = params[:category].present? ? params[:category] : "all"
     end
     @point_of_contact_id = params[:point_of_contact_id].present? ? params[:point_of_contact_id] : "all"
+    @fee = params[:fee].present? ? params[:fee] : "all"
     if params[:country] == 9999.to_s
       @country = 9999
     else
@@ -1135,6 +1192,7 @@ class AdminController < ApplicationController
     # Omit orgs if they were created after the end date
     relation = relation.where("events.created_at <= ?", @end_date) if @end_date
     relation = relation.search_name(@q) if @q
+    relation = relation.engaged if @engaged
     relation = relation.transparent if @transparent == "transparent"
     relation = relation.not_transparent if @transparent == "not_transparent"
     relation = relation.omitted if @omitted == "omitted"
@@ -1148,7 +1206,10 @@ class AdminController < ApplicationController
     relation = relation.not_organized_by_teenagers if @organized_by == "adults"
     relation = relation.demo_mode if @demo_mode == "demo"
     relation = relation.not_demo_mode if @demo_mode == "full"
-    relation = relation.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date) if @activity_since_date.present?
+    relation = relation.includes(:event_tags)
+    relation = relation.where(event_tags: { id: @tagged_with }) unless @tagged_with == "anything"
+    relation = relation.where(id: events.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date)) if @activity_since_date.present?
+    relation = relation.where("sponsorship_fee = ?", @fee) if @fee != "all"
     if @category == "none"
       relation = relation.where(category: nil)
     elsif @category != "all"
@@ -1171,9 +1232,9 @@ class AdminController < ApplicationController
     # Sorting
     case @sort_by
     when "balance_asc"
-      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents))
+      relation = @csv_export ? relation.sort_by(&:balance_v2_cents) : Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents))
     when "balance_desc"
-      relation = Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents).reverse!)
+      relation = @csv_export ? relation.sort_by(&:balance_v2_cents).reverse! : Kaminari.paginate_array(relation.sort_by(&:balance_v2_cents).reverse!)
     else # Default sort is "date_desc"
       relation = relation.reorder(Arel.sql("COALESCE(events.activated_at, events.created_at) desc"))
     end

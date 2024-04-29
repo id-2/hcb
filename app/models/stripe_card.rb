@@ -108,6 +108,7 @@ class StripeCard < ApplicationRecord
                         if: -> { self.stripe_id.present? }
 
   validate :only_physical_cards_can_be_lost_in_shipping
+  validates_length_of :name, maximum: 40
 
   def full_card_number
     secret_details[:number]
@@ -223,13 +224,13 @@ class StripeCard < ApplicationRecord
   def stripe_obj
     @stripe_obj ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id)
   rescue => e
-    { number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered" } }
+    OpenStruct.new({ number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered", carrier: "USPS", eta: 2.weeks.ago, tracking_number: "12345678s9" } })
   end
 
   def secret_details
     @secret_details ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id, expand: ["cvc", "number"])
   rescue => e
-    { number: "XXXX", cvc: "XXX" }
+    OpenStruct.new({ number: "XXXX", cvc: "XXX" })
   end
 
   def shipping_has_tracking?
@@ -361,6 +362,10 @@ class StripeCard < ApplicationRecord
     else
       event.balance_available_v2_cents
     end
+  end
+
+  def expired?
+    Time.now.utc > Time.new(stripe_exp_year, stripe_exp_month).end_of_month
   end
 
   private

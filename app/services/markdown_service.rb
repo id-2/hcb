@@ -5,16 +5,52 @@ class MarkdownService
 
   class MarkdownRenderer < Redcarpet::Render::HTML
     include ApplicationHelper # for render_money helper
+    include UsersHelper # for mention users helper
+    include Rails.application.routes.url_helpers
+
+    def context(current_user: nil, record: nil, location: nil)
+      @current_user = current_user
+      @record = record
+      @location = location
+      self
+    end
+
+    def preprocess(fulldoc)
+
+      # this is used to link expenses in expense report comments
+      # code that finds any lines like #1 and replaces them with links to the elements with id
+
+      fulldoc.gsub!(/#(\d+)/) do |match|
+        id = $1.to_i
+        "[#{match}](#{match})"
+      end
+
+      fulldoc
+    end
+
+    def postprocess(fulldoc)
+
+      # this is used to strip "@" from user mentions post-HTML generation
+      # this is because users type emails like: @sam.r.poder@gmail.com
+      # to mention people, but RedCarpet's autolink only picks up
+      # the email portion of that string.
+
+      fulldoc.gsub!("@<span class=\"mention", "<span class=\"mention")
+      fulldoc.gsub!("@<a class=\"mention", "<a class=\"mention")
+
+      fulldoc
+    end
 
     def link(link, title, alt_text)
       link_to alt_text, link, title:,
-                              target: "_blank"
+                              target: link.start_with?("#") ? "" : "_blank"
     end
 
     def autolink(link, link_type)
       try_card_autolink(link) or
         try_hcb_autolink(link) or
         try_event_autolink(link) or
+        try_user_autolink(link, link_type) or
         link_to link, link, title: link_type
     end
 
@@ -41,6 +77,19 @@ class MarkdownService
       end
     rescue Pundit::NotAuthorizedError
       return nil
+    end
+
+    def try_user_autolink(link, link_type)
+      return nil unless link_type == :email
+
+      u = User.find_by(email: link)
+      return nil unless u && @record && Pundit.policy(u, @record)&.show?
+
+      if @location == :email
+        return mail_to link, "@#{u.name}", class: "mention"
+      end
+
+      user_mention(u, click_to_mention: true, comment_mention: true)
     end
 
     def try_card_autolink(link)
@@ -97,9 +146,9 @@ class MarkdownService
 
   end
 
-  def renderer
-    markdown_renderer = MarkdownRenderer.new(hard_wrap: true,
-                                             filter_html: true)
+  def renderer(current_user: nil, record: nil, location: nil)
+    markdown_renderer = MarkdownRenderer.new(hard_wrap: true, filter_html: true)
+                                        .context(current_user:, record:, location:)
     Redcarpet::Markdown.new(markdown_renderer, strikethrough: true,
                                                tables: true,
                                                autolink: true)

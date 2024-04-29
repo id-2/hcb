@@ -6,6 +6,7 @@
 #
 #  id                                  :bigint           not null, primary key
 #  amount                              :integer
+#  anonymous                           :boolean          default(FALSE), not null
 #  canceled_at                         :datetime
 #  email                               :text
 #  last4_ciphertext                    :text
@@ -121,6 +122,10 @@ class RecurringDonation < ApplicationRecord
     else
       donations.sum(:amount)
     end
+  end
+
+  def name(show_anonymous: false)
+    anonymous? && !show_anonymous ? "Anonymous" : super()
   end
 
   private

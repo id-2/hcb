@@ -10,15 +10,21 @@ class DisbursementPolicy < ApplicationPolicy
   end
 
   def new?
-    user.admin? || user_associated_with_events?
+    user&.admin? || (
+      (record.destination_event.nil? || record.destination_event.users.include?(user)) &&
+      (record.source_event.nil?      || record.source_event.users.include?(user))
+    )
   end
 
   def create?
-    user.admin? || (!record.outernet_guild? && user_associated_with_events?)
+    user&.admin? || (
+      record.destination_event.users.include?(user) &&
+      Pundit.policy(user, record.source_event).create_transfer?
+    )
   end
 
   def transfer_confirmation_letter?
-    admin_or_user
+    admin_or_user?
   end
 
   def edit?
@@ -43,13 +49,8 @@ class DisbursementPolicy < ApplicationPolicy
 
   private
 
-  def admin_or_user
+  def admin_or_user?
     user&.admin? || record.event.users.include?(user)
-  end
-
-  def user_associated_with_events?
-    (record.nil? or record.users.include?(user)) and
-      Flipper.enabled?(:transfers_2022_04_21, user)
   end
 
 end

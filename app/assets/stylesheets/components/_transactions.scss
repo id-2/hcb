@@ -42,7 +42,7 @@
       right: 0;
       bottom: 0;
       opacity: 0.1;
-      background-image: #{image-url('frc-background.png')};
+      background-image: url('frc-background.png');
       background-size: 24em;
       background-position: center;
       background-attachment: fixed;
@@ -83,14 +83,14 @@ html[data-dark='true'] {
   }
 
   .add-tag-badge {
-    display: none;
+    visibility: hidden;
     cursor: pointer;
   }
 }
 
 [class^='transaction--']:hover .add-tag-badge,
 .add-tag-badge[aria-expanded='true'] {
-  display: block;
+  visibility: visible;
 }
 
 [class^='transaction--']:target {
@@ -118,8 +118,19 @@ html[data-dark='true'] {
 }
 
 .transaction--positive:has(.renamed), 
-.transaction--negative:has(.renamed) {
+.transaction--negative:has(.renamed),
+.transaction--zero:has(.renamed) {
   animation: highlight 2s;
+}
+
+.transaction--positive:has(.renaming), 
+.transaction--negative:has(.renaming),
+.transaction--zero:has(.renaming) {
+  background-image: linear-gradient(90deg, $orange 50%, transparent 50%), linear-gradient(90deg, $orange 50%, transparent 50%), linear-gradient(0deg, $orange 50%, transparent 50%), linear-gradient(0deg, $orange 50%, transparent 50%);
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  background-size: 50px 2px, 50px 2px, 2px 50px, 2px 50px;
+  background-position: 0 0, 0 100%, 0 100%, 100% 20px;
+  animation: border-dance 1s infinite linear;
 }
 
 @keyframes highlight {

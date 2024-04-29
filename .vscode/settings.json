@@ -26,11 +26,12 @@
   "[ruby][gemfile]": {
     "editor.defaultFormatter": "castwide.solargraph"
   },
-  "[ruby][gemfile][erb]": {
+  "[ruby][gemfile][erb][javascript]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true
   },
   "files.associations": {
     "apple-app-site-association": "json"
-  }
+  },
+  "css.validate": false
 }

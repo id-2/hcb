@@ -6,9 +6,14 @@
   <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: "Select An Event", selected: @event_id }, { width: 250, style: "max-width: 250px" }) %>
 
   <%= form.select :access_level, User.access_levels.keys.map { |level| [level.humanize, level] }, { include_blank: "All user types", selected: @access_level } %>
+
   <div>
     <%= form.submit "Search" %>
   </div>
+  
+  <%= link_to @params.merge(format: :csv) do %>
+    <button type="button" <%= "disabled" if @users.count == 0 %>>Export <%= pluralize @users.count, "record" %></button>
+  <% end %>
 <% end %>
 
 <div class="flex items-center mb2">
@@ -26,6 +31,8 @@
       <th>Name</th>
       <th>Email</th>
       <th>Org Positions</th>
+      <th class="w-48">Card Grants</th>
+      <th># Receipts Missing</th>
       <th class="w-32">Actions</th>
     </tr>
   </thead>
@@ -35,7 +42,7 @@
         <td><%= user.id %></td>
         <td><%= user.created_at.strftime("%Y-%m-%d") %></td>
         <td>
-          <%= link_to edit_user_path(user) do %>
+          <%= link_to admin_user_path(user) do %>
             <%= user.name %>
           <% end %>
         </td>
@@ -56,7 +63,25 @@
           <% end %>
         </td>
         <td>
+          <% if user.card_grants.any? %>
+            <% user.card_grants.each do |cg| %>
+              <%= link_to cg do %>
+                <%= cg.id %>
+                <% if cg.stripe_card&.frozen? %>
+                   <%= inline_icon "freeze", size: 15 %>
+                <% end %>
+              <% end %>
+            <% end %>
+          <% else %>
+            None
+          <% end %>
+        </td>
+        <td>
+          <%= user.transactions_missing_receipt.count %>
+        </td>
+        <td>
           <%= link_to "Impersonate", impersonate_user_path(user.id), data: { turbo_confirm: "Are you sure?", turbo_method: "post" } %>
+          <%= link_to "More Info", admin_user_path(user) %>
         </td>
       </tr>
     <% end %>

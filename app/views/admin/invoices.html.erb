@@ -24,6 +24,10 @@
       <%= form.check_box :past_due, checked: @past_due, class: "ml1" %>
       Past due
     <% end %>
+    <%= form.label :voided do %>
+      <%= form.check_box :voided, checked: @voided %>
+      Voided
+    <% end %>
   </fieldset>
   <%= form.submit "Search" %>
 <% end %>

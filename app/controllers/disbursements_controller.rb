@@ -56,15 +56,15 @@ class DisbursementsController < ApplicationController
                                     current_user.events.not_hidden.without(@source_event).filter_demo_mode(false)
                                   end
 
-    authorize @destination_event, policy_class: DisbursementPolicy
-    authorize @source_event, policy_class: DisbursementPolicy
+    authorize @disbursement
   end
 
   def create
     @source_event = Event.friendly.find(disbursement_params[:source_event_id])
     @destination_event = Event.friendly.find(disbursement_params[:event_id])
-    authorize @source_event, policy_class: DisbursementPolicy
-    authorize @destination_event, policy_class: DisbursementPolicy
+    @disbursement = Disbursement.new(destination_event: @destination_event, source_event: @source_event)
+
+    authorize @disbursement
 
     disbursement = DisbursementService::Create.new(
       name: disbursement_params[:name],

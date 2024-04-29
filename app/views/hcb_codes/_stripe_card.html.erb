@@ -1,8 +1,9 @@
-<% title "#{render_money(@hcb_code.amount_cents.abs)} charge for #{@hcb_code.memo}" %>
+<% title "#{render_money(@hcb_code.amount_cents.abs)} #{@hcb_code.stripe_refund? ? "refund" : "charge"} for #{@hcb_code.memo}" %>
 <% instance = @hcb_code.hashid %>
 
-<% admin_tools("mt1") do %>
+<% admin_tool("mt1") do %>
   <%= link_to "View on Stripe", @hcb_code.stripe_auth_dashboard_url, class: "btn bg-accent" %>
+  <%= link_to "Flag Transaction", admin_ledger_audits_tasks_path(hcb_code: @hcb_code.id), method: :post, class: "btn bg-error" %>
 <% end %>
 
 <% @hcb_code.canonical_pending_transactions.each do |pt| %>
@@ -16,9 +17,9 @@
 <div class="mt2 mb3">
 <article class="card pb0 mt3 mb1">
 
-  <h2 class="h2 mt0 mx0 border-none flex items-center justify-between">
+  <h2 class="h2 mt0 mx0 border-none flex items-center justify-between" style="gap: 8px">
     <span class="flex-auto">
-      <%= turbo_frame_tag @hcb_code do %>
+      <%= turbo_frame_tag @hcb_code, class: "flex items-center" do %>
         <%= pop_icon_to "edit",
             edit_hcb_code_path(@hcb_code),
             class: "mr2 align-middle", "aria-label": "Rename transaction",
@@ -51,10 +52,11 @@
 
       <% if @hcb_code.personal_transaction.present? %>
         <span class="badge h4 md-right bg-warning">
-          Personal Transaction
+          Personal
           <%= inline_icon :info, size: 20 %>
         </span>
-    <% end %>
+      <% end %>
+      <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
     </h2>
 
     <section class="card__banner card__darker details-horiz border-top border-bottom">
@@ -84,10 +86,26 @@
 
     <section class="details details--wide pt2 pb2 details--tall">
       <% if @hcb_code.pt&.declined? %>
-      <p>
-      <strong>Declined</strong>
-      <span><em>This transaction was declined.</em></span>
-      </p>
+        <% reason = @hcb_code.pt.raw_pending_stripe_transaction.stripe_transaction["request_history"][0]["reason"] %>
+        <% webhook_declined_reason = @hcb_code.pt.raw_pending_stripe_transaction.stripe_transaction.dig("metadata", "declined_reason") %>
+        <p>
+        <strong>Declined</strong>
+        <span>
+          <% if reason == "card_inactive" && !@hcb_code.stripe_card.activated? %>
+            <em>This transaction was declined by HCB as this card isn't activated.</em>
+          <% elsif reason == "card_inactive" %>
+            <em>This transaction was declined by HCB as this card is frozen.</em>
+          <% elsif reason == "suspected_fraud" || reason == "verification_failed" %>
+            <em>This transaction was declined by HCB due to failed suspected fraud / failed checks.</em>
+          <% elsif reason == "webhook_declined" && webhook_declined_reason == "merchant_not_allowed" %>
+            <em>This transaction was declined by HCB because this merchant is not allowed.</em>
+          <% elsif reason == "webhook_declined" %>
+            <em>This transaction was declined by HCB due to insufficient funds.</em>
+          <% else %>
+            <em>This transaction was declined.</em>
+          <% end %>
+        </span>
+        </p>
       <% end %>
       <% if @hcb_code.pt&.unsettled? %>
       <p>
@@ -104,7 +122,7 @@
             <details>
               <summary class="inline-flex no-select">
                 <%= country_to_emoji @hcb_code.stripe_merchant["country"] %>
-                <%= @hcb_code.stripe_merchant["name"] %>
+                <%= humanized_merchant_name @hcb_code.stripe_merchant %>
                 <%= inline_icon "down-caret", size: 24, class: "muted flip-when-open", 'aria-label': "Icon indicating click for more" %>
               </summary>
 
@@ -112,7 +130,7 @@
                 <p>
                   <strong>Name</strong>
                   <span>
-                    <%= @hcb_code.stripe_merchant["name"].humanize.capitalize %>
+                    <%= humanized_merchant_name @hcb_code.stripe_merchant %>
                   </span>
                 </p>
                 <p>
@@ -159,7 +177,7 @@
             <action data-behavior="modal_trigger" data-modal="merchant_details_<%= instance %>" class="pointer" tabindex="0">
               <span class="inline-flex">
                 <%= country_to_emoji @hcb_code.stripe_merchant["country"] %>
-                <%= @hcb_code.stripe_merchant["name"] %>
+                <%= humanized_merchant_name @hcb_code.stripe_merchant %>
                 <%= inline_icon "external", size: 24, class: "muted", 'aria-label': "Icon indicating click for more" %>
               </span>
             </action>
@@ -232,6 +250,16 @@
             <%= link_to @hcb_code.personal_transaction.invoice.local_hcb_code.memo, @hcb_code.personal_transaction.invoice %>
           </p>
         <% end %>
+        <% if @hcb_code.card.card_grant.present? %>
+          <p>
+            <strong>Merchant ID</strong>
+            <%= @hcb_code.stripe_merchant["network_id"] %>
+          </p>
+          <p>
+            <strong>Category</strong>
+            <%= @hcb_code.stripe_merchant["category"]&.humanize %>
+          </p>
+        <% end %>
       <% end %>
       <%= render "hcb_codes/tags", hcb_code: @hcb_code, event: (@event || @hcb_code.event) %>
     </section>
@@ -262,11 +290,6 @@
     <% end %>
 
   </article>
-  <div class="flex justify-end align-middle flex-wrap hcb_code_actions" style="gap: 12px">
-    <%= render partial: "hcb_codes/pin", locals: { hcb_code: @hcb_code } %>
-    <%= render partial: "hcb_codes/personal_transaction", locals: { hcb_code: @hcb_code } %>
-    <%= render partial: "hcb_codes/dispute", locals: { type: "card", hcb_code: @hcb_code } %>
-  </div>
 </div>
 
 <% unless defined?(@frame) && @frame %>
@@ -278,7 +301,7 @@
         <p>
           <strong>Name</strong>
           <span>
-            <%= @hcb_code.stripe_merchant["name"].humanize.capitalize %>
+            <%= humanized_merchant_name @hcb_code.stripe_merchant %>
           </span>
         </p>
         <p>

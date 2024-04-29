@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-dark="<%= !!@dark %>" <%= "data-ignore-theme" unless @dark.nil? %>>
+  <!-- come hack with us on hcb! <%= Rails.configuration.constants.hack_on_hcb_form_url %> -->
   <head>
     <title>
       <%= yield(:title).concat(" –") if content_for?(:title) %>
@@ -29,6 +30,32 @@
       <script async src="https://cdn.headwayapp.co/widget.js"></script>
     <% end %>
 
+    <script>
+      console.log(`%c                -*%@@%*-
+            .=#@@@@@@@@@@#=.
+         .=%@@@@@*-..-*@@@@@%=.
+       -#@@@@@+:        :+@@@@@#-
+    :*@@@@@*:              :*@@@@@*:
+  =%@@@@#-                    -#@@@@%=.
+*@@@@@+.                        .+@@@@@*
+*@@*-   *@@*      *@@*      *@@*   :*@@*
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        @@@@      @@@@      @@@@
+        *@@*      *@@*      *@@*
+
+  *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
+  *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
+
+        Come hack on HCB with us!
+<%= Rails.configuration.constants.hack_on_hcb_form_url %>
+`, 'color: #ec3750; font-weight: bold; font-size: 10px;')
+    </script>
+
     <meta name="format-detection" content="telephone=no">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <% if user_birthday? %>
@@ -51,7 +78,14 @@
                         options: @tour&.tourable&.try(:tourable_options) || {},
                         back_to_tour: @back_to_tour %>
 
-    <% if @event&.is_public && !organizer_signed_in? && !@no_app_shell && !@no_transparency_header %>
+    <% if current_session&.impersonated? %>
+      <div class="w-100 px4 bg-white transparency-banner">
+        <p class="h5 medium center mt1 mb1">
+          <%= link_to "← Exit Impersonation", unimpersonate_user_path(current_user&.id, return_to: request.url), data: { turbo_method: "post", turbo_frame: "_top" } %> | You're currently impersonating <%= user_mention User.find(current_user&.id) %>
+        </p>
+      </div>
+    <% end %>
+    <% if @event&.is_public && !organizer_signed_in? && !@no_app_shell && !@no_transparency_header && !@use_user_nav %>
       <div class="w-100 px3 bg-white transparency-banner" data-behavior="hide_iframe">
         <p class="h5 medium center mt1 mb1">
           This HCB project has been made public so you can see all its finances.
@@ -61,70 +95,27 @@
     <% end %>
 
     <% if @event&.demo_mode? && !@no_app_shell && !@no_transparency_header %>
-      <style>
-        .banner-content {
-          grid-template-columns: 1fr 2fr 1fr;
-          place-items: center;
-
-          @media (max-width: 660px) {
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 1rem;
-
-            .playground-desc {
-              order: 1;
-            }
-          }
-        }
-      </style>
-      <div class="w-full dev-banner dev-banner--info rounded-bottom">
-        <div class="flex flex-column container container--md center pb2">
-          <p class="bold center m0" style="font-size: 2rem;">Playground Mode</p>
-          <div class="grid g3 banner-content">
-            <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn bg-primary shrink-none nowrap #{"disabled" unless can_request_activation? }", data: { tour_step: "activate_account" } do %>
-              <%= inline_icon "welcome" %>Request Activation
-            <% end %>
-            <p class="center m0 playground-desc">While in Playground mode, explore the dashboard with mock data, and invite your team.<br>To utilise financial features, activate your account!</p>
-            <button
-              id="mock-data-toggle"
-              data-mock-data-status="<%= show_mock_data? %>"
-              class="btn btn-small shrink-none nowrap">
-              <%= inline_icon "view" %>
-              <%= show_mock_data? ? "Hide" : "Show" %> Mock Data
-            </button>
-            <script>
-              document.getElementById("mock-data-toggle").addEventListener("click", ({ target }) => {
-                const currentStatus = target.dataset.mockDataStatus === "true" ? true : false;
-                const url = new URL(window.location.href);
-                url.searchParams.set("show_mock_data", !currentStatus);
-                window.location.href = url.toString();
-              });
-            </script>
-          </div>
+      <%= link_to "#{event_url @event}#playground-callout", class: "w-full dev-banner dev-banner--info rounded-b no-underline", style: "color: unset" do %>
+        <div class="flex flex-col md:flex-row gap-y-2 gap-x-6 py-6 items-center justify-center">
+          <p class="font-semibold text-xl m0">Playground Mode</p>
+          <button id="mock-data-toggle" data-mock-data-status="<%= show_mock_data? %>" class="btn btn-small w-fit shrink-none nowrap">
+            <%= inline_icon "view" %>
+            <%= show_mock_data? ? "Hide" : "Show" %> Mock Data
+          </button>
+          <script>
+            document.getElementById("mock-data-toggle").addEventListener("click", ({ target }) => {
+              const currentStatus = target.dataset.mockDataStatus === "true" ? true : false;
+              const url = new URL(window.location.href);
+              url.searchParams.set("show_mock_data", !currentStatus);
+              window.location.href = url.toString();
+            });
+          </script>
         </div>
-      </div>
-      <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="demo_mode">
-        <%= modal_header "Playground Mode" %>
-        <% if organizer_signed_in? %>
-          <p>
-            Your account is in <strong>Playground Mode</strong>. You can sign in and poke around, but many features are disabled. Once you're ready to activate your account, you can schedule a call with the HCB team.
-          </p>
-          <% if @event.demo_mode_request_meeting_at.blank? %>
-            <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn btn-success" do %>
-              Request activation
-            <% end %>
-            <p class="muted">After requesting, we'll be in touch within 24 hours on business days.</p>
-          <% else %>
-            <p class="muted">You requested to activate your account around <%= local_time_ago @event.demo_mode_request_meeting_at %>.</p>
-          <% end %>
-        <% else %>
-          <p>This is a <strong>demo account</strong>. Someone created this account about <%= local_time_ago @event.created_at %> to take it for a test drive, but hasn't fully activated their account yet.</p>
-        <% end %>
-      </section>
+      <% end %>
     <% end %>
 
     <%# LET THERE BE SNOW %>
-    <% unless @hide_holiday_features || !winter? %>
+    <% if winter? %>
       <%= react_component "holiday/SnowToggl", {}, { style: "position:fixed;left:1rem;bottom:1rem;z-index:99" } %>
       <%= react_component "holiday/Snow", {}, { style: "height:100%" } %>
     <% end %>
@@ -179,7 +170,7 @@
       </main>
     <% end %>
 
-    <%= render "application/feedback_form" if signed_in? %>
+    <%= render "application/feedback_form" if !@no_app_shell && current_user&.events&.not_demo_mode&.any? %>
 
     <% if Rails.env.production? %>
       <%= render "application/fullstory" if current_user&.sessions_reported %>

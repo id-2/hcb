@@ -66,12 +66,12 @@ class StripeCardsController < ApplicationController
   def new
     @event = Event.friendly.find(params[:event_id])
 
-    authorize @event, :user_or_admin?, policy_class: EventPolicy
+    authorize @event, :new_stripe_card?, policy_class: EventPolicy
   end
 
   def create
     event = Event.friendly.find(params[:stripe_card][:event_id])
-    authorize event, :user_or_admin?, policy_class: EventPolicy
+    authorize event, :create_stripe_card?, policy_class: EventPolicy
 
     sc = stripe_card_params
 
@@ -116,9 +116,13 @@ class StripeCardsController < ApplicationController
     authorize card
     name = params[:stripe_card][:name]
     name = nil unless name.present?
-    updated = card.update(name:)
+    if card.update(name:)
+      flash[:success] = "Card's name has been successfully updated!"
+    else
+      flash[:error] = card.errors.full_messages.to_sentence || "Card's name could not be updated"
+    end
 
-    redirect_to stripe_card_url(card), flash: updated ? { success: "Card's name has been successfully updated!" } : { error: "Card's name could not be updated" }
+    redirect_to stripe_card_url(card)
   end
 
   private

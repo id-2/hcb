@@ -25,13 +25,14 @@
         Checks: [increase_checks_admin_index_path, IncreaseCheck.pending.count, %i[]],
         Disbursements: [disbursements_admin_index_path, Disbursement.reviewing.count, %i[]],
         PayPal: ["https://airtable.com/tbloGiW2jhja8ivtV/viwzhAnWYhpFNhvmC", 0, %i[]]
+        Reimbursements: [reimbursements_admin_index_path, Reimbursement::Report.reimbursement_requested.count, %i[]]
       },
       Ledger: {
         Ledger: [ledger_admin_index_path, CanonicalTransaction.not_stripe_top_up.unmapped.count, %i[]],
         "Pending Ledger": [pending_ledger_admin_index_path, CanonicalPendingTransaction.unsettled.count, %i[]],
         "Raw Transactions": [raw_transactions_admin_index_path, RawCsvTransaction.unhashed.count, %i[]],
-        "Transaction CSVs": [transaction_csvs_admin_index_path, 0, %i[]],
-        "HCB codes": [hcb_codes_admin_index_path, 0, %i[counter]]
+        "HCB codes": [hcb_codes_admin_index_path, 0, %i[counter]],
+        "Audits": [admin_ledger_audits_path, Admin::LedgerAudit.pending.count, %i[]]
       },
       "Incoming Money": {
         Donations: [donations_admin_index_path, 0, %i[]],
@@ -45,7 +46,8 @@
       },
       Misc: {
         "Bank Accounts": [bank_accounts_admin_index_path, BankAccount.failing.count, %i[counter]],
-        "Bank Fees": [bank_fees_admin_index_path, BankFee.in_transit_or_pending.count, %i[counter]]
+        "Bank Fees": [bank_fees_admin_index_path, BankFee.in_transit_or_pending.count, %i[counter]],
+        "Column Statements": [column_statements_admin_index_url, 0, %i[]]
       }
     } %>
   
@@ -121,8 +123,6 @@
       <hr>
     <% end %>
     <div id="main" class="overflow-x-auto overflow-y-auto" style="padding: 2rem; margin: 0 auto">
-      
-
       <%= yield %>
     </div>
 

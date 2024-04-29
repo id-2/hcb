@@ -2,7 +2,7 @@
 
 class UsersController < ApplicationController
   skip_before_action :signed_in_user, only: [:auth, :auth_submit, :choose_login_preference, :set_login_preference, :webauthn_options, :webauthn_auth, :login_code, :exchange_login_code]
-  skip_before_action :redirect_to_onboarding, only: [:edit, :update, :logout]
+  skip_before_action :redirect_to_onboarding, only: [:edit, :update, :logout, :unimpersonate]
   skip_after_action :verify_authorized, except: [:edit, :update]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
   before_action :migrate_return_to, only: [:auth, :auth_submit, :choose_login_preference, :login_code, :exchange_login_code, :webauthn_auth]
@@ -17,6 +17,16 @@ class UsersController < ApplicationController
     impersonate_user(user)
 
     redirect_to params[:return_to] || root_path, flash: { info: "You're now impersonating #{user.name}." }
+  end
+
+  def unimpersonate
+    return redirect_to root_path unless current_session&.impersonated?
+
+    impersonated_user = current_user
+
+    unimpersonate_user
+
+    redirect_to params[:return_to] || root_path, flash: { info: "Welcome back, 007. You're no longer impersonating #{impersonated_user.name}" }
   end
 
   # view to log in
@@ -72,6 +82,8 @@ class UsersController < ApplicationController
     initialize_sms_params
 
     resp = LoginCodeService::Request.new(email: @email, sms: @use_sms_auth, ip_address: request.ip, user_agent: request.user_agent).run
+
+    @use_sms_auth = resp[:method] == :sms
 
     if resp[:error].present?
       flash[:error] = resp[:error]
@@ -302,6 +314,11 @@ class UsersController < ApplicationController
     authorize @user
   end
 
+  def edit_payout
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    authorize @user
+  end
+
   def edit_featurepreviews
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     @onboarding = @user.full_name.blank?
@@ -331,10 +348,20 @@ class UsersController < ApplicationController
     @onboarding = @user.full_name.blank?
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
+
+    # User Information
+    @invoices = Invoice.where(creator: @user)
+    @check_deposits = CheckDeposit.where(created_by: @user)
+    @increase_checks = IncreaseCheck.where(user: @user)
+    @lob_checks = Check.where(creator: @user)
+    @ach_transfers = AchTransfer.where(creator: @user)
+    @disbursements = Disbursement.where(requested_by: @user)
+
     authorize @user
   end
 
   def update
+    @states = ISO3166::Country.new("US").subdivisions.values.map { |s| [s.translations["en"], s.code] }
     @user = User.friendly.find(params[:id])
     authorize @user
 
@@ -367,7 +394,11 @@ class UsersController < ApplicationController
         flash[:success] = "Profile created!"
         redirect_to root_path
       else
-        flash[:success] = @user == current_user ? "Updated your profile!" : "Updated #{@user.first_name}'s profile!"
+        if @user.payout_method&.saved_changes? && @user == current_user
+          flash[:success] = "Your payout details have been updated. We'll use this information for all payouts going forward."
+        else
+          flash[:success] = @user == current_user ? "Updated your profile!" : "Updated #{@user.first_name}'s profile!"
+        end
 
         ::StripeCardholderService::Update.new(current_user: @user).run
 
@@ -380,6 +411,10 @@ class UsersController < ApplicationController
       if @user.stripe_cardholder&.errors&.any?
         flash.now[:error] = @user.stripe_cardholder.errors.first.full_message
         render :edit_address, status: :unprocessable_entity and return
+      end
+      if @user.payout_method&.errors&.any?
+        flash.now[:error] = @user.payout_method.errors.first.full_message
+        render :edit_payout, status: :unprocessable_entity and return
       end
       render :edit, status: :unprocessable_entity
     end
@@ -447,7 +482,9 @@ class UsersController < ApplicationController
       :session_duration_seconds,
       :receipt_report_option,
       :birthday,
-      :seasonal_themes_enabled
+      :seasonal_themes_enabled,
+      :payout_method_type,
+      :comment_notifications
     ]
 
     if @user.stripe_cardholder
@@ -459,6 +496,28 @@ class UsersController < ApplicationController
           :stripe_billing_address_state,
           :stripe_billing_address_postal_code,
           :stripe_billing_address_country
+        ]
+      }
+    end
+
+    if params.require(:user)[:payout_method_type] == User::PayoutMethod::Check.name
+      attributes << {
+        payout_method_attributes: [
+          :address_line1,
+          :address_line2,
+          :address_city,
+          :address_state,
+          :address_postal_code,
+          :address_country
+        ]
+      }
+    end
+
+    if params.require(:user)[:payout_method_type] == User::PayoutMethod::AchTransfer.name
+      attributes << {
+        payout_method_attributes: [
+          :account_number,
+          :routing_number
         ]
       }
     end
@@ -490,6 +549,9 @@ class UsersController < ApplicationController
         params[:return_to] = uri.to_s
       end
     end
+
+  rescue URI::InvalidURIError
+    params.delete(:return_to)
   end
 
 end

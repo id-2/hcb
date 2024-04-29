@@ -1,48 +1,29 @@
-<div class="card p0 flex flex-column">
-  <div class="">
-    <h3 class="border-none m0 p2">
-      Card for
-      <% if @event %>
-        <%= user_mention stripe_card.user %>
-      <% else %>
-        <%= link_to stripe_card.event.name, stripe_card.event %>
-      <% end %>
-    </h3>
-    <% if stripe_card.shipping_has_tracking? %>
-      <section class="card__banner card__darker details-horiz border-top border-bottom m0">
-        <p>
-          <strong>Carrier</strong>
-          <%= stripe_card.stripe_obj&.shipping&.carrier&.capitalize %>
-        </p>
-        <p>
-          <strong>ETA</strong>
-          <%= format_date Time.at(stripe_card.stripe_obj&.shipping&.eta).to_date %>
-        </p>
-        <p>
-          <strong>Tracking #</strong>
-          <%= stripe_card.stripe_obj&.shipping&.tracking_number %>
-        </p>
-      </section>
+<% style = card_shipping_map_url(stripe_card) ?
+            "background: linear-gradient(to bottom, rgba(20, 20, 20, 0.75), rgba(0, 0, 9, 0.5)), url(#{card_shipping_map_url(stripe_card)}); height: 250px"
+            : "" %>
 
-      <footer class="flex flex-wrap items-center p2 relative">
-        <%= image_tag "https://logo.clearbit.com/#{stripe_card.stripe_obj&.shipping&.carrier}.com", width: 64, height: 64, style: "height: auto; object-fit: contain;", class: "rounded bg-white mr2" %>
-        <%= link_to stripe_card.stripe_obj&.shipping&.tracking_url, class: "btn" do %>
-          <%= inline_icon "external" %>
-          Track shipment
-        <% end %>
-      </footer>
+<div class="card p0 flex flex-col justify-between smoke" style="<%= style %>">
+  <h3 class="m0 p2 inline-flex items-baseline g1" style="flex-wrap: wrap;">
+    Card for
+    <% if @event %>
+      <%= user_mention stripe_card.user, { class: "smoke" } %>
     <% else %>
-      <section class="pl2 muted pb2 mb1">
-        <% eta = stripe_card.stripe_obj&.shipping&.eta %>
-        <% if eta %>
-          Estimated to arrive <%= format_date Time.at(stripe_card.stripe_obj&.shipping&.eta).to_date %>
-        <% else %>
-          No estimated arrival date
-        <% end %>
-      </section>
+      <%= link_to stripe_card.event.name, stripe_card.event, class: "smoke" %>
     <% end %>
-  </div>
-
-  <% map_url = card_shipping_map_url(stripe_card) %>
-  <%= image_tag map_url, style: "width: 100%; height: auto; object-fit: cover;", width: 256, height: 128 if map_url %>
+    is on the way!
+  </h3>
+  <section class="pl2 mb2 drop-shadow-lg flex flex-col" style="gap: 8px;">
+    <%= render_address OpenStruct.new(stripe_card.attributes.transform_keys { |key| key.gsub(/^stripe_shipping_/, "") }) %>
+    <% eta = stripe_card.stripe_obj&.shipping&.eta %>
+    <span>
+      <% if eta %>
+        Estimated to arrive <%= format_date Time.at(stripe_card.stripe_obj&.shipping&.eta).to_date %>.
+      <% else %>
+        No estimated arrival date at this time.
+      <% end %>
+    </span>
+    <% if stripe_card.shipping_has_tracking? %>
+      <span>Tracking: <%= link_to stripe_card.stripe_obj&.shipping&.tracking_number, stripe_card.stripe_obj&.shipping&.tracking_url %></span>
+    <% end %>
+  </section>
 </div>
