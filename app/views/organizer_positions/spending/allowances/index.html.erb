@@ -38,12 +38,12 @@
 
 <% spending_controls_callout_footer = capture do %>
   <% if @op.active_spending_control %>
-    <%= link_to destroy_event_organizer_control_path(@event, @op), class: "btn btn-small bg-error" do %>
+    <%= link_to new_event_organizer_control_path(@event, @op), class: "btn btn-small bg-error", method: :delete do %>
       <%= inline_icon "forbidden" %>
       Disable controls for <%= @op.user.first_name %>
     <% end %>
   <% else %>
-    <%= link_to new_event_organizer_control_path(@event, @op), class: "btn bg-info" do %>
+    <%= link_to new_event_organizer_control_path(@event, @op), class: "btn btn-small bg-info" do %>
       Enable controls for <%= @op.user.first_name %>
     <% end %>
   <% end %>
