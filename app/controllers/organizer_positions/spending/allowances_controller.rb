@@ -33,7 +33,7 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
   def create
     attributes = filtered_params
     attributes[:amount_cents] = (attributes[:amount_cents].to_f.round(2) * 100).to_i
-    attributes[:organizer_position_id] = attributes.delete(:organizer_id)
+    # attributes[:organizer_position_id] = attributes.delete(:organizer_id)
     attributes[:authorized_by_id] = current_user.id
     # @allowance = @op.active_spending_control.allowances.build(attributes)
     @allowance = @op.active_spending_control.organizer_position_spending_allowances.build(attributes)
