@@ -1,4 +1,4 @@
-class OrganizerPositions::Spending::AuthorizationPolicy < ApplicationPolicy
+class OrganizerPositions::Spending::AllowancePolicy < ApplicationPolicy
   def index?
     true
   end
