@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_04_24_170843) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_17_200721) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "plpgsql"
@@ -1261,14 +1261,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_24_170843) do
   end
 
   create_table "organizer_position_spending_allowances", force: :cascade do |t|
-    t.bigint "organizer_position_id", null: false
     t.bigint "authorized_by_id", null: false
     t.integer "amount_cents", null: false
     t.text "memo"
+    t.bigint "organizer_position_spending_control_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["authorized_by_id"], name: "idx_org_pos_spend_allows_on_authed_by_id"
-    t.index ["organizer_position_id"], name: "idx_org_pos_spend_allows_on_org_pos_id"
+    t.index ["organizer_position_spending_control_id"], name: "idx_org_pos_spend_allows_on_org_pos_id"
   end
 
   create_table "organizer_position_spending_controls", force: :cascade do |t|
@@ -2037,7 +2037,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_24_170843) do
   add_foreign_key "organizer_position_invites", "organizer_positions"
   add_foreign_key "organizer_position_invites", "users"
   add_foreign_key "organizer_position_invites", "users", column: "sender_id"
-  add_foreign_key "organizer_position_spending_allowances", "organizer_positions"
+  add_foreign_key "organizer_position_spending_allowances", "organizer_position_spending_controls"
   add_foreign_key "organizer_position_spending_allowances", "users", column: "authorized_by_id"
   add_foreign_key "organizer_position_spending_controls", "organizer_positions"
   add_foreign_key "organizer_positions", "events"
