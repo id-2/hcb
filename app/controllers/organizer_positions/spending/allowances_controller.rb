@@ -6,10 +6,14 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
 
     transactions = @op.stripe_cards.map{ |c| c.canonical_pending_transactions }.flatten
 
-    puts "foatniresotnofat", @op.active_spending_control.organizer_position_spending_allowances
-    @allowances = @op.active_spending_control.organizer_position_spending_allowances.order(created_at: :desc)
+
+    @allowances = @op.active_spending_control&.organizer_position_spending_allowances&.order(created_at: :desc)
     @transactions = transactions.sort_by(&:created_at).reverse
-    @spending_items_all = (transactions + @op.active_spending_control.organizer_position_spending_allowances).sort_by(&:created_at).reverse
+    if !@allowances
+      @spending_items_all = @transactions
+    else
+      @spending_items_all = (transactions + @op.active_spending_control.organizer_position_spending_allowances).sort_by(&:created_at).reverse
+    end
 
     if params[:filter] == "allowances"
       @spending_items = @allowances
@@ -19,7 +23,7 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
       @spending_items = @spending_items_all
     end
 
-    @allowances_total = @allowances.sum(:amount_cents)
+    @allowances_total = @allowances&.sum(:amount_cents) || 0
     @transactions_total = @op.stripe_cards.where(event: @op.event).sum(&:total_spent)
     @aallowance_balance = @allowances_total - @transactions_total
   end
