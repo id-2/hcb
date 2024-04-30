@@ -6,10 +6,10 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
 
     transactions = @op.stripe_cards.map{ |c| c.canonical_pending_transactions }.flatten
 
-    puts "foatniresotnofat", @op.spending_allowances
-    @allowances = @op.spending_allowances.order(created_at: :desc)
+    puts "foatniresotnofat", @op.active_spending_control.organizer_position_spending_allowances
+    @allowances = @op.active_spending_control.organizer_position_spending_allowances.order(created_at: :desc)
     @transactions = transactions.sort_by(&:created_at).reverse
-    @spending_items_all = (transactions + @op.spending_allowances).sort_by(&:created_at).reverse
+    @spending_items_all = (transactions + @op.active_spending_control.organizer_position_spending_allowances).sort_by(&:created_at).reverse
 
     if params[:filter] == "allowances"
       @spending_items = @allowances
@@ -25,7 +25,7 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
   end
 
   def new
-    @spending_allowance = @op.spending_allowances.build
+    @spending_allowance = @op.active_spending_control.organizer_position_spending_allowances.build
 
     authorize @op, :foo?
   end
@@ -35,7 +35,8 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
     attributes[:amount_cents] = (attributes[:amount_cents].to_f.round(2) * 100).to_i
     attributes[:organizer_position_id] = attributes.delete(:organizer_id)
     attributes[:authorized_by_id] = current_user.id
-    @allowance = @op.spending_allowances.build(attributes)
+    # @allowance = @op.active_spending_control.allowances.build(attributes)
+    @allowance = @op.active_spending_control.organizer_position_spending_allowances.build(attributes)
 
     authorize @op, :foo?
 
