@@ -33,9 +33,9 @@ module OrganizerPosition::Spending
     def balance
     end
 
-    def organizer_position
-      OrganizerPosition.find(organizer_position_id)
-    end
+    # def organizer_position
+    #   OrganizerPosition.find(organizer_position_id)
+    # end
 
     def authorized_by
       OrganizerPosition.find(authorized_by_id)
