@@ -60,7 +60,7 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
   end
 
   def filtered_params
-    params.permit(:organizer_id, :amount_cents, :memo)
+    params.permit(:amount_cents, :memo)
   end
 
 end
