@@ -90,7 +90,7 @@
       </thead>
       <tbody>
         <% @spending_items.each do |item| %>
-          <tr class="<%= item.is_a?(OrganizerPosition::Spending::Authorization) ? "transaction--positive": "transaction--negative" %>">
+          <tr class="<%= item.is_a?(OrganizerPosition::Spending::Allowance) ? "transaction--positive": "transaction--negative" %>">
             <td>
               <%= render_money item.amount_cents %>
             </td>
@@ -98,7 +98,7 @@
               <%= item.memo %>
             </td>
             <td class="flex items-center g1">
-              <% item_user = item.is_a?(OrganizerPosition::Spending::Authorization) ? item.authorized_by.user : item.stripe_cardholder.user  %>
+              <% item_user = item.is_a?(OrganizerPosition::Spending::Allowance) ? item.authorized_by.user : item.stripe_cardholder.user  %>
               <%= avatar_for item_user, 24 %>
               <%= item_user.name %>
             </td>
