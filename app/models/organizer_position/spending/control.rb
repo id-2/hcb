@@ -20,9 +20,7 @@
 #
 class OrganizerPosition::Spending::Control < ApplicationRecord
   belongs_to :organizer_position
-  has_many :allowances
-
-  scope :active_spending_control, -> { where(active: true) }
+  has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id"
 
   validate :one_active_control
 
