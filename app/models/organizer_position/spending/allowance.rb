@@ -22,6 +22,7 @@
 #
 module OrganizerPosition::Spending
   class Allowance < ApplicationRecord
+    # belongs_to :control, class_name: "OrganizerPosition::Spending::Control", foreign_key: "organizer_position_spending_control_id", inverse_of: :allowances
     belongs_to :organizer_position
 
     def total_spent
