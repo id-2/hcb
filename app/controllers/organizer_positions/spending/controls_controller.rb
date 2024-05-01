@@ -25,6 +25,11 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
 
   def destroy
     skip_authorization
+
+    if @op.active_spending_control.organizer_position_spending_allowances.count == 0
+      @op.active_spending_control.destroy
+    end
+
     @op.spending_controls.each { |c| c.update(active: false) }
     flash[:success] = "Spending control successfully created!"
     redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
