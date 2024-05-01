@@ -20,9 +20,23 @@
 #
 class OrganizerPosition::Spending::Control < ApplicationRecord
   belongs_to :organizer_position
-  has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id"
+  has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", :dependent => :destroy
 
   validate :one_active_control
+
+  def balance
+    total_allocation_amount - total_spent
+  end
+
+  def total_allocation_amount
+    organizer_position_spending_allowances.sum(:amount_cents)
+  end
+
+
+  def total_spent
+  end
+
+  private
 
   def one_active_control
     if organizer_position.spending_controls.where(active: true).size > 1
