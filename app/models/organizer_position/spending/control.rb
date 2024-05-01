@@ -20,7 +20,7 @@
 #
 class OrganizerPosition::Spending::Control < ApplicationRecord
   belongs_to :organizer_position
-  has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", :dependent => :destroy
+  has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", dependent: :destroy
 
   validate :one_active_control
 
