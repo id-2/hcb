@@ -27,6 +27,7 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
     skip_authorization
 
     if @op.active_spending_control.organizer_position_spending_allowances.count == 0
+      @op.active_spending_control.ended_at = Time.current
       @op.active_spending_control.destroy
     end
 
