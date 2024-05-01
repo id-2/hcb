@@ -73,8 +73,11 @@
   </div>
 </div>
 
-<% if @spending_items.blank? %>
-  <%= blankslate "Nothing here yet" %>
+<% active_control = @op.active_spending_control %>
+<% if !active_control %>
+  <%= blankslate "No active control" %>
+<% elsif active_control.organizer_position_spending_allowances.blank? %>
+  <%= blankslate "No allowances yet" %>
 <% else %>
   <article class="table-container">
     <table>
