@@ -31,7 +31,8 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
     end
 
     @op.spending_controls.each { |c| c.update(active: false) }
-    flash[:success] = "Spending control successfully created!"
+
+    flash[:success] = "Spending controls disabled for #{@op.user.name}!"
     redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
   end
 
