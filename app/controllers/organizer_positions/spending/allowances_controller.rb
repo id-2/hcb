@@ -4,26 +4,9 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
   def index
     skip_authorization
 
-    transactions = @op.stripe_cards.map{ |c| c.canonical_pending_transactions }.flatten
-
-    @prepared_controls = @op.spending_controls.sort_by(&:created_at).map do |c|
-      allowances = c.organizer_position_spending_allowances
-      transactions = transactions
-
-      if !allowances || params[:filter] == "allowances"
-        spending_items = transactions.sort_by(&:created_at).reverse
-      elsif !transactions || params[:filter] == "allowances"
-        spending_items = allowances.order(created_at: :desc)
-      else
-        spending_items = (transactions + allowances).sort_by(&:created_at).reverse
-      end
-
-      { active: c.active, spending_items: }
-    end
-
-    @allowances_total = @allowances&.sum(:amount_cents) || 0
-    @transactions_total = @op.stripe_cards.where(event: @op.event).sum(&:total_spent)
-    @aallowance_balance = @allowances_total - @transactions_total
+    # @allowances_total = @allowances&.sum(:amount_cents) || 0
+    # @transactions_total = @op.stripe_cards.where(event: @op.event).sum(&:total_spent)
+    # @allowance_balance = @allowances_total - @transactions_total
   end
 
   def new
