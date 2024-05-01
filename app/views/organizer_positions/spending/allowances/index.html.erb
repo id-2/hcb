@@ -79,36 +79,12 @@
 <% elsif active_control.organizer_position_spending_allowances.blank? %>
   <%= blankslate "No allowances yet" %>
 <% else %>
-  <article class="table-container">
-    <table>
-      <thead>
-      <tr>
-        <th>Amount</th>
-        <th>Memo</th>
-        <th>Created by</th>
-        <th>Date</th>
-      </tr>
-      </thead>
-      <tbody>
-        <% @spending_items.each do |item| %>
-          <tr class="<%= item.is_a?(OrganizerPosition::Spending::Allowance) ? "transaction--positive": "transaction--negative" %>">
-            <td>
-              <%= render_money item.amount_cents %>
-            </td>
-            <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
-              <%= item.memo %>
-            </td>
-            <td class="flex items-center g1">
-              <% item_user = item.is_a?(OrganizerPosition::Spending::Allowance) ? item.authorized_by.user : item.stripe_cardholder.user  %>
-              <%= avatar_for item_user, 24 %>
-              <%= item_user.name %>
-            </td>
-            <td>
-              <%= format_date item.created_at %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </article>
+  <%= render_spending_items sorted_spending_items(active_control) %>
+<% end %>
+
+<h2>Past controls</h2>
+<% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each do |c| %>
+  <h3>Control from <%= format_date c.created_at %> through <%= format_date c.ended_at %></h3>
+
+  <%= render_spending_items sorted_spending_items(c) %>
 <% end %>
