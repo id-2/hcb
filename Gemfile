@@ -140,7 +140,7 @@ gem "rqrcode" # QR code generation
 gem "brakeman" # static security vulnerability scanner
 
 gem "awesome_print" # pretty print objects in console
-gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
+gem "byebug", platforms: [:windows]
 gem "dry-validation"
 
 gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching; required in config/boot.rb
@@ -148,8 +148,6 @@ gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching;
 gem "appsignal" # error tracking + performance monitoring
 gem "lograge" # Log formatting
 gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # For reporting to HC Grafana
-
-gem "mrsk" # deployments
 
 group :production do
   gem "skylight"
@@ -172,7 +170,7 @@ group :development, :test do
   gem "rubocop-rails", "~> 2.22"
   gem "relaxed-rubocop"
 
-  gem "rspec-rails", "~> 6.0.3"
+  gem "rspec-rails", "~> 6.1.2"
 
   # Lets you set a breakpoint with a REPL using binding.pry
   gem "pry-byebug", require: ENV["EXCLUDE_PRY"] != "true"
