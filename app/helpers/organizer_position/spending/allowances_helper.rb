@@ -12,7 +12,7 @@ module OrganizerPosition::Spending::AllowancesHelper
       @spending_items = (transactions + allowances).sort_by(&:created_at).reverse
     end
   end
-  
+
   def render_spending_items(items)
     if items.count == 0
       concat blankslate("Nothing to see here")
