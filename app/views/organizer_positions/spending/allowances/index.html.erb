@@ -67,8 +67,8 @@
   <% end %>
 
   <div style="text-align: center;">
-    <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["authorizations", "transactions"].include?(params[:filter]), role: "tab" %>
-    <%= link_to "Authorizations", "?filter=authorizations", class: "filterbar__item", "aria-selected": params[:filter] == "authorizations", role: "tab" %>
+    <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["allowances", "transactions"].include?(params[:filter]), role: "tab" %>
+    <%= link_to "Allowances", "?filter=allowances", class: "filterbar__item", "aria-selected": params[:filter] == "allowances", role: "tab" %>
     <%= link_to "Transactions", "?filter=transactions", class: "filterbar__item", "aria-selected": params[:filter] == "transactions", role: "tab" %>
   </div>
 </div>
