@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: organizer_position_spending_controls
@@ -18,30 +20,34 @@
 #
 #  fk_rails_...  (organizer_position_id => organizer_positions.id)
 #
-class OrganizerPosition::Spending::Control < ApplicationRecord
-  belongs_to :organizer_position
-  has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", dependent: :destroy
+module OrganizerPosition
+  module Spending
+    class Control < ApplicationRecord
+      belongs_to :organizer_position
+      has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", dependent: :destroy
 
-  validate :one_active_control
+      validate :one_active_control
 
-  def balance
-    total_allocation_amount - total_spent
-  end
+      def balance
+        total_allocation_amount - total_spent
+      end
 
-  def total_allocation_amount
-    organizer_position_spending_allowances.sum(:amount_cents)
-  end
+      def total_allocation_amount
+        organizer_position_spending_allowances.sum(:amount_cents)
+      end
 
 
-  def total_spent
-  end
+      def total_spent
+      end
 
-  private
+      private
 
-  def one_active_control
-    if organizer_position.spending_controls.where(active: true).size > 1
-      errors.add(:organizer_position, "may only have one active spending control")
+      def one_active_control
+        if organizer_position.spending_controls.where(active: true).size > 1
+          errors.add(:organizer_position, "may only have one active spending control")
+        end
+      end
+
     end
   end
-
 end

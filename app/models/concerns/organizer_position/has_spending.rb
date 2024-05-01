@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class OrganizerPosition
   module HasSpending
     extend ActiveSupport::Concern
