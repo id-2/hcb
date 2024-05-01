@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # == Schema Information
 #
 # Table name: organizer_position_spending_allowances
@@ -22,36 +20,34 @@
 #  fk_rails_...  (authorized_by_id => users.id)
 #  fk_rails_...  (organizer_position_spending_control_id => organizer_position_spending_controls.id)
 #
-module OrganizerPosition
-  module Spending
-    class Allowance < ApplicationRecord
-      # belongs_to :control, class_name: "OrganizerPosition::Spending::Control", foreign_key: "organizer_position_spending_control_id", inverse_of: :allowances
-      belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
+module OrganizerPosition::Spending
+  class Allowance < ApplicationRecord
+    # belongs_to :control, class_name: "OrganizerPosition::Spending::Control", foreign_key: "organizer_position_spending_control_id", inverse_of: :allowances
+    belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
 
-      has_one :organizer_position, through: :organizer_position_spending_control
+    has_one :organizer_position, through: :organizer_position_spending_control
 
-      def total_spent
-      end
-
-      def total_allocated
-      end
-
-      def balance
-      end
-
-      # def organizer_position
-      #   OrganizerPosition.find(organizer_position_id)
-      # end
-
-      def authorized_by
-        OrganizerPosition.find(authorized_by_id)
-      end
-
+    def total_spent
     end
 
-    def self.table_name_prefix
-      "organizer_position_spending_"
+    def total_allocated
+    end
+
+    def balance
+    end
+
+    # def organizer_position
+    #   OrganizerPosition.find(organizer_position_id)
+    # end
+
+    def authorized_by
+      OrganizerPosition.find(authorized_by_id)
     end
 
   end
+
+  def self.table_name_prefix
+    "organizer_position_spending_"
+  end
+
 end
