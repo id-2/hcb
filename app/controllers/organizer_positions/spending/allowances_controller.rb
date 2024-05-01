@@ -6,21 +6,19 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
 
     transactions = @op.stripe_cards.map{ |c| c.canonical_pending_transactions }.flatten
 
+    @prepared_controls = @op.spending_controls.sort_by(&:created_at).map do |c|
+      allowances = c.organizer_position_spending_allowances
+      transactions = transactions
 
-    @allowances = @op.active_spending_control&.organizer_position_spending_allowances&.order(created_at: :desc)
-    @transactions = transactions.sort_by(&:created_at).reverse
-    if !@allowances
-      @spending_items_all = @transactions
-    else
-      @spending_items_all = (transactions + @op.active_spending_control.organizer_position_spending_allowances).sort_by(&:created_at).reverse
-    end
+      if !allowances || params[:filter] == "allowances"
+        spending_items = transactions.sort_by(&:created_at).reverse
+      elsif !transactions || params[:filter] == "allowances"
+        spending_items = allowances.order(created_at: :desc)
+      else
+        spending_items = (transactions + allowances).sort_by(&:created_at).reverse
+      end
 
-    if params[:filter] == "allowances"
-      @spending_items = @allowances
-    elsif params[:filter] == "transactions"
-      @spending_items = @transactions
-    else
-      @spending_items = @spending_items_all
+      { active: c.active, spending_items: }
     end
 
     @allowances_total = @allowances&.sum(:amount_cents) || 0
