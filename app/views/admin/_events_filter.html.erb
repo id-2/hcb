@@ -49,22 +49,17 @@
     Sort By
     <%= form.select :sort_by, [["Balance Ascending", "balance_asc"], ["Balance Descending", "balance_desc"], ["Date Descending", "date_desc"]], selected: @sort_by %>
   <% end %>
-  
+
   <%= form.label :fee do %>
     Current Fee
     <%= form.select :fee, Event.unscoped.select(:sponsorship_fee).distinct.pluck(:sponsorship_fee).sort.map { |fee| [number_to_percentage(fee * 100, strip_insignificant_zeros: true), fee] }, { include_blank: "all", selected: @fee } %>
   <% end %>
-  
+
   <%= form.label :tagged_with do %>
     <span style="text-wrap: nowrap;">Tagged with</span>
     <%= form.select :tagged_with, EventTag.all.map { |t| [t.full_name, t.id] }, { include_blank: "anything", selected: @tagged_with } %>
   <% end %>
 
-  <%= form.label :engaged do %>
-    Engaged Only
-    <%= form.check_box :engaged, checked: @engaged %>
-  <% end %>
-  
 </div>
 
 <fieldset style='display: flex; flex-wrap: wrap; gap: 4px 16px; border: 1px lightgray solid; border-radius: 0.2rem; padding: 0.6rem; padding-top: 0.3rem; margin-right: 0.5rem; margin-top: 8px;'>
@@ -84,6 +79,10 @@
   <%= form.label :rejected do %>
     <%= form.check_box :rejected, checked: @rejected %>
     Rejected
+  <% end %>
+  <%= form.label :engaged do %>
+    <%= form.check_box :engaged, checked: @engaged %>
+    Engaged (Only)
   <% end %>
 </fieldset>
 

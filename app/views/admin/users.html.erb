@@ -10,7 +10,7 @@
   <div>
     <%= form.submit "Search" %>
   </div>
-  
+
   <%= link_to @params.merge(format: :csv) do %>
     <button type="button" <%= "disabled" if @users.count == 0 %>>Export <%= pluralize @users.count, "record" %></button>
   <% end %>
