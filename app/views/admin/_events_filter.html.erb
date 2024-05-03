@@ -36,7 +36,7 @@
   <% end %>
 
   <%= form.label :point_of_contact_id do %>
-    POC
+    <span style="text-wrap: nowrap;">POC</span>
     <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email, selected: @point_of_contact_id, include_blank: "all" %>
   <% end %>
 
