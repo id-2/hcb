@@ -20,45 +20,44 @@
     <a class="skip-to-main" href="#main">Skip to main content</a>
 
     <% nav = {
-      Spending: {
-        ACHs: [ach_admin_index_path, AchTransfer.pending.count, %i[]],
-        Checks: [increase_checks_admin_index_path, IncreaseCheck.pending.count, %i[]],
-        Disbursements: [disbursements_admin_index_path, Disbursement.reviewing.count, %i[]],
-        PayPal: ["https://airtable.com/tbloGiW2jhja8ivtV/viwzhAnWYhpFNhvmC", 0, %i[]],
-        Reimbursements: [reimbursements_admin_index_path, Reimbursement::Report.reimbursement_requested.count, %i[]]
-      },
-      Ledger: {
-        Ledger: [ledger_admin_index_path, CanonicalTransaction.not_stripe_top_up.unmapped.count, %i[]],
-        "Pending Ledger": [pending_ledger_admin_index_path, CanonicalPendingTransaction.unsettled.count, %i[]],
-        "Raw Transactions": [raw_transactions_admin_index_path, RawCsvTransaction.unhashed.count, %i[]],
-        "HCB codes": [hcb_codes_admin_index_path, 0, %i[counter]],
-        "Audits": [admin_ledger_audits_path, Admin::LedgerAudit.pending.count, %i[]]
-      },
-      "Incoming Money": {
-        Donations: [donations_admin_index_path, 0, %i[]],
-        "Recurring Donations": [recurring_donations_admin_index_path, 0, %i[]],
-        Invoices: [invoices_admin_index_path, 0, %i[]],
-        Sponsors: [sponsors_admin_index_path, 0, %i[]]
-      },
-      Organizations: {
-        Organizations: [events_admin_index_path, Event.approved.count, %i[counter]],
-        "Google Workspace Requests": [google_workspaces_admin_index_path, GSuite.needs_ops_review.count, %i[]]
-      },
-      Misc: {
-        "Bank Accounts": [bank_accounts_admin_index_path, BankAccount.failing.count, %i[counter]],
-        "Bank Fees": [bank_fees_admin_index_path, BankFee.in_transit_or_pending.count, %i[counter]],
-        "Column Statements": [column_statements_admin_index_url, 0, %i[]]
-      }
-    } %>
-  
+         Spending: {
+           ACHs: [ach_admin_index_path, AchTransfer.pending.count, %i[]],
+           Checks: [increase_checks_admin_index_path, IncreaseCheck.pending.count, %i[]],
+           Disbursements: [disbursements_admin_index_path, Disbursement.reviewing.count, %i[]],
+           PayPal: ["https://airtable.com/tbloGiW2jhja8ivtV/viwzhAnWYhpFNhvmC", 0, %i[]],
+           Reimbursements: [reimbursements_admin_index_path, Reimbursement::Report.reimbursement_requested.count, %i[]]
+         },
+         Ledger: {
+           Ledger: [ledger_admin_index_path, CanonicalTransaction.not_stripe_top_up.unmapped.count, %i[]],
+           "Pending Ledger": [pending_ledger_admin_index_path, CanonicalPendingTransaction.unsettled.count, %i[]],
+           "Raw Transactions": [raw_transactions_admin_index_path, RawCsvTransaction.unhashed.count, %i[]],
+           "HCB codes": [hcb_codes_admin_index_path, 0, %i[counter]],
+           "Audits": [admin_ledger_audits_path, Admin::LedgerAudit.pending.count, %i[]]
+         },
+         "Incoming Money": {
+           Donations: [donations_admin_index_path, 0, %i[]],
+           "Recurring Donations": [recurring_donations_admin_index_path, 0, %i[]],
+           Invoices: [invoices_admin_index_path, 0, %i[]],
+           Sponsors: [sponsors_admin_index_path, 0, %i[]]
+         },
+         Organizations: {
+           Organizations: [events_admin_index_path, Event.approved.count, %i[counter]],
+           "Google Workspace Requests": [google_workspaces_admin_index_path, GSuite.needs_ops_review.count, %i[]]
+         },
+         Misc: {
+           "Bank Accounts": [bank_accounts_admin_index_path, BankAccount.failing.count, %i[counter]],
+           "Bank Fees": [bank_fees_admin_index_path, BankFee.in_transit_or_pending.count, %i[counter]],
+           "Column Statements": [column_statements_admin_index_url, 0, %i[]]
+         }
+       } %>
+
     <% title = yield(:title) if content_for?(:title) %>
     <% parent, active = *(title ? nav.map do |name, items|
-        items.map do |item, value|
-          [item.to_s.downcase.gsub(' ', ''), [name, item]]
-        end
-      end.flatten(1).to_h[title.to_s.downcase.gsub(' ', '')] : ["Admin", nil])
-    %>
-  
+                                    items.map do |item, value|
+                                      [item.to_s.downcase.gsub(" ", ""), [name, item]]
+                                    end
+                                  end.flatten(1).to_h[title.to_s.downcase.gsub(" ", "")] : ["Admin", nil]) %>
+
     <nav style="display: flex; flex-direction: column; background: var(--hcb-bg-2-5); gap: 0px">
       <div style="width: 100%; display: flex; gap: 8px; align-items: center; font-size: 22px; padding: 8px; border-bottom: 1px solid var(--hcb-bg-2);">
         <%= link_to root_path, class: "text-decoration-none", style: "height: 36px; margin-right: 8px;" do %>
@@ -87,7 +86,7 @@
         <% nav.each do |name, items| %>
           <% badge_number = items.map { |name, item| item.second }.sum %>
           <details open class="details pb0">
-            <summary class="nav-item" style="<%= name == parent ? "color: var(--hcb-accent)" : "color: var(--hcb-tx-1)"%>">
+            <summary class="nav-item" style="<%= name == parent ? "color: var(--hcb-accent)" : "color: var(--hcb-tx-1)" %>">
               <%= name %>
               <span class="badge <%= items.map { |name, item| item.last.any? ? item.last : nil }.flatten.reject { |item| item == :counter }.empty? || badge_number.zero? ? "bg-muted" : "bg-success" %> pr2 h-fit-content">
                 <%= badge_number %>
