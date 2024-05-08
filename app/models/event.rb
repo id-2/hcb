@@ -436,17 +436,6 @@ class Event < ApplicationRecord
       end
   end
 
-  def raised_cents(start_date: nil, end_date: nil)
-    @raised_cents ||=
-      begin
-        sum = settled_incoming_balance_cents(start_date:, end_date:)
-        sum += pending_incoming_balance_v2_cents(start_date:, end_date:)
-        sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
-        sum -= Disbursement.where(event_id: id, should_charge_fee: false).sum(:amount)
-        sum
-      end
-  end
-
   # This calculates v2 cents of settled (Canonical Transactions)
   # @return [Integer] Balance in cents (v2 transaction engine)
   def settled_balance_cents(start_date: nil, end_date: nil)
