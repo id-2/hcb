@@ -251,7 +251,7 @@ class AdminController < ApplicationController
   def event_raised
     @event = Event.find(params[:id])
     @raised = Rails.cache.fetch("admin_event_raised_#{@event.id}", expires_in: 5.minutes) do
-      @event.raised_cents.to_i
+      @event.total_raised.to_i
     end
     render :event_raised, layout: false
   end
