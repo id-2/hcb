@@ -2,19 +2,19 @@
 
 class OrganizerPositionInvitePolicy < ApplicationPolicy
   def index?
-    user.admin? || record.event&.users&.include?(user)
+    user&.admin? || record.event&.users&.include?(user)
   end
 
   def new?
-    user.admin? || record.event&.users&.include?(user)
+    admin_or_manager?
   end
 
   def create?
-    user.admin? || record.event.users.include?(user)
+    admin_or_manager?
   end
 
   def show?
-    record.user == user || user.admin?
+    user&.admin? || record.user == user
   end
 
   def accept?
@@ -26,7 +26,21 @@ class OrganizerPositionInvitePolicy < ApplicationPolicy
   end
 
   def cancel?
-    user.admin? || record.event.users.include?(user)
+    admin_or_manager? || (record.sender == user && record.event&.users&.include?(user))
+  end
+
+  def toggle_signee_status?
+    user&.admin?
+  end
+
+  def change_position_role?
+    admin_or_manager?
+  end
+
+  private
+
+  def admin_or_manager?
+    user&.admin? || OrganizerPosition.find_by(user:, event: record.event)&.manager?
   end
 
 end

@@ -28,10 +28,14 @@ describe LoginCodeService::Request do
       expect(response).to eq({
                                id: user.id,
                                email: user.email,
-                               status: "login code sent"
+                               status: "login code sent",
+                               method: :email,
+                               login_code:,
+                               browser_token: login_code.browser_token
                              })
     end
   end
+
 
   context "when a user with a given email does exist" do
     it "creates that user with login code and emails" do
@@ -53,7 +57,10 @@ describe LoginCodeService::Request do
       expect(response).to eq({
                                id: user.id,
                                email: user.email,
-                               status: "login code sent"
+                               status: "login code sent",
+                               method: :email,
+                               login_code:,
+                               browser_token: login_code.browser_token
                              })
     end
   end

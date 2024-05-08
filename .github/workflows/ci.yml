@@ -46,6 +46,19 @@ jobs:
       - run: yarn install
       - name: Run ESLint
         run: yarn lint
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: yarn install
+      - name: Run Prettier
+        run: yarn format:check
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
@@ -97,6 +110,8 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bank_test
           RAILS_ENV: test
         run: bundler exec rails db:create db:schema:load RAILS_ENV=test
+      - name: Build Assets
+        run: yarn build && yarn build:css
       - name: Run RSpec
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bank_test

@@ -1,6 +1,6 @@
 const whenViewed = (element, callback) => new IntersectionObserver(([entry]) => entry.isIntersecting && callback(), { threshold: 1 }).observe(element);
 const loadModals = element => {
-   $(element).on('click', '[data-behavior~=modal_trigger]', function (e) {
+  $(element).on('click', '[data-behavior~=modal_trigger]', function (e) {
     const controlOrCommandClick = e.ctrlKey || e.metaKey;
     if ($(this).attr('href') || $(e.target).attr('href')) {
       if (controlOrCommandClick) return;
@@ -16,7 +16,7 @@ const loadModals = element => {
     return this.blur()
   })
 
-  $(element).on('click', '[data-behavior~=modal_trigger] [data-behavior~=modal_ignore]', function(e) {
+  $(element).on('click', '[data-behavior~=modal_trigger] [data-behavior~=modal_ignore]', function (e) {
     e.stopPropagation();
     e.preventDefault()
   });
@@ -137,10 +137,7 @@ const updateAmountPreview = function () {
   }
 }
 
-$(document).on('keyup', '[name="invoice[item_amount]"]', () =>
-  updateAmountPreview()
-)
-$(document).on('change', '[name="invoice[item_amount]"]', () =>
+$(document).on('input', '[name="invoice[item_amount]"]', () =>
   updateAmountPreview()
 )
 
@@ -192,7 +189,7 @@ $(document).on('turbo:load', function () {
         $(frame).children('.shimmer').first().addClass('shimmer--error')
       })
     }
-    
+
     if ($(frame).data('loading') == "lazy") {
       whenViewed(frame, loadFrame);
     } else loadFrame();
@@ -208,7 +205,7 @@ $(document).on('turbo:load', function () {
         if ((email = localStorage.getItem('login_email'))) {
           BK.s('login').find('input[type=email]').val(email)
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // auto fill @hackclub.com email addresses on submit
@@ -223,7 +220,7 @@ $(document).on('turbo:load', function () {
   }
 
   // login code sanitization
-  $(document).on('keyup change', "input[name='login_code']", function() {
+  $(document).on('keyup change', "input[name='login_code']", function () {
     const currentVal = $(this).val()
     let newVal = currentVal.replace(/[^0-9]+/g, '')
 
@@ -327,9 +324,64 @@ $(document).on('turbo:load', function () {
       if (e.target.checked) shippingInputs.slideDown()
     })
     $(virtualInput).on('change', e => {
-      if (e.target.checked) shippingInputs.hide()
+      if (e.target.checked) shippingInputs.slideUp()
     })
   }
+  
+  if (BK.s('reimbursement_report_create_form_type_selection').length) {
+    const dropdownInput = $('#reimbursement_report_user_email')
+    const emailInput = $('#reimbursement_report_email')
+    const maxInput = $('#reimbursement_report_maximum_amount_wrapper')
+    const inviteInput = $('#reimbursement_report_invite_message_wrapper')
+
+    const forMyselfInput = $('#reimbursement_report_for_myself')
+    const forOrganizerInput = $('#reimbursement_report_for_organizer')
+    const forExternalInput = $('#reimbursement_report_for_external')
+
+    dropdownInput.hide()
+    emailInput.hide()
+    maxInput.hide()
+    inviteInput.hide()
+
+    $(forMyselfInput).on('change', e => {
+      if (e.target.checked) {
+        dropdownInput.slideUp()
+        emailInput.slideUp()
+        maxInput.slideUp()
+        inviteInput.slideUp()
+        emailInput.val(emailInput[0].attributes["value"].value)
+      }
+    })
+    
+    $(forOrganizerInput).on('change', e => {
+      if (e.target.checked) {
+        emailInput.val(dropdownInput.val())
+        dropdownInput.slideDown()
+        emailInput.slideUp()
+        maxInput.slideDown()
+        inviteInput.slideUp()
+      }
+    })
+    
+    $(forExternalInput).on('change', e => {
+      if (e.target.checked) {
+        emailInput.val("")
+        dropdownInput.slideUp()
+        emailInput.slideDown()
+        maxInput.slideDown()
+        inviteInput.slideDown()
+      }
+    })
+    
+    $(dropdownInput).on('change', e => {
+      emailInput.val(e.target.value)
+    })
+  }
+
+  $('[data-behavior~=mention]').on('click', e => {
+    BK.s('comment').val(`${BK.s('comment').val() + (BK.s('comment').val().length > 0 ? " " : "")}${e.target.dataset.mentionValue || e.target.innerText}`)
+    BK.s('comment')[0].scrollIntoView();
+  })  
 
   if (BK.thereIs('additional_transparency_settings')) {
     const additionalTransparencySettings = BK.s(
@@ -372,11 +424,28 @@ $(document).on('turbo:load', function () {
     .addListener(() => setTilt())
 })
 
+$(document).on('turbo:frame-load', function () {
+  if (BK.thereIs('check_payout_method_inputs') && BK.thereIs('ach_transfer_payout_method_inputs')) {
+    const checkPayoutMethodInputs = BK.s('check_payout_method_inputs')
+    const achTransferPayoutMethodInputs = BK.s('ach_transfer_payout_method_inputs')
+    $(document).on("change", "#user_payout_method_type_userpayoutmethodcheck", e => {
+      if (e.target.checked) checkPayoutMethodInputs.slideDown() && achTransferPayoutMethodInputs.slideUp()
+    })
+    $(document).on("change", "#user_payout_method_type_userpayoutmethodachtransfer", e => {
+      if (e.target.checked) achTransferPayoutMethodInputs.slideDown() && checkPayoutMethodInputs.slideUp()
+    })
+  }
+})
+
 $('[data-behavior~=ctrl_enter_submit]').keydown(function (event) {
   if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
     $(this).closest('form').get(0).requestSubmit()
   }
 })
+
+function hidePWAPrompt() {
+  document.body.classList.add("hide__pwa__prompt")
+}
 
 $(document).on('click', '[data-behavior~=expand_receipt]', function (e) {
   const controlOrCommandClick = e.ctrlKey || e.metaKey;
@@ -392,8 +461,8 @@ $(document).on('click', '[data-behavior~=expand_receipt]', function (e) {
   selected_receipt.classList.add("receipt--expanded")
 })
 
-function unexpandReceipt(){
-  document.querySelectorAll(`.receipt--expanded`)[0]?.classList?.remove('receipt--expanded'); 
+function unexpandReceipt() {
+  document.querySelectorAll(`.receipt--expanded`)[0]?.classList?.remove('receipt--expanded');
   document.querySelector('.modal--popover.modal--popover--receipt-expanded')?.classList?.remove('modal--popover--receipt-expanded');
 }
 
@@ -401,4 +470,39 @@ document.addEventListener("turbo:load", () => {
   if (window.self === window.top) {
     document.body.classList.remove('embedded');
   }
+})
+
+document.addEventListener("turbo:before-stream-render", ((event) => {
+  const fallbackToDefaultActions = event.detail.render
+  event.detail.render = function (streamElement) {
+    if (streamElement.action == "refresh_link_modals") {
+      const turboStreamElements = document.querySelectorAll('turbo-frame');
+      turboStreamElements.forEach(element => {
+        if (element.id.startsWith('link_modal')) {
+          element.innerHTML = "<strong>Loading...</strong>"
+          element.reload();
+        }
+      });
+    } else {
+      fallbackToDefaultActions(streamElement)
+    }
+  }
+}))
+
+let hankIndex = 0
+$(document).on('keydown', function (e) {
+  if (e.originalEvent.key === 'hank'[hankIndex]) {
+    hankIndex++
+    if (hankIndex === 4) {
+      return $('[name="header-logo"]').attr('src', '/hank.png')
+    }
+  } else {
+    return (hankIndex = 0)
+  }
+})
+
+// Disable scrolling on <input type="number" /> elements
+$(document).on("wheel", "input[type=number]", e => {
+  e.preventDefault()
+  e.target.blur()
 })

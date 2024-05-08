@@ -4,8 +4,8 @@ require "net/http"
 
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:branding, :brand_guidelines, :faq]
-  skip_before_action :redirect_to_onboarding, only: [:branding, :brand_guidelines, :faq]
+  skip_before_action :signed_in_user, only: [:branding, :faq, :roles]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :faq, :roles]
 
   def index
     if signed_in?
@@ -25,7 +25,7 @@ class StaticPagesController < ApplicationController
     end
   end
 
-  def brand_guidelines
+  def branding
     @logos = [
       { name: "Original Light", criteria: "For white or light colored backgrounds.", background: "smoke" },
       { name: "Original Dark", criteria: "For black or dark colored backgrounds.", background: "black" },
@@ -40,28 +40,83 @@ class StaticPagesController < ApplicationController
     @event_slug = signed_in? && current_user.events.first&.slug || "hack-pennsylvania"
   end
 
+  def roles
+    # Ironically, don't put prefaces at the start of a hash here.
+    # (It'll erroneously offset the title padding top calculation.)
+    @perms = {
+      Team: {
+        "Invite a user": :manager,
+        "Request removal of a user": :manager,
+        "Cancel invite made by another user": :manager,
+        "Cancel invite made by yourself": :member,
+        "Change another user's role": :manager,
+      },
+      Transfers: {
+        Checks: {
+          "Send a mailed check": :manager,
+          "View a mailed check": :member,
+        },
+        "Check Deposit": {
+          "Deposit a check": :member,
+          "View a check deposit": :member,
+          "View images of a check deposit": :manager,
+          _preface: "For depositing a check by taking a picture of it"
+        },
+        "ACH Transfers": {
+          "Send an ACH Transfer": :manager,
+          "Cancel an ACH Transfer": :manager,
+          "View an ACH Transfer": :member,
+          "View recipient's payment details": :manager,
+        },
+        "Account & Routing numbers": {
+          "View the organization's account & routing numbers": :manager
+        },
+        "HCB Transfers": {
+          "Create an HCB Transfer": :manager,
+          "Cancel an HCB Transfer": :manager,
+          "View an HCB Transfer": :member
+        },
+        _preface: "As a general rule, only managers can create/modify financial transfers"
+      },
+      Cards: {
+        "Order a card": :member,
+        "Freeze/defrost your own card": :member,
+        "Freeze/defrost another user's card": :manager,
+        "Rename your own card": :member,
+        "Rename another user's card": :manager,
+        "View another user's card number": :manager,
+        "View card expiration date": :member,
+        "View card billing address": :member,
+      },
+      Reimbursements: {
+        "Get reimbursed through HCB": :member,
+        "View reimbursement reports": :member,
+        "Review, approve, and reject reports": :manager,
+      },
+      "Google Workspace": {
+        "Create an account": :manager,
+        "Suspend an account": :manager,
+        "Reset an account's password": :manager,
+      },
+      "Settings": {
+        "View settings": :member,
+        "Edit settings": :manager,
+      }
+    }
+  end
+
   def faq
   end
 
   def my_cards
-    flash.now[:success] = "Card activated!" if params[:activate]
     @stripe_cards = current_user.stripe_cards.includes(:event)
     @emburse_cards = current_user.emburse_cards.includes(:event)
   end
 
   # async frame
   def my_missing_receipts_list
-    @missing_receipt_ids = []
+    @missing = current_user.transactions_missing_receipt
 
-    current_user.stripe_cards.map do |card|
-      card.hcb_codes.missing_receipt.each do |hcb_code|
-        next unless hcb_code.receipt_required?
-
-        @missing_receipt_ids << hcb_code.id
-        break unless @missing_receipt_ids.size < 5
-      end
-    end
-    @missing = HcbCode.where(id: @missing_receipt_ids)
     if @missing.any?
       render :my_missing_receipts_list, layout: !request.xhr?
     else
@@ -71,68 +126,54 @@ class StaticPagesController < ApplicationController
 
   # async frame
   def my_missing_receipts_icon
-    @missing_receipt_count ||= begin
-      count = 0
+    count = current_user.transactions_missing_receipt.count
 
-      stripe_cards = current_user.stripe_cards.includes(:event)
-      emburse_cards = current_user.emburse_cards.includes(:event)
+    emojis = {
+      "🤡": 300,
+      "💀": 200,
+      "😱": 100,
+    }
 
-      (stripe_cards + emburse_cards).each do |card|
-        card.hcb_codes.missing_receipt.each do |hcb_code|
-          next unless hcb_code.receipt_required?
-
-          count += 1
-        end
-      end
-
-      emojis = {
-        "🤡": 300,
-        "💀": 200,
-        "😱": 100,
-      }
-      emojis.find { |emoji, value| count >= value }&.first || count
-    end
+    @missing_receipt_count = emojis.find { |emoji, value| count >= value }&.first || count
 
     render :my_missing_receipts_icon, layout: false
   end
 
   def my_inbox
-    user_cards = current_user.stripe_cards + current_user.emburse_cards
-    user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
-    user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
+    @count = current_user.transactions_missing_receipt.count
+    @hcb_codes = current_user.transactions_missing_receipt.page(params[:page]).per(params[:per] || 15)
 
-    hcb_codes_missing_ids = user_hcb_codes.missing_receipt.filter(&:receipt_required?).pluck(:id)
-    hcb_codes_missing = HcbCode.where(id: hcb_codes_missing_ids).order(created_at: :desc)
-
-    @count = hcb_codes_missing.count # Total number of HcbCodes missing receipts
-    @hcb_codes = hcb_codes_missing.page(params[:page]).per(params[:per] || 20)
-
-    @mailbox_address = current_user.active_mailbox_address
-
-    @card_hcb_codes = @hcb_codes.group_by { |hcb| hcb.card.to_global_id.to_s }
-    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys)
-    # Ideally we'd preload (includes) events for @cards, but that isn't
-    # supported yet: https://github.com/rails/globalid/pull/139
+    @card_hcb_codes = @hcb_codes.includes(:canonical_transactions, canonical_pending_transactions: :raw_pending_stripe_transaction) # HcbCode#card uses CT and PT
+                                .group_by { |hcb| hcb.card.to_global_id.to_s }
+    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys, includes: :event)
+                              # Order by cards with least transactions first
+                              .sort_by { |card| @card_hcb_codes[card.to_global_id.to_s].count }
 
     if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
-      @receipts = Receipt.where(user: current_user, receiptable: nil)
-
-      @pairings = @receipts.map do |receipt|
-        pairings = receipt.suggested_pairings.order(distance: :asc)
-        next if pairings.ignored.count > 2
-
-        pairing = pairings.unreviewed.first
-        next if pairing.nil?
-        next if pairing.distance > 3000
-
-        pairing
-      end.compact
+      @mailbox_address = current_user.active_mailbox_address
+      @receipts = Receipt.in_receipt_bin.where(user: current_user)
+      @pairings = current_user.receipt_bin.suggested_receipt_pairings
     end
 
     if flash[:popover]
       @popover = flash[:popover]
       flash.delete(:popover)
     end
+  end
+
+  def my_reimbursements
+    @reports = current_user.reimbursement_reports
+    @reports = @reports.pending if params[:filter] == "pending"
+    @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:filter] == "reimbursed"
+    @reports = @reports.rejected if params[:filter] == "rejected"
+    @reports = @reports.search(params[:q]) if params[:q].present?
+    @payout_method = current_user.payout_method
+  end
+
+  def my_draft_reimbursements_icon
+    @draft_reimbursements_count = current_user.reimbursement_reports.draft.count
+
+    render :my_draft_reimbursements_icon, layout: false
   end
 
   def receipt
@@ -190,13 +231,19 @@ class StaticPagesController < ApplicationController
 
   def feedback
     message = params[:message]
-    share_email = params[:share_email] || "1"
+    share_email = (params[:share_email] || "1") == "1"
+    url = share_email ? "#{request.base_url}#{params[:page_path]}" : ""
+
+    routing = Rails.application.routes.recognize_path(params[:page_path])
+    location = "#{routing[:controller]}##{routing[:action]} #{routing[:id] if routing[:id] && share_email}".strip
 
     feedback = {
       "Share your idea(s)" => message,
+      "URL"                => url,
+      "Location"           => location,
     }
 
-    if share_email == "1"
+    if share_email
       feedback["Name"] = current_user.name
       feedback["Email"] = current_user.email
       feedback["Organization"] = current_user.events.first&.name

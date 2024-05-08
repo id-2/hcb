@@ -10,6 +10,7 @@
 #  initial               :boolean          default(FALSE)
 #  is_signee             :boolean
 #  rejected_at           :datetime
+#  role                  :integer          default("manager"), not null
 #  slug                  :string
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
@@ -56,9 +57,10 @@ class OrganizerPositionInvite < ApplicationRecord
   has_paper_trail
 
   include PublicIdentifiable
-  set_public_id_prefix :inv
+  set_public_id_prefix :ivt
 
   include FriendlyId
+  include OrganizerPosition::HasRole
 
   friendly_id :slug_candidates, use: :slugged
 
@@ -70,7 +72,7 @@ class OrganizerPositionInvite < ApplicationRecord
   belongs_to :user
   belongs_to :sender, class_name: "User"
 
-  belongs_to :organizer_position, required: false
+  belongs_to :organizer_position, optional: true
 
   validate :not_already_organizer
   validate :not_already_invited, on: :create
@@ -85,7 +87,7 @@ class OrganizerPositionInvite < ApplicationRecord
     OrganizerPositionInvitesMailer.with(invite: self).notify.deliver_later
   end
 
-  def accept
+  def accept(show_onboarding: true)
     if cancelled?
       self.errors.add(:base, "was canceled!")
       return false
@@ -99,7 +101,9 @@ class OrganizerPositionInvite < ApplicationRecord
     self.organizer_position = OrganizerPosition.new(
       event:,
       user:,
-      is_signee:
+      role:,
+      is_signee:,
+      first_time: show_onboarding,
     )
 
     self.accepted_at = Time.current

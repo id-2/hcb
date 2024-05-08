@@ -8,33 +8,8 @@
   cursor: wait;
 }
 
-.overflow-x-auto {
-  overflow-x: auto;
-}
-
-.overflow-y-auto {
-  overflow-y: auto;
-}
-
-.line-height-0 {
-  line-height: 0;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.ml-auto {
-  margin-left: auto;
-}
-
-.mr-auto {
-  margin-right: auto;
-}
-
-.inline-flex {
-  display: inline-flex;
+.help {
+  cursor: help;
 }
 
 .shrink-none {
@@ -108,7 +83,7 @@ $shades: (
   red: rgba($red, 0.125),
   yellow: rgba($yellow, 0.125),
   green: rgba($green, 0.125),
-  neutral: rgba($muted, 0.125)
+  neutral: rgba($muted, 0.125),
 );
 
 @each $name, $value in $shades {
@@ -123,6 +98,9 @@ $shades: (
 .transaction--negative {
   @extend .shade-red;
 }
+.transaction--zero {
+  @extend .shade-neutral;
+}
 
 @each $name, $value in $palette {
   .#{'' + $name} {
@@ -135,6 +113,18 @@ $shades: (
 
   .bg-#{'' + $name} {
     background-color: $value;
+
+    &-important {
+      background-color: $value !important;
+    }
+  }
+
+  .border-#{'' + $name} {
+    border-color: $value;
+
+    &-important {
+      border-color: $value !important;
+    }
   }
 }
 
@@ -154,8 +144,16 @@ $shades: (
   border-color: map-get($palette, info);
 }
 
+.b--muted {
+  border-color: map-get($palette, muted);
+}
+
 .b--success {
   border-color: map-get($palette, success);
+}
+
+.b--primary {
+  border-color: map-get($palette, primary);
 }
 
 .w-50 {
@@ -166,28 +164,8 @@ $shades: (
   width: 100%;
 }
 
-.w-auto {
-  width: auto;
-}
-
-.w-max {
-  width: max-content;
-}
-
-.w-min {
-  width: min-content;
-}
-
-.w-fit {
-  width: fit-content;
-}
-
 .h-100 {
   height: 100%;
-}
-
-.h-auto {
-  height: auto;
 }
 
 @media screen and (min-width: 32em) {
@@ -208,35 +186,14 @@ $shades: (
   }
 }
 
-.break-normal {
-  word-break: normal;
-}
-
-.break-all {
-  word-break: break-all;
-}
-
-.break-word {
-  word-break: break-word;
-}
-
 .break-none {
   word-break: keep-all;
-}
-
-.text-shadow-lg {
-  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.04))
-    drop-shadow(0 4px 3px rgba(0, 0, 0, 0.1));
 }
 
 .column {
   flex-basis: 0;
   flex-grow: 1;
   flex-shrink: 0;
-}
-
-.mono {
-  font-family: 'Space Mono', 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
 }
 
 details[open] .flip-when-open {

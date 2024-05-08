@@ -9,8 +9,7 @@
   </span>
 
   <% if organizer_signed_in? %>
-    <%= link_to "Reimbursement", event_reimbursements_path(@event), class: "btn" %>
-
+    <%= link_to "Reimbursements", event_reimbursements_path(@event), class: "btn" %>
     <%= link_to event_transfers_new_path(event_id: @event.slug), class: "btn bg-success", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
       <%= inline_icon "payment-transfer" %>
       Send
@@ -78,8 +77,8 @@
                 <%= inline_icon "bank-account" %>
               </span>
             <% elsif d.is_a?(CardGrant) %>
-              <span class="tooltipped tooltipped--e inline-block" aria-label="Grant card">
-                <%= inline_icon "card" %>
+              <span class="tooltipped tooltipped--e inline-block" aria-label="Card Grant">
+                <%= inline_icon "bag" %>
               </span>
             <% else %>
               <span class="tooltipped tooltipped--e inline-block" aria-label="HCB transfer">
@@ -105,14 +104,16 @@
               for
               <%= d.name %>
             <% elsif d.is_a? CardGrant %>
-              <%= d.user.name %> <% if organizer_signed_in? %>(<%= mail_to d.user.email %>)<% end %>
+              <strong>
+                <%= link_to d.user.name, organizer_signed_in? ? d : spending_card_grant_path(d) %>
+              </strong>
             <% else %>
               <%= d.name %>
             <% end %>
           </td>
           <td style="text-align: right;">
             <% if d.is_a? CardGrant %>
-              <span class="<%= "muted strikethrough" if d.balance.zero? %>"><%= d.balance.format %></span>
+              <span class="<%= "muted line-through" if d.balance.zero? %>"><%= d.balance.format %></span>
             <% else %>
               <%= render_money(d.amount) %>
             <% end %>
@@ -139,9 +140,14 @@
   <%= blankslate "No transfers yet" %>
 <% end %>
 
-<section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="send_transfer">
-  <%= turbo_frame_tag :transfer_form do %>
-    <%= modal_header "Transfer money" %>
-    <%= render "transfer_form" %>
-  <% end %>
-</section>
+<% if organizer_signed_in? %>
+  <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="send_transfer">
+    <%= turbo_frame_tag :transfer_form do %>
+      <%= modal_header "Transfer money" %>
+
+      <%= render "events/transfers/unauthorized_callout" unless policy(@event).create_transfer? %>
+
+      <%= render "transfer_form" %>
+    <% end %>
+  </section>
+<% end %>

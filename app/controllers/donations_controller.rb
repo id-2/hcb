@@ -11,6 +11,7 @@ class DonationsController < ApplicationController
   before_action :set_donation, only: [:show]
   before_action :set_event, only: [:start_donation, :make_donation, :qr_code]
   before_action :check_dark_param
+  before_action :hide_seasonal_decorations
   skip_before_action :redirect_to_onboarding
 
   # Rationale: the session doesn't work inside iframes (because of third-party cookies)
@@ -57,7 +58,12 @@ class DonationsController < ApplicationController
     @monthly = params[:monthly].present?
 
     if @monthly
-      @recurring_donation = @event.recurring_donations.build
+      @recurring_donation = @event.recurring_donations.build(
+        name: params[:name],
+        email: params[:email],
+        amount: params[:amount],
+        message: params[:message],
+      )
     end
 
     @placeholder_amount = "%.2f" % (DonationService::SuggestedAmount.new(@event, monthly: @monthly).run / 100.0)
@@ -196,8 +202,12 @@ class DonationsController < ApplicationController
     end
   end
 
+  def hide_seasonal_decorations
+    @hide_seasonal_decorations = true
+  end
+
   def donation_params
-    params.require(:donation).permit(:email, :name, :amount, :message)
+    params.require(:donation).permit(:email, :name, :amount, :message, :anonymous)
   end
 
   def redirect_to_404

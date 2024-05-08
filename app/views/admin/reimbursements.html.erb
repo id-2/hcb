@@ -1,0 +1,166 @@
+<% title "Reimbursements" %>
+
+<%= form_with local: true, url: reimbursements_admin_index_path, method: :get do |form| %>
+  <%= form.text_field :q, value: params[:q], placeholder: "Search", class: "w-100" %>
+  <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: "Select an event", selected: @event_id }, { class: "w-100" }) %>
+  <fieldset>
+  <%= form.label :pending do %>
+    <%= form.check_box :pending, checked: @pending %>
+    Reimbursement Requested (Awaiting Review)
+  <% end %>
+  </fieldset>
+  <%= form.submit "Search" %>
+<% end %>
+
+<div class="flex items-center mb2">
+  <div class="flex-grow">
+    <%= page_entries_info @reports, entry_name: "reports" %>
+  </div>
+  <%= paginate @reports %>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Date</th>
+      <th>Organization</th>
+      <th>Title</th>
+      <th>User</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @reports.each do |report| %>
+      <tr class="<%= "admin-bg-pending" if report.reimbursement_requested? %>">
+        <td class="w-16"><%= report.id %></td>
+        <td class="w-32"><%= report.created_at.strftime("%Y-%m-%d") %></td>
+        <td>
+          <%= link_to event_path(report.event) do %>
+            <%= report.event.name.upcase %>
+          <% end %>
+        </td>
+        <td>
+          <%= link_to reimbursement_report_path(report) do %>
+            <%= report.name %>
+          <% end %>
+        </td>
+        <td>
+          <%= report.user.name %> (<%= report.user.id %>)
+        </td>
+        <td class="w-24"><%= render_money(report.amount) %></td>
+        <td><%= report.admin_status_text %></td>
+        <td>
+          <%= link_to "View", reimbursement_report_path(report) %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= paginate @reports %>
+
+<h3 style="display: flex;">
+  <span style="flex-grow: 1;">
+    <%= link_to "Clearinghouse", Event.find(EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING) %> Status
+  </span>
+  <%= render_money Event.find(EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING).balance %>
+</h3>
+
+<h4 class="mb2">🚨 Incomplete Payout Holdings</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th class="w-32">Date</th>
+      <th class="w-32">Amount</th>
+      <th>Memo</th>
+      <th>Report</th>
+      <th>Source Event</th>
+      <th>Payout Transfer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @incomplete_payout_holdings.each do |tx| %>
+      <% payout_holding = tx.local_hcb_code.reimbursement_payout_holding %>
+      <% report = payout_holding.report %>
+      <tr>
+        <td><%= tx.date %></td>
+        <td class="nowrap"><%= render_money tx.amount %></td>
+        <td><%= link_to tx.local_hcb_code.memo, hcb_code_path(tx.local_hcb_code) %></td>
+        <td><%= link_to report.name, report %></td>
+        <td><%= link_to report.event.name, report.event %></td>
+        <td>
+          <% if payout_holding.payout_transfer %>
+            <%= link_to render_money(payout_holding.payout_transfer.local_hcb_code.amount), payout_holding.payout_transfer %>
+            <% if @clearinghouse_transactions.select { |ctx| ctx.hcb_code == tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.hcb_code}.none? %>
+              (Not on ledger)
+            <% elsif tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.local_hcb_code.amount_cents.abs != tx.local_hcb_code.amount_cents.abs %>
+              (Incorrect amount)
+            <% end %>
+          <% else %>
+            None
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+    <tr>
+      <td>Total</td>
+      <td><%= render_money @incomplete_payout_holdings.sum(&:amount_cents) %></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 class="mb2">⚠️ Unidentified Transactions</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th class="w-32">Date</th>
+      <th class="w-32">Amount</th>
+      <th>Memo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @unidentified_transactions.each do |tx| %>
+      <tr>
+        <td><%= tx.date %></td>
+        <td class="nowrap"><%= render_money tx.amount %></td>
+        <td><%= link_to tx.local_hcb_code.memo, hcb_code_path(tx.local_hcb_code) %></td>
+      </tr>
+    <% end %>
+    <tr>
+      <td>Total</td>
+      <td><%= render_money @unidentified_transactions.sum(&:amount_cents) %></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 class="mb2">⏳ Pending Transactions</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th class="w-32">Date</th>
+      <th class="w-32">Amount</th>
+      <th>Memo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @pending_transactions.each do |tx| %>
+      <tr>
+        <td><%= tx.date %></td>
+        <td class="nowrap"><%= render_money tx.amount %></td>
+        <td><%= link_to tx.local_hcb_code.memo, hcb_code_path(tx.local_hcb_code) %></td>
+      </tr>
+    <% end %>
+    <tr>
+      <td>Total</td>
+      <td><%= render_money @pending_transactions.sum(&:amount_cents) %></td>
+    </tr>
+  </tbody>
+</table>
+
+<small>FYI: <%= render_money @incomplete_payout_holdings.sum(&:amount_cents) %> + <%= render_money @unidentified_transactions.sum(&:amount_cents) %> + <%= render_money @pending_transactions.sum(&:amount_cents) %> = <%= render_money @incomplete_payout_holdings.sum(&:amount_cents) + @unidentified_transactions.sum(&:amount_cents) + @pending_transactions.sum(&:amount_cents) %>. The Clearinghouse's balance is <%= render_money Event.find(EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING).balance %>. Turns out, computers are good at this thing we call maths.</small>

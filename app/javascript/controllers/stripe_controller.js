@@ -10,7 +10,7 @@ export default class extends Controller {
     clientSecret: String,
     returnUrl: String,
     type: { type: String, default: 'payment' }, // "payment" or "setup",
-    theme: { type: String, default: 'card' }
+    theme: { type: String, default: 'card' },
   }
 
   async connect() {
@@ -21,14 +21,14 @@ export default class extends Controller {
       appearance:
         themes[this.themeValue][
           localStorage.getItem('dark') === 'true' ? 'dark' : 'light'
-        ]
+        ],
     })
 
     const paymentElement = this.elements.create('payment', {
       business: {
-        name: 'HCB'
+        name: 'HCB',
       },
-      terms: { card: 'never' }
+      terms: { card: 'never' },
     })
     paymentElement.mount(this.elementTarget)
   }
@@ -47,8 +47,14 @@ export default class extends Controller {
         if (this.hasErrorsTarget) {
           const flash = document.createElement('p')
           flash.classList.add('flash', 'error', 'fit', 'mt1', 'mb3')
-          flash.textContent = `Something went wrong: ${result.error.message}`
-
+          if (
+            result.error.code == 'payment_intent_authentication_failure' ||
+            result.error.code == 'card_declined'
+          ) {
+            flash.textContent = `Something went wrong: your bank declined this transaction. Please contact them to approve it.`
+          } else {
+            flash.textContent = `Something went wrong: ${result.error.message}`
+          }
           this.errorsTarget.appendChild(flash)
         } else {
           alert(`Something went wrong: ${result.error.message}`)
@@ -59,7 +65,7 @@ export default class extends Controller {
 
   themeToggle({ detail: dark }) {
     this.elements.update({
-      appearance: themes[this.themeValue][dark ? 'dark' : 'light']
+      appearance: themes[this.themeValue][dark ? 'dark' : 'light'],
     })
   }
 
@@ -68,15 +74,15 @@ export default class extends Controller {
       return await this.stripe.confirmPayment({
         elements: this.elements,
         confirmParams: {
-          return_url: this.returnUrlValue
-        }
+          return_url: this.returnUrlValue,
+        },
       })
     } else {
       return await this.stripe.confirmSetup({
         elements: this.elements,
         confirmParams: {
-          return_url: this.returnUrlValue
-        }
+          return_url: this.returnUrlValue,
+        },
       })
     }
   }

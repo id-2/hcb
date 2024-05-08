@@ -20,6 +20,7 @@ html[data-dark='true'] {
   input[type='url'],
   select,
   textarea {
+    color-scheme: dark;
     background-color: $darkless;
     color: map-get($palette, white);
     border-color: $darkless;
@@ -87,6 +88,23 @@ html[data-dark='true'] {
   .flash {
     border: 0;
   }
+  
+  .menu__content {
+    input[type='date'],
+    input[type='email'],
+    input[type='number'],
+    input[type='password'],
+    input[type='search'],
+    input[type='tel'],
+    input[type='text'],
+    input[type='url'],
+    .input,
+    select,
+    textarea {
+      background: $dark;
+      border-color: $dark;
+    }
+  }
 
   .retrofees,
   .card,
@@ -97,6 +115,11 @@ html[data-dark='true'] {
   .modal--scroll.bg-snow {
     background-color: $dark;
   }
+
+  .pinned__transaction.bg-smoke {
+    background-color: $darkless;
+  }
+
   .modal--scroll header,
   .modal--scroll:not(.modal--popover) > footer,
   .modal--scroll:not(.modal--popover) > * > footer {
@@ -142,6 +165,21 @@ html[data-dark='true'] {
     pre {
       background-color: $dark;
     }
+    &.b--warning {
+      border-color: rgba(map-get($palette, warning), 0.375);
+    }
+    
+    &.b--info {
+      border-color: rgba(map-get($palette, info), 0.375);
+    }
+    
+    &.b--success {
+      border-color: rgba(map-get($palette, success), 0.375);
+    }
+    
+    &.b--primary {
+      border-color: rgba(map-get($palette, primary), 0.375);
+    }
   }
 
   .black,
@@ -150,6 +188,10 @@ html[data-dark='true'] {
   label,
   a > .card {
     color: map-get($palette, smoke);
+  }
+  
+  .dock__item.disabled span {
+    color: map-get($palette, muted);
   }
 
   pre,
@@ -163,12 +205,26 @@ html[data-dark='true'] {
     color: map-get($palette, muted) !important;
   }
 
+  .card.card--sunken {
+    box-shadow: none;
+    background-color: rgba(map-get($palette, dark), 0.75);
+  }
+
   .admin-tools {
     background-color: rgba(map-get($palette, warning), 0.0625);
   }
 
+  .dev-tools {
+    background-color: rgba(map-get($palette, success), 0.0625);
+  }
+
   .comments .card.current-user {
     background-color: mix($darkless, map-get($palette, info), 90%);
+  }
+  
+  .comments .card.comment--admin {
+    border: 1px dashed map-get($palette, warning);
+    background-color: mix($darkless, map-get($palette, warning), 90%);
   }
 
   .card__banner.bg-success,
@@ -179,8 +235,9 @@ html[data-dark='true'] {
   .transaction--negative {
     background-color: rgba(map-get($palette, error), 0.25);
   }
-  .shade-neutral {
-    background: $darkless;
+  .shade-neutral,
+  .transaction--zero {
+    background-color: $darkless;
   }
   .shade-yellow {
     background-color: rgba(map-get($palette, pending), 0.125);
@@ -225,6 +282,10 @@ html[data-dark='true'] {
   .badge.bg-warning {
     color: map-get($palette, warning);
   }
+  .badge.bg-purple {
+    background-color: rgba(map-get($palette, purple), 0.125);
+    color: map-get($palette, purple);
+  }
   .badge.bg-error {
     color: map-get($palette, error);
   }
@@ -239,7 +300,7 @@ html[data-dark='true'] {
 
   .filterbar__item:active,
   .filterbar__item[aria-selected='true'] {
-    background-color: rgba(map-get($palette, primary), 0.125);
+    background-color: rgba(map-get($palette, info), 0.125);
   }
   .badge.bg-info,
   .flash.info,
@@ -247,21 +308,25 @@ html[data-dark='true'] {
   .pop.info {
     background-color: rgba(map-get($palette, info), 0.125);
   }
+
   .flash.accent,
   .badge.bg-accent,
   .pop.accent {
     background-color: rgba(map-get($palette, accent), 0.125);
   }
+
   .flash.success,
   .badge.bg-success,
   .pop.success {
     background-color: rgba(map-get($palette, success), 0.125);
   }
+
   .flash.warning,
   .badge.bg-warning,
   .pop.warning {
     background-color: rgba(map-get($palette, warning), 0.125);
   }
+
   .flash.muted,
   .badge,
   .badge.bg-muted,
@@ -282,28 +347,13 @@ html[data-dark='true'] {
     color: map-get($palette, smoke);
   }
 
-  .check,
-  .transfer-preview--check {
-    background: #193046;
-    color: inherit;
-  }
-  .check__field {
-    color: map-get($palette, white);
-
-    &:before {
-      border-color: #193046;
-      color: map-get($palette, smoke);
-    }
-  }
-  .check__field--num {
-    border-color: map-get($palette, slate);
-  }
-  .check__sig {
-    filter: invert(1) hue-rotate(180deg);
-  }
-
   pre.bg-smoke {
     background: $darkless;
+    color: map-get($palette, white);
+  }
+
+  .bg-smoke-important {
+    background: $darkless!important;
     color: map-get($palette, white);
   }
 
@@ -374,5 +424,9 @@ html[data-dark='true'] {
     &:hover:not(:focus) {
       @include gradient(info);
     }
+  }
+  
+  .mention-suggestions {
+    border: 1px solid map-get($palette, slate);
   }
 }

@@ -22,7 +22,6 @@ gem "mini_magick"
 
 gem "jsbundling-rails", "~> 1.1"
 gem "terser", "~> 1.1" # JS compressor
-gem "sassc-rails"
 gem "jquery-rails"
 gem "react-rails"
 gem "turbo-rails", "~> 1.4"
@@ -36,7 +35,8 @@ gem "faraday" # web requests
 
 gem "increase", "~> 0.3.1"
 gem "stripe", "8.5.0"
-gem "plaid", "~> 23.0"
+gem "plaid", "~> 26.0"
+gem "yellow_pages", git: "https://github.com/hackclub/yellow_pages", ref: "117d13e"
 
 gem "aws-sdk-s3", require: false
 
@@ -60,10 +60,10 @@ gem "aasm" # state machine
 gem "paper_trail" # track changes to models
 gem "acts_as_paranoid", "~> 0.9.0" # enables soft deletions
 
-gem "friendly_id", "~> 5.2.0" # slugs
+gem "friendly_id", "~> 5.5.0" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
 
-gem "active_storage_validations", "1.0.4" # file validations
+gem "active_storage_validations", "1.1.4" # file validations
 gem "validates_email_format_of" # email address validations
 gem "phonelib" # phone number validations
 
@@ -108,6 +108,7 @@ gem "grape-swagger-entity", "~> 0.3"
 
 gem "maildown" # markdown for views
 gem "redcarpet" # markdown parsing
+gem "loofah" # html email parsing
 
 gem "namae" # multi-cultural human name parser
 gem "premailer-rails" # css to inline styles for emails
@@ -115,6 +116,8 @@ gem "safely_block"
 gem "strong_migrations" # protects against risky migrations
 gem "swagger-blocks"
 gem "xxhash" # fast hashing
+
+gem "diffy" # rendering diffs (comments)
 
 gem "webauthn", "~> 3.0"
 
@@ -130,20 +133,21 @@ gem "chronic" # time/date parsing
 gem "rinku", require: "rails_rinku" # auto-linking URLs in text
 
 gem "geocoder" # lookup lat/lng for Stripe Cards shipment tracking
+gem "validates_zipcode" # validation for event's zip codes
 
 gem "rqrcode" # QR code generation
 
 gem "brakeman" # static security vulnerability scanner
 
 gem "awesome_print" # pretty print objects in console
-gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
+gem "byebug", platforms: [:windows]
 gem "dry-validation"
 
 gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching; required in config/boot.rb
 
+gem "appsignal" # error tracking + performance monitoring
+gem "lograge" # Log formatting
 gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # For reporting to HC Grafana
-
-gem "mrsk" # deployments
 
 group :production do
   gem "skylight"
@@ -166,7 +170,7 @@ group :development, :test do
   gem "rubocop-rails", "~> 2.22"
   gem "relaxed-rubocop"
 
-  gem "rspec-rails", "~> 6.0.3"
+  gem "rspec-rails", "~> 6.1.2"
 
   # Lets you set a breakpoint with a REPL using binding.pry
   gem "pry-byebug", require: ENV["EXCLUDE_PRY"] != "true"
@@ -202,5 +206,9 @@ end
 
 gem "jbuilder", "~> 2.11"
 
-gem "libledger"
+gem "ledgerjournal"
 gem "doorkeeper", "~> 5.6"
+
+gem "cssbundling-rails", "~> 1.4"
+
+gem "sprockets-rails", "~> 3.4"

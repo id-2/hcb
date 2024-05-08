@@ -8,6 +8,7 @@
       <th>ID</th>
       <th>Date</th>
       <th>Memo</th>
+      <th>Bank account</th>
       <th>FriendlyMemo</th>
       <th>CustomMemo</th>
       <th>Amount</th>
@@ -21,15 +22,16 @@
       <td><%= link_to @canonical_transaction.id, canonical_transaction_path(@canonical_transaction) %></td>
       <td><%= @canonical_transaction.date %></td>
       <td><%= @canonical_transaction.memo %></td>
+      <td><%= @canonical_transaction.bank_account_name %></td>
       <td><%= @canonical_transaction.friendly_memo %></td>
       <td><%= @canonical_transaction.custom_memo %></td>
-      <td><%= @canonical_transaction.amount %></td>
+      <td><%= @canonical_transaction.amount.format %></td>
       <td><%= link_to @canonical_transaction.hcb_code, hcb_code_path(@canonical_transaction.local_hcb_code) %></td>
       <td><%= @canonical_transaction.canonical_event_mapping.try(:user).try(:email) %></td>
       <td>
         <%= form_with model: nil, local: true, url: set_event_path(@canonical_transaction), method: :post do |form| %>
           <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT).not_demo_mode, :id, :admin_dropdown_description, { include_blank: true, selected: @canonical_transaction.event.try(:id) }, { width: 150, style: "max-width: 150px;" }) %>
-          <%= form.submit "Set", data: { confirm: @canonical_transaction.local_hcb_code.unknown? ? nil : "Woaaahaa! 😯 This seems like a transaction that SHOULD NOT be manually mapped! Are you sure you want to do this? 👀" } %>
+          <%= form.submit "Set", data: { "turbo-confirm": @mapping_confirm_msg } %>
         <% end %>
 
         <%= form_with url: set_event_path(@canonical_transaction), method: :post do |form| %>
@@ -45,7 +47,7 @@
 
 <h4>Comments</h4>
 
-<%= render "comments/list_v2", { blankslate?: true } %>
+<%= render "comments/list", comments: @hcb_code.comments, show_blankslate: true %>
 
 <% if @potential_donation_payouts.present? %>
   <h4>Potential DonationPayouts to Map to</h4>

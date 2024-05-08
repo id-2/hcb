@@ -58,8 +58,6 @@ class CanonicalTransaction < ApplicationRecord
   scope :column_transaction,   -> { joins("INNER JOIN raw_column_transactions   ON transaction_source_type = 'RawColumnTransaction'   AND raw_column_transactions.id  =  transaction_source_id") }
 
   scope :likely_hack_club_bank_issued_cards, -> { where("memo ilike 'Hack Club Bank Issued car%' or memo ilike 'HCKCLB Issued car%'") }
-  scope :likely_fee_reimbursement, -> { where(memo: "Stripe fee reimbursement") }
-  scope :likely_github, -> { where("memo ilike '%github grant%'") }
   scope :likely_clearing_checks, -> { where("memo ilike '%Withdrawal - Inclearing Check #%' or memo ilike '%Withdrawal - On-Us Deposited Ite #%'") }
   scope :likely_checks, -> { where("memo ilike '%Check TO ACCOUNT REDACTED'") }
   scope :likely_increase_checks, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'check_transfer_intention'") }
@@ -69,6 +67,7 @@ class CanonicalTransaction < ApplicationRecord
   scope :likely_increase_account_number, -> { increase_transaction.joins("INNER JOIN increase_account_numbers ON increase_account_number_id = increase_route_id") }
   scope :likely_increase_check_deposit, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'check_deposit_acceptance'") }
   scope :increase_interest, -> { increase_transaction.where("raw_increase_transactions.increase_transaction->'source'->>'category' = 'interest_payment'") }
+  scope :likely_column_interest, -> { with_column_transaction_type("ach").where(memo: "COLUMN*COLUMN NA INTEREST") }
   scope :likely_column_account_number, -> { column_transaction.joins("INNER JOIN column_account_numbers ON column_transaction->>'account_number_id' = column_account_numbers.column_id") }
   scope :likely_hack_club_fee, -> { where("memo ilike '%Hack Club Bank Fee TO ACCOUNT%'") }
   scope :old_likely_hack_club_fee, -> { where("memo ilike '% Fee TO ACCOUNT REDACTED%'") }
@@ -101,7 +100,7 @@ class CanonicalTransaction < ApplicationRecord
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
-  after_create do
+  after_create_commit do
     if likely_stripe_card_transaction?
       PendingEventMappingEngine::Settle::Single::Stripe.new(canonical_transaction: self).run
       EventMappingEngine::Map::Single::Stripe.new(canonical_transaction: self).run
@@ -166,6 +165,14 @@ class CanonicalTransaction < ApplicationRecord
 
   def column_transaction_type
     raw_column_transaction&.transaction_type
+  end
+
+  def column_transaction_id
+    raw_column_transaction&.transaction_id
+  end
+
+  def bank_account_name
+    transaction_source.try(:bank_account_name) || transaction_source_type[/Raw(.+)Transaction/, 1]
   end
 
   def stripe_cardholder
@@ -253,6 +260,18 @@ class CanonicalTransaction < ApplicationRecord
 
   def bank_fee
     return linked_object if linked_object.is_a?(BankFee)
+
+    nil
+  end
+
+  def reimbursement_expense_payout
+    return linked_object if linked_object.is_a?(Reimbursement::ExpensePayout)
+
+    nil
+  end
+
+  def reimbursement_payout_holding
+    return linked_object if linked_object.is_a?(Reimbursement::PayoutHolding)
 
     nil
   end
@@ -345,8 +364,6 @@ class CanonicalTransaction < ApplicationRecord
     memo.include?("HCB-#{::TransactionGroupingEngine::Calculate::HcbCode::INVOICE_CODE}")
   end
 
-  private
-
   def write_hcb_code
     safely do
       code = ::TransactionGroupingEngine::Calculate::HcbCode.new(canonical_transaction_or_canonical_pending_transaction: self).run
@@ -356,6 +373,8 @@ class CanonicalTransaction < ApplicationRecord
       ::HcbCodeService::FindOrCreate.new(hcb_code: code).run
     end
   end
+
+  private
 
   def hashed_transaction
     @hashed_transaction ||= begin

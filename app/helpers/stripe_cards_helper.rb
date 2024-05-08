@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module StripeCardsHelper
-  def render_exp_date(card = @card)
-    "#{card.stripe_exp_month.to_s.rjust(2, '0')}/#{card.stripe_exp_year}"
+  def render_exp_date(stripe_card)
+    "#{stripe_card.stripe_exp_month.to_s.rjust(2, '0')}/#{stripe_card.stripe_exp_year}"
   end
 
   def stripe_card_mention(stripe_card, options = { size: 24 })
@@ -50,6 +50,12 @@ module StripeCardsHelper
     end
   end
 
+  def prefill(field)
+    return nil unless current_user && !current_user.stripe_cardholder&.default_billing_address?
+
+    suggested(field)
+  end
+
   def card_shipping_map_url(card, options = {})
     address = "#{card.address_line1} #{card.address_line2}, #{card.address_city} #{card.address_state} #{card.address_country} #{card.address_postal_code}"
     geo = Geocoder.search(address)&.first
@@ -59,6 +65,13 @@ module StripeCardsHelper
     return nil unless lat
 
     lng = geo.data["lon"]
-    "https://dev.virtualearth.net/REST/v1/Imagery/Map/Aerial/#{lat},#{lng}/10/?mapSize=512,256&format=jpeg&key=AssBchuxLMpaS6MmACdfDyLpD4X7_T2SZ34cC_KBcWlPU6iZCsWgv0tTbw5Coehm"
+
+    # this uses our own wrapper for Apple's Map Web Snapshots API
+    # https://developer.apple.com/documentation/snapshots
+    # we have 25,000 unique requests per day
+    # the Vercel project is at https://vercel.com/hackclub/maps/ (incl. private keys)
+    # the GitHub project is at https://github.com/hackclub/maps/ (private)
+
+    "https://maps.hackclub.com/api/shipping?latitude=#{lat}&longitude=#{lng}"
   end
 end

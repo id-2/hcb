@@ -28,9 +28,9 @@ class Receipt < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix :rct
 
-  belongs_to :receiptable, polymorphic: true, required: false
+  belongs_to :receiptable, polymorphic: true, optional: true
 
-  belongs_to :user, class_name: "User", required: false
+  belongs_to :user, class_name: "User", optional: true
   alias_attribute :uploader, :user
   alias_method :transaction, :receiptable
 
@@ -42,14 +42,16 @@ class Receipt < ApplicationRecord
   validates :file, attached: true
 
   before_create do
-    suppress(ActiveModel::MissingAttributeError) do
+    if receiptable&.has_attribute?(:marked_no_or_lost_receipt_at)
       receiptable&.update(marked_no_or_lost_receipt_at: nil)
     end
   end
 
   after_create_commit do
     # Queue async job to extract text from newly upload receipt
+    # and to suggest pairings
     ReceiptJob::ExtractTextualContent.perform_later(self)
+    ReceiptJob::SuggestPairings.perform_later(self)
   end
   validate :has_owner
 
@@ -65,8 +67,14 @@ class Receipt < ApplicationRecord
     receipt_center_drag_and_drop: 8,
     api: 9,
     email_receipt_bin: 10,
-    sms: 11
+    sms: 11,
+    transfer_create_page: 12,
+    expense_report: 13,
+    expense_report_drag_and_drop: 14,
+    quick_expense: 15
   }
+
+  scope :in_receipt_bin, -> { where(receiptable: nil) }
 
   def url
     Rails.application.routes.url_helpers.rails_blob_url(file)

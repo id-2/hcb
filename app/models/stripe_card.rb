@@ -9,6 +9,7 @@
 #  card_type                           :integer          default("virtual"), not null
 #  is_platinum_april_fools_2023        :boolean
 #  last4                               :text
+#  lost_in_shipping                    :boolean          default(FALSE)
 #  name                                :string
 #  purchased_at                        :datetime
 #  spending_limit_amount               :integer
@@ -50,6 +51,9 @@ class StripeCard < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix :crd
 
+  include HasStripeDashboardUrl
+  has_stripe_dashboard_url "issuing/cards", :stripe_id
+
   has_paper_trail
 
   after_create_commit :notify_user, unless: :skip_notify_user
@@ -85,6 +89,8 @@ class StripeCard < ApplicationRecord
   enum card_type: { virtual: 0, physical: 1 }
   enum spending_limit_interval: { daily: 0, weekly: 1, monthly: 2, yearly: 3, per_authorization: 4, all_time: 5 }
 
+  delegate :stripe_name, to: :stripe_cardholder
+
   validates_uniqueness_of :stripe_id
 
   validates_presence_of :stripe_shipping_address_city,
@@ -104,6 +110,9 @@ class StripeCard < ApplicationRecord
                         :stripe_status,
                         if: -> { self.stripe_id.present? }
 
+  validate :only_physical_cards_can_be_lost_in_shipping
+  validates_length_of :name, maximum: 40
+
   def full_card_number
     secret_details[:number]
   end
@@ -113,7 +122,7 @@ class StripeCard < ApplicationRecord
   end
 
   def formatted_card_number
-    return "•••• •••• •••• #{last4}" unless virtual?
+    return hidden_card_number_with_last_four unless virtual?
 
     full_card_number.scan(/.{4}/).join(" ")
   end
@@ -127,11 +136,9 @@ class StripeCard < ApplicationRecord
   end
 
   def hidden_card_number_with_last_four
-    "•••• •••• •••• #{last4}"
-  end
+    return hidden_card_number unless activated?
 
-  def stripe_name
-    stripe_cardholder.stripe_name
+    "•••• •••• •••• #{last4}"
   end
 
   def total_spent
@@ -149,9 +156,7 @@ class StripeCard < ApplicationRecord
     stripe_status.humanize
   end
 
-  def state_text
-    status_text
-  end
+  alias :state_text :status_text
 
   def status_badge_type
     s = stripe_status.to_sym
@@ -166,10 +171,6 @@ class StripeCard < ApplicationRecord
     status_badge_type
   end
 
-  def stripe_dashboard_url
-    "https://dashboard.stripe.com/issuing/cards/#{self.stripe_id}"
-  end
-
   def freeze!
     StripeService::Issuing::Card.update(self.stripe_id, status: :inactive)
     sync_from_stripe!
@@ -182,8 +183,6 @@ class StripeCard < ApplicationRecord
     save!
   end
 
-  alias_method :activate!, :defrost!
-
   def cancel!
     StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
     sync_from_stripe!
@@ -192,6 +191,13 @@ class StripeCard < ApplicationRecord
 
   def frozen?
     activated? && stripe_status == "inactive"
+  end
+
+  def last_frozen_by
+    user_id = versions.where_object_changes_to(stripe_status: "inactive").last&.whodunnit
+    return nil unless user_id
+
+    User.find_by_id(user_id)
   end
 
   def active?
@@ -215,19 +221,19 @@ class StripeCard < ApplicationRecord
   alias_attribute :address_postal_code, :stripe_shipping_address_postal_code
 
   def stripe_obj
-    @stripe_obj ||= ::Partners::Stripe::Issuing::Cards::Show.new(id: stripe_id).run
+    @stripe_obj ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id)
   rescue => e
-    { number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered" } }
+    OpenStruct.new({ number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered", carrier: "USPS", eta: 2.weeks.ago, tracking_number: "12345678s9" } })
   end
 
   def secret_details
-    @secret_details ||= ::Partners::Stripe::Issuing::Cards::Show.new(id: stripe_id, expand: ["cvc", "number"]).run
+    @secret_details ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id, expand: ["cvc", "number"])
   rescue => e
-    { number: "XXXX", cvc: "XXX" }
+    OpenStruct.new({ number: "XXXX", cvc: "XXX" })
   end
 
   def shipping_has_tracking?
-    stripe_obj[:shipping][:tracking_number].present?
+    stripe_obj&.shipping&.tracking_number&.present?
   end
 
   def self.new_from_stripe_id(params)
@@ -259,6 +265,18 @@ class StripeCard < ApplicationRecord
     end
 
     if stripe_obj[:shipping]
+      if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?
+        self.lost_in_shipping = true
+        StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
+
+        # force a refresh of the cache; otherwise, the card will be marked as
+        # lost in shipping again since stripe_obj is cached
+        @stripe_obj = nil
+        self.cancel!
+
+        # `cancel!` calls `sync_from_stripe!`, so there is no need to continue
+        return self
+      end
       self.stripe_shipping_address_city = stripe_obj[:shipping][:address][:city]
       self.stripe_shipping_address_country = stripe_obj[:shipping][:address][:country]
       self.stripe_shipping_address_line1 = stripe_obj[:shipping][:address][:line1]
@@ -293,19 +311,19 @@ class StripeCard < ApplicationRecord
     return 10 if virtual?
 
     cost = 300
-    cost_type = stripe_obj["shipping"]["type"] + "|" + stripe_obj["shipping"]["service"]
+    cost_type = [stripe_obj["shipping"]["type"], stripe_obj["shipping"]["service"]]
     case cost_type
-    when "individual|standard"
+    when ["individual", "standard"]
       cost += 50
-    when "individual|express"
+    when ["individual", "express"]
       cost += 1600
-    when "individual|priority"
+    when ["individual", "priority"]
       cost += 2200
-    when "bulk|standard"
+    when ["bulk", "standard"]
       cost += 2500
-    when "bulk|express"
+    when ["bulk", "express"]
       cost += 3000
-    when "bulk|priority"
+    when ["bulk", "priority"]
       cost += 4800
     end
 
@@ -345,6 +363,10 @@ class StripeCard < ApplicationRecord
     end
   end
 
+  def expired?
+    Time.now.utc > Time.new(stripe_exp_year, stripe_exp_month).end_of_month
+  end
+
   private
 
   def canonical_transaction_hcb_codes
@@ -376,6 +398,12 @@ class StripeCard < ApplicationRecord
     end
 
     @auths
+  end
+
+  def only_physical_cards_can_be_lost_in_shipping
+    if !physical? && lost_in_shipping?
+      errors.add(:lost_in_shipping, "can only be true for physical cards")
+    end
   end
 
 end

@@ -1,11 +1,11 @@
 <p><%= @emails.length > 1 ? "Hi all," : "Hi there," %></p>
 
 <p>
-  Congrats! We're emailing to let you know that you've received your first-ever donation of <%= render_money @donation.amount %> from <%= @donation.name %>.
+  Congrats! We're emailing to let you know that you've received your first-ever donation of <%= render_money @donation.amount %> from <%= @donation.name(show_anonymous: true) %>.
 </p>
 
 <p>
-  The funds are available to spend right away. You can <%= link_to "click here", event_donation_overview_url(@donation.event.slug) %> to see the full details.
+  The funds are available to spend right away. You can <%= link_to "click here", @donation %> to see the full details.
 </p>
 
 <% if @donation.includes_message? %>
@@ -18,9 +18,15 @@
   </blockquote>
 <% end %>
 
-Reply to this email to get in touch with <%= @donation.name %>.
+Reply to this email to get in touch with <%= @donation.anonymous? ? "your generous donor" : @donation.name %>.
+
+<% if @donation.anonymous? %>
+  <p>
+    Please be considerate of the fact that this donor has requested to remain anonymous.
+  </p>
+<% end %>
 
 <p>
   From,<br>
-  The Hack Club Team
+  The HCB Team
 </p>

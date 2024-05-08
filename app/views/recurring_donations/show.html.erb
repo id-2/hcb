@@ -22,7 +22,8 @@
                               step: 0.01,
                               min: 1, # Limitations placed by Stripe
                               max: 999_999.99, # Limitations placed by Stripe
-                              required: true %>
+                              required: true,
+                              data: { controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
         <span class="muted nowrap ml1">/ month</span>
       </div>
     </div>
@@ -35,13 +36,13 @@
 
 </section>
 
-<% admin_tools "mt1" do %>
-  <%= link_to "View subscription on Stripe", "https://dashboard.stripe.com/subscriptions/#{@recurring_donation.stripe_subscription_id}", class: "btn bg-accent", target: "_blank" %>
+<% admin_tool "mt1" do %>
+  <%= link_to "View subscription on Stripe", @recurring_donation.stripe_dashboard_url, class: "btn bg-accent", target: "_blank" %>
 <% end %>
 
 <div class="card mb3 center mt4">
   <h3 class="mt0 flex left-align items-start justify-between regular muted border-none">
-    <span><strong class="black"><%= @recurring_donation.name %>'s</strong> donation of<br>
+    <span><strong class="black"><%= @recurring_donation.name(show_anonymous: true) %>'s</strong> <% "anonymous " if @recurring_donation.anonymous? %>donation of<br>
     <strong class="black"><%= render_money @recurring_donation.amount %></strong> per month to<br>
     <strong class="black"><%= link_to_if @recurring_donation.event.is_public?, @recurring_donation.event.name, @recurring_donation.event, target: "_blank" %></strong></span>
 

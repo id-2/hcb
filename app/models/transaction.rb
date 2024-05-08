@@ -96,19 +96,19 @@ class Transaction < ApplicationRecord
 
   belongs_to :bank_account
 
-  belongs_to :fee_relationship, inverse_of: :t_transaction, required: false
+  belongs_to :fee_relationship, inverse_of: :t_transaction, optional: true
   has_one :event, through: :fee_relationship
 
-  belongs_to :emburse_transfer, inverse_of: :t_transaction, required: false
-  belongs_to :invoice_payout, inverse_of: :t_transaction, required: false
+  belongs_to :emburse_transfer, inverse_of: :t_transaction, optional: true
+  belongs_to :invoice_payout, inverse_of: :t_transaction, optional: true
 
-  belongs_to :fee_reimbursement, inverse_of: :t_transaction, required: false
+  belongs_to :fee_reimbursement, inverse_of: :t_transaction, optional: true
 
-  belongs_to :check, inverse_of: :t_transactions, required: false
-  belongs_to :ach_transfer, inverse_of: :t_transaction, required: false
-  belongs_to :disbursement, inverse_of: :t_transactions, required: false
+  belongs_to :check, inverse_of: :t_transactions, optional: true
+  belongs_to :ach_transfer, inverse_of: :t_transaction, optional: true
+  belongs_to :disbursement, inverse_of: :t_transactions, optional: true
 
-  belongs_to :donation_payout, inverse_of: :t_transaction, required: false
+  belongs_to :donation_payout, inverse_of: :t_transaction, optional: true
 
   accepts_nested_attributes_for :fee_relationship
 
@@ -134,7 +134,7 @@ class Transaction < ApplicationRecord
   end
 
   def short_plaid_id
-    plaid_id[0...4] + "…" + plaid_id[-4..]
+    "#{plaid_id[0...4]}…#{plaid_id[-4..]}"
   end
 
   def self.total_volume
@@ -297,7 +297,6 @@ class Transaction < ApplicationRecord
   end
 
   def potential_ach_transfer?
-    # Based on observations, SVB does not guarantee this TX memo
     self.name.include?("BUSBILLPAY")
   end
 
@@ -457,7 +456,7 @@ class Transaction < ApplicationRecord
     # find all payouts that match both amount and statement_descriptor
     payouts_matching_amount = InvoicePayout.lacking_transaction.where(amount: self.amount)
     payouts_matching_prefix = payouts_matching_amount.select { |po|
-      po.statement_descriptor.start_with?("PAYOUT " + prefix)
+      po.statement_descriptor.start_with?("PAYOUT #{prefix}")
     }
 
     # if there's exactly one match, pick that one
@@ -505,7 +504,7 @@ class Transaction < ApplicationRecord
     # find all payouts that match both amount and statement_descriptor
     payouts_matching_amount = DonationPayout.lacking_transaction.where(amount: self.amount)
     payouts_matching_prefix = payouts_matching_amount.select { |po|
-      po.statement_descriptor.start_with?("DONATE " + prefix)
+      po.statement_descriptor.start_with?("DONATE #{prefix}")
     }
 
     # if there's exactly one match, pick that one

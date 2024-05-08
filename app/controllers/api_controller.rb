@@ -2,84 +2,11 @@
 
 class ApiController < ApplicationController
   before_action :check_token
-  before_action :set_params
   skip_before_action :verify_authenticity_token # do not use CSRF token checking for API routes
   skip_after_action :verify_authorized # do not force pundit
   skip_before_action :signed_in_user
 
   rescue_from(ActiveRecord::RecordNotFound) { render json: { error: "Record not found" }, status: :not_found }
-
-  # find an event by slug
-  def event_find
-    # pull slug out from JSON
-    slug = params[:slug]
-
-    e = Event.find_by_slug(slug)
-
-    # event not found
-    if e.nil?
-      render json: { error: "Not Found" }, status: 404
-      return
-    end
-
-    render json: {
-      name: e.name,
-      organizer_emails: e.users.pluck(:email),
-      total_balance: e.balance / 100
-    }
-  end
-
-  def disbursement_new
-    expecting = ["source_event_slug", "destination_event_slug", "amount", "name"]
-    got = params.keys
-    missing = []
-
-    expecting.each do |e|
-      if !got.include? e
-        missing.push(e)
-      end
-
-      expecting.delete(e)
-    end
-
-    if missing.size > 0
-      render json: {
-        error: "Missing " + missing.to_s
-      }, status: 400
-      return
-    end
-
-    source_event_slug = params[:source_event_slug]
-    destination_event_slug = params[:destination_event_slug]
-    amount = params[:amount].to_f * 100
-    name = params[:name]
-
-    target_event = Event.find_by_slug(destination_event_slug)
-
-    if !target_event
-      render json: { error: "Couldn't find target event!" }, status: 404
-      return
-    end
-
-    d = Disbursement.new(
-      event: target_event,
-      source_event: Event.find(source_event_slug),
-      amount:,
-      name:
-    )
-
-    if !d.save
-      render json: { error: "Disbursement couldn't be created!" + d.errors.full_messages }, status: 500
-      return
-    end
-
-    render json: {
-      source_event_slug:,
-      destination_event_slug:,
-      amount: amount.to_f / 100,
-      name:
-    }, status: 201
-  end
 
   def create_demo_event
     event = EventService::CreateDemoEvent.new(
@@ -87,24 +14,18 @@ class ApiController < ApplicationController
       email: params[:email],
       country: params[:country],
       category: params[:category],
+      postal_code: ValidatesZipcode.valid?(params[:postal_code], params[:country]) ? params[:postal_code] : nil,
       is_public: params[:transparent].nil? ? true : params[:transparent],
     ).run
 
-    result = {}
-    status = 200
-    if event&.errors&.any?
-      result.error = event.errors
-      status = 422
-    else
-      result[:name] = event.name
-      result[:slug] = event.slug
-      result[:email] = params[:email]
-      result[:transparent] = event.is_public?
-    end
-
-    render json: result, status:
+    render json: {
+      name: event.name,
+      slug: event.slug,
+      email: params[:email],
+      transparent: event.is_public?,
+    }
   rescue ArgumentError, ActiveRecord::RecordInvalid => e
-    render json: { error: e }, status: 422
+    render json: { error: e }, status: :unprocessable_entity
   end
 
   def user_find
@@ -132,7 +53,7 @@ class ApiController < ApplicationController
       email: user.email,
       slug: user.slug,
       id: user.id,
-      orgs: user.events.not_hidden.map { |e| { name: e.name, slug: e.slug, demo: e.demo_mode?, balance: e.balance_available } },
+      orgs: user.events.not_hidden.map { |e| { name: e.name, slug: e.slug, demo: e.demo_mode?, balance: e.balance_available, service_level: e.service_level } },
       card_count: user.stripe_cards.count,
       recent_transactions:,
       timezone: user.user_sessions.where.not(timezone: nil).order(created_at: :desc).first&.timezone,
@@ -142,17 +63,11 @@ class ApiController < ApplicationController
   private
 
   def check_token
-    attempt_api_token = request.headers["Authorization"]&.split(" ")&.last
-    if attempt_api_token != Rails.application.credentials.api_token
-      render json: { error: "Unauthorized" }, status: 401
-      return
+    authed = authenticate_with_http_token do |token|
+      ActiveSupport::SecurityUtils.secure_compare(token, Rails.application.credentials.api_token)
     end
-  end
 
-  def set_params
-    @params = ActiveSupport::JSON.decode(request.body.read)
-  rescue JSON::ParserError
-    render json: { error: "Invalid JSON body" }, status: 401
+    render json: { error: "Unauthorized" }, status: :unauthorized unless authed
   end
 
 end

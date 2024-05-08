@@ -8,6 +8,7 @@
 #  deleted_at :datetime
 #  first_time :boolean          default(TRUE)
 #  is_signee  :boolean
+#  role       :integer          default("manager"), not null
 #  sort_index :integer
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -27,6 +28,7 @@
 class OrganizerPosition < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
+  include OrganizerPosition::HasRole
 
   scope :not_hidden, -> { where(event: { hidden_at: nil }) }
 
@@ -39,9 +41,9 @@ class OrganizerPosition < ApplicationRecord
 
   validates :user, uniqueness: { scope: :event, conditions: -> { where(deleted_at: nil) } }
 
-  def initial?
-    organizer_position_invite.initial?
-  end
+  delegate :initial?, to: :organizer_position_invite, allow_nil: true
+
+  alias_attribute :signee, :is_signee
 
   def tourable_options
     {
@@ -51,8 +53,6 @@ class OrganizerPosition < ApplicationRecord
     }
   end
 
-  def signee?
-    is_signee
-  end
+  private
 
 end

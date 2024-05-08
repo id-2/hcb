@@ -6,10 +6,12 @@
 #
 #  id                       :bigint           not null, primary key
 #  access_level             :integer          default("user"), not null
-#  birthday                 :date
+#  birthday_ciphertext      :text
+#  comment_notifications    :integer          default("all_threads"), not null
 #  email                    :text
 #  full_name                :string
 #  locked_at                :datetime
+#  payout_method_type       :string
 #  phone_number             :text
 #  phone_number_verified    :boolean          default(FALSE)
 #  preferred_name           :string
@@ -23,6 +25,7 @@
 #  use_sms_auth             :boolean          default(FALSE)
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
+#  payout_method_id         :bigint
 #  webauthn_id              :string
 #
 # Indexes
@@ -31,6 +34,8 @@
 #  index_users_on_slug   (slug) UNIQUE
 #
 class User < ApplicationRecord
+  self.ignored_columns = ["birthday"]
+
   include PublicIdentifiable
   set_public_id_prefix :usr
 
@@ -70,7 +75,6 @@ class User < ApplicationRecord
 
   has_many :events, through: :organizer_positions
 
-  has_many :ops_checkins, inverse_of: :point_of_contact
   has_many :managed_events, inverse_of: :point_of_contact
 
   has_many :g_suite_accounts, inverse_of: :fulfilled_by
@@ -89,11 +93,24 @@ class User < ApplicationRecord
 
   has_many :checks, inverse_of: :creator
 
+  has_many :reimbursement_reports, class_name: "Reimbursement::Report"
+  has_many :created_reimbursement_reports, class_name: "Reimbursement::Report", foreign_key: "invited_by_id", inverse_of: :inviter
+  has_many :reimbursement_reports_to_review, class_name: "Reimbursement::Report", foreign_key: "reviewer_id", inverse_of: :reviewer
+
   has_many :card_grants
 
   has_one_attached :profile_picture
 
   has_one :partner, inverse_of: :representative
+
+  # a user does not actually belong to its payout method,
+  # but this is a convenient way to set up the association.
+
+  belongs_to :payout_method, polymorphic: true, optional: true
+  validate :valid_payout_method
+  accepts_nested_attributes_for :payout_method
+
+  has_encrypted :birthday, type: :date
 
   include HasMetrics
 
@@ -103,7 +120,7 @@ class User < ApplicationRecord
   after_update :update_stripe_cardholder, if: -> { phone_number_previously_changed? || email_previously_changed? }
 
   validates_presence_of :full_name, if: -> { full_name_in_database.present? }
-  validates_presence_of :birthday, if: -> { birthday_in_database.present? }
+  validates_presence_of :birthday, if: -> { birthday_ciphertext_in_database.present? }
 
   validates :full_name, format: {
     with: /\A[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,'-]+ [a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð.,' -]+\z/,
@@ -117,6 +134,16 @@ class User < ApplicationRecord
   validates :preferred_name, length: { maximum: 30 }
 
   validate :profile_picture_format
+
+  enum comment_notifications: { all_threads: 0, my_threads: 1, no_threads: 2 }
+
+  comma do
+    id
+    name
+    slug "url" do |slug| "https://hcb.hackclub.com/users/#{slug}/admin" end
+    email
+    transactions_missing_receipt_count "Missing Receipts"
+  end
 
   # admin? takes into account an admin user's preference
   # to pretend to be a non-admin, normal user
@@ -165,6 +192,10 @@ class User < ApplicationRecord
     preferred_name.presence || full_name || email_handle
   end
 
+  def possessive_name
+    "#{name}'s"
+  end
+
   def initials
     words = name.split(/[^[[:word:]]]+/)
     words.any? ? words.map(&:first).join.upcase : name
@@ -180,10 +211,6 @@ class User < ApplicationRecord
 
   def represented_partner
     self.partner
-  end
-
-  def beta_features_enabled?
-    events.where(beta_features_enabled: true).any?
   end
 
   def admin_dropdown_description
@@ -219,6 +246,44 @@ class User < ApplicationRecord
 
   def active_mailbox_address
     self.mailbox_addresses.activated.first
+  end
+
+  def receipt_bin
+    User::ReceiptBin.new(self)
+  end
+
+  def transactions_missing_receipt
+    @transactions_missing_receipt ||= begin
+      user_cards = stripe_cards.includes(:event).where.not(event: { category: :salary }) + emburse_cards.includes(:emburse_transactions)
+      return HcbCode.none unless user_cards.any?
+
+      user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
+      return HcbCode.none unless user_hcb_code_ids.any?
+
+      user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
+
+      user_hcb_codes.missing_receipt.receipt_required.order(created_at: :desc)
+    end
+  end
+
+  def transactions_missing_receipt_count
+    @transactions_missing_receipt_count ||= begin
+      transactions_missing_receipt.size
+    end
+  end
+
+  def build_payout_method(params)
+    return unless payout_method_type
+
+    self.payout_method = payout_method_type.constantize.new(params)
+  end
+
+  def email_address_with_name
+    ActionMailer::Base.email_address_with_name(email, name)
+  end
+
+  def hack_clubber?
+    return events.organized_by_hack_clubbers.any?
   end
 
   private
@@ -268,6 +333,12 @@ class User < ApplicationRecord
       # turn all this stuff off until they reverify
       self.phone_number_verified = false
       self.use_sms_auth = false
+    end
+  end
+
+  def valid_payout_method
+    unless payout_method_type.nil? || payout_method.is_a?(User::PayoutMethod::Check) || payout_method.is_a?(User::PayoutMethod::AchTransfer)
+      errors.add(:payout_method, "is an invalid method, must be check or ACH transfer")
     end
   end
 

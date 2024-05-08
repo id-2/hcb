@@ -14,8 +14,9 @@ module Bank
     config.load_defaults 7.0
 
     if ENV["USE_PROD_CREDENTIALS"]&.downcase == "true"
-      config.credentials.content_path = Rails.root.join("config", "credentials", "production.yml.enc")
-      config.credentials.key_path = Rails.root.join("config", "credentials", "production.key")
+      config.credentials.content_path = Rails.root.join("config/credentials/production.yml.enc")
+      config.credentials.key_path = Rails.root.join("config/credentials/production.key")
+      raise StandardError, "USE_PROD_CREDENTIALS is set to true but config/credentials/production.key is missing" unless File.file?(config.credentials.key_path)
     end
 
     config.action_mailer.default_url_options = {
@@ -62,6 +63,25 @@ module Bank
 
     # TODO: Pre-load grape API
     # ::API::V3.compile!
+
+    config.action_mailer.deliver_later_queue_name = "critical"
+    config.action_mailbox.queues.routing = "default"
+    config.active_storage.queues.analysis = "low"
+    config.active_storage.queues.purge = "low"
+    config.active_storage.queues.mirror = "low"
+
+
+    # Custom configuration for application-wide constants
+    #
+    # Usually, it's best to locate constants within the class/module it's used.
+    # However, some constants don't really have a "home" within the codebase.
+    # Thus, they're configured in the `config/constants.yml` file. Updating this
+    # file will require a server restart to take effect.
+    #
+    # Usage: `Rails.configuration.constants[:key]`
+    #
+    # https://guides.rubyonrails.org/configuring.html#custom-configuration
+    config.constants = config_for(:constants)
 
   end
 end

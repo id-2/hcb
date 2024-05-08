@@ -7,6 +7,7 @@ module Api
         expose :amount, as: :amount_cents, documentation: { type: "integer" }
         expose :donor do
           expose :name
+          expose :anonymous, documentation: { type: "boolean" }
         end
         format_as_date do
           expose :created_at, as: :date

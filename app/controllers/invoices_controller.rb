@@ -23,10 +23,11 @@ class InvoicesController < ApplicationController
       .or(@event.invoices.joins(:payout).where(invoice_payouts: { status: "pending" })))
     amount_in_transit = @invoices_in_transit.sum(&:amount_paid)
     archived_unpaid = relation.unpaid.archived.sum(:item_amount)
+    voided = relation.void_v2.sum(:item_amount)
 
     @stats = {
       # The calcluations for `total` and `unpaid` do not include archived invoices
-      total: relation.sum(:item_amount) - archived_unpaid,
+      total: relation.sum(:item_amount) - archived_unpaid - voided,
       # "paid" status invoices include manually paid invoices and
       # Stripe invoices that are paid, but for which the funds are in transit
       paid: relation.paid_v2.sum(:item_amount) - amount_in_transit,
@@ -41,6 +42,8 @@ class InvoicesController < ApplicationController
       relation = relation.unpaid
     when "archived"
       relation = relation.archived
+    when "voided"
+      relation = relation.void_v2
     else
       relation = relation.unarchived
     end
@@ -50,7 +53,7 @@ class InvoicesController < ApplicationController
     @invoices = relation.order(created_at: :desc)
 
     @sponsor = Sponsor.new(event: @event)
-    @invoice = Invoice.new(sponsor: @sponsor)
+    @invoice = Invoice.new(sponsor: @sponsor, event: @event)
 
     # @ma1ted: I have no clue how to use the above methods here.
     # Reimplementing logic is okay if you apolgise to every
@@ -91,7 +94,7 @@ class InvoicesController < ApplicationController
 
   def new
     @sponsor = Sponsor.new(event: @event)
-    @invoice = Invoice.new(sponsor: @sponsor)
+    @invoice = Invoice.new(sponsor: @sponsor, event: @event)
 
     authorize @invoice
   end
@@ -127,6 +130,10 @@ class InvoicesController < ApplicationController
 
     flash[:success] = "Invoice successfully created and emailed to #{@invoice.sponsor.contact_email}."
 
+    unless OrganizerPosition.find_by(user: @invoice.creator, event: @event)&.manager?
+      InvoiceMailer.with(invoice: @invoice).notify_organizers_sent.deliver_later
+    end
+
     redirect_to @invoice
   rescue => e
     notify_airbrake(e)
@@ -159,6 +166,16 @@ class InvoicesController < ApplicationController
       flash[:error] = "Something went wrong while trying to archive this invoice!"
       redirect_to @invoice
     end
+  end
+
+  def void
+    @invoice = Invoice.friendly.find(params[:invoice_id])
+
+    authorize @invoice
+
+    ::InvoiceService::MarkVoid.new(invoice_id: @invoice.id, user: current_user).run
+
+    redirect_to @invoice
   end
 
   def unarchive

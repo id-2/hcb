@@ -33,7 +33,15 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin? || present_in_events?
   end
 
+  def pin?
+    user&.admin? || present_in_events?
+  end
+
   def toggle_tag?
+    user&.admin? || present_in_events?
+  end
+
+  def invoice_as_personal_transaction?
     user&.admin? || present_in_events?
   end
 
@@ -41,14 +49,20 @@ class HcbCodePolicy < ApplicationPolicy
     user&.admin? || present_in_events?
   end
 
-  private
-
-  def present_in_events?
-    record.events.select { |e| e.try(:users).try(:include?, user) }.present?
+  def breakdown?
+    user&.admin? || present_in_events?
   end
 
   def user_made_purchase?
     record.stripe_card? && record.stripe_cardholder&.user == user
+  end
+
+  alias receiptable_upload? user_made_purchase?
+
+  private
+
+  def present_in_events?
+    record.events.select { |e| e.try(:users).try(:include?, user) }.present?
   end
 
 end

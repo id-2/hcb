@@ -4,15 +4,17 @@ module ApplicationHelper
   include ActionView::Helpers
 
   def render_money(amount, opts = {})
+    amount = amount.cents if amount.is_a?(Money)
+
     unit = opts[:unit] || "$"
     trunc = opts[:trunc] || false
 
     num = BigDecimal(amount || 0) / 100
     if trunc
       if num >= 1_000_000
-        number_to_currency(num / 1_000_000, precision: 1, unit:) + "m"
+        "#{number_to_currency(num / 1_000_000, precision: 1, unit:)}m"
       elsif num >= 1_000
-        number_to_currency(num / 1_000, precision: 1, unit:) + "k"
+        "#{number_to_currency(num / 1_000, precision: 1, unit:)}k"
       else
         number_to_currency(num, unit:)
       end
@@ -133,26 +135,26 @@ module ApplicationHelper
     end
   end
 
-  def carousel(content, &block)
-    content_tag :div, class: "carousel", data: { "controller": "carousel", "carousel-target": "carousel", "carousel-slide-value": "0", "carousel-length-value": content.length.to_s } do
-      (content_tag :button, class: "carousel__button carousel__button--left", data: { "carousel-target": "left" } do
+  def carousel(content, current_slide, &block)
+    content_tag :div, class: "carousel", data: { "controller": "carousel", "carousel-target": "carousel", "carousel-slide-value": current_slide.to_s, "carousel-length-value": content.length.to_s } do
+      (content_tag :button, class: "carousel__button carousel__button--left pop", data: { "carousel-target": "left" } do
         inline_icon "view-back", size: 40
       end) +
         (content_tag :div, class: "carousel__items" do
           (content.map.with_index do |item, index|
-            content_tag :div, class: "carousel__item #{index == 0 ? 'carousel__item--active' : ''}" do
+            content_tag :div, class: "carousel__item #{index == current_slide ? 'carousel__item--active' : ''}" do
               block.call(item, index)
             end
           end).join.html_safe
         end) +
-        (content_tag :button, class: "carousel__button carousel__button--right", data: { "carousel-target": "right" } do
+        (content_tag :button, class: "carousel__button carousel__button--right pop", data: { "carousel-target": "right" } do
           inline_icon "view-back", size: 40
         end)
     end
   end
 
   def relative_timestamp(time, options = {})
-    content_tag :span, "#{options[:prefix]}#{time_ago_in_words time} ago", options.merge(title: time)
+    content_tag :span, "#{options[:prefix]}#{time_ago_in_words time} ago#{options[:suffix]}", options.merge(title: time)
   end
 
   def auto_link_new_tab(text)
@@ -184,7 +186,7 @@ module ApplicationHelper
   end
 
   def anchor_link(id)
-    link_to "##{id}", class: "anchor-link tooltipped tooltipped--s", 'aria-label': "Copy link", 'data-anchor': id, 'data-turbo': false do
+    link_to "##{id}", class: "absolute top-0 -left-8 transition-opacity opacity-0 group-hover/summary:opacity-100 group-target/item:opacity-100 anchor-link tooltipped tooltipped--s", 'aria-label': "Copy link", data: { turbo: false, controller: "clipboard", clipboard_text_value: url_for(only_path: false, anchor: id), action: "clipboard#copy" } do
       inline_icon "link", size: 28
     end
   end
@@ -196,11 +198,15 @@ module ApplicationHelper
   end
 
   def help_message
-    content_tag :span, "Contact the HCB team at #{help_email}.".html_safe
+    content_tag :span, "Contact the HCB team at #{help_email} or #{help_phone}.".html_safe
   end
 
   def help_email
     mail_to "hcb@hackclub.com"
+  end
+
+  def help_phone
+    phone_to "+18442372290", "+1 (844) 237 2290"
   end
 
   def format_date(date)
@@ -347,4 +353,12 @@ module ApplicationHelper
     end
   end
 
+  def copy_to_clipboard(clipboard_value, tooltip_direction: "n", **options, &block)
+    # If block is not given, use clipboard_value as the rendered content
+    block ||= ->(_) { clipboard_value }
+    return yield if options.delete(:if) == false
+
+    css_classes = "pointer tooltipped tooltipped--#{tooltip_direction} #{options.delete(:class)}"
+    tag.span "data-controller": "clipboard", "data-clipboard-text-value": clipboard_value, class: css_classes, "aria-label": "Click to copy", "data-action": "click->clipboard#copy", **options, &block
+  end
 end

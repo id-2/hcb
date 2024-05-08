@@ -9,20 +9,20 @@ class StripeController < ActionController::Base
 
     begin
       event = StripeService.construct_webhook_event(payload, sig_header)
-      method = "handle_" + event["type"].tr(".", "_")
+      method = "handle_#{event["type"].tr(".", "_")}"
 
       StatsD.measure("StripeController.#{method}") { self.send method, event }
     rescue JSON::ParserError => e
-      head 400
+      head :bad_request
       notify_airbrake(e)
       return
     rescue NoMethodError => e
       puts e
       notify_airbrake(e)
-      head 200 # success so that stripe doesn't retry (method is unsupported by HCB)
+      head :ok # success so that stripe doesn't retry (method is unsupported by HCB)
       return
     rescue Stripe::SignatureVerificationError
-      head 400
+      head :bad_request
       return
     end
   end
@@ -48,7 +48,7 @@ class StripeController < ActionController::Base
     # put the transaction on the pending ledger in almost realtime
     ::StripeAuthorizationJob::CreateFromWebhook.perform_later(auth_id)
 
-    head 200
+    head :ok
   end
 
   def handle_issuing_authorization_updated(event)
@@ -60,7 +60,7 @@ class StripeController < ActionController::Base
     rpst = PendingTransactionEngine::RawPendingStripeTransactionService::Stripe::ImportSingle.new(remote_stripe_transaction: event[:data][:object]).run
     PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Stripe.new(raw_pending_stripe_transaction: rpst).run
 
-    head 200
+    head :ok
   end
 
   def handle_issuing_transaction_created(event)
@@ -70,7 +70,7 @@ class StripeController < ActionController::Base
 
     TopupStripeJob.perform_later
 
-    head 200
+    head :ok
   end
 
   def handle_issuing_card_updated(event)
@@ -78,14 +78,14 @@ class StripeController < ActionController::Base
     card.sync_from_stripe!
     card.save
 
-    head 200
+    head :ok
   end
 
   def handle_charge_succeeded(event)
     charge = event[:data][:object]
     ::PartnerDonationService::HandleWebhookChargeSucceeded.new(charge).run
 
-    head 200
+    head :ok
   end
 
   def handle_invoice_paid(event)
@@ -109,7 +109,19 @@ class StripeController < ActionController::Base
       ::PendingEventMappingEngine::Map::Single::Invoice.new(canonical_pending_transaction: cpt).run
     end
 
-    head 200
+    head :ok
+  end
+
+  def handle_invoice_payment_failed(event)
+    stripe_invoice = event[:data][:object]
+
+    if stripe_invoice.subscription.present?
+      recurring_donation = RecurringDonation.find_by!(stripe_subscription_id: stripe_invoice.subscription)
+      RecurringDonationMailer.with(recurring_donation:).payment_failed.deliver_later
+    end
+
+    head :ok
+    return
   end
 
   def handle_customer_subscription_updated(event)
@@ -124,10 +136,10 @@ class StripeController < ActionController::Base
 
   def handle_setup_intent_succeeded(event)
     setup_intent = event.data.object
-    return unless setup_intent.metadata.recurring_donation_id
+    return unless setup_intent.metadata[:recurring_donation_id]
 
     suppress(ActiveRecord::RecordNotFound) do
-      recurring_donation = RecurringDonation.find(setup_intent.metadata.recurring_donation_id)
+      recurring_donation = RecurringDonation.find(setup_intent.metadata[:recurring_donation_id])
       StripeService::Subscription.update(recurring_donation.stripe_subscription_id, default_payment_method: setup_intent.payment_method)
       recurring_donation.sync_with_stripe_subscription!
       recurring_donation.save!
@@ -143,7 +155,7 @@ class StripeController < ActionController::Base
 
     dispute = event[:data][:object]
 
-    payment_intent = Partners::Stripe::PaymentIntents::Show.new(id: dispute[:payment_intent]).run
+    payment_intent = StripeService::PaymentIntent.retrieve(dispute[:payment_intent])
 
     if payment_intent.metadata[:donation].present?
       # It's a donation
@@ -164,7 +176,7 @@ class StripeController < ActionController::Base
       invoice.canonical_pending_transactions.update_all(fronted: false)
     end
 
-    head 200
+    head :ok
   end
 
   def handle_charge_refunded(event)

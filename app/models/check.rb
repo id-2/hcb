@@ -50,7 +50,7 @@ class Check < ApplicationRecord
   pg_search_scope :search_recipient, associated_against: { lob_address: :name, event: :name }, against: [:memo], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "checks.created_at"
 
   belongs_to :creator, class_name: "User"
-  belongs_to :lob_address, required: true
+  belongs_to :lob_address
   has_one :event, through: :lob_address
 
   accepts_nested_attributes_for :lob_address
@@ -184,20 +184,6 @@ class Check < ApplicationRecord
     send_date.past?
   end
 
-  def refund!
-    unless refunded_at.nil?
-      errors.add(:check, "has already been refunded")
-      return self
-    end
-
-    if pending_void? || voided?
-      return update(refunded_at: DateTime.now)
-    else
-      errors.add(:check, "needs to be voided first")
-      return self
-    end
-  end
-
   def url
     lob_url || ::CheckService::LobUrl::Generate.new(check: self).run
   end
@@ -224,14 +210,6 @@ class Check < ApplicationRecord
 
   def recipient_name
     lob_address.name
-  end
-
-  def self.admin_count_offset
-    # Whoops, this is very hacky. There is currently a Check that should be
-    # cancelled, but we don't support that yet. In the meantime, Ops shouldn't
-    # process that check. However, it is increasing the "actionable" count, so
-    # this is a hacky fix to bring the count back down.
-    -1
   end
 
   private

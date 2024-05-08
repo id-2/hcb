@@ -28,7 +28,7 @@ $(document).on('change paste keyup input', '*[id^="increase_check_"]', event => 
       }
       const words = amountToCheckWords(amount)
 
-      $('[data-behavior~="check_amount"]').text(amount || '　')
+      $('[data-behavior~="check_amount"]').text(amount ? event.currentTarget.valueAsNumber?.toLocaleString("en-US", { minimumFractionDigits: 2 }) : '　')
       $('[data-behavior~="check_amount_words"]').text(words || '　')
     }
 
@@ -57,7 +57,7 @@ $(document).on('turbo:load', function () {
 
       $('[data-behavior~="check_characters_update"').text(
         `This will appear on the physical check. You have ${
-          73 - characters
+          40 - characters
         } characters remaining.`
       )
     }

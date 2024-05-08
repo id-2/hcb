@@ -13,6 +13,12 @@ class HcbCode
         return invoice_memo if invoice?
         return donation_memo if donation?
         return partner_donation_memo if partner_donation?
+        return bank_fee_memo if bank_fee?
+        return reimbursement_payout_holding_memo if reimbursement_payout_holding?
+        return reimbursement_expense_payout_memo if reimbursement_expense_payout?
+        return reimbursement_payout_transfer_memo if reimbursement_payout_transfer?
+        # reimbursement related memos must come before ach_transfer / increase_check
+        # as reimbursement_payout_transfers can also be ach_transfers or increase_checks
         return ach_transfer_memo if ach_transfer?
         return check_memo if check?
         return increase_check_memo if increase_check?
@@ -20,6 +26,7 @@ class HcbCode
         return fee_revenue_memo if fee_revenue?
         return ach_payment_memo if ach_payment?
         return grant_memo if grant?
+        return outgoing_fee_reimbursement_memo if outgoing_fee_reimbursement?
 
         ct.try(:smart_memo) || pt.try(:smart_memo) || ""
       end
@@ -57,6 +64,16 @@ class HcbCode
         "DONATION FROM #{partner_donation.smart_memo}#{partner_donation.refunded? ? " (REFUNDED)" : ""}"
       end
 
+      def bank_fee_memo
+        if bank_fee.amount_cents.negative? && bank_fee.fee_revenue.present?
+          return "FISCAL SPONSORSHIP FOR #{bank_fee.fee_revenue.start.strftime("%-m/%-d")} TO #{bank_fee.fee_revenue.end.strftime("%-m/%-d")}"
+        elsif bank_fee.amount_cents.negative?
+          return "FISCAL SPONSORSHIP"
+        else
+          return "FISCAL SPONSORSHIP FEE CREDIT"
+        end
+      end
+
       def ach_transfer_memo
         "ACH TO #{ach_transfer.smart_memo}"
       end
@@ -83,6 +100,22 @@ class HcbCode
 
       def grant_memo
         "Grant to #{canonical_pending_transactions.first.grant.recipient_organization}"
+      end
+
+      def outgoing_fee_reimbursement_memo
+        "🗂️ Stripe fee reimbursements for week of #{ct.date.beginning_of_week.strftime("%-m/%-d")}"
+      end
+
+      def reimbursement_payout_holding_memo
+        "Payout Holding for Reimbursement Report #{reimbursement_payout_holding.report.hashid}"
+      end
+
+      def reimbursement_expense_payout_memo
+        reimbursement_expense_payout.expense.memo
+      end
+
+      def reimbursement_payout_transfer_memo
+        return "Payout Transfer for Reimbursement Report #{reimbursement_payout_transfer.reimbursement_payout_holding.report.hashid}"
       end
 
     end

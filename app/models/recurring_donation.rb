@@ -6,9 +6,11 @@
 #
 #  id                                  :bigint           not null, primary key
 #  amount                              :integer
+#  anonymous                           :boolean          default(FALSE), not null
 #  canceled_at                         :datetime
 #  email                               :text
 #  last4_ciphertext                    :text
+#  message                             :text
 #  migrated_from_legacy_stripe_account :boolean          default(FALSE)
 #  name                                :text
 #  stripe_client_secret                :text
@@ -34,6 +36,9 @@
 #
 class RecurringDonation < ApplicationRecord
   include Hashid::Rails
+
+  include HasStripeDashboardUrl
+  has_stripe_dashboard_url "subscriptions", :stripe_subscription_id
 
   has_paper_trail
 
@@ -120,6 +125,10 @@ class RecurringDonation < ApplicationRecord
     else
       donations.sum(:amount)
     end
+  end
+
+  def name(show_anonymous: false)
+    anonymous? && !show_anonymous ? "Anonymous" : super()
   end
 
   private

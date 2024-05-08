@@ -15,10 +15,19 @@ class IncreaseChecksController < ApplicationController
   def create
     params[:increase_check][:amount] = Monetize.parse(params[:increase_check][:amount]).cents
 
-    @check = @event.increase_checks.build(check_params.merge(user: current_user))
+    @check = @event.increase_checks.build(check_params.except(:file).merge(user: current_user))
+
     authorize @check
 
     if @check.save
+      if check_params[:file]
+        ::ReceiptService::Create.new(
+          uploader: current_user,
+          attachments: check_params[:file],
+          upload_method: :transfer_create_page,
+          receiptable: @check.local_hcb_code
+        ).run!
+      end
       redirect_to @check.local_hcb_code.url, flash: { success: "Your check has been sent!" }
     else
       render "new", status: :unprocessable_entity
@@ -32,6 +41,8 @@ class IncreaseChecksController < ApplicationController
 
     redirect_to increase_check_process_admin_path(@check), flash: { success: "Check has been sent!" }
 
+  rescue Faraday::Error => e
+    redirect_to increase_check_process_admin_path(@check), flash: { error: "Something went wrong: #{e.response_body["message"]}" }
   rescue => e
     redirect_to increase_check_process_admin_path(@check), flash: { error: e }
   end
@@ -41,7 +52,7 @@ class IncreaseChecksController < ApplicationController
 
     @check.mark_rejected!
 
-    redirect_to increase_check_process_admin_path(@check), flash: { success: "Check has been rejected!" }
+    redirect_back_or_to increase_check_process_admin_path(@check), flash: { success: "Check has been canceled." }
   end
 
   private
@@ -56,7 +67,10 @@ class IncreaseChecksController < ApplicationController
       :address_line2,
       :address_city,
       :address_state,
+      :recipient_email,
+      :send_email_notification,
       :address_zip,
+      file: []
     )
   end
 

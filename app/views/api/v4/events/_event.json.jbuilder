@@ -13,8 +13,20 @@ json.fee_percentage event.sponsorship_fee.to_f
 json.category event.category&.parameterize(separator: "_")
 
 if local_assigns[:expand]&.include?(:balance_cents)
-  json.balance_cents event.balance_available_v2_cents
+  json.balance_cents event.balance_available
   json.fee_balance_cents event.fronted_fee_balance_v2_cents
 end
 
-json.users event.users, partial: "api/v4/users/user", as: :user if local_assigns[:expand]&.include?(:users)
+if policy(event).account_number? && local_assigns[:expand]&.include?(:account_number)
+  json.account_number event.account_number
+  json.routing_number event.routing_number
+  json.swift_bic_code event.bic_code
+end
+
+if local_assigns[:expand]&.include?(:users)
+  json.users event.organizer_positions.includes(:user).order(created_at: :desc) do |op|
+    json.partial! "api/v4/users/user", user: op.user
+    json.joined_at op.created_at
+    json.role op.role if Flipper.enabled?(:user_permissions_2024_03_09, event)
+  end
+end

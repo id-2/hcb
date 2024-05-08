@@ -3,9 +3,11 @@
 class ApplicationMailbox < ActionMailbox::Base
   # routing /something/i => :somewhere
 
-  # Routing all the incoming emails to the HcbCodeReceipts Mailbox
+  # Routing all the incoming emails to the HcbCode Mailbox
   # ie. "receipts+hcb-123abc@hcb.hackclub.com" for HcbCodes
-  routing /^receipts\+/i => :hcb_code_receipts
+  routing /^receipts\+/i => :hcb_code
+
+  routing /^comments\+/i => :comment
 
   # ie. "animal.1234" for Users
   routing /#{MailboxAddress::VALIDATION_REGEX}/i => :receipt_bin
@@ -22,6 +24,10 @@ class ApplicationMailbox < ActionMailbox::Base
 
   def text
     mail.text_part&.body&.decoded
+  end
+
+  def body
+    mail.body&.decoded&.presence
   end
 
 end

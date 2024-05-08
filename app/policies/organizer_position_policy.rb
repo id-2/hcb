@@ -17,4 +17,21 @@ class OrganizerPositionPolicy < ApplicationPolicy
     user.admin?
   end
 
+  def change_position_role?
+    return false unless user
+    return false if record.user == user
+
+    admin_or_manager?
+  end
+
+  def can_remove?
+    admin_or_manager?
+  end
+
+  private
+
+  def admin_or_manager?
+    user&.admin? || OrganizerPosition.find_by(user:, event: record.event)&.manager?
+  end
+
 end

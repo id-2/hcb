@@ -51,7 +51,7 @@ class HcbCodesController < ApplicationController
     if @hcb_code.canonical_transactions.any?
       txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
       pos = txs.index { |tx| tx.hcb_code == hcb } + 1
-      page = (pos.to_f / 100).ceil
+      page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
 
       redirect_to event_path(@event, page:, anchor: hcb_id)
     else
@@ -75,25 +75,49 @@ class HcbCodesController < ApplicationController
     authorize @hcb_code
 
     if params[:inline].present?
-      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: true, prepended_to_memo: params[:prepended_to_memo] }
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: true, prepended_to_memo: params[:prepended_to_memo], location: params[:location] }
     end
 
     @frame = turbo_frame_request?
     @suggested_memos = [::HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run].compact + ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
   end
 
+  def pin
+    @hcb_code = HcbCode.find(params[:id])
+    @event = @hcb_code.event
+
+    authorize @hcb_code
+
+    # Handle unpinning
+    if (@pin = HcbCode::Pin.find_by(event: @event, hcb_code: @hcb_code))
+      @pin.destroy
+      flash[:success] = "Unpinned transaction from #{@event.name}"
+      redirect_back fallback_location: @event and return
+    end
+
+    # Handle pinning
+    @pin = HcbCode::Pin.new(event: @event, hcb_code: @hcb_code)
+    if @pin.save
+      flash[:success] = "Transaction pinned!"
+    else
+      flash[:error] = @pin.errors.full_messages.to_sentence
+    end
+
+    redirect_back fallback_location: @event
+  end
+
   def update
     @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
 
     authorize @hcb_code
-    hcb_code_params = params.require(:hcb_code).permit(:memo, :prepended_to_memo)
+    hcb_code_params = params.require(:hcb_code).permit(:memo, :prepended_to_memo, :location)
     hcb_code_params[:memo] = hcb_code_params[:memo].presence
 
     @hcb_code.canonical_transactions.each { |ct| ct.update!(custom_memo: hcb_code_params[:memo]) }
     @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo: hcb_code_params[:memo]) }
 
     if params[:hcb_code][:inline].present?
-      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo] }
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo], location: params[:hcb_code][:location], renamed: true }
     end
 
     redirect_to @hcb_code
@@ -137,9 +161,13 @@ class HcbCodesController < ApplicationController
 
     cpt = @hcb_code.canonical_pending_transactions.first
 
-    CanonicalPendingTransactionJob::SendTwilioReceiptMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
+    if cpt
+      CanonicalPendingTransactionJob::SendTwilioReceiptMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
+      flash[:success] = "SMS queued for delivery!"
+    else
+      flash[:error] = "This transaction doesn't support SMS notifications."
+    end
 
-    flash[:success] = "SMS queued for delivery!"
     redirect_back fallback_location: @hcb_code
   end
 
@@ -181,10 +209,62 @@ class HcbCodesController < ApplicationController
         if removed
           render turbo_stream: turbo_stream.remove(tag_dom_id(hcb_code, tag)) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), tag.label)
         else
-          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ " + tag.label)
+          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ #{tag.label}")
         end
       end
       format.any { redirect_back fallback_location: @event }
+    end
+  end
+
+  def invoice_as_personal_transaction
+    hcb_code = HcbCode.find(params[:id])
+    event = hcb_code.event
+
+    authorize hcb_code
+
+    if hcb_code.amount_cents >= -100
+      flash[:error] = "Invoices can only be generated for charges of $1.00 or more."
+      return redirect_to hcb_code
+    end
+
+    if hcb_code.personal_transaction
+      flash[:error] = "A repayment invoice already exists for this transaction."
+      return redirect_to hcb_code.personal_transaction.invoice
+    end
+
+    personal_tx = HcbCode::PersonalTransaction.create(hcb_code:, reporter: current_user)
+
+    flash[:success] = "We've sent an invoice for repayment to #{personal_tx.invoice.sponsor.contact_email}."
+
+    redirect_to personal_tx.invoice
+  end
+
+  def breakdown
+    @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
+    authorize @hcb_code
+
+    unless @hcb_code.canonical_transactions.any? { |ct| ct.amount_cents.positive? }
+      return redirect_to @hcb_code
+    end
+
+    @event = @hcb_code.event
+    @event = @hcb_code.disbursement.destination_event if @hcb_code.disbursement?
+
+    usage_breakdown = @hcb_code.usage_breakdown
+
+    @spent_on = usage_breakdown[:spent_on]
+    @available = usage_breakdown[:available]
+
+    respond_to do |format|
+
+      format.html do
+        redirect_to @hcb_code
+      end
+
+      format.pdf do
+        render pdf: "breakdown", page_height: "11in", page_width: "8.5in"
+      end
+
     end
   end
 

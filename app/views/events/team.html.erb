@@ -2,10 +2,33 @@
 <% page_sm %>
 <%= render "nav", selected: :team %>
 
-<h1 class="flex items-center">
-  Team
-  <%= badge_for @all_positions.size, class: "bg-muted" %>
+<h1 class="heading">
+  <span class="flex items-center">
+    Team
+    <%= badge_for @all_positions.size, class: "bg-muted" %>
+  </span>
+
+  <% if organizer_signed_in? %>
+    <%= mail_to @all_positions.map { |op| op.user.email_address_with_name }.join(","), class: "btn btn--icon bg-info" do %>
+      <%= inline_icon "email" %>
+      Email everyone
+    <% end %>
+  <% end %>
+
+  <% if policy(@event).can_invite_user? %>
+    <%= link_to new_event_organizer_position_invite_path(event_id: @event.slug), class: "btn bg-success", data: { behavior: "modal_trigger", modal: "invite_member" }, disabled: !organizer_signed_in?(as: :manager) do %>
+      <%= inline_icon "member-add" %>
+      Invite
+    <% end %>
+  <% end %>
 </h1>
+
+<% if policy(@event).can_invite_user? %>
+  <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="invite_member">
+    <%= modal_header "Invite a team member" %>
+    <%= render "form_invite", invite: OrganizerPositionInviteService::Create.new(event: @event).model %>
+  </section>
+<% end %>
 
 <% if @all_positions.any? %>
   <%= turbo_frame_tag "team_position" do %>
@@ -16,58 +39,22 @@
   <%= blankslate "No others on your team yet" %>
 <% end %>
 
-<h2 class="mt3">Invite a team member</h2>
-<% if organizer_signed_in? %>
-  <%= render "form_invite", invite: OrganizerPositionInviteService::Create.new(event: @event).model %>
-<% else %>
-  <p>Disabled in transparency mode</p>
-<% end %>
-
 <% if @pending.any? %>
-  <h2 class="flex items-center mt3 mb0">
+  <h2 class="flex items-center mt3 mb2">
     Pending invitations
     <%= badge_for @pending.size, class: "bg-muted" %>
   </h2>
-  <% @pending.order(created_at: :desc).each do |invite| %>
-    <%= creator_bar invite %>
-    <article class="card pt0 pb0 mb3">
-      <section class='flex items-center'>
-        <%= avatar_for OpenStruct.new(email: invite.user.email, name: invite.user.email), 24, class:
-        "mr1" %>
-        <p class="line-height-3 flex-auto">
-          <strong><%= organizer_signed_in? ? invite.user.email : "Sign in to view" %></strong>
-        </p>
-        <% if invite.sender == current_user || admin_signed_in? %>
-          <%= pop_icon_to "view-close",
-            organizer_position_invite_cancel_path(invite.id),
-            size: 24,
-            method: :post,
-            class: "error tooltipped tooltipped--w",
-            'aria-label': "Cancel this invitation" %>
-        <% else %>
-        <div class="tooltipped tooltipped--w" aria-label="Only the sender can cancel an invitation">
-          <%= pop_icon_to "view-close",
-            organizer_position_invite_cancel_path(invite.id),
-            method: :post,
-            size: 24,
-            class: "muted",
-            disabled: true %>
-          <% end %>
-        </div>
-      </section>
-      <% if current_user&.admin? %>
-        <section class='card__banner card__darker b--warning h5' style='border-style: dashed; border-width: 1px;'>
-          <div>
-            <% if invite.signee? %>
-              <%= inline_icon "docs-fill", size: 20, style: "vertical-align: middle; margin: -0.2rem 0.5rem 0 0;" %>
-              <span>Contract signee</span>
-            <% else %>
-              <%= inline_icon "docs", size: 20, style: "vertical-align: middle; margin: -0.2rem 0.5rem 0 0;" %>
-              <span>No contract signature</span>
-            <% end %>
-          </div>
-        </section>
-      <% end %>
-    </article>
-  <% end %>
+
+  <div class="flex flex-col" style="gap: 0.5rem">
+    <%= render partial: "organization_position_invite_pending", collection: @pending, as: :invite %>
+  </div>
+<% end %>
+
+<% admin_tool("flex justify-center mt2") do %>
+  <%= link_to @event.organizer_positions.where(is_signee: nil).any? ? "Finish signee backfill" : "✅ Signee backfill complete, thanks.",
+              event_finish_signee_backfill_path(@event),
+              method: :post,
+              disabled: @event.organizer_positions.where(is_signee: nil).none?,
+              "data-confirm": "Are you sure you have backfilled all organizers of #{@event.name} with their correct contract signee status? Continuing will convert #{@event.organizer_positions.where(is_signee: nil).count} null(s) to false.",
+              class: "btn" %>
 <% end %>

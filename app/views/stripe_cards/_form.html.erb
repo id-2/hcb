@@ -20,48 +20,69 @@
       <%= form.label :card_type, value: "physical" do %>
         <%= inline_icon "card", size: 28 %>
         <strong>Plastic</strong>
-        <small>(mailed, 5-7 biz. days)</small>
+        <small>(mailed, 10-12 biz. days)</small>
       <% end %>
     </div>
   </fieldset>
   <p class="h5 muted mt0">Plastic cards are only available to ship to the US and Canada.</p>
 
+  <% if current_user.birthday.nil? %>
+    <section class="grid grid--split">
+    <h2 class="grid__fill">Account details</h2>
+      <div class="field">
+        <%= form.label :birthday %>
+        <p class="h5 muted mt0 mb1">
+          Used for card issuing.
+        </p>
+        <%= form.date_select :birthday,
+                              { start_year: Date.today.year - 100,
+                                end_year: Date.today.year,
+                                order: [:month, :day, :year],
+                                prompt: true
+},
+                              { required: true } %>
+      </div>
+    </section>
+  <% end %>
+
   <section class="grid grid--split" data-behavior="shipping_address_inputs autohide">
-  <h2 class="grid__fill">Shipping info</h2>
-  <div class="field">
-    <%= form.label :stripe_shipping_name, "Shipping name" %>
-    <%= form.text_field :stripe_shipping_name, value: current_user&.full_name, disabled: @event&.demo_mode? %>
-  </div>
-  <div class="field">
-    <%= form.label :stripe_shipping_address_line1, "Address (line 1)" %>
-    <%= form.text_field :stripe_shipping_address_line1, placeholder: suggested(:line1), disabled: @event&.demo_mode? %>
-  </div>
-  <div class="field">
-    <%= form.label :stripe_shipping_address_line2, "Address (line 2)" %>
-    <%= form.text_field :stripe_shipping_address_line2, placeholder: suggested(:line2), disabled: @event&.demo_mode? %>
-  </div>
-  <div class="field grid__half">
-    <%= form.label :stripe_shipping_address_city, "City" %>
-    <%= form.text_field :stripe_shipping_address_city, placeholder: suggested(:city), disabled: @event&.demo_mode? %>
-  </div>
-  <div class="field grid__half">
-    <%= form.label :stripe_shipping_address_state, "State / province" %>
-    <%= form.text_field :stripe_shipping_address_state, placeholder: suggested(:state), disabled: @event&.demo_mode? %>
-  </div>
-  <div class="field grid__half">
-    <%= form.label :stripe_shipping_address_postal_code, "ZIP code" %>
-    <%= form.text_field :stripe_shipping_address_postal_code, placeholder: suggested(:postal_code), disabled: @event&.demo_mode? %>
-  </div>
-  <div class="field grid__half">
-    <%= form.label :stripe_shipping_address_country, "Country" %>
-    <%= form.country_select :stripe_shipping_address_country, only: ["US", "CA"], sort_provided: false, selected: "US", disabled: @event&.demo_mode? %>
-  </div>
+    <h2 class="grid__fill">Shipping info</h2>
+    <div class="field">
+      <%= form.label :stripe_shipping_name, "Shipping name" %>
+      <%= form.text_field :stripe_shipping_name, value: current_user&.full_name, disabled: @event&.demo_mode? %>
+    </div>
+    <div class="field">
+      <%= form.label :stripe_shipping_address_line1, "Address (line 1)" %>
+      <%= form.text_field :stripe_shipping_address_line1, value: prefill(:line1), placeholder: suggested(:line1), disabled: @event&.demo_mode? %>
+    </div>
+    <div class="field">
+      <%= form.label :stripe_shipping_address_line2, "Address (line 2)" %>
+      <%= form.text_field :stripe_shipping_address_line2, value: prefill(:line2), placeholder: suggested(:line2), disabled: @event&.demo_mode? %>
+    </div>
+    <div class="field grid__half">
+      <%= form.label :stripe_shipping_address_city, "City" %>
+      <%= form.text_field :stripe_shipping_address_city, value: prefill(:city), placeholder: suggested(:city), disabled: @event&.demo_mode? %>
+    </div>
+    <div class="field grid__half">
+      <%= form.label :stripe_shipping_address_state, "State / province" %>
+      <%= form.text_field :stripe_shipping_address_state, value: prefill(:state), placeholder: suggested(:state), disabled: @event&.demo_mode? %>
+    </div>
+    <div class="field grid__half">
+      <%= form.label :stripe_shipping_address_postal_code, "ZIP code" %>
+      <%= form.text_field :stripe_shipping_address_postal_code, value: prefill(:postal_code), placeholder: suggested(:postal_code), disabled: @event&.demo_mode? %>
+    </div>
+    <div class="field grid__half">
+      <%= form.label :stripe_shipping_address_country, "Country" %>
+      <%= form.country_select :stripe_shipping_address_country, only: ["US", "CA"], sort_provided: false, selected: prefill(:country) || "US", disabled: @event&.demo_mode? %>
+    </div>
   </section>
 
   <%= form.hidden_field :stripe_cardholder_id, value: current_user&.stripe_cardholder&.id %>
 
-  <p class="h5 muted mt2">By submitting, you agree to the <a href="https://stripe.com/legal/issuing/celtic-authorized-user-terms" target="_blank">Card Issuing Terms</a>.</p>
-
+  <p class="h5 muted mt2">By submitting, you agree to the
+    <a href="https://stripe.com/legal/issuing/celtic-authorized-user-terms" target="_blank">Card User Terms</a>. Your name and birthday is shared
+    with Stripe and their banking partners.
+  </p>
   <div class="actions">
     <%= form.submit "Issue my card", disabled: @event&.demo_mode? %>
   </div>

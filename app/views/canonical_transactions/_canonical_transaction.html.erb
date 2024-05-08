@@ -1,8 +1,9 @@
 <% instance = ct.__id__ %>
+<% tagged_with = ct.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event } %>
 <tr
-  class="transaction--<%= ct.amount.negative? ? "negative" : "positive" %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
+  class="transaction--<%= ct.amount.negative? ? "negative" : ct.amount.positive? ? "positive" : "zero" %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
   id="<%= ct.local_hcb_code.hashid %>"
-  <% if defined?(receipt_upload_button) %>
+  <% if local_assigns[:receipt_upload_button] %>
     data-controller="file-drop"
     data-file-drop-target="dropzone"
     data-file-drop-linking-value="true"
@@ -15,78 +16,7 @@
       dragleave->file-drop#dragleave
     "
   <% end %>>
-    <% if ct.fee_payment? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Fiscal sponsorship payment">
-        <%= inline_icon "minus-fill" %>
-      </td>
-    <% elsif ct.local_hcb_code.fee_revenue? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Fee revenue">
-        <%= inline_icon "plus-fill" %>
-      </td>
-    <% elsif ct.local_hcb_code.check? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing check">
-        <%= inline_icon "payment-transfer" %>
-      </td>
-    <% elsif ct.local_hcb_code.increase_check? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Mailed check">
-        <%= inline_icon "email" %>
-      </td>
-    <% elsif ct.local_hcb_code.check_deposit? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Check deposit">
-        <%= inline_icon "payment-docs" %>
-      </td>
-    <% elsif ct.local_hcb_code.ach_transfer? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing ACH">
-        <%= inline_icon "payment-transfer" %>
-      </td>
-    <% elsif ct.local_hcb_code.stripe_refund? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction refund">
-        <%= inline_icon "view-reload" %>
-      </td>
-    <% elsif ct.raw_stripe_transaction %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Card transaction<%= !defined?(authorless) && ct.stripe_cardholder ? " by " + ct.stripe_cardholder.user.initial_name : "" %>">
-        <% unless defined?(authorless) || !ct.stripe_cardholder %>
-          <%= avatar_for ct.stripe_cardholder.user, 24 %>
-        <% else %>
-          <%= inline_icon "card" %>
-        <% end %>
-      </td>
-    <% elsif ct.local_hcb_code.invoice? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Invoice">
-        <%= inline_icon "briefcase" %>
-      </td>
-    <% elsif ct.local_hcb_code.donation? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Donation">
-        <%= inline_icon "support" %>
-      </td>
-    <% elsif ct.local_hcb_code.disbursement&.special_appearance? %>
-      <% if ct.amount.negative? %>
-        <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing <%= ct.local_hcb_code.disbursement.special_appearance[:title] %>">
-          <%= inline_icon "door-leave" %>
-        </td>
-      <% else %>
-        <td class="transaction__icon tooltipped tooltipped--e" aria-label="<%= ct.local_hcb_code.disbursement.special_appearance[:title] %>">
-          <%= inline_icon(ct.local_hcb_code.disbursement.special_appearance[:icon] || "door-enter") %>
-        </td>
-      <% end %>
-    <% elsif ct.local_hcb_code.disbursement? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Disbursement">
-        <% if ct.amount.negative? %>
-          <%= inline_icon "door-leave" %>
-        <% else %>
-          <%= inline_icon "door-enter" %>
-        <% end %>
-      </td>
-    <% elsif ct.local_hcb_code.ach_payment? %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Incoming bank transfer">
-        <%= inline_icon "bank-account" %>
-      </td>
-    <% else %>
-      <td class="transaction__icon tooltipped tooltipped--e" aria-label="Bank account transaction">
-        <%= inline_icon "bank-account" %>
-      </td>
-    <% end %>
-  </td>
+  <%= render "hcb_codes/icon", tx: ct, authorless: local_assigns[:authorless] %>
   <td>
     <%= ct.date %>
   </td>
@@ -94,16 +24,18 @@
     <div>
       <div class="flex-auto">
         <div class="flex items-center justify-start">
-          <%= turbo_frame_tag "#{ct.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis" do %>
-            <span title="<%= transaction_memo(ct) %>" class="flex-auto">
-              <% if Flipper.enabled?(:rename_on_homepage_2023_12_06, current_user) %>
-                <%= render "hcb_codes/memo", hcb_code: ct.local_hcb_code %>
-              <% else %>
-                <%= transaction_memo(ct) %>
+          <%= turbo_frame_tag "#{ct.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis; flex-grow: 1" do %>
+            <span title="<%= transaction_memo(ct) %>" style="flex-grow: 1;">
+              <%= ct.local_hcb_code.card_grant? && !organizer_signed_in? ? link_to(transaction_memo(ct), spending_card_grant_path(ct.local_hcb_code.disbursement.card_grant), data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "card_grant_details_#{instance}" }) : content_tag(:span) do %>
+                <% if Flipper.enabled?(:rename_on_homepage_2023_12_06, current_user) && !defined?(disable_rename) %>
+                  <%= render "hcb_codes/memo", hcb_code: ct.local_hcb_code, location: "ledger" %>
+                <% else %>
+                  <%= transaction_memo(ct) %>
+                <% end %>
               <% end %>
             </span>
             <% if ct.amount_cents.negative? && name_contains_emoji?(ct.local_hcb_code.memo) %>
-              <% admin_tools("memo-frame__ai-button badge m0 ml1 p0 overflow-visible") do %>
+              <% admin_tool("memo-frame__ai-button badge m0 ml1 p0 overflow-visible") do %>
                 <a href="<%= memo_frame_hcb_code_path(ct.local_hcb_code, gen_memo: true) %>"
                    style="padding: 4px 6px"
                    data-turbo="true"
@@ -114,14 +46,14 @@
             <% end %>
           <% end %>
 
-          <% if !defined?(receipt_upload_button) && !defined?(hide_tags) && organizer_signed_in? && Flipper.enabled?(:transaction_tags_2022_07_29, @event || ct.local_hcb_code.event) %>
+          <% if !defined?(receipt_upload_button) && !defined?(hide_tags) && organizer_signed_in? && !ct.instance_of?(OpenStruct) && Flipper.enabled?(:transaction_tags_2022_07_29, @event || ct.local_hcb_code.event) %>
             <div class="overflow-visible relative" style="margin-left: 0.5rem;" data-controller="menu" data-menu-append-to-value="turbo-frame#ledger">
               <button class="list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">+ Add tag</button>
               <div class="menu__content menu__content--2 menu__content--compact menu__content--left h6" data-menu-target="content">
                 <% (@event || ct.local_hcb_code.event).tags.each do |tag| %>
                   <div class="flex items-center">
                     <%= button_to toggle_tag_hcb_code_path(id: ct.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(ct.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
-                      <%= "✓" if ct.local_hcb_code.tags.include?(tag) %>
+                      <%= "✓" if tagged_with.include?(tag) %>
 
                       <%= tag.label %>
                     <% end %>
@@ -144,13 +76,13 @@
 
         <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && !@event&.demo_mode? %>
           <div class="flex flex-wrap" style="gap: 0.25rem" id="hcb_code_<%= ct.local_hcb_code.hashid %>_tags">
-            <%= render partial: "canonical_transactions/tag", collection: ct.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event }, locals: { hcb_code: ct.local_hcb_code } %>
+            <%= render partial: "canonical_transactions/tag", collection: tagged_with, locals: { hcb_code: ct.local_hcb_code } %>
           </div>
         <% end %>
       </div>
 
       <% if ct.local_hcb_code %>
-        <%= list_badge_for ct.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: !ct.raw_stripe_transaction || ct.local_hcb_code.stripe_refund?, required: ct.local_hcb_code.needs_receipt? %>
+        <%= list_badge_for ct.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: ct.local_hcb_code.receipt_optional?, required: ct.local_hcb_code.missing_receipt? %>
         <%= list_badge_for admin_signed_in? ? ct.local_hcb_code.comments.size : ct.local_hcb_code.not_admin_only_comments_count, "note", "post", optional: true %>
       <% end %>
     </div>
@@ -171,12 +103,14 @@
     <td><%= number_to_currency ct.running_balance %></td>
   <% end %>
   <td>
-    <%= link_to "Details", ct.local_hcb_code.url, data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) ? { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{instance}", "modal-auto-open": defined?(@popover) ? @popover == ct.local_hcb_code.hashid : nil } : { turbo_frame: "_top" } if organizer_signed_in? || defined?(force_display_details) %>
+    <% details_link = ct.local_hcb_code.card_grant? ? spending_card_grant_path(ct.local_hcb_code.disbursement.card_grant) : ct.local_hcb_code.url %>
+    <% modal = ct.local_hcb_code.card_grant? ? "card_grant_details_#{instance}" : "transaction_details_#{instance}" %>
+    <%= link_to "Details", details_link, data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && !@force_no_popover ? { turbo_frame: "_top", behavior: "modal_trigger", modal: } : { turbo_frame: "_top" } if organizer_signed_in? || defined?(force_display_details) %>
   </td>
-  <% if defined?(receipt_upload_button) %>
+  <% if local_assigns[:receipt_upload_button] %>
     <td style="width: 1%">
-      <% if ct.local_hcb_code.needs_receipt? %>
-        <%= form_with url: upload_receipts_path, data: { controller: "form", "file-drop-target" => "form" } do |form| %>
+      <% if ct.local_hcb_code.missing_receipt? || !local_assigns[:updated_via_turbo_stream] %>
+        <%= form_with url: receipts_path, data: { controller: "form", "file-drop-target" => "form", "turbo" => true } do |form| %>
           <%= form.file_field :file, id: "file_#{ct.local_hcb_code.hashid}", multiple: true, include_hidden: false, required: true, class: "display-none", data: { action: "change->form#submit", "file-drop-target" => "fileInput" } %>
           <%= form.hidden_field :redirect_url, value: @card_grant ? card_grant_path(@card_grant) : my_inbox_path %>
           <% unless @card_grant.present? %>
@@ -199,13 +133,18 @@
             <% end %>
           </div>
         <% end %>
+      <% else %>
+        <div class="btn bg-success disabled" style="font-size: 0.875rem; font-weight: 600; padding: 0.25rem 1rem; width: 100%">
+          <%= inline_icon "attachment", size: 14 %>
+          <span>Uploaded!</span>
+        </div>
       <% end %>
     </td>
 
     <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
       <section class="modal modal--huge modal--scroll bg-snow" data-behavior="modal" role="dialog" id="link_receipt_<%= instance %>">
         <%= modal_header "Select receipt" %>
-        <%= async_frame_to link_modal_receipts_path(receiptable_type: "HcbCode", receiptable_id: ct.local_hcb_code.id), as: :span do %>
+        <%= turbo_frame_tag "link_modal_#{ct.local_hcb_code.id}", src: link_modal_receipts_path(receiptable_type: "HcbCode", receiptable_id: ct.local_hcb_code.id), turbo_frame: "_top" do %>
           <strong>Loading...</strong>
         <% end %>
       </section>
@@ -213,9 +152,10 @@
   <% end %>
 </tr>
 
-<% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && ct.local_hcb_code.event.present? %>
+<% event = @event || ct.local_hcb_code.event %>
+<% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && event.present? && !show_mock_data?(event) %>
   <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= instance %>">
-    <%= modal_header(ct.local_hcb_code.pretty_title(show_event_name: defined?(show_event_name), show_amount: defined?(show_amount)), level: "h1", external_link: ct.local_hcb_code.url) %>
+    <%= modal_header(ct.local_hcb_code.pretty_title(show_event_name: defined?(show_event_name), show_amount: defined?(show_amount), event_name: @event&.name, amount_cents: ct.amount), level: "h1", external_link: ct.local_hcb_code.url) %>
     <%= async_frame_to ct.local_hcb_code.popover_url, as: :span, lazy: true do %>
       <div class="shimmer mb1 mt3">
         <div class="shimmer__border"></div>
@@ -276,6 +216,15 @@
           </article>
         </div>
       </div>
+    <% end %>
+  </section>
+<% end %>
+
+<% if (Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) || !organizer_signed_in?) && ct.local_hcb_code.card_grant? %>
+  <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="card_grant_details_<%= instance %>">
+    <%= modal_header(transaction_memo(ct), level: "h1", external_link: spending_card_grant_path(ct.local_hcb_code.disbursement.card_grant)) %>
+    <%= async_frame_to spending_card_grant_path(ct.local_hcb_code.disbursement.card_grant, params: { frame: true }), lazy: true, as: :div do %>
+      <strong>Loading...</strong>
     <% end %>
   </section>
 <% end %>

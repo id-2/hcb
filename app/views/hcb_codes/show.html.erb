@@ -5,25 +5,34 @@
 <%= render partial: "hcb_codes/admin_tools" %>
 <%= render partial: "hcb_codes/rich_metadata" %>
 
-<%= render "receipts/list_v2" %>
-<% admin_tools if: !(@hcb_code.receipt_required? || @hcb_code.ach_transfer?) do %>
-  <%= begin receipt_upload_form_config = {
-        receiptable: @hcb_code,
-        enable_linking: true,
-        upload_method: "transaction_page",
-        include_spacing: true
-      }
-
-            receipt_upload_form_config[:restricted_dropzone] = true if @frame
-            receipt_upload_form_config[:inline_linking] = true if @frame
-            receipt_upload_form_config[:popover] = "HcbCode:#{@hcb_code.hashid}" if @frame
-            render partial: "receipts/form_v3", locals: receipt_upload_form_config end %>
+<% if @hcb_code.canonical_transactions.any? {|ct| ct.amount_cents.positive? } && !@hcb_code.event&.hcb_internals? %>
+  <% admin_tool("mt3") do %>
+    <%= link_to "View Usage Breakdown", breakdown_hcb_code_path(@hcb_code, format: :pdf), class: "btn bg-accent" %>
+  <% end %>
 <% end %>
 
-<%= render "comments/list_v2" %>
-<%= render "comments/form_v2" %>
+<% if @hcb_code.accepts_receipts? %>
+  <%= render "receipts/list_v2" %>
+  <% admin_tool_if @hcb_code.receipt_optional? do %>
+    <%= begin receipt_upload_form_config = {
+          receiptable: @hcb_code,
+          enable_linking: true,
+          upload_method: "transaction_page",
+          include_spacing: true,
+          turbo: false
+        }
 
-<% admin_tools do %>
+              receipt_upload_form_config[:restricted_dropzone] = true if @frame
+              receipt_upload_form_config[:inline_linking] = true if @frame
+              receipt_upload_form_config[:popover] = "HcbCode:#{@hcb_code.hashid}" if @frame
+              render partial: "receipts/form_v3", locals: receipt_upload_form_config end %>
+  <% end %>
+<% end %>
+
+<%= render "comments/list", comments: @hcb_code.comments %>
+<%= render "comments/form", commentable: @hcb_code %>
+
+<% admin_tool do %>
   <%= render partial: "hcb_codes/transaction_history" %>
   <%= render partial: "hcb_codes/pending_transaction_history" %>
 <% end %>

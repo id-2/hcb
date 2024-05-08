@@ -48,6 +48,16 @@
   <%= render partial: "hcb_codes/bank_fee", locals: {} %>
 <% end %>
 
+<%# expense payout %>
+<% if @hcb_code.reimbursement_expense_payout? %>
+  <%= render partial: "hcb_codes/reimbursement/expense_payout", locals: {} %>
+<% end %>
+
+<%# payout holding %>
+<% if @hcb_code.reimbursement_payout_holding? %>
+  <%= render partial: "hcb_codes/reimbursement/payout_holding", locals: {} %>
+<% end %>
+
 <%# fee revenue %>
 <% if @hcb_code.fee_revenue? && @hcb_code.fee_revenue.present? %>
   <%= render partial: "hcb_codes/fee_revenue", locals: {} %>
@@ -59,6 +69,6 @@
 <% end %>
 
 <%# unknown (most likely a direct to bank account transaction) %>
-<% if @hcb_code.unknown? %>
+<% if @hcb_code.unknown? || @hcb_code.outgoing_fee_reimbursement? %>
   <%= render partial: "hcb_codes/unknown", locals: {} %>
 <% end %>

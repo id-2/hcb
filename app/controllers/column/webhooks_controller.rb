@@ -9,7 +9,15 @@ module Column
     def webhook
       @object = params[:data]
       type = params[:type]
-      self.send "handle_#{type.tr(".", "_")}"
+      if type == "ach.incoming_transfer.scheduled"
+        handle_ach_incoming_transfer_scheduled
+      elsif type == "ach.outgoing_transfer.returned"
+        handle_ach_outgoing_transfer_returned
+      elsif type.start_with?("check.incoming_debit")
+        handle_outgoing_check_update
+      end
+    rescue => e
+      notify_airbrake(e)
     ensure
       head :ok
     end
@@ -19,10 +27,32 @@ module Column
     def handle_ach_incoming_transfer_scheduled
       return if @object[:type].downcase == "credit" || @object[:amount] <= 100 # Allow incoming ACH credits and small debits
 
-      # If this ACH debit is to an org's account number, reject it
-      if AccountNumber.exists?(column_id: @object[:account_number_id])
-        ColumnService.post("/transfers/ach/#{@object[:id]}/return", return_code: "R08")
+      account_number = AccountNumber.find_by(column_id: @object[:account_number_id])
+
+      return if account_number.nil? # Allow debits to non-HCB-managed account numbers
+
+      if account_number.deposit_only?
+        ColumnService.return_ach(@object[:id], with: ColumnService::AchCodes::STOP_PAYMENT)
+      elsif account_number.event.balance_available_v2_cents < @object[:amount]
+        ColumnService.return_ach(@object[:id], with: ColumnService::AchCodes::INSUFFICIENT_BALANCE)
       end
+
+      # at this point, the ACH is approved!
+    end
+
+    def handle_ach_outgoing_transfer_returned
+      AchTransfer.find_by(column_id: @object[:id])&.mark_failed!(reason: @object[:return_details].pick(:description)&.gsub(/\(trace #: \d+\)\Z/, "")&.strip)
+    end
+
+    def handle_outgoing_check_update
+      check = IncreaseCheck.find_by(column_id: @object[:id])
+
+      check&.update!(
+        column_object: @object,
+        check_number: @object[:check_number],
+        column_status: @object[:status],
+        column_delivery_status: @object[:delivery_status],
+      )
     end
 
     def verify_signature

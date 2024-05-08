@@ -2,6 +2,7 @@
 
 module ReceiptReportJob
   class Send < ApplicationJob
+    queue_as :default
     def perform(user_id, force_send: false)
       @user = User.includes(:stripe_cards).find user_id
 
@@ -17,17 +18,10 @@ module ReceiptReportJob
     end
 
     def hcb_ids
-      # This code is grabbed from static_pages#my_missing_receipts_list
       @hcb_ids ||= begin
-        ids = []
-        @user.stripe_cards.each do |card|
-          card.hcb_codes.missing_receipt.find_each(batch_size: 100) do |hcb_code|
-            next unless hcb_code.receipt_required?
-
-            ids << hcb_code.id
-          end
+        @user.stripe_cards.flat_map do |card|
+          card.hcb_codes.missing_receipt.receipt_required.pluck(:id)
         end
-        ids
       end
     end
 

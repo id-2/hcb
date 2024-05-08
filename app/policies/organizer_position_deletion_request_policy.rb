@@ -6,15 +6,14 @@ class OrganizerPositionDeletionRequestPolicy < ApplicationPolicy
   end
 
   def new?
-    event = record.organizer_position.event
-    user.admin? ||
-      (event.users.include?(user) && event.organizer_positions.include?(record.organizer_position))
+    create?
   end
 
   def create?
-    event = record.organizer_position.event
-    user.admin? ||
-      (event.users.include?(user) && event.organizer_positions.include?(record.organizer_position))
+    target_is_in_event = record.event.organizer_positions.include?(record.organizer_position)
+    target_has_no_pending_request = record.organizer_position.organizer_position_deletion_requests.under_review.none?
+
+    user.admin? || (target_is_in_event && target_has_no_pending_request && current_user_is_manager?)
   end
 
   def show?
@@ -27,6 +26,16 @@ class OrganizerPositionDeletionRequestPolicy < ApplicationPolicy
 
   def open?
     user.admin?
+  end
+
+  private
+
+  def user_in_event?
+    record.event.users.include? user
+  end
+
+  def current_user_is_manager?
+    OrganizerPosition.find_by(user:, event: record.event)&.manager?
   end
 
 end

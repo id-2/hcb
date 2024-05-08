@@ -1,0 +1,7 @@
+<span id="total">
+  <% if report.amount_cents > 0 %>
+    <%= render_money report.amount_cents %>
+  <% else %>
+    reimbursement
+  <% end %>
+</span>

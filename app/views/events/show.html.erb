@@ -20,17 +20,44 @@
 
 <%= render "nav", selected: :transactions %>
 
+<%# Demo mode callout thing %>
+<% if organizer_signed_in? && @event.demo_mode %>
+  <div class="card border b--info pb0 mt3" style="text-wrap: pretty;" id="playground-callout">
+    <% meeting_req = @event.demo_mode_request_meeting_at %>
+    <p class="mt0">
+      <% if meeting_req %>
+        <strong>You requested activation on <%= format_date meeting_req %>
+        (<%= distance_of_time_in_words_to_now meeting_req %> ago).</strong>
+        <br>
+        Please expect an email from our team soon.
+      <% else %>
+        <strong>Welcome to Playground Mode</strong>
+        <br>
+        While in Playground mode, explore the dashboard with mock data, and invite your team.
+        To utilize financial features, request activation!
+      <% end %>
+    </p>
+    <%= link_to event_demo_mode_request_meeting_path(@event), method: :post, class: "btn bg-primary shrink-none mb2 nowrap #{"disabled" unless policy(@event).demo_mode_request_meeting? }", data: { tour_step: "activate_account" } do %>
+      <%= inline_icon "welcome" %>
+      Request<%= "ed" unless @event.demo_mode_request_meeting_at.nil? %> Activation
+    <% end %>
+  </div>
+<% end %>
+
 <h1 class="flex items-center">
   Financials
   <% if admin_signed_in? %>
-    <% admin_tools("p0 badge", "span") do %>
+    <% admin_tool("p0 badge", "span") do %>
       <span class="m0 badge bg-muted">
-      #<%= @event.id %>
+        #<%= @event.id %>
+      </span>
+      <span class="m0 badge bg-muted ml1">
+        SL<%= @event.service_level %>
       </span>
     <% end %>
 
     <% if @event.increase_account_id != IncreaseService::AccountIds::FS_MAIN %>
-      <% admin_tools("p0 badge", "span") do %>
+      <% admin_tool("p0 badge", "span") do %>
         <%= link_to "https://dashboard.increase.com/accounts/#{@event.increase_account_id}" do %>
           <span class="m0 badge bg-muted">
             <%= @event.increase_account_id %>
@@ -39,7 +66,7 @@
       <% end %>
     <% end %>
 
-    <% admin_tools("p0 badge", "span") do %>
+    <% admin_tool("p0 badge", "span") do %>
       <span class="m0 badge bg-muted">
         <%= @event&.partner&.slug&.capitalize || "Not partnered" %>
       </span>
@@ -63,9 +90,6 @@
   <div>
     <div class="flex items-center">
       <% if @organizers.any? %>
-        <%= pop_icon_to "email",
-          "mailto:#{@organizers.map(&:user).map(&:email).join(',')}",
-          class: "info mr2" if admin_signed_in? %>
         <div class="flex items-center">
           <% @organizers.limit(5).each do |position| %>
             <div class="avatar-grow line-height-0 tooltipped tooltipped--s mr1" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">
@@ -91,7 +115,7 @@
 
 <h2 class="heading">
   Transactions
-  <% if @event.canonical_transactions.exists? %>
+  <% if @event.canonical_transactions.any? %>
     <div data-controller="menu" data-menu-placement-value="bottom-end" class="ml-auto">
       <button
         type="button"
@@ -105,16 +129,19 @@
         <%= link_to "All transactions (CSV)", transactions_exports_path(event: @event, format: :csv), target: :_blank %>
         <%= link_to "All transactions (JSON)", transactions_exports_path(event: @event, format: :json), target: :_blank %>
         <%= link_to "All transactions (Ledger)", transactions_exports_path(event: @event, format: :ledger), target: :_blank %>
+        <%= link_to "All Statements", event_statements_path(@event) %>
       </div>
     </div>
   <% end %>
 </h2>
 
+<%= render "pinned_transactions" %>
+
 <%= turbo_frame_tag :ledger, data: { turbo_action: "advance" } do %>
 
   <%= render partial: "filter" %>
 
-  <% if @pending_transactions.any? || @transactions.any? || @event.demo_mode? %>
+  <% if @pending_transactions.any? || @transactions.any? || show_mock_data? %>
     <div class="table-container" data-tour-step="transactions">
         <table>
           <thead>

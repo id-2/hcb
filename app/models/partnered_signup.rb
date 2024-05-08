@@ -53,11 +53,11 @@ class PartneredSignup < ApplicationRecord
   set_public_id_prefix :sup
 
   include CountryEnumable
-  has_country_enum :countries
+  has_country_enum
 
-  belongs_to :partner, required: true
-  belongs_to :event,   required: false
-  belongs_to :user,    required: false
+  belongs_to :partner
+  belongs_to :event, optional: true
+  belongs_to :user,  optional: true
 
   validates :redirect_url, presence: true
   validates_presence_of [:organization_name,

@@ -5,7 +5,7 @@
   <span class="flex items-center flex-auto">
     Common documents
   </span>
-  <% admin_tools do %>
+  <% admin_tool do %>
     <%= link_to "Upload a common document",
     new_document_path,
     class: "btn bg-success my0 block" %>
@@ -19,12 +19,5 @@
 </p>
 
 <ul class="grid">
-  <% @documents.each do |doc| %>
-    <%= link_to doc do %>
-      <li class="card">
-        <strong class="h3 block"><%= doc.name %></strong>
-        <%= user_mention doc.user %>
-      </li>
-    <% end %>
-  <% end %>
+  <%= render @documents %>
 </ul>

@@ -4,30 +4,37 @@
 #
 # Table name: increase_checks
 #
-#  id              :bigint           not null, primary key
-#  aasm_state      :string
-#  address_city    :string
-#  address_line1   :string
-#  address_line2   :string
-#  address_state   :string
-#  address_zip     :string
-#  amount          :integer
-#  approved_at     :datetime
-#  check_number    :string
-#  increase_object :jsonb
-#  increase_state  :string
-#  increase_status :string
-#  memo            :string
-#  payment_for     :string
-#  recipient_name  :string
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  event_id        :bigint           not null
-#  increase_id     :string
-#  user_id         :bigint
+#  id                      :bigint           not null, primary key
+#  aasm_state              :string
+#  address_city            :string
+#  address_line1           :string
+#  address_line2           :string
+#  address_state           :string
+#  address_zip             :string
+#  amount                  :integer
+#  approved_at             :datetime
+#  check_number            :string
+#  column_delivery_status  :string
+#  column_object           :jsonb
+#  column_status           :string
+#  increase_object         :jsonb
+#  increase_state          :string
+#  increase_status         :string
+#  memo                    :string
+#  payment_for             :string
+#  recipient_name          :string
+#  recipient_email         :string
+#  send_email_notification :boolean          default(FALSE)
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  column_id               :string
+#  event_id                :bigint           not null
+#  increase_id             :string
+#  user_id                 :bigint
 #
 # Indexes
 #
+#  index_increase_checks_on_column_id       (column_id) UNIQUE
 #  index_increase_checks_on_event_id        (event_id)
 #  index_increase_checks_on_transaction_id  ((((increase_object -> 'deposit'::text) ->> 'transaction_id'::text)))
 #  index_increase_checks_on_user_id         (user_id)
@@ -47,6 +54,7 @@ class IncreaseCheck < ApplicationRecord
 
   has_one :canonical_pending_transaction
   has_one :grant, required: false
+  has_one :reimbursement_payout_holding, class_name: "Reimbursement::PayoutHolding", inverse_of: :increase_check, required: false, foreign_key: "increase_checks_id"
 
   after_create do
     create_canonical_pending_transaction!(event:, amount_cents: -amount, memo: "OUTGOING CHECK", date: created_at)
@@ -59,6 +67,7 @@ class IncreaseCheck < ApplicationRecord
 
     event :mark_approved do
       after do
+        IncreaseCheckMailer.with(check: self).notify_recipient.deliver_later if self.send_email_notification
         canonical_pending_transaction.update(fronted: true)
       end
       transitions from: :pending, to: :approved
@@ -73,12 +82,15 @@ class IncreaseCheck < ApplicationRecord
   end
 
   validates :amount, numericality: { greater_than: 0, message: "can't be zero!" }
-  validates :memo, length: { in: 1..73 }
+  validates :memo, length: { in: 1..40 }, on: :create
   validates :recipient_name, length: { in: 1..250 }
   validates_presence_of :memo, :payment_for, :recipient_name, :address_line1, :address_city, :address_zip
   validates_presence_of :address_state, message: "Please select a state!"
   validates :address_state, inclusion: { in: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"], message: "This isn't a valid US state!", allow_blank: true }
   validates :address_zip, format: { with: /\A\d{5}(?:[-\s]\d{4})?\z/, message: "This isn't a valid ZIP code." }
+
+  validates :recipient_email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }, allow_nil: true
+  validates_presence_of :recipient_email, on: :create
 
   validate on: :create do
     if amount > event.balance_available_v2_cents
@@ -104,8 +116,21 @@ class IncreaseCheck < ApplicationRecord
     requires_attention: "requires_attention"
   }, prefix: :increase
 
+  enum :column_status, %w(initiated issued manual_review rejected pending_deposit pending_stop deposited stopped pending_first_return pending_second_return first_return pending_reclear recleared second_return settled returned pending_user_initiated_return user_initiated_return_submitted user_initiated_returned pending_user_initiated_return_dishonored).index_with(&:itself), prefix: :column
+  enum :column_delivery_status, %w(created mailed in_transit in_local_area processed_for_delivery delivered failed rerouted returned_to_sender).index_with(&:itself), prefix: :column_delivery
+
+  def column?
+    column_id.present?
+  end
+
+  def increase?
+    increase_id.present?
+  end
+
   def state
-    if pending?
+    if column?
+      :info
+    elsif pending?
       :muted
     elsif rejected? || increase_canceled? || increase_stopped? || increase_returned? || increase_rejected?
       :error
@@ -117,7 +142,9 @@ class IncreaseCheck < ApplicationRecord
   end
 
   def state_text
-    if pending?
+    if column?
+      column_status.humanize
+    elsif pending?
       "Pending approval"
     elsif rejected?
       "Rejected"
@@ -131,6 +158,8 @@ class IncreaseCheck < ApplicationRecord
       "Canceled"
     elsif increase_returned?
       "Returned"
+    else
+      "Unknown status"
     end
   end
 
@@ -155,6 +184,22 @@ class IncreaseCheck < ApplicationRecord
   def send_check!
     return unless may_mark_approved?
 
+    if Flipper.enabled?(:column_check_transfers, event)
+      send_column!
+    else
+      send_increase!
+    end
+
+    mark_approved!
+
+    if grant.present?
+      grant.mark_fulfilled!
+    end
+  end
+
+  private
+
+  def send_increase!
     increase_check = Increase::CheckTransfers.create(
       account_id: IncreaseService::AccountIds::FS_MAIN,
       source_account_number_id: event.increase_account_number_id,
@@ -173,16 +218,50 @@ class IncreaseCheck < ApplicationRecord
         }
       },
       unique_identifier: self.id.to_s,
-      amount:
+      amount:,
     )
 
     update!(increase_id: increase_check["id"], increase_status: increase_check["status"])
+  end
 
-    mark_approved!
+  def send_column!
+    account_number_id = event.column_account_number&.column_id ||
+                        Rails.application.credentials.dig(:column, ColumnService::ENVIRONMENT, :default_account_number)
 
-    if grant.present?
-      grant.mark_fulfilled!
-    end
+    column_check = ColumnService.post "/transfers/checks/issue",
+                                      idempotency_key: self.id.to_s,
+                                      account_number_id:,
+                                      positive_pay_amount: amount,
+                                      currency_code: "USD",
+                                      payee_name: recipient_name,
+                                      mail_check_request: {
+                                        message: "Check from #{event.name}",
+                                        memo:,
+                                        payee_address: {
+                                          line_1: address_line1,
+                                          line_2: address_line2,
+                                          city: address_city,
+                                          state: address_state,
+                                          postal_code: address_zip,
+                                          country_code: "US",
+                                        }.compact_blank,
+                                        payor_name: event.name[0...40],
+                                        payor_address: {
+                                          line_1: "8605 Santa Monica Blvd #86294",
+                                          city: "West Hollywood",
+                                          state: "CA",
+                                          postal_code: "90069",
+                                          country_code: "US",
+                                        },
+                                      }
+
+    update!(
+      column_id: column_check["id"],
+      column_object: column_check,
+      check_number: column_check["check_number"],
+      column_status: column_check["status"],
+      column_delivery_status: column_check["delivery_status"],
+    )
   end
 
 end

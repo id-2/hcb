@@ -27,7 +27,6 @@ class FeeReimbursement < ApplicationRecord
 
   before_create :default_values
 
-  # SVB has a 30 character limit for transfer descriptions
   validates_length_of :transaction_memo, maximum: 30
   validates_uniqueness_of :transaction_memo
 
@@ -79,7 +78,7 @@ class FeeReimbursement < ApplicationRecord
 
   def transaction_display_name
     if donation
-      return "Fee refund for donation from #{donation.name}"
+      return "Fee refund for #{donation.anonymous? ? "anonymous donation" : "donation from #{donation.name(show_anonymous: true)}"}"
     else
       return "Fee refund for invoice to #{invoice.sponsor.name}"
     end
