@@ -3,9 +3,9 @@ inherit_from: .rubocop_todo.yml
 
 AllCops:
   Exclude:
-    - 'db/**/*'
-    - 'lib/tasks/**/*'
-    - 'vendor/**/*'
+    - '../db/**/*'
+    - '../lib/tasks/**/*'
+    - '../vendor/**/*'
 
 # The "offical" rubocop style guide is indeed quite strict. So intead, we use
 # the Relaxed Ruby Style guide. https://relaxed.ruby.style/
@@ -21,7 +21,7 @@ Style/RescueStandardError:
 
 Style/FrozenStringLiteralComment:
   Exclude:
-    - 'app/views/**/*.jbuilder'
+    - '../app/views/**/*.jbuilder'
 
 Lint/UselessAssignment:
   Enabled: false
@@ -162,8 +162,8 @@ Style/FormatStringToken:
 
 Style/ClassAndModuleChildren:
   Exclude:
-    - 'config/**/*.rb'
-    - 'app/models/ahoy/{event,visit}.rb'
+    - './**/*.rb'
+    - '../app/models/ahoy/{event,visit}.rb'
 
 Rails/UnknownEnv:
   Environments:
@@ -177,10 +177,10 @@ Rails/RequestReferer:
 
 Rails/ApplicationController:
   Exclude:
-    - 'app/controllers/docs_controller.rb'
-    - 'app/controllers/stripe_controller.rb'
-    - 'app/controllers/twilio_controller.rb'
-    - 'app/controllers/column/webhooks_controller.rb'
+    - '../app/controllers/docs_controller.rb'
+    - '../app/controllers/stripe_controller.rb'
+    - '../app/controllers/twilio_controller.rb'
+    - '../app/controllers/column/webhooks_controller.rb'
 
 Rails/HasAndBelongsToMany:
   Enabled: false
