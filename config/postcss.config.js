@@ -3,7 +3,7 @@ module.exports = {
   map: false,
   plugins: {
     '@csstools/postcss-sass': {},
-    tailwindcss: {},
+    tailwindcss: { config: 'config/tailwind.config.js' },
     autoprefixer: {},
     cssnano: process.env.NODE_ENV !== 'development' ? {} : false,
   },

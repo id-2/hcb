@@ -2,7 +2,7 @@
   "name": "@hackclub/bank",
   "private": true,
   "engines": {
-    "node": ">=18.0.0 <=21"
+    "node": ">=18.0.0 <=25"
   },
   "dependencies": {
     "@airbrake/browser": "^2.1.8",
@@ -61,10 +61,10 @@
     "prettier": "^3.1.1"
   },
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "lint": "eslint app/javascript/",
-    "format:check": "prettier --check app/javascript/",
-    "format": "prettier --write app/javascript/",
-    "build:css": "postcss app/assets/stylesheets/{application,admin,mailer}.scss --base app/assets/stylesheets --dir app/assets/builds --ext css"
+    "build": "webpack --config config/webpack.config.js",
+    "lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c config/eslint.config.js app/javascript/",
+    "format:check": "prettier --check app/javascript/ --config config/.prettierrc",
+    "format": "prettier --write app/javascript/ --config config/.prettierrc",
+    "build:css": "postcss app/assets/stylesheets/{application,admin,mailer}.scss --config config/ --base app/assets/stylesheets --dir app/assets/builds --ext css"
   }
 }

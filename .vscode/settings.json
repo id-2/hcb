@@ -33,5 +33,11 @@
   "files.associations": {
     "apple-app-site-association": "json"
   },
-  "css.validate": false
+  "scss.validate": false,
+  "prettier.configPath": "config/.prettierrc",
+  "eslint.experimental.useFlatConfig": true,
+  "eslint.options": {
+    "overrideConfigFile": "config/eslint.config.js"
+  },
+  "tailwindCSS.experimental.configFile": "config/tailwind.config.js"
 }

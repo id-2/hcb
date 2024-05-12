@@ -16,7 +16,7 @@ jobs:
         with:
           bundler-cache: true
       - name: Run Rubocop
-        run: bundle exec rubocop
+        run: bundle exec rubocop --config config/.rubocop.yml
   erblint:
     name: 'ERB Lint'
     runs-on: ubuntu-latest
@@ -32,7 +32,7 @@ jobs:
         with:
           bundler-cache: true
       - name: Run erblint
-        run: bundle exec erblint app/views/
+        run: bundle exec erblint --config config/.erb-lint.yml app/views/
   eslint:
     name: ESLint
     runs-on: ubuntu-latest

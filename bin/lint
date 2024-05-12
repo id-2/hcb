@@ -2,11 +2,11 @@
 set -e
 
 echo "=== Running Rubocop ==="
-bundle exec rubocop -a
+bundle exec rubocop --config config/.rubocop.yml -a
 # To run potentially unsafe cops, use: bundle exec rubocop -A
 
 echo "=== Running ERB Lint ==="
-bundle exec erblint app/views/ -a
+bundle exec erblint --config config/.erb-lint.yml app/views/ -a
 
 echo "=== Running ESLint ==="
 yarn lint --fix
