@@ -15,7 +15,7 @@ linters:
     enabled: true
     rubocop_config:
       inherit_from:
-        - .rubocop.yml
+        - config/.rubocop.yml
 
       # |
       # v Rules that tend to be broken/flaky inside views (e.g. Style/FrozenStringLiteralComment)
