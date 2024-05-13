@@ -29,7 +29,7 @@
       <%= form.collection_select :reviewer_id, @report.event.users, :id, :name, include_blank: "Anyone" %>
     </div>
   <% end %>
-  
+
   <% if organizer_signed_in? && (@report.submitted? || @report.draft?) && @report.event.card_grants.any? %>
    <div class="field">
      <%= form.label :subledger_id, "Card Grant", class: "mt2 bold" %>

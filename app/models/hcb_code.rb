@@ -155,7 +155,7 @@ class HcbCode < ApplicationRecord
 
   def subledger
     reimbursement_expense_payout.expense.report.subledger if reimbursement_expense_payout?
-    
+
     nil
   end
 
