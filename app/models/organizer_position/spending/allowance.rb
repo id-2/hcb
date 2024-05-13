@@ -12,8 +12,8 @@
 #
 # Indexes
 #
-#  idx_org_pos_spend_allows_on_authed_by_id  (authorized_by_id)
-#  idx_org_pos_spend_allows_on_org_pos_id    (organizer_position_spending_control_id)
+#  idx_org_pos_spend_allows_on_authed_by_id           (authorized_by_id)
+#  idx_org_pos_spend_allows_on_org_pos_spend_ctrl_id  (organizer_position_spending_control_id)
 #
 # Foreign Keys
 #
@@ -34,6 +34,10 @@ module OrganizerPosition::Spending
     end
 
     def balance
+    end
+
+    def event
+
     end
 
     # def organizer_position
