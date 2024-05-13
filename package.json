@@ -65,5 +65,8 @@
     "format:check": "prettier --check app/javascript/ --config config/.prettierrc",
     "format": "prettier --write app/javascript/ --config config/.prettierrc",
     "build:css": "postcss app/assets/stylesheets/{application,admin,mailer}.scss --config config/ --base app/assets/stylesheets --dir app/assets/builds --ext css"
-  }
+  },
+  "browserslist": [
+    "defaults"
+  ]
 }
