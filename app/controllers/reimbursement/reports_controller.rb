@@ -261,8 +261,9 @@ module Reimbursement
     end
 
     def update_reimbursement_report_params
-      reimbursement_report_params = params.require(:reimbursement_report).permit(:report_name, :event_id, :maximum_amount, :reviewer_id).compact
+      reimbursement_report_params = params.require(:reimbursement_report).permit(:report_name, :event_id, :maximum_amount, :reviewer_id, :subledger_id).compact
       reimbursement_report_params.delete(:maximum_amount) unless current_user.admin? || @event.users.include?(current_user)
+      reimbursement_report_params.delete(:subledger_id) unless current_user.admin? || @event.users.include?(current_user)
       reimbursement_report_params.delete(:maximum_amount) unless @report.draft?
       reimbursement_report_params
     end

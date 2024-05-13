@@ -153,6 +153,12 @@ class HcbCode < ApplicationRecord
     events.first
   end
 
+  def subledger
+    reimbursement_expense_payout.expense.report.subledger if reimbursement_expense_payout?
+    
+    nil
+  end
+
   def events
     @events ||=
       begin

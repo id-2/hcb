@@ -29,6 +29,14 @@
       <%= form.collection_select :reviewer_id, @report.event.users, :id, :name, include_blank: "Anyone" %>
     </div>
   <% end %>
+  
+  <% if organizer_signed_in? && (@report.submitted? || @report.draft?) && @report.event.card_grants.any? %>
+   <div class="field">
+     <%= form.label :subledger_id, "Card Grant", class: "mt2 bold" %>
+     <%= form.collection_select :subledger_id, @report.event.card_grants, :subledger_id, :name, include_blank: "None" %>
+   </div>
+  <% end %>
+
   <%= form.submit "Update Report", class: "mt2" %>
 <% end %>
 
