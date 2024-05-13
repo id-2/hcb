@@ -2,8 +2,6 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
   before_action :set_organizer_position
 
   def new
-    skip_authorization
-
     attributes = filtered_params
     attributes[:active] = true
     attributes[:started_at] = Time.current
@@ -24,8 +22,6 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
   end
 
   def destroy
-    skip_authorization
-
     if @op.active_spending_control.organizer_position_spending_allowances.count == 0
       @op.active_spending_control.ended_at = Time.current
       @op.active_spending_control.destroy

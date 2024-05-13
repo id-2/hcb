@@ -2,8 +2,6 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
   before_action :set_organizer_position
 
   def index
-    skip_authorization
-
     # @allowances_total = @allowances&.sum(:amount_cents) || 0
     # @transactions_total = @op.stripe_cards.where(event: @op.event).sum(&:total_spent)
     # @allowance_balance = @allowances_total - @transactions_total
