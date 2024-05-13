@@ -8,6 +8,8 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
 
     @control = @op.spending_controls.create(attributes)
 
+    authorize @control
+
     if @control.save
       @op.spending_controls
          .where(active: true)
@@ -22,6 +24,7 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
   end
 
   def destroy
+    authorize @op.active_spending_control
     if @op.active_spending_control.organizer_position_spending_allowances.count == 0
       @op.active_spending_control.ended_at = Time.current
       @op.active_spending_control.destroy
