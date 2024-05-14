@@ -28,6 +28,10 @@ class OrganizerPositionPolicy < ApplicationPolicy
     admin_or_manager?
   end
 
+  def view_allowances?
+      admin_or_manager? || record.user == user
+  end
+
   private
 
   def admin_or_manager?
