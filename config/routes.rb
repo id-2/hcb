@@ -273,7 +273,7 @@ Rails.application.routes.draw do
 
   resources :sponsors
 
-  resources :invoices, only: [:show] do
+  resources :invoices, path: "requests", only: [:show] do
     post "manually_mark_as_paid"
     post "archive"
     post "unarchive"
@@ -630,7 +630,7 @@ Rails.application.routes.draw do
     resources :g_suites, only: [:new, :create, :edit, :update]
     resources :documents, only: [:index]
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
-    resources :invoices, only: [:new, :create, :index]
+    resources :invoices, path: "requests", only: [:new, :create, :index]
     resources :tags, only: [:create, :destroy]
     resources :event_tags, only: [:create, :destroy]
 

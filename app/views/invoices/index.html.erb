@@ -1,10 +1,10 @@
-<% title "Invoices for #{@event.name}" %>
+<% title "Payment requests for #{@event.name}" %>
 <% page_md %>
 <%= render "events/nav", selected: :invoices %>
 
 <h1 class="heading">
   <span class="flex items-center">
-    Invoices
+    Payment requests
     <%= badge_for @invoices.size, class: "bg-muted" %>
   </span>
 
@@ -13,19 +13,19 @@
         class: "btn btn--icon bg-success",
         data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
       <%= inline_icon "send" %>
-      Send an invoice
+      Send a request
     <% end %>
   <% end %>
 </h1>
 
 <% if organizer_signed_in? %>
   <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="new_invoice">
-    <%= modal_header "Send an invoice" %>
+    <%= modal_header "Send a request" %>
 
     <% if @event.invoices.none? %>
       <%= render "callout",
             type: "info",
-            title: "We recommend sending yourself an invoice for $1 to understand what your sponsors will see." %>
+            title: "We recommend sending yourself a request for $1 to understand what your sponsors will see." %>
     <%= render "form", invoice: @invoice, sponsor: @sponsor %>
     <% else %>
       <p class="h5 line-height-3 muted mt0 mb2">
@@ -39,8 +39,8 @@
 <% end %>
 
 <div class="statset mt3 mb2">
-  <div class="stat tooltipped tooltipped--s pr3" aria-label="This excludes archived invoices">
-    <span class="stat__label">Total invoiced</span>
+  <div class="stat tooltipped tooltipped--s pr3" aria-label="This excludes archived requests">
+    <span class="stat__label">Total requested</span>
     <span class="stat__value"><%= render_money_amount @stats[:total] %></span>
   </div>
   <div class="stat stat--small">
@@ -51,7 +51,7 @@
     <span class="stat__label">On the way</span>
     <span class="stat__value"><%= render_money_amount @stats[:pending] %></span>
   </div>
-  <div class="stat stat--small tooltipped tooltipped--s" aria-label="This excludes archived invoices">
+  <div class="stat stat--small tooltipped tooltipped--s" aria-label="This excludes archived requests">
     <span class="stat__label">Unpaid</span>
     <span class="stat__value"><%= render_money_amount @stats[:unpaid] %></span>
   </div>
@@ -112,5 +112,5 @@
 </table>
 </article>
 <% else %>
-  <%= blankslate "No invoices yet" %>
+  <%= blankslate "No payment requests yet" %>
 <% end %>

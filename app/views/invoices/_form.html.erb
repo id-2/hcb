@@ -64,7 +64,7 @@
     </div>
   <% end %>
 
-  <h2>Invoice details</h2>
+  <h2>Request details</h2>
 
   <%= form.label :item_amount, "Amount" %>
   <div class="field">
@@ -91,7 +91,7 @@
     <%= form.date_select :due_date, selected: (Date.today + 30.days), disabled: @event.demo_mode? %>
   </div>
 
-  <div class="actions tooltipped tooltipped--n inline-block" aria-label="Your invoice will immediately be emailed to the sponsor">
-    <%= form.submit "Send invoice now", disabled: (!organizer_signed_in? || @event.demo_mode?) %>
+  <div class="actions tooltipped tooltipped--n inline-block" aria-label="Your request will immediately be emailed to the sponsor">
+    <%= form.submit "Send request", disabled: (!organizer_signed_in? || @event.demo_mode?) %>
   </div>
 <% end %>

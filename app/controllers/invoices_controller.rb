@@ -128,7 +128,7 @@ class InvoicesController < ApplicationController
       sponsor_address_country: sponsor_attrs[:address_country]
     ).run
 
-    flash[:success] = "Invoice successfully created and emailed to #{@invoice.sponsor.contact_email}."
+    flash[:success] = "Request created & emailed to #{@invoice.sponsor.contact_email}."
 
     unless OrganizerPosition.find_by(user: @invoice.creator, event: @event)&.manager?
       InvoiceMailer.with(invoice: @invoice).notify_organizers_sent.deliver_later
@@ -163,7 +163,7 @@ class InvoicesController < ApplicationController
     if @invoice.save
       redirect_to @invoice
     else
-      flash[:error] = "Something went wrong while trying to archive this invoice!"
+      flash[:error] = "Something went wrong while trying to archive this request."
       redirect_to @invoice
     end
   end
@@ -190,7 +190,7 @@ class InvoicesController < ApplicationController
       flash[:success] = "Invoice has been un-archived."
       redirect_to @invoice
     else
-      flash[:error] = "Something went wrong while trying to archive this invoice!"
+      flash[:error] = "Something went wrong while trying to un-archive this request."
       redirect_to @invoice
     end
   end
