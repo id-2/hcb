@@ -7,20 +7,27 @@
   <% end %>
   <% if show_org_switcher? %>
     <div class="menu__content menu__content--2 menu__content--compact" data-menu-target="content">
-      <p class="h6 muted m0 ml1 mb1">Switch organizations:</p>
-      <% current_user.events.not_hidden.excluding(@event).with_attached_logo.map do |event| %>
-        <%= link_to event, title: event.name, style: "gap: 8px" do %>
+      <p class="h6 muted m0 ml1 mb1">Switch projects</p>
+      <%# put @event first %>
+      <% [*@event, *(current_user.events.not_hidden.excluding(@event).with_attached_logo)].map do |event| %>
+        <%= link_to event, title: event.name, style: "gap: 12px" do %>
           <% if event.logo.attached? %>
-            <%= image_tag event.logo, height: 24, width: 24, class: "rounded" %>
+            <%= image_tag event.logo, height: 32, width: 32, class: "rounded" %>
           <% else %>
-            <div style="height: 24px; width: 24px; background-color: <%= event.color %>" class="rounded shrink-none"></div>
+            <div style="height: 32px; width: 32px; background-color: <%= event.color %>" class="rounded shrink-none"></div>
           <% end %>
-          <span class="truncate"><%= event.name %></span>
-          <span class="muted h6 ml-auto">
-            <%= turbo_frame_tag "event_balance_#{event.public_id}", src: event_async_balance_path(event, symbol: true), loading: :lazy do %>
-              -
-            <% end %>
-          </span>
+          <div class="flex flex-col flex-auto">
+            <span class="truncate"><%= event.name %></span>
+            <span class="muted h6">
+              <%= turbo_frame_tag "event_balance_#{event.public_id}", src: event_async_balance_path(event, symbol: true, rounded: true), loading: :lazy do %>
+                -
+              <% end %>
+            </span>
+          </div>
+          <% if @event == event %>
+            <%# checkmark icon %>
+            <%= inline_icon "checkmark", size: 24, class: "muted align-middle mr0" %>
+          <% end %>
         <% end %>
       <% end %>
     </div>

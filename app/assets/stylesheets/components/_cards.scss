@@ -1,6 +1,6 @@
 .card {
   background-color: $white;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.125);
+  box-shadow: var(--shadow-border-small);
   padding: 1rem;
   border-radius: 0.5rem;
   overflow: hidden;
@@ -27,7 +27,7 @@
   :not(.draggable-source--is-dragging) > &.card--hover:hover,
   &.card--hover:focus {
     transform: translateY(-3px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1875);
+    box-shadow: var(--shadow-border-large);
   }
 
   &.card--hover:active {

@@ -36,11 +36,6 @@
   width: 100%;
   max-width: 100%;
 
-  hr {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
   // Scroll on small phones
   @media (max-width: 24em) {
     overflow-x: auto;
@@ -185,7 +180,7 @@
   }
 
   @media (min-width: 56em) {
-    border-radius: 0.75rem;
+    border-radius: var(--radius-lg);
     cursor: pointer;
     line-height: 1.75;
     font-size: 1rem;
@@ -282,14 +277,11 @@
 }
 
 .event-title-dropdown-icon {
-  opacity: 0;
   transform: translateY(-2px);
-  transition: 0.125s ease-in-out;
-  transition-property: opacity, transform;
+  transition: 0.125s ease-in-out transform;
+  transform-origin: center center;
 }
 
-.event-title:hover .event-title-dropdown-icon,
 .event-title[aria-expanded='true'] .event-title-dropdown-icon {
-  opacity: 1;
-  transform: none;
+  transform: translateY(-2px) rotate(180deg);
 }

@@ -90,7 +90,7 @@
 
     @media screen and (max-width: 32em) {
       padding: 1rem 0.5rem 3rem;
-      border-radius: 0.75rem 0.75rem 0 0;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
       position: fixed;
       top: auto;
       bottom: 0;
@@ -209,7 +209,7 @@
     }
   }
 
-  svg {
+  svg:not(:last-child) {
     margin-right: 6px;
   }
 
