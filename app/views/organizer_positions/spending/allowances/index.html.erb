@@ -5,7 +5,7 @@
 <h1 class="heading flex">
   <span style="flex"><%= @user.name %>'s Spending</span>
 
-  <% if @controls_enabled %>
+  <% if @op.active_spending_control %>
     <%= link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "new" } do %>
       <%= inline_icon "docs" %>
       New
@@ -44,17 +44,33 @@
 
 <% spending_controls_callout_footer = capture do %>
   <% if @op.active_spending_control %>
-    <%= link_to new_event_organizer_control_path(@event, @op), class: "btn btn-small bg-error", method: :delete do %>
-      <%= inline_icon "forbidden" %>
-      Disable controls for <%= @op.user.first_name %>
+      <% control_disable_button = link_to new_event_organizer_control_path(@event, @op), class: "btn btn-small bg-error tooltipped tooltipped--e", disabled: !policy(@provisional_control).destroy?, method: :delete do %>
+        <%= inline_icon "forbidden" %>
+        Disable controls for <%= @op.user.first_name %>
+      <% end %>
+
+    <% if policy(@provisional_control).destroy? %>
+        <%= control_disable_button %>
+    <% else %>
+    <div class="w-fit tooltipped tooltipped--e" aria-label="You're not allowed to remove your spending controls as a member.">
+        <%= control_disable_button %>
+    </div>
     <% end %>
   <% else %>
-    <%= link_to new_event_organizer_control_path(@event, @op), class: "btn btn-small bg-info" do %>
+    <% control_enable_button = link_to new_event_organizer_control_path(@event, @op), class: "btn btn-small bg-info tooltipped tooltipped--e", disabled: !policy(@provisional_control).new? do %>
       Enable controls for <%= @op.user.first_name %>
     <% end %>
+
+  <% if policy(@provisional_control).new? %>
+    <%= control_enable_button %>
+  <% else %>
+    <div class="w-fit tooltipped tooltipped--e" aria-label="You're not allowed to set spending controls on yourself as a member.">
+      <%= control_enable_button %>
+    </div>
   <% end %>
 <% end %>
-<%= render "callout", type: "info", title: "Spending controls are enabled for #{@op.user.first_name}.", footer: spending_controls_callout_footer  do %>
+<% end %>
+<%= render "callout", type: "info", title: "Spending controls are #{@op.active_spending_control ? "enabled" : "disabled"} for #{@op.user.first_name}.", footer: spending_controls_callout_footer  do %>
   <ul>
     <li>Spending controls lets managers pre-authorize a defined portion of your organization's fund to be spent by a user.</li>
     <li>Your organization's balance will not change when an allowance is created.</li>
@@ -89,5 +105,5 @@
 <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each do |c| %>
   <h3>Control from <%= format_date c.created_at %> through <%= format_date c.ended_at %></h3>
 
-  <%= render_spending_items sorted_spending_items(c) %>
+  <%#= render_spending_items sorted_spending_items(c) %>
 <% end %>
