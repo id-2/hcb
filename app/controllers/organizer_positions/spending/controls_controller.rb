@@ -11,10 +11,7 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
     authorize @control
 
     if @control.save
-      @op.spending_controls
-         .where(active: true)
-         .where.not(id: @control.id)
-         .update_all(active: false)
+      @op.spending_controls.where(active: true).where.not(id: @control.id).update_all(active: false)
 
       flash[:success] = "Spending control successfully created!"
       redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
@@ -25,12 +22,14 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
 
   def destroy
     authorize @op.active_spending_control
-    if @op.active_spending_control.organizer_position_spending_allowances.count == 0
-      @op.active_spending_control.ended_at = Time.current
-      @op.active_spending_control.destroy
-    end
 
-    @op.spending_controls.each { |c| c.update(active: false) }
+    @op.spending_controls.each { |c|
+      if c.organizer_position_spending_allowances.count == 0
+        c.destroy
+      else
+        c.update(active: false, ended_at: Time.current)
+      end
+    }
 
     flash[:success] = "Spending controls disabled for #{@op.user.name}!"
     redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
