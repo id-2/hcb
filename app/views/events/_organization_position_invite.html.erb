@@ -33,7 +33,7 @@
     <% if organizer_signed_in? %>
       <div class="flex g1 h-fit-content">
         <% if policy(position).view_allowances? %>
-          <div class="tooltipped tooltipped--w" aria-label="<%= position.user.name.humanize %>'s spending allowances">
+            <div class="tooltipped tooltipped--w" aria-label="<%= current_user == position.user ? "Your" : position.user.first_name.humanize + "'s" %> spending allowances">
             <%= pop_icon_to "payment", event_organizer_allowances_path(organizer_id: position.user.slug), data: { turbo_frame: "_top" }, class: "rounded-full overflow-hidden" %>
           </div>
         <% end %>
