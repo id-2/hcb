@@ -2,9 +2,10 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
   before_action :set_organizer_position
 
   def index
-      skip_authorization
+    skip_authorization
+    # authorize @op, :view_allowances?, policy_class: OrganizerPositionPolicy
 
-      @controls_enabled = @op.active_spending_control
+    @provisional_control = OrganizerPosition::Spending::Control.new(organizer_position: @op)
 
     # @allowances_total = @allowances&.sum(:amount_cents) || 0
     # @transactions_total = @op.stripe_cards.where(event: @op.event).sum(&:total_spent)
@@ -23,7 +24,7 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
     attributes[:authorized_by_id] = current_user.id
     @allowance = @op.active_spending_control.organizer_position_spending_allowances.build(attributes)
 
-    authorize @op, :foo?
+    authorize @allowance
 
     if @allowance.save
       flash[:success] = "Spending allowance created."
