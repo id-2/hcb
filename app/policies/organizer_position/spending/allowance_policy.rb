@@ -1,4 +1,4 @@
-class OrganizerPositions::Spending::AllowancePolicy < ApplicationPolicy
+class OrganizerPosition::Spending::AllowancePolicy < ApplicationPolicy
   def index?
     # Record is an OrganizerPosition
     user.admin? ||
@@ -11,7 +11,8 @@ class OrganizerPositions::Spending::AllowancePolicy < ApplicationPolicy
   end
 
   def create?
-    true
+    user.admin? ||
+      OrganizerPosition.find_by(user:, event: record.event)&.manager?
   end
 
 end
