@@ -59,9 +59,13 @@ module.exports = {
     boxShadow: {
       none: 'none',
       DEFAULT: 'var(--shadow-medium)',
+      border: 'var(--shadow-border)',
       sm: 'var(--shadow-small)',
+      'border-sm': 'var(--shadow-border-small)',
       md: 'var(--shadow-medium)',
+      'border-md': 'var(--shadow-border-medium)',
       lg: 'var(--shadow-large)',
+      'border-lg': 'var(--shadow-border-large)',
     },
     extend: {
       backgroundImage: {

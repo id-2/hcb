@@ -47,3 +47,22 @@ $palette: (
     saturate(map-get($palette, $color), 15%)
   );
 }
+
+:root {
+  --shadow-border: 0 0 0 0.5px rgba(0,0,0,.125);
+  --shadow-small: 0 2px 2px rgba(0,0,0,.04);
+  --shadow-border-small: var(--shadow-border), var(--shadow-small);
+  --shadow-medium: 0 2px 2px rgba(0,0,0,.04), 0 8px 8px -8px rgba(0,0,0,.04);
+  --shadow-border-medium: var(--shadow-border), var(--shadow-medium);
+  --shadow-large: 0 2px 2px rgba(0,0,0,.04), 0 8px 16px -4px rgba(0,0,0,.04);
+  --shadow-border-large: var(--shadow-border), var(--shadow-large);
+  --shadow-tooltip: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 4px 8px rgba(0,0,0,.04);
+  --shadow-menu: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 4px 8px -4px rgba(0,0,0,.04), 0 16px 24px -8px rgba(0,0,0,.06);
+  --shadow-modal: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 8px 16px -4px rgba(0,0,0,.04), 0 24px 32px -8px rgba(0,0,0,.06);
+  --shadow-fullscreen: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 8px 16px -4px rgba(0,0,0,.04), 0 24px 32px -8px rgba(0,0,0,.06);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+}
