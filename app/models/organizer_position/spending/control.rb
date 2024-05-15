@@ -35,7 +35,7 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
 
 
   def total_spent
-      0
+      transactions.map(&:amount_cents).sum.abs
   end
 
   def transactions
