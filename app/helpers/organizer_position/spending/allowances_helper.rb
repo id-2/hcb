@@ -1,13 +1,7 @@
 module OrganizerPosition::Spending::AllowancesHelper
 
   def sorted_spending_items(control)
-    date_range = control.created_at..control.ended_at
-
-    transactions = @op
-        .stripe_cards
-        .map{ |card| card.canonical_pending_transactions }
-        .flatten
-        .select { |transaction| date_range.cover? transaction.created_at }
+      transactions = control.transactions
     allowances = control.organizer_position_spending_allowances
 
     if !allowances || params[:filter] == "transactions"
