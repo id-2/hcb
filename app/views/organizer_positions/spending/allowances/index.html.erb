@@ -84,18 +84,10 @@
 
 
 <% if @active_control %>
-    <div class="flex g2 items-center">
-        <%= form_with(model: nil, local: true, method: :get, class: "grow") do |form| %>
-            <div class="filterbar flex flex-wrap items-center width-100">
-            <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
-            </div>
-        <% end %>
-
-        <div style="text-align: center;">
-            <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["allowances", "transactions"].include?(params[:filter]), role: "tab" %>
-            <%= link_to "Allowances", "?filter=allowances", class: "filterbar__item", "aria-selected": params[:filter] == "allowances", role: "tab" %>
-            <%= link_to "Transactions", "?filter=transactions", class: "filterbar__item", "aria-selected": params[:filter] == "transactions", role: "tab" %>
-        </div>
+    <div class="m-auto text-center mb-5">
+        <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["allowances", "transactions"].include?(params[:filter]), role: "tab" %>
+        <%= link_to "Allowances", "?filter=allowances", class: "filterbar__item", "aria-selected": params[:filter] == "allowances", role: "tab" %>
+        <%= link_to "Transactions", "?filter=transactions", class: "filterbar__item", "aria-selected": params[:filter] == "transactions", role: "tab" %>
     </div>
 
     <% if @active_control&.organizer_position_spending_allowances.blank? %>
