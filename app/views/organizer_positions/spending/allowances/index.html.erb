@@ -124,20 +124,22 @@
     <% end %>
 </div>
 
-<div data-behavior="modal" role="dialog" id="past-controls" class="modal modal--scroll bg-snow">
-    <%= modal_header "Past controls" %>
+<% unless @inactive_control_count.zero? %>
+    <div data-behavior="modal" role="dialog" id="past-controls" class="modal modal--scroll modal--huge bg-snow">
+        <%= modal_header "Past controls" %>
 
-    <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each_with_index do |c, i| %>
-        <div class="card <%= "mt-8" unless i.zero? %>">
-            <h4 class="m0 mb1">
-                <% if c.created_at.to_date == c.ended_at.to_date %>
-                    <%= format_date c.created_at %>
-                <% else %>
-            <%= format_date c.created_at %> - <%= format_date c.ended_at %>
-            <% end %>
-            </h4>
+        <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each_with_index do |c, i| %>
+            <div class="card <%= "mt-8" unless i.zero? %>">
+                <h4 class="m0 mb1">
+                    <% if c.created_at.to_date == c.ended_at.to_date %>
+                        <%= format_date c.created_at %>
+                    <% else %>
+                <%= format_date c.created_at %> - <%= format_date c.ended_at %>
+                <% end %>
+                </h4>
 
-            <%= render_spending_items sorted_spending_items(c) %>
-        </div>
-    <% end %>
-</div>
+                <%= render_spending_items sorted_spending_items(c) %>
+            </div>
+        <% end %>
+    </div>
+<% end %>
