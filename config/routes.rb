@@ -631,6 +631,7 @@ Rails.application.routes.draw do
     resources :documents, only: [:index]
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
     resources :invoices, path: "requests", only: [:new, :create, :index]
+    get "invoices", to: redirect("/%{event_id}/requests")
     resources :tags, only: [:create, :destroy]
     resources :event_tags, only: [:create, :destroy]
 
