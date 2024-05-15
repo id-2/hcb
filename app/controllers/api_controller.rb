@@ -14,7 +14,6 @@ class ApiController < ApplicationController
       email: params[:email],
       country: params[:country],
       category: params[:category],
-      postal_code: params[:postal_code],
       is_public: params[:transparent].nil? ? true : params[:transparent],
     ).run
 

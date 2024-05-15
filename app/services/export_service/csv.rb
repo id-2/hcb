@@ -37,7 +37,7 @@ module ExportService
         [
           ct.date,
           ct.local_hcb_code.memo,
-          @public_only && ct.likely_account_verification_related? ? 0 : ct.amount_cents,
+          ct.amount_cents,
           ct.local_hcb_code.tags.filter { |tag| tag.event_id == @event_id }.pluck(:label).join(", ")
         ]
       )

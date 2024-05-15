@@ -37,12 +37,9 @@ window.Turbo = Turbo
 
 import Alpine from 'alpinejs'
 import persist from '@alpinejs/persist'
-import ach_form from './datas/ach_form'
 
 window.Alpine = Alpine
 Alpine.plugin(persist)
-Alpine.data('ach', ach_form)
-
 Alpine.start()
 
 import LocalTime from 'local-time'

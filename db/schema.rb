@@ -49,10 +49,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_28_154337) do
     t.text "increase_id"
     t.date "scheduled_on"
     t.text "column_id"
-    t.boolean "same_day", default: false, null: false
     t.bigint "payment_recipient_id"
     t.string "recipient_email"
     t.boolean "send_email_notification", default: false
+    t.boolean "same_day", default: false, null: false
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
@@ -748,8 +748,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_28_154337) do
     t.text "donation_reply_to_email"
     t.boolean "public_reimbursement_page_enabled", default: false, null: false
     t.text "public_reimbursement_page_message"
-    t.string "postal_code"
-    t.boolean "reimbursements_require_organizer_peer_review", default: false, null: false
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -974,12 +972,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_28_154337) do
     t.string "increase_status"
     t.string "check_number"
     t.jsonb "increase_object"
-    t.string "recipient_email"
-    t.boolean "send_email_notification", default: false
     t.string "column_id"
     t.string "column_status"
     t.jsonb "column_object"
     t.string "column_delivery_status"
+    t.string "recipient_email"
+    t.boolean "send_email_notification", default: false
     t.index "(((increase_object -> 'deposit'::text) ->> 'transaction_id'::text))", name: "index_increase_checks_on_transaction_id"
     t.index ["column_id"], name: "index_increase_checks_on_column_id", unique: true
     t.index ["event_id"], name: "index_increase_checks_on_event_id"
@@ -1210,16 +1208,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_28_154337) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
-  end
-
-  create_table "metrics", force: :cascade do |t|
-    t.string "type", null: false
-    t.jsonb "metric"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "subject_type"
-    t.bigint "subject_id"
-    t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
@@ -1558,14 +1546,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_28_154337) do
     t.integer "upload_method"
     t.text "textual_content_ciphertext"
     t.integer "textual_content_source", default: 0
-    t.string "suggested_memo"
-    t.integer "suggested_amount_cents_subtotal"
-    t.integer "suggested_amount_cents_total"
-    t.datetime "suggested_date"
-    t.string "suggested_card_last4"
-    t.string "suggested_merchant_name"
-    t.string "suggested_merchant_url"
-    t.string "suggested_merchant_zip_code"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["user_id"], name: "index_receipts_on_user_id"
   end
@@ -1754,7 +1734,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_28_154337) do
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
     t.boolean "lost_in_shipping", default: false
-    t.text "stripe_personalization_design_id"
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
     t.index ["stripe_cardholder_id"], name: "index_stripe_cards_on_stripe_cardholder_id"

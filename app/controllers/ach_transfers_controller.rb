@@ -82,14 +82,14 @@ class AchTransfersController < ApplicationController
     return render json: { valid: true } if params[:value].empty?
     return render json: { valid: false, hint: "Bank not found for this routing number." } unless /\A\d{9}\z/.match?(params[:value])
 
-    bank = ColumnService.get "/institutions/#{params[:value]}" # This is safe since params[:value] is validated to only contain digits above
+    banks = Increase::RoutingNumbers.list(routing_number: params[:value])
+
+    valid = banks.size > 0
 
     render json: {
-      valid: true,
-      hint: bank["full_name"].titleize,
+      valid:,
+      hint: valid ? banks.first&.dig("name")&.titleize : "Bank not found for this routing number.",
     }
-  rescue Faraday::BadRequestError
-    return render json: { valid: false, hint: "Bank not found for this routing number." }
   rescue => e
     notify_airbrake(e)
     render json: { valid: true }
@@ -107,7 +107,7 @@ class AchTransfersController < ApplicationController
   end
 
   def ach_transfer_params
-    permitted_params = [:routing_number, :account_number, :recipient_email, :bank_name, :recipient_name, :amount_money, :payment_for, :send_email_notification, { file: [] }, :payment_recipient_id]
+    permitted_params = [:routing_number, :account_number, :recipient_email, :bank_name, :recipient_name, :amount_money, :payment_for, :send_email_notification, { file: [] }]
 
     if admin_signed_in?
       permitted_params << :scheduled_on
