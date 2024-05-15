@@ -35,7 +35,7 @@
     <div class="stat stat--small">
         <span class="stat__label">Spent</span>
         <span class="stat__value">
-        <%= render_money_amount @transactions_total %>
+        <%= render_money_amount @active_control.total_spent %>
         </span>
     </div>
     </div>
@@ -71,6 +71,11 @@
 <% end %>
 <%= render "callout", type: "info", title: "Spending controls are #{@op.active_spending_control ? "enabled" : "disabled"} for #{@op.user.first_name}.", footer: spending_controls_callout_footer  do %>
   <ul>
+    <% if @active_control %>
+        <% dev_tool("w-fit", "li") do %>
+            Control ID: <%= @active_control&.id %>
+        <% end %>
+    <% end %>
     <li>Spending controls lets managers pre-authorize a defined portion of your organization's fund to be spent by a user.</li>
     <li>Your organization's balance will not change when an allowance is created.</li>
     <li>Allowances do not expire.
@@ -130,12 +135,16 @@
 
         <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each_with_index do |c, i| %>
             <div class="card <%= "mt-8" unless i.zero? %>">
-                <h4 class="m0 mb1">
+                <h4 class="m0 mb1 inline-flex items-center g2">
                     <% if c.created_at.to_date == c.ended_at.to_date %>
                         <%= format_date c.created_at %>
                     <% else %>
-                <%= format_date c.created_at %> - <%= format_date c.ended_at %>
-                <% end %>
+                        <%= format_date c.created_at %> - <%= format_date c.ended_at %>
+                    <% end %>
+
+                    <% dev_tool("h5", "span") do %>
+                        ID: <%= c.id %>
+                    <% end %>
                 </h4>
 
                 <%= render_spending_items sorted_spending_items(c) %>
