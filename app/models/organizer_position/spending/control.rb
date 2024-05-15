@@ -23,6 +23,7 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
   has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", dependent: :destroy
 
   validate :one_active_control
+  validate :inactive_control_has_end_date
 
   def balance
     total_allocation_amount - total_spent
@@ -42,6 +43,12 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
   def one_active_control
     if organizer_position.spending_controls.where(active: true).size > 1
       errors.add(:organizer_position, "may only have one active spending control")
+    end
+  end
+
+  def inactive_control_has_end_date
+    if !active && ended_at.nil?
+        errors.add(:ended_at, "inactive controls must have an ended_at date")
     end
   end
 
