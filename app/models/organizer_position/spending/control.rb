@@ -38,6 +38,14 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
       0
   end
 
+  def transactions
+      organizer_position
+          .stripe_cards
+          .map { |card| card.canonical_pending_transactions }
+          .flatten
+          .select { |transaction| (created_at..ended_at).cover?(Time.at(transaction.raw_pending_stripe_transaction.stripe_transaction["created"])) }
+  end
+
   private
 
   def one_active_control
