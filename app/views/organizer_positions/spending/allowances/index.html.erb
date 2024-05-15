@@ -101,9 +101,38 @@
   <%= render_spending_items sorted_spending_items(active_control) %>
 <% end %>
 
-<h2>Past controls</h2>
-<% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each do |c| %>
-  <h3>Control from <%= format_date c.created_at %> through <%= format_date c.ended_at %></h3>
+<div class="mixed-grid grid--spacious mt-16">
+    <%= link_to "#", data: { behavior: "modal_trigger", modal: "past-controls" }, class: "card flex justify-between" do %>
+        <div class="flex flex-col">
+        <p class="bold black">Past controls</p>
+        <p class="muted">View <strong><%= @inactive_control_count %></strong> previous spending controls</p>
+        </div>
+        <%= inline_icon "clock" %>
+    <% end %>
 
-  <%#= render_spending_items sorted_spending_items(c) %>
-<% end %>
+    <%= link_to "/roles", class: "card flex justify-between" do %>
+        <div class="flex flex-col">
+        <p class="bold black">More info</p>
+        <p class="muted">Learn about HCB's spending controls feature</p>
+        </div>
+        <%= inline_icon "link" %>
+    <% end %>
+</div>
+
+<div data-behavior="modal" role="dialog" id="past-controls" class="modal modal--scroll bg-snow">
+    <%= modal_header "Past controls" %>
+
+    <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each_with_index do |c, i| %>
+        <div class="card <%= "mt-8" unless i.zero? %>">
+            <h4 class="m0 mb1">
+                <% if c.created_at.to_date == c.ended_at.to_date %>
+                    <%= format_date c.created_at %>
+                <% else %>
+            <%= format_date c.created_at %> - <%= format_date c.ended_at %>
+            <% end %>
+            </h4>
+
+            <%= render_spending_items sorted_spending_items(c) %>
+        </div>
+    <% end %>
+</div>
