@@ -101,10 +101,16 @@
 <% end %>
 
 <div class="mixed-grid grid--spacious mt-16">
-    <%= link_to "#", data: { behavior: "modal_trigger", modal: "past-controls" }, class: "card flex justify-between" do %>
+    <%= link_to "#", data: { behavior: "modal_trigger", modal: "past-controls" }, class: "card flex justify-between #{"opacity-50 pointer-events-none" if @inactive_control_count.zero?}" do %>
         <div class="flex flex-col">
         <p class="bold black">Past controls</p>
-        <p class="muted">View <strong><%= @inactive_control_count %></strong> previous spending controls</p>
+        <p class="muted">
+            <% if @inactive_control_count.zero? %>
+                There are no previous spending controls
+            <% else %>
+                View <strong><%= @inactive_control_count %></strong> previous spending controls
+            <% end %>
+        </p>
         </div>
         <%= inline_icon "clock" %>
     <% end %>
