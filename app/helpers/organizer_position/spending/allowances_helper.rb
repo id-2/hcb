@@ -21,7 +21,7 @@ module OrganizerPosition::Spending::AllowancesHelper
   end
 
   def render_spending_items(items)
-    if items.count == 0
+    if items.nil? || items.count == 0
       concat blankslate("Nothing to see here")
     else
       capture do
