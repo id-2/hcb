@@ -5,6 +5,7 @@ class OrganizerPositions::Spending::AllowancesController < ApplicationController
     skip_authorization
     # authorize @op, :view_allowances?, policy_class: OrganizerPositionPolicy
 
+    @active_control = @op.active_spending_control
     @inactive_control_count = @op.spending_controls.where(active: false).count
     @provisional_control = OrganizerPosition::Spending::Control.new(organizer_position: @op)
 
