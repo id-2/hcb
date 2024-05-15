@@ -16,9 +16,9 @@
   <%= form.fields_for :sponsor_attributes do |form| %>
     <h2 class="h2">Recipient details</h2>
 
-    <p data-behavior="sponsor_update_warning" style="display: none;" class="flex items-center info line-height-3">
+    <p data-behavior="sponsor_update_warning" style="display: none;" class="flex items-center info line-height-3 text-balance">
       <%= inline_icon "important", size: 32, class: "mr1" %>
-      You’re updating a previous recipient. This will also update past requests to them.
+      You’re updating a previous recipient. This&nbsp;will also update past requests to them.
     </p>
 
     <%= form.hidden_field :id %>
