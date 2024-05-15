@@ -4,7 +4,6 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
   def new
     attributes = filtered_params
     attributes[:active] = true
-    attributes[:started_at] = Time.current
 
     @control = @op.spending_controls.create(attributes)
 
