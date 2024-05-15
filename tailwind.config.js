@@ -47,6 +47,22 @@ module.exports = {
       medium: 500,
       bold: 600,
     },
+    borderRadius: {
+      none: '0',
+      DEFAULT: 'var(--radius-md)',
+      sm: 'var(--radius-sm)',
+      md: 'var(--radius-md)',
+      lg: 'var(--radius-lg)',
+      xl: 'var(--radius-xl)',
+      full: '999px',
+    },
+    boxShadow: {
+      none: 'none',
+      DEFAULT: 'var(--shadow-medium)',
+      sm: 'var(--shadow-small)',
+      md: 'var(--shadow-medium)',
+      lg: 'var(--shadow-large)',
+    },
     extend: {
       backgroundImage: {
         'check-pattern':
@@ -60,7 +76,7 @@ module.exports = {
         muted: '#8492a6',
         snow: '#f9fafc',
         darkless: '#252429',
-        dark: '#17171d'
+        dark: '#17171d',
       },
     },
   },

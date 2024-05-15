@@ -3,19 +3,19 @@ input[type='submit'],
   -webkit-appearance: none;
   align-items: center;
   border: 0;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.125);
-  @include gradient(info);
-  color: $white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-small);
+  background-color: $white;
+  color: $black;
   cursor: pointer;
   display: inline-flex;
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
   justify-content: center;
   letter-spacing: 0;
   line-height: 1.5;
   overflow: hidden;
-  padding: 0.5rem 1.25rem;
+  padding: 0.375rem 1rem;
   position: relative;
   text-align: center;
   text-decoration: none;
@@ -28,9 +28,17 @@ input[type='submit'],
   &:hover,
   &:focus,
   &[aria-expanded='true'] {
-    color: $white;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1875);
-    transform: scale(1.0625);
+    box-shadow: var(--shadow-medium);
+  }
+
+  &:not([class*='bg-']) {
+    box-shadow: var(--shadow-border);
+
+    &:hover,
+    &:focus,
+    &[aria-expanded='true'] {
+      box-shadow: var(--shadow-border-medium);
+    }
   }
 
   &.disabled,

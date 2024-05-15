@@ -40,9 +40,7 @@
   top: 100%;
   background-color: map-get($palette, white);
   border-radius: 0.5rem;
-  box-shadow:
-    0 -2px 4px rgba(0, 0, 0, 0.0625),
-    0 6px 12px rgba(0, 0, 0, 0.125);
+  box-shadow: var(--shadow-menu);
   overflow: auto;
   z-index: 6;
 
