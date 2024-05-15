@@ -77,27 +77,27 @@
   </ul>
 <% end %>
 
-<div class="flex g2 items-center">
-  <%= form_with(model: nil, local: true, method: :get, class: "grow") do |form| %>
-    <div class="filterbar flex flex-wrap items-center width-100">
-      <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
+
+<% if @active_control %>
+    <div class="flex g2 items-center">
+        <%= form_with(model: nil, local: true, method: :get, class: "grow") do |form| %>
+            <div class="filterbar flex flex-wrap items-center width-100">
+            <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
+            </div>
+        <% end %>
+
+        <div style="text-align: center;">
+            <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["allowances", "transactions"].include?(params[:filter]), role: "tab" %>
+            <%= link_to "Allowances", "?filter=allowances", class: "filterbar__item", "aria-selected": params[:filter] == "allowances", role: "tab" %>
+            <%= link_to "Transactions", "?filter=transactions", class: "filterbar__item", "aria-selected": params[:filter] == "transactions", role: "tab" %>
+        </div>
     </div>
-  <% end %>
 
-  <div style="text-align: center;">
-    <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["allowances", "transactions"].include?(params[:filter]), role: "tab" %>
-    <%= link_to "Allowances", "?filter=allowances", class: "filterbar__item", "aria-selected": params[:filter] == "allowances", role: "tab" %>
-    <%= link_to "Transactions", "?filter=transactions", class: "filterbar__item", "aria-selected": params[:filter] == "transactions", role: "tab" %>
-  </div>
-</div>
-
-<% active_control = @op.active_spending_control %>
-<% if !active_control %>
-  <%= blankslate "No active control" %>
-<% elsif active_control.organizer_position_spending_allowances.blank? %>
-  <%= blankslate "No allowances yet" %>
-<% else %>
-  <%= render_spending_items sorted_spending_items(active_control) %>
+    <% if @active_control&.organizer_position_spending_allowances.blank? %>
+      <%= blankslate "No allowances yet" %>
+    <% else %>
+      <%= render_spending_items sorted_spending_items(@op.active_spending_control) %>
+    <% end %>
 <% end %>
 
 <div class="mixed-grid grid--spacious mt-16">
