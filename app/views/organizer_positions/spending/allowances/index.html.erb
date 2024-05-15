@@ -21,26 +21,28 @@
 <%= @op.spending_controls.count %> spending controls,
 <%= @op.active_spending_control ? "one" : "none" %> active
 
-<div class="statset mt3 mb2">
-  <div class="stat stat--small">
-    <span class="stat__label">Balance</span>
-    <span class="stat__value">
-      <%= render_money_amount @authorization_balance %>
-    </span>
-  </div>
-  <div class="stat stat--small">
-    <span class="stat__label">Total Allocated</span>
-    <span class="stat__value">
-      <%= render_money_amount @op.active_spending_control&.total_allocation_amount %>
-    </span>
-  </div>
-  <div class="stat stat--small">
-    <span class="stat__label">Spent</span>
-    <span class="stat__value">
-      <%= render_money_amount @transactions_total %>
-    </span>
-  </div>
-</div>
+<% if @op.active_spending_control %>
+    <div class="statset mt3 mb2">
+    <div class="stat stat--small">
+        <span class="stat__label">Balance</span>
+        <span class="stat__value">
+        <%= render_money_amount @op.active_spending_control.balance %>
+        </span>
+    </div>
+    <div class="stat stat--small">
+        <span class="stat__label">Total Allocated</span>
+        <span class="stat__value">
+        <%= render_money_amount @op.active_spending_control.total_allocation_amount %>
+        </span>
+    </div>
+    <div class="stat stat--small">
+        <span class="stat__label">Spent</span>
+        <span class="stat__value">
+        <%= render_money_amount @transactions_total %>
+        </span>
+    </div>
+    </div>
+<% end %>
 
 <% spending_controls_callout_footer = capture do %>
   <% if @op.active_spending_control %>
