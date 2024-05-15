@@ -34,6 +34,7 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
 
 
   def total_spent
+      0
   end
 
   private
