@@ -18,9 +18,6 @@
   <%= render "form" %>
 </div>
 
-<%= @op.spending_controls.count %> spending controls,
-<%= @op.active_spending_control ? "one" : "none" %> active
-
 <% if @op.active_spending_control %>
     <div class="statset mt3 mb2">
     <div class="stat stat--small">
