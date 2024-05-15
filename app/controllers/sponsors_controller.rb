@@ -26,7 +26,7 @@ class SponsorsController < ApplicationController
     authorize @sponsor
 
     if @sponsor.save
-      flash[:success] = "Sponsor was successfully created."
+      flash[:success] = "Recipient was successfully created."
       redirect_to @sponsor
     else
       render :new, status: :unprocessable_entity
@@ -39,7 +39,7 @@ class SponsorsController < ApplicationController
     authorize @sponsor
 
     if @sponsor.save
-      flash[:success] = "Sponsor was successfully updated."
+      flash[:success] = "Recipient was successfully updated."
       redirect_to @sponsor
     else
       render :edit, status: :unprocessable_entity
@@ -51,7 +51,7 @@ class SponsorsController < ApplicationController
     authorize @sponsor
 
     @sponsor.destroy
-    flash[:success] = "Sponsor was successfully destroyed."
+    flash[:success] = "Recipient was successfully destroyed."
     redirect_to sponsors_url
   end
 
