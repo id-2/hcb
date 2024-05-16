@@ -15,7 +15,7 @@
     <%= dock_item "Transactions",
       event_path(id: @event.slug),
       tooltip: "View your transactions",
-      icon: "transactions",
+      icon: "bank-account",
       selected: local_assigns[:selected] == :transactions %>
     <%= dock_item "Breakdown",
       event_breakdown_path(event_id: @event.slug),

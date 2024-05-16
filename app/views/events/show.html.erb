@@ -145,6 +145,22 @@
   </div>
 </div>
 
+<div class="flex">
+  <%= link_to  event_check_deposits_path(@event),
+      class: "tooltipped btn btn-small",
+      tooltip: "Deposit checks" do %>
+    <%= inline_icon "cheque" %>
+    Deposit check
+  <% end if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
+
+  <%= link_to account_number_event_path(@event),
+    class: "tooltipped btn btn-small",
+    tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more" do %>
+    <%= inline_icon "account-numbers" %>
+    Bank account number
+  <% end if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %
+</div>
+
 <%= render "events/public_message" %>
 
 
