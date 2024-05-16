@@ -671,6 +671,10 @@ Rails.application.routes.draw do
     end
   end
 
+  if defined? Debugbar && ENV["USE_DEBUGBAR"]
+    mount Debugbar::Engine => Debugbar.config.prefix
+  end
+
   # rewrite old event urls to the new ones not prefixed by /events/
   get "/events/*path", to: redirect("/%{path}", status: 302)
 

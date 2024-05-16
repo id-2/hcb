@@ -58,6 +58,8 @@
       </script>
     <% end %>
 
+    <%= debugbar_head if defined? Debugbar && ENV["USE_DEBUGBAR"] %>
+
     <meta name="format-detection" content="telephone=no">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <% if user_birthday? %>
@@ -191,5 +193,6 @@
         });
       </script>
     <% end %>
+    <%= debugbar_body if defined? Debugbar && ENV["USE_DEBUGBAR"] %>
   </body>
 </html>

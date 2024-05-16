@@ -200,6 +200,8 @@ group :development do
   gem "htmlbeautifier", require: false # for https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb
 
   gem "foreman"
+
+  gem "debugbar" # https://debugbar.dev/
 end
 
 gem "jbuilder", "~> 2.11"

@@ -200,6 +200,9 @@ GEM
     cssbundling-rails (1.4.0)
       railties (>= 6.0.0)
     date (3.3.4)
+    debugbar (0.3.2)
+      actioncable
+      rails
     declarative (0.0.20)
     device_detector (1.1.0)
     diff-lcs (1.5.1)
@@ -843,6 +846,7 @@ DEPENDENCIES
   countries
   country_select (~> 8.0)
   cssbundling-rails (~> 1.4)
+  debugbar
   diffy
   docusign_esign (~> 3.24)
   doorkeeper (~> 5.6)
