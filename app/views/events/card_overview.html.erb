@@ -54,6 +54,10 @@
     </section>
   <% end %>
 
+  <% if control = OrganizerPosition.find_by(event: @event, user: current_user).active_spending_control %>
+      <%= render "callout", type: "info", title: "You currently have a spending limit of #{render_money control.balance}" %>
+  <% end %>
+
   <div class="flex g2 items-center mb2">
     <%= form_with method: :get, class: "grow" do |form| %>
       <% if @status %>
