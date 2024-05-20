@@ -35,7 +35,7 @@ module OneTimeJobs
     def teenagers
       Rails.logger.silence do
         teens_by_age = User.find_each.filter_map do |user|
-          user if user.birthday&.after?(20.years.ago)
+          user if user.birthday&.after?(19.years.ago)
         end
         puts "Found #{teens_by_age.size} teenagers by age"
 
