@@ -20,11 +20,11 @@ module SessionsHelper
     sign_out
     sign_in(user: curses.impersonated_by)
   end
-  
+
   def create_session(user:, fingerprint_info: {}, impersonate: false)
     session_token = SecureRandom.urlsafe_base64
     expiration_at = Time.now + user.session_duration_seconds
-    
+
     user_session = user.user_sessions.build(
       session_token:,
       expiration_at:
@@ -39,7 +39,7 @@ module SessionsHelper
 
     user_session
   end
-  
+
   def complete_authentication_factor(session:, factor:, fingerprint_info: {}, webauthn_credential: nil)
     session.update(
       webauthn_credential:,
@@ -49,19 +49,18 @@ module SessionsHelper
       timezone: fingerprint_info[:timezone],
       ip: fingerprint_info[:ip],
     )
-    if factor == :email
+    case factor
+    when :email
       session.authenticated_with_email!
-    elsif factor == :sms
+    when :sms
       session.authenticated_with_sms!
-    elsif factor == :webauthn
+    when :webauthn
       session.authenticated_with_webauthn!
-    else
-      byebug
     end
     session.save!
     authenticate_session(session:) if session.may_mark_authenticated?
   end
-  
+
   def authenticate_session(session:)
     session.mark_authenticated!
     cookies.encrypted[:session_token] = { value: session.session_token, expires: session.expiration_at }

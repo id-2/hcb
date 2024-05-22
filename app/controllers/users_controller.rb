@@ -53,22 +53,22 @@ class UsersController < ApplicationController
 
   def webauthn_options
     return head :not_found if !params[:email]
-  
+
     session[:auth_email] = params[:email]
-  
+
     return head :not_found if params[:require_webauthn_preference] && session[:login_preference] != "webauthn"
-  
+
     user = User.find_by(email: params[:email])
-  
+
     return head :not_found if !user || user.webauthn_credentials.empty?
-  
+
     options = WebAuthn::Credential.options_for_get(
       allow: user.webauthn_credentials.pluck(:webauthn_id),
       user_verification: "discouraged"
     )
-  
+
     session[:webauthn_challenge] = options.challenge
-  
+
     render json: options
   end
 

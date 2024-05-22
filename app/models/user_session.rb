@@ -93,16 +93,16 @@ class UserSession < ApplicationRecord
 
   validate :user_is_unlocked, on: :create
 
-  enummer authentication_factors: %i[email sms webauthn], _prefix: 'authenticated_with'
+  enummer authentication_factors: %i[email sms webauthn], _prefix: "authenticated_with"
 
   aasm do
     state :unauthenticated, initial: true
     state :authenticated
-  
+
     event :mark_authenticated do
       transitions from: :unauthenticated, to: :authenticated do
         guard do
-         !user.using_2fa? || authentication_factors.length == 2 || impersonated_by.present?
+          !user.using_2fa? || authentication_factors.length == 2 || impersonated_by.present?
         end
       end
     end

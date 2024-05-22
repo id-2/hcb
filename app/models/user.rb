@@ -286,7 +286,7 @@ class User < ApplicationRecord
   def hack_clubber?
     return events.organized_by_hack_clubbers.any?
   end
-  
+
   def using_2fa?
     Flipper.enabled?(:two_factor_authentication_2024_05_22, self) && phone_number_verified
   end
