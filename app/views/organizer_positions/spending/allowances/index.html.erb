@@ -93,7 +93,7 @@
     <% if @active_control&.organizer_position_spending_allowances.blank? %>
       <%= blankslate "No allowances yet" %>
     <% else %>
-      <%= render_spending_items sorted_spending_items(@op.active_spending_control) %>
+        <%= render "organizer_positions/spending/controls/spending_items", items: sorted_spending_items(@op.active_spending_control) %>
     <% end %>
 <% end %>
 
@@ -135,7 +135,7 @@
                     <% end %>
                 </h4>
 
-                <%= render_spending_items sorted_spending_items(c) %>
+                <%= render "organizer_positions/spending/controls/spending_items", items: sorted_spending_items(c) %>
             </div>
         <% end %>
     </div>
