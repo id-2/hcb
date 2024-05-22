@@ -102,7 +102,7 @@ class UserSession < ApplicationRecord
     event :mark_authenticated do
       transitions from: :unauthenticated, to: :authenticated do
         guard do
-           authentication_factors.length == (user.using_2fa? ? 2 : 1) || impersonated_by.present?
+          authentication_factors.length == (user.using_2fa? ? 2 : 1) || impersonated_by.present?
         end
       end
     end
