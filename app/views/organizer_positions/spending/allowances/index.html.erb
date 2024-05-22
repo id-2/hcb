@@ -4,6 +4,11 @@
 
 <h1 class="heading flex">
   <span style="flex"><%= @user.name %>'s Spending</span>
+  <% if @active_control %>
+      <% admin_tool("w-fit badge", "span") do %>
+          Control ID: <%= @active_control&.id %>
+      <% end %>
+  <% end %>
 
   <% if @op.active_spending_control %>
     <%= link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "new" } do %>
@@ -71,11 +76,6 @@
 <% end %>
 <%= render "callout", type: "info", title: "Spending controls are #{@op.active_spending_control ? "enabled" : "disabled"} for #{@op.user.first_name}.", footer: spending_controls_callout_footer  do %>
   <ul>
-    <% if @active_control %>
-        <% dev_tool("w-fit", "li") do %>
-            Control ID: <%= @active_control&.id %>
-        <% end %>
-    <% end %>
     <li>Spending controls lets managers pre-authorize a defined portion of your organization's fund to be spent by a user.</li>
     <li>Your organization's balance will not change when an allowance is created.</li>
     <li>Allowances do not expire.
@@ -132,10 +132,6 @@
                         <%= format_date c.created_at %>
                     <% else %>
                         <%= format_date c.created_at %> - <%= format_date c.ended_at %>
-                    <% end %>
-
-                    <% dev_tool("h5", "span") do %>
-                        ID: <%= c.id %>
                     <% end %>
                 </h4>
 
