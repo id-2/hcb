@@ -23,17 +23,17 @@ class OrganizerPositions::Spending::ControlsController < ApplicationController
     authorize @op.active_spending_control
 
     if active_control = @op.active_spending_control
-        if active_control.organizer_position_spending_allowances.count == 0
-            active_control.destroy
-        else
-            active_control.update(active: false, ended_at: Time.current)
-        end
+      if active_control.organizer_position_spending_allowances.count == 0
+        active_control.destroy
+      else
+        active_control.update(active: false, ended_at: Time.current)
+      end
 
-        flash[:success] = "Spending controls disabled for #{@op.user.name}!"
-        redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
+      flash[:success] = "Spending controls disabled for #{@op.user.name}!"
+      redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
     else
-        flash[:error] = "There is no active spending control to destroy"
-        redirect_to root_path
+      flash[:error] = "There is no active spending control to destroy"
+      redirect_to root_path
     end
   end
 

@@ -35,15 +35,15 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
 
 
   def total_spent
-      transactions.map(&:amount_cents).sum.abs
+    transactions.map(&:amount_cents).sum.abs
   end
 
   def transactions
-      organizer_position
-          .stripe_cards
-          .map { |card| card.canonical_pending_transactions }
-          .flatten
-          .select { |transaction| (created_at..ended_at).cover?(Time.at(transaction.raw_pending_stripe_transaction.stripe_transaction["created"])) }
+    organizer_position
+      .stripe_cards
+      .map { |card| card.canonical_pending_transactions }
+      .flatten
+      .select { |transaction| (created_at..ended_at).cover?(Time.at(transaction.raw_pending_stripe_transaction.stripe_transaction["created"])) }
   end
 
   private
@@ -56,7 +56,7 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
 
   def inactive_control_has_end_date
     if !active && ended_at.nil?
-        errors.add(:ended_at, "inactive controls must have an ended_at date")
+      errors.add(:ended_at, "inactive controls must have an ended_at date")
     end
   end
 
