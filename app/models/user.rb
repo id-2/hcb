@@ -138,6 +138,8 @@ class User < ApplicationRecord
 
   enum comment_notifications: { all_threads: 0, my_threads: 1, no_threads: 2 }
 
+  enummer authentication_factors: %i[email phone_number webauthn], _prefix: 'authenticated_with'
+
   comma do
     id
     name

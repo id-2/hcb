@@ -85,7 +85,25 @@ class UserSession < ApplicationRecord
   geocoded_by :ip
   after_validation :geocode, if: ->(session){ session.ip.present? and session.ip_changed? }
 
+  include Hashid::Rails
+  include AASM
+
   validate :user_is_unlocked, on: :create
+
+  enummer authentication_factors: %i[email phone_number webauthn], _prefix: 'authenticated_with'
+
+  aasm do
+    state :unauthenticated, initial: true
+    state :authenticated
+  
+    event :mark_authenticated do
+      transitions from: :unauthenticated, to: :settled do
+        guard do
+         authentication_factors.sort == user.authentication_factors.sort || impersonated_by.present?
+        end
+      end
+    end
+  end
 
   def impersonated?
     !impersonated_by.nil?

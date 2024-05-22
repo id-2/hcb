@@ -20,29 +20,39 @@ module SessionsHelper
     sign_out
     sign_in(user: curses.impersonated_by)
   end
-
-  # DEPRECATED - begin to start deprecating and ultimately replace with sign_in_and_set_cookie
-  def sign_in(user:, fingerprint_info: {}, impersonate: false, webauthn_credential: nil)
+  
+  def create_session(user:, fingerprint_info: {}, impersonate: false)
     session_token = SecureRandom.urlsafe_base64
     expiration_at = Time.now + user.session_duration_seconds
-    cookies.encrypted[:session_token] = { value: session_token, expires: expiration_at }
+    
     user_session = user.user_sessions.build(
       session_token:,
-      fingerprint: fingerprint_info[:fingerprint],
-      device_info: fingerprint_info[:device_info],
-      os_info: fingerprint_info[:os_info],
-      timezone: fingerprint_info[:timezone],
-      ip: fingerprint_info[:ip],
-      webauthn_credential:,
       expiration_at:
     )
 
     if impersonate
       user_session.impersonated_by = current_user
+      authenticate_session(session:)
     end
 
     user_session.save!
-    self.current_user = user
+  end
+  
+  def complete_authentication_factor(session:, factor:, fingerprint_info: {}, webauthn_credential: nil)
+    session.update(
+      webauthn_credential:,
+      fingerprint: fingerprint_info[:fingerprint],
+      device_info: fingerprint_info[:device_info],
+      os_info: fingerprint_info[:os_info],
+      timezone: fingerprint_info[:timezone],
+      ip: fingerprint_info[:ip],
+    )
+    authenticate_session(session:) if session.may_mark_authenticated?
+  end
+  
+  def authenticate_session(session:)
+    session.mark_authenticated!
+    cookies.encrypted[:session_token] = { value: session.session_token, expires: session.expiration_at }
   end
 
   def signed_in?

@@ -88,16 +88,21 @@ Rails.application.routes.draw do
   post "enable_feature", to: "features#enable_feature"
   post "disable_feature", to: "features#disable_feature"
 
+  resources :user_sessions, only: [] do
+    member do
+      get "login_preference", to: "users#choose_login_preference", as: :choose_login_preference
+      post "login_preference", to: "users#set_login_preference", as: :set_login_preference
+      post "webauthn"
+      get "webauthn/auth_options", to: "user_sessions#webauthn_options"
+      post "login_code"
+      post "exchange_login_code"
+    end
+  end
+
   resources :users, only: [:edit, :update] do
     collection do
       get "auth", to: "users#auth"
       post "auth", to: "users#auth_submit"
-      get "auth/login_preference", to: "users#choose_login_preference", as: :choose_login_preference
-      post "auth/login_preference", to: "users#set_login_preference", as: :set_login_preference
-      post "webauthn", to: "users#webauthn_auth"
-      get "webauthn/auth_options", to: "users#webauthn_options"
-      post "login_code", to: "users#login_code"
-      post "exchange_login_code", to: "users#exchange_login_code"
 
       # SMS Auth
       post "start_sms_auth_verification", to: "users#start_sms_auth_verification"
