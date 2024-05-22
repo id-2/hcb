@@ -128,10 +128,11 @@
         <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each_with_index do |c, i| %>
             <div class="card <%= "mt-8" unless i.zero? %>">
                 <h4 class="m0 mb1 inline-flex items-center g2">
+                    Active
                     <% if c.created_at.to_date == c.ended_at.to_date %>
                         <%= format_date c.created_at %>
                     <% else %>
-                        <%= format_date c.created_at %> - <%= format_date c.ended_at %>
+                        <%= format_date c.created_at %> to <%= format_date c.ended_at %>
                     <% end %>
                 </h4>
 
