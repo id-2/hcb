@@ -1,0 +1,42 @@
+.organizer-position {
+  grid-template-columns: 1fr auto;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.5rem;
+  grid-auto-flow: row;
+  grid-template-areas:
+      "invite-info invite-cancel"
+      "invite-date invite-cancel";
+
+  & .organizer-position__cancel {
+    grid-area: invite-cancel;
+  }
+
+  & .organizer-position__info {
+    grid-area: invite-info;
+  }
+
+  & .organizer-position__date {
+    grid-area: invite-date;
+  }
+  
+  & .organizer-position__contact-block {
+    flex-wrap: wrap;
+  }
+
+  .avatar-container__admin-bolt {
+    position: absolute;
+    left: -14.5px;
+    bottom: -2.5px;
+  }
+}
+
+@media (max-width: 26rem) {
+  .organizer-position__main-info, .organizer-position__contact-block {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .organizer-position__contact-block-separator {
+    display: none;
+  }
+}

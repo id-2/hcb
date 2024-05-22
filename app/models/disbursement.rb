@@ -218,6 +218,18 @@ class Disbursement < ApplicationRecord
     state_text.underscore
   end
 
+  def v4_api_state
+    if reviewing?
+      "pending"
+    elsif rejected?
+      "rejected"
+    elsif pending? || in_transit? || deposited?
+      "completed"
+    else
+      aasm.current_state
+    end
+  end
+
   def state_text
     if fulfilled?
       "fulfilled"
@@ -253,7 +265,7 @@ class Disbursement < ApplicationRecord
   end
 
   def special_appearance_name
-    return nil if canonical_pending_transactions.with_custom_memo.exists? || canonical_transactions.with_custom_memo.exists?
+    return nil if canonical_pending_transactions.with_custom_memo.any? || canonical_transactions.with_custom_memo.any?
 
     SPECIAL_APPEARANCES.each do |key, value|
       return key if value[:qualifier].call(self)

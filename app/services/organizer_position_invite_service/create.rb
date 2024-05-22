@@ -2,13 +2,22 @@
 
 module OrganizerPositionInviteService
   class Create
-    def initialize(event:, sender: nil, user_email: nil, initial: false, is_signee: nil)
+    def initialize(event:, sender: nil, user_email: nil, initial: false, is_signee: false, role: nil)
       @event = event
       @sender = sender
-      @user_email = normalize_email(user_email)
+      @user_email = user_email
       @initial = initial
       @is_signee = is_signee
-      @model = OrganizerPositionInvite.new(event: @event, sender: @sender, initial: @initial, is_signee: @is_signee)
+      @role = role
+
+      args = {}
+      args[:event] = @event
+      args[:sender] = @sender
+      args[:initial] = @initial
+      args[:is_signee] = @is_signee
+      args[:role] = @role if role
+
+      @model = OrganizerPositionInvite.new(args)
     end
 
     def run
@@ -40,12 +49,6 @@ module OrganizerPositionInviteService
     def find_or_create_user
       # Create the invited user now if it doesn't exist
       @model.user = User.find_or_create_by!(email: @user_email)
-    end
-
-    def normalize_email(email)
-      # canonicalize emails as soon as possible -- otherwise, HCB gets
-      # confused about who's invited and who's not when they log in.
-      email&.downcase
     end
 
   end

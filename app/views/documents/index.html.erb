@@ -6,7 +6,7 @@
   <span class="flex items-center flex-auto">
     Legal Documents
   </span>
-  <% admin_tools do %>
+  <% admin_tool do %>
     <%= link_to "Upload a document",
     new_document_path(event_id: @event.slug),
     class: "btn bg-success my0 block" %>
@@ -24,7 +24,7 @@
           <%= image_tag event_fiscal_sponsorship_letter_url(event_id: @event.slug, format: "png"), width: 330, style: "max-width: 100%;" %>
         </div>
 
-        <strong class="brand-sans h3 block mt1 line-height-2">Fiscal Sponsorship Confirmation</strong>
+        <strong class="h3 block mt1 line-height-2">Fiscal Sponsorship Confirmation</strong>
         <%= user_mention @event.point_of_contact %>
       </li>
     <% end %>

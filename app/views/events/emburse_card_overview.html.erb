@@ -7,7 +7,7 @@
 </h1>
 
 <article class="card overflow-visible pt0">
-  <section class="card__banner pt2 pb2 mb2 bg-purple rounded-top">
+  <section class="card__banner pt2 pb2 mb2 bg-purple rounded-t">
     <p class="bold white mt0 mb1">You can no longer use Emburse cards—this page is for historical purposes.</p>
     <p class="h5 white m0">
       Need help or have questions?
@@ -37,7 +37,7 @@
 8605 Santa Monica Blvd #86294
 West Hollywood, CA 90069</pre>
 
-  <% admin_tools("flex items-center mt2") do %>
+  <% admin_tool("flex items-center mt2") do %>
     <% if @event.emburse_department_path.nil? %>
       <%= link_to "Set Emburse Department ID", edit_event_path(@event), class: "btn bg-accent mr2" %>
     <% else %>
@@ -98,7 +98,7 @@ West Hollywood, CA 90069</pre>
   <% end %>
 <% end %>
 <% if @emburse_card_requests.accepted.any? %>
-  <% admin_tools("mt3") do %>
+  <% admin_tool("mt3") do %>
     <h2 class="mt0 mb1">Accepted card requests</h2>
     <% @emburse_card_requests.accepted.each do |request| %>
       <%= link_to request, class: "text-decoration-none mb2" do %>

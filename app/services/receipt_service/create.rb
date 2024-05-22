@@ -10,26 +10,14 @@ module ReceiptService
     end
 
     def run!
-      suppress(ActiveModel::MissingAttributeError) do
+      if @receiptable&.has_attribute?(:marked_no_or_lost_receipt_at)
         @receiptable&.update(marked_no_or_lost_receipt_at: nil)
       end
 
       @attachments.map do |attachment|
         receipt = Receipt.create!(attrs(attachment))
-
-        pairings = ::ReceiptService::Suggest.new(receipt:).run!
-
-        if pairings.present?
-          pairs = pairings.map do |pairing|
-            {
-              receipt_id: receipt.id,
-              hcb_code_id: pairing[:hcb_code].id,
-              distance: pairing[:distance],
-              aasm_state: "unreviewed"
-            }
-          end
-
-          SuggestedPairing.insert_all(pairs) if pairs.any?
+        if ["receipt_center", "receipt_center_drag_and_drop"].include?(@upload_method)
+          ::ReceiptService::Suggest.new(receipt:).run!
         end
 
         receipt

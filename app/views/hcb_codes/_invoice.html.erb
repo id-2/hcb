@@ -5,11 +5,38 @@
 
 <%= render partial: "admin_viewer", locals: { record: @invoice } %>
 
-<% admin_tools("mt3") do %>
+<% admin_tool("mt3") do %>
   <%= link_to "View on Stripe", @invoice.stripe_dashboard_url, class: "btn bg-accent" %>
+  <% if @invoice.paid? %>
+    <button class="btn bg-error" data-behavior="modal_trigger" data-modal="refund">Issue refund</button>
+  <% end %>
 <% end %>
 
-<% if @invoice.archived? %>
+<% if current_user&.admin? %>
+  <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="refund">
+    <%= modal_header "Issue refund" %>
+    <%= form_with url: refund_invoice_path(id: @invoice.id) do |form| %>
+      <div class="field">
+        <%= form.label :amount, "Amount to refund" %>
+        <%= form.number_field :amount,
+                              value: ("%.2f" % (@invoice.item_amount.to_f / 100)),
+                              placeholder: ("%.2f" % (@invoice.item_amount.to_f / 100)),
+                              min: 1,
+                              max: @invoice.item_amount.to_f / 100,
+                              step: 0.01,
+                              autofocus: true %>
+      </div>
+      <%= form.submit "Refund invoice", class: "bg-error" %>
+    <% end %>
+  </section>
+<% end %>
+
+<% if @invoice.void_v2? %>
+  <div class="banner banner--archived mt3">
+    <span class="bold block mb1">This invoice was voided by <%= user_mention @invoice.voided_by %> on <%= format_date @invoice.void_v2_at %>.</span>
+    <span class="block">It will only display in the Voided tab<span class="xs-hide"> on the Invoices page</span>.</span>
+  </div>
+<% elsif @invoice.archived? %>
   <div class="banner banner--archived mt3">
     <span class="bold block mb1">This invoice was archived by <%= user_mention @invoice.archived_by %> on <%= format_date @invoice.archived_at %>.</span>
     <span class="block">It will only display in the Archived tab<span class="xs-hide"> on the Invoices page</span>.</span>
@@ -17,9 +44,9 @@
   </div>
 <% end %>
 
-<article class="card pb0 mt3 mb3">
-  <h2 class="h2 mt0 mx0 border-none flex items-center justify-between">
-    <span>
+<article class="card pb0 mt3 mb1">
+  <h2 class="h2 mt0 mx0 border-none flex items-center justify-between" style="gap: 8px">
+    <span style="flex-grow: 1">
       <%= @sponsor.name %>
       <span class="regular muted"> invoiced for </span>
       <span class="regular"><%= render_money @invoice.item_amount %></span>
@@ -38,6 +65,7 @@
         <%= inline_icon @invoice.state_icon, size: 20 if @invoice.state_icon %>
       </span>
     </span>
+    <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
   <section class="card__banner card__darker details-horiz border-top border-bottom">
@@ -52,7 +80,7 @@
   </section>
   <!-- recipient info -->
   <section class="details details--wide pt2 pb2 details--tall">
-    <% unless @invoice.paid_v2? or @invoice.deposited? %>
+    <% if @invoice.open_v2? %>
       <p>
         <strong>Due date</strong>
         <span>
@@ -105,7 +133,7 @@
           <%= @sponsor.address_line2 %><br>
         <% end %>
         <%= @sponsor.address_city %>, <%= @sponsor.address_state %> <%= @sponsor.address_postal_code %> <br>
-        <%= get_country_name_from_alpha2(@sponsor.address_country) %>
+        <%= ISO3166::Country[@sponsor.address_country]&.common_name %>
         </span>
       <% else %>
         <span><strong>Sign in to view</strong></span>
@@ -155,20 +183,26 @@
       PDF
     <% end %>
     </div>
-    <%= link_to (@invoice.archived? ? "Un-archive" : "Archive"),
-      (@invoice.archived? ? invoice_unarchive_path(@invoice) : invoice_archive_path(@invoice)),
+    <%= link_to "Void this invoice",
+      invoice_void_path(@invoice.id),
       disabled: !organizer_signed_in?,
       method: :post,
-      class: "btn bg-muted" %>
+      data: { confirm: "Are you sure you want to void this invoice? Voided invoices can not be paid and this action cannot be undone." },
+      class: "btn bg-error mr1 right" if @invoice.open_v2? %>
+  <%= link_to (@invoice.archived? ? "Un-archive" : "Archive"),
+    (@invoice.archived? ? invoice_unarchive_path(@invoice) : invoice_archive_path(@invoice)),
+    disabled: !organizer_signed_in?,
+    method: :post,
+    class: "btn bg-muted" unless @invoice.void_v2? %>
   </section>
 </article>
 
 <% if @invoice.paid_v2? or @invoice.deposited? %>
-  <article class="card pb0 mt3 mb3">
+  <article class="card pb0 mt3 mb2">
     <h2 class="h2 mt0 border-none">
       <%= @sponsor.name %>
       <span class="regular muted"> paid </span>
-      <span class="regular"><%= render_money @invoice.item_amount %></span>
+      <span class="regular"><%= render_money @hcb_code.amount %></span>
     </h2>
     <section class="card__banner card__darker details-horiz border-top border-bottom">
       <% if @invoice.payment_method_type == 'card' %>
@@ -200,7 +234,7 @@
           <%= format_datetime @invoice.payout_creation_queued_at %>
         <% end %>
       </p>
-      <% admin_tools do %>
+      <% admin_tool do %>
         <%= invoice_payout_datetime %>
       <% end %>
     </section>
@@ -226,14 +260,14 @@
         <p>
           <strong>Recipient email</strong>
           <% if organizer_signed_in? %>
-            <%= mail_to @sponsor.contact_email, @sponsor.contact_email.downcase, class: "slate underline" %>
+            <%= mail_to @sponsor.contact_email, @sponsor.contact_email.downcase %>
           <% else %>
             <strong>Sign in to view</strong>
           <% end %>
         </p>
         <p>
           <strong>Amount</strong>
-          +<%= render_money @invoice.item_amount %>
+          +<%= render_money @hcb_code.amount %>
         </p>
         <p>
           <strong><%= invoice_fee_type %></strong>
@@ -269,7 +303,7 @@
 
 <% if @invoice.payment_method_type == 'card' %>
   <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="payment_details">
-    <%= modal_header "Payment details" + content_tag(:span, "", class: "pl2") + invoice_payment_method_mention(@invoice, class: "h3 sans slate regular") %>
+    <%= modal_header "Payment details" + content_tag(:span, "", class: "pl2") + invoice_payment_method_mention(@invoice, class: "h3 font-sans slate regular") %>
 
     <article class="details-horiz">
       <div class="details">

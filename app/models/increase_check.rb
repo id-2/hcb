@@ -4,31 +4,33 @@
 #
 # Table name: increase_checks
 #
-#  id                     :bigint           not null, primary key
-#  aasm_state             :string
-#  address_city           :string
-#  address_line1          :string
-#  address_line2          :string
-#  address_state          :string
-#  address_zip            :string
-#  amount                 :integer
-#  approved_at            :datetime
-#  check_number           :string
-#  column_delivery_status :string
-#  column_object          :jsonb
-#  column_status          :string
-#  increase_object        :jsonb
-#  increase_state         :string
-#  increase_status        :string
-#  memo                   :string
-#  payment_for            :string
-#  recipient_name         :string
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
-#  column_id              :string
-#  event_id               :bigint           not null
-#  increase_id            :string
-#  user_id                :bigint
+#  id                      :bigint           not null, primary key
+#  aasm_state              :string
+#  address_city            :string
+#  address_line1           :string
+#  address_line2           :string
+#  address_state           :string
+#  address_zip             :string
+#  amount                  :integer
+#  approved_at             :datetime
+#  check_number            :string
+#  column_delivery_status  :string
+#  column_object           :jsonb
+#  column_status           :string
+#  increase_object         :jsonb
+#  increase_state          :string
+#  increase_status         :string
+#  memo                    :string
+#  payment_for             :string
+#  recipient_name          :string
+#  recipient_email         :string
+#  send_email_notification :boolean          default(FALSE)
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  column_id               :string
+#  event_id                :bigint           not null
+#  increase_id             :string
+#  user_id                 :bigint
 #
 # Indexes
 #
@@ -52,6 +54,7 @@ class IncreaseCheck < ApplicationRecord
 
   has_one :canonical_pending_transaction
   has_one :grant, required: false
+  has_one :reimbursement_payout_holding, class_name: "Reimbursement::PayoutHolding", inverse_of: :increase_check, required: false, foreign_key: "increase_checks_id"
 
   after_create do
     create_canonical_pending_transaction!(event:, amount_cents: -amount, memo: "OUTGOING CHECK", date: created_at)
@@ -64,6 +67,7 @@ class IncreaseCheck < ApplicationRecord
 
     event :mark_approved do
       after do
+        IncreaseCheckMailer.with(check: self).notify_recipient.deliver_later if self.send_email_notification
         canonical_pending_transaction.update(fronted: true)
       end
       transitions from: :pending, to: :approved
@@ -78,12 +82,15 @@ class IncreaseCheck < ApplicationRecord
   end
 
   validates :amount, numericality: { greater_than: 0, message: "can't be zero!" }
-  validates :memo, length: { in: 1..40 }, unless: :increase?
+  validates :memo, length: { in: 1..40 }, on: :create
   validates :recipient_name, length: { in: 1..250 }
   validates_presence_of :memo, :payment_for, :recipient_name, :address_line1, :address_city, :address_zip
   validates_presence_of :address_state, message: "Please select a state!"
   validates :address_state, inclusion: { in: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"], message: "This isn't a valid US state!", allow_blank: true }
   validates :address_zip, format: { with: /\A\d{5}(?:[-\s]\d{4})?\z/, message: "This isn't a valid ZIP code." }
+
+  validates :recipient_email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }, allow_nil: true
+  validates_presence_of :recipient_email, on: :create
 
   validate on: :create do
     if amount > event.balance_available_v2_cents

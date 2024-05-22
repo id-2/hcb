@@ -51,7 +51,7 @@ class HcbCodesController < ApplicationController
     if @hcb_code.canonical_transactions.any?
       txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
       pos = txs.index { |tx| tx.hcb_code == hcb } + 1
-      page = (pos.to_f / 100).ceil
+      page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
 
       redirect_to event_path(@event, page:, anchor: hcb_id)
     else
@@ -75,25 +75,49 @@ class HcbCodesController < ApplicationController
     authorize @hcb_code
 
     if params[:inline].present?
-      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: true, prepended_to_memo: params[:prepended_to_memo] }
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: true, prepended_to_memo: params[:prepended_to_memo], location: params[:location] }
     end
 
     @frame = turbo_frame_request?
     @suggested_memos = [::HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run].compact + ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
   end
 
+  def pin
+    @hcb_code = HcbCode.find(params[:id])
+    @event = @hcb_code.event
+
+    authorize @hcb_code
+
+    # Handle unpinning
+    if (@pin = HcbCode::Pin.find_by(event: @event, hcb_code: @hcb_code))
+      @pin.destroy
+      flash[:success] = "Unpinned transaction from #{@event.name}"
+      redirect_back fallback_location: @event and return
+    end
+
+    # Handle pinning
+    @pin = HcbCode::Pin.new(event: @event, hcb_code: @hcb_code)
+    if @pin.save
+      flash[:success] = "Transaction pinned!"
+    else
+      flash[:error] = @pin.errors.full_messages.to_sentence
+    end
+
+    redirect_back fallback_location: @event
+  end
+
   def update
     @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
 
     authorize @hcb_code
-    hcb_code_params = params.require(:hcb_code).permit(:memo, :prepended_to_memo)
+    hcb_code_params = params.require(:hcb_code).permit(:memo, :prepended_to_memo, :location)
     hcb_code_params[:memo] = hcb_code_params[:memo].presence
 
     @hcb_code.canonical_transactions.each { |ct| ct.update!(custom_memo: hcb_code_params[:memo]) }
     @hcb_code.canonical_pending_transactions.each { |cpt| cpt.update!(custom_memo: hcb_code_params[:memo]) }
 
     if params[:hcb_code][:inline].present?
-      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo], renamed: true }
+      return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo], location: params[:hcb_code][:location], renamed: true }
     end
 
     redirect_to @hcb_code
@@ -137,9 +161,13 @@ class HcbCodesController < ApplicationController
 
     cpt = @hcb_code.canonical_pending_transactions.first
 
-    CanonicalPendingTransactionJob::SendTwilioReceiptMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
+    if cpt
+      CanonicalPendingTransactionJob::SendTwilioReceiptMessage.perform_now(cpt_id: cpt.id, user_id: current_user.id)
+      flash[:success] = "SMS queued for delivery!"
+    else
+      flash[:error] = "This transaction doesn't support SMS notifications."
+    end
 
-    flash[:success] = "SMS queued for delivery!"
     redirect_back fallback_location: @hcb_code
   end
 
@@ -199,6 +227,11 @@ class HcbCodesController < ApplicationController
       return redirect_to hcb_code
     end
 
+    if hcb_code.personal_transaction
+      flash[:error] = "A repayment invoice already exists for this transaction."
+      return redirect_to hcb_code.personal_transaction.invoice
+    end
+
     personal_tx = HcbCode::PersonalTransaction.create(hcb_code:, reporter: current_user)
 
     flash[:success] = "We've sent an invoice for repayment to #{personal_tx.invoice.sponsor.contact_email}."
@@ -217,27 +250,10 @@ class HcbCodesController < ApplicationController
     @event = @hcb_code.event
     @event = @hcb_code.disbursement.destination_event if @hcb_code.disbursement?
 
-    @income = ::EventService::PairIncomeWithSpending.new(event: @event).run
+    usage_breakdown = @hcb_code.usage_breakdown
 
-    @spent_on = []
-    @available = 0
-
-    # PairIncomeWithSpending is done on a per CanonicalTransaction basis
-    # This compute it for this specific HcbCode
-    @hcb_code.canonical_transactions.each do |ct|
-      if (ct[:amount_cents] > 0) && @income[ct[:id].to_s]
-        @spent_on.concat @income[ct[:id].to_s][:spent_on]
-        @available += @income[ct[:id].to_s][:available]
-      end
-    end
-
-    @spent_on = @spent_on.group_by { |hash| hash[:memo] }.map do |memo, group|
-      total_amount = group.sum(0) { |item| item[:amount] }
-      significant_transaction = group.max_by { |t| t[:amount] }
-      { id: significant_transaction[:id], memo:, amount: total_amount, url: significant_transaction[:url] }
-    end
-
-    @spent_on.sort_by! { |t| t[:id] }
+    @spent_on = usage_breakdown[:spent_on]
+    @available = usage_breakdown[:available]
 
     respond_to do |format|
 

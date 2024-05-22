@@ -47,8 +47,7 @@ module Bank
 
     config.add_autoload_paths_to_load_path
 
-    config.autoload_paths << "#{config.root}/lib"
-    config.eager_load_paths << "#{config.root}/lib"
+    config.autoload_lib(ignore: %w(assets tasks))
     config.eager_load_paths << "#{config.root}/spec/mailers/previews"
 
     config.action_view.form_with_generates_remote_forms = false
@@ -69,6 +68,19 @@ module Bank
     config.active_storage.queues.analysis = "low"
     config.active_storage.queues.purge = "low"
     config.active_storage.queues.mirror = "low"
+
+
+    # Custom configuration for application-wide constants
+    #
+    # Usually, it's best to locate constants within the class/module it's used.
+    # However, some constants don't really have a "home" within the codebase.
+    # Thus, they're configured in the `config/constants.yml` file. Updating this
+    # file will require a server restart to take effect.
+    #
+    # Usage: `Rails.configuration.constants[:key]`
+    #
+    # https://guides.rubyonrails.org/configuring.html#custom-configuration
+    config.constants = config_for(:constants)
 
   end
 end

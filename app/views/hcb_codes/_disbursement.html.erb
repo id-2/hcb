@@ -4,25 +4,28 @@
 <% @source = @hcb_code.disbursement.source_event %>
 <% @subledger = @hcb_code.disbursement.destination_subledger %>
 
-<article class="card pb0 mt3 mb3">
-  <h2 class="h2 mt0 border-none">
-    <%= @source.name %>
-    <span class="regular muted">
-      <% if @hcb_code.disbursement.fulfilled? || (@destination.can_front_balance? && (@hcb_code.disbursement.processed? || @hcb_code.disbursement.pending?)) %>
-        transferred
-      <% elsif @hcb_code.disbursement.processed? || @hcb_code.disbursement.pending? %>
-        transferring
-      <% else %>
-        transfer of
-      <% end %>
+<article class="card pb0 mt3 mb1">
+  <h2 class="h2 mt0 border-none flex items-center justify-between" style="gap: 8px">
+    <span style="flex-grow: 1">
+      <%= @source.name %>
+      <span class="regular muted">
+        <% if @hcb_code.disbursement.fulfilled? || (@destination.can_front_balance? && (@hcb_code.disbursement.processed? || @hcb_code.disbursement.pending?)) %>
+          transferred
+        <% elsif @hcb_code.disbursement.processed? || @hcb_code.disbursement.pending? %>
+          transferring
+        <% else %>
+          transfer of
+        <% end %>
+      </span>
+      <span class="regular"><%= render_money @hcb_code.disbursement.amount %></span>
+      <span class="regular muted">to</span>
+      <%= @destination.name %>
     </span>
-    <span class="regular"><%= render_money @hcb_code.disbursement.amount %></span>
-    <span class="regular muted">to</span>
-    <%= @destination.name %>
     <span class="badge h4 md-right ml0 bg-<%= @hcb_code.disbursement.state %>">
       <%= @hcb_code.disbursement.state_text.humanize %>
       <%= inline_icon @hcb_code.disbursement.state_icon, size: 20 if @hcb_code.disbursement.state_icon %>
     </span>
+    <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
   <section class="card__banner card__darker details-horiz border-top border-bottom">
@@ -38,7 +41,7 @@
     <% end %>
 
     <% unless @hcb_code.disbursement.fulfilled_by.nil? %>
-      <% admin_tools("", "p") do %>
+      <% admin_tool("", "p") do %>
         <strong>Fulfilled by</strong>
         <%= user_mention @hcb_code.disbursement.fulfilled_by %>
       <% end %>
@@ -54,7 +57,7 @@
       <% end %>
     </p>
 
-    <% admin_tools("", "p") do %>
+    <% admin_tool("", "p") do %>
       <strong>Disbursement ID</strong>
       <%= link_to @hcb_code.disbursement.id, @hcb_code.disbursement %>
     <% end %>

@@ -28,12 +28,12 @@ class InvoicePolicy < ApplicationPolicy
     admin_or_user
   end
 
-  def unarchive?
+  def void?
     admin_or_user
   end
 
-  def manual_payment?
-    user&.admin?
+  def unarchive?
+    admin_or_user
   end
 
   def manually_mark_as_paid?

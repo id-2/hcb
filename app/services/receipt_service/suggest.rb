@@ -12,7 +12,20 @@ module ReceiptService
 
       @extracted = ::ReceiptService::Extract.new(receipt: @receipt).run!
 
-      transaction_distances(include_details:)
+      pairings = transaction_distances(include_details:)
+
+      if pairings.present?
+        pairs = pairings.map do |pairing|
+          {
+            receipt_id: @receipt.id,
+            hcb_code_id: pairing[:hcb_code].id,
+            distance: pairing[:distance],
+            aasm_state: "unreviewed"
+          }
+        end
+
+        SuggestedPairing.upsert_all(pairs, unique_by: [:receipt_id, :hcb_code_id]) if pairs.any?
+      end
     end
 
     def self.weights
@@ -140,7 +153,7 @@ module ReceiptService
     end
 
     def potential_txns
-      user.stripe_cards.flat_map(&:hcb_codes).select { |hcb_code| hcb_code.needs_receipt? }
+      user.transactions_missing_receipt
     end
 
   end

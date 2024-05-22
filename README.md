@@ -8,11 +8,11 @@
 </div>
 <br>
 
-Welcome to the [HCB](https://hackclub.com/hcb/) codebase. We are so excited to have you. With your help, we can make HCB the best platform to run a nonprofit.
+Welcome to the [HCB](https://hackclub.com/fiscal-sponsorship/) codebase. We are so excited to have you. With your help, we can make HCB the best platform to run a nonprofit.
 
 ## What is HCB?
 
-HCB is a platform for managing your nonprofit's finances. Through HCB, you can get a 501(c)(3) status-backed restricted fund for your project and manage your finances through an intuitive web interface.
+HCB is a platform for managing your nonprofit’s finances. Through HCB, you can get a 501(c)(3) status-backed restricted fund for your organization and manage your finances through an intuitive web interface.
 
 ## Table of Contents
 
@@ -43,12 +43,12 @@ See the [Codespaces](./Codespaces.md) page for more information on developing in
 
 ### Docker
 
-If you are running macOS or Ubuntu, you can clone the repository and run the [docker_setup.sh](./docker_setup.sh) script to automatically set up a development environment with Docker. Append `--with-solargraph` to the command to also setup [Solargraph](https://solargraph.org), a language server for Ruby. You may also need to install the [Solargraph extension](https://github.com/castwide/solargraph#using-solargraph) for your editor. This script should also work for Windows; although it's recommended that Window users run it (docker) within [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
+If you are running macOS or Ubuntu, you can clone the repository and run the [docker_dev_setup.sh](./docker_dev_setup.sh) script to automatically set up a development environment with Docker. Append `--with-solargraph` to the command to also setup [Solargraph](https://solargraph.org), a language server for Ruby. You may also need to install the [Solargraph extension](https://github.com/castwide/solargraph#using-solargraph) for your editor. This script should also work for Windows; although it's recommended that Window users run it (docker) within [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 
 ```bash
-./docker_setup.sh
+./docker_dev_setup.sh
 # or with Solargraph
-./docker_setup.sh --with-solargraph
+./docker_dev_setup.sh --with-solargraph
 ```
 
 Then, to start the development server:

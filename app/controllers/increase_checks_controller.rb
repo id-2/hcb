@@ -52,7 +52,7 @@ class IncreaseChecksController < ApplicationController
 
     @check.mark_rejected!
 
-    redirect_to increase_check_process_admin_path(@check), flash: { success: "Check has been rejected!" }
+    redirect_back_or_to increase_check_process_admin_path(@check), flash: { success: "Check has been canceled." }
   end
 
   private
@@ -67,6 +67,8 @@ class IncreaseChecksController < ApplicationController
       :address_line2,
       :address_city,
       :address_state,
+      :recipient_email,
+      :send_email_notification,
       :address_zip,
       file: []
     )

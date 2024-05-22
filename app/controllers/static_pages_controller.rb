@@ -4,8 +4,8 @@ require "net/http"
 
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:branding, :faq]
-  skip_before_action :redirect_to_onboarding, only: [:branding, :faq]
+  skip_before_action :signed_in_user, only: [:branding, :faq, :roles]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :faq, :roles]
 
   def index
     if signed_in?
@@ -40,11 +40,75 @@ class StaticPagesController < ApplicationController
     @event_slug = signed_in? && current_user.events.first&.slug || "hack-pennsylvania"
   end
 
+  def roles
+    # Ironically, don't put prefaces at the start of a hash here.
+    # (It'll erroneously offset the title padding top calculation.)
+    @perms = {
+      Team: {
+        "Invite a user": :manager,
+        "Request removal of a user": :manager,
+        "Cancel invite made by another user": :manager,
+        "Cancel invite made by yourself": :member,
+        "Change another user's role": :manager,
+      },
+      Transfers: {
+        Checks: {
+          "Send a mailed check": :manager,
+          "View a mailed check": :member,
+        },
+        "Check Deposit": {
+          "Deposit a check": :member,
+          "View a check deposit": :member,
+          "View images of a check deposit": :manager,
+          _preface: "For depositing a check by taking a picture of it"
+        },
+        "ACH Transfers": {
+          "Send an ACH Transfer": :manager,
+          "Cancel an ACH Transfer": :manager,
+          "View an ACH Transfer": :member,
+          "View recipient's payment details": :manager,
+        },
+        "Account & Routing numbers": {
+          "View the organization's account & routing numbers": :manager
+        },
+        "HCB Transfers": {
+          "Create an HCB Transfer": :manager,
+          "Cancel an HCB Transfer": :manager,
+          "View an HCB Transfer": :member
+        },
+        _preface: "As a general rule, only managers can create/modify financial transfers"
+      },
+      Cards: {
+        "Order a card": :member,
+        "Freeze/defrost your own card": :member,
+        "Freeze/defrost another user's card": :manager,
+        "Rename your own card": :member,
+        "Rename another user's card": :manager,
+        "View another user's card number": :manager,
+        "View card expiration date": :member,
+        "View card billing address": :member,
+      },
+      Reimbursements: {
+        "Get reimbursed through HCB": :member,
+        "View reimbursement reports": :member,
+        "Review, approve, and reject reports": :manager,
+      },
+      "Google Workspace": {
+        "Create an account": :manager,
+        "Suspend an account": :manager,
+        "Reset an account's password": :manager,
+      },
+      "Settings": {
+        "View settings": :member,
+        "Edit settings": :manager,
+      }
+    }
+  end
+
   def faq
   end
 
   def my_cards
-    flash.now[:success] = "Card activated!" if params[:activate]
     @stripe_cards = current_user.stripe_cards.includes(:event)
     @emburse_cards = current_user.emburse_cards.includes(:event)
   end
@@ -87,25 +151,28 @@ class StaticPagesController < ApplicationController
 
     if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
       @mailbox_address = current_user.active_mailbox_address
-
       @receipts = Receipt.in_receipt_bin.where(user: current_user)
-
-      # Don't suggest receipts ignored more than twice
-      ineligible_receipt_ids = SuggestedPairing.ignored.group("receipt_id").having("COUNT(*) >= 2").pluck(:receipt_id)
-
-      @pairings = SuggestedPairing
-                  .unreviewed
-                  .where(receipt_id: @receipts.ids - ineligible_receipt_ids)
-                  .where("distance <= ?", 1500) # With at least a certain confidence level
-                  # Only get the closest pairing for each receipt
-                  .order(:receipt_id, distance: :asc)
-                  .select("DISTINCT ON (receipt_id) suggested_pairings.*")
+      @pairings = current_user.receipt_bin.suggested_receipt_pairings
     end
 
     if flash[:popover]
       @popover = flash[:popover]
       flash.delete(:popover)
     end
+  end
+
+  def my_reimbursements
+    @reports = current_user.reimbursement_reports unless params[:filter] == "review_requested"
+    @reports = current_user.assigned_reimbursement_reports if params[:filter] == "review_requested"
+    @reports = @reports.search(params[:q]) if params[:q].present?
+    @payout_method = current_user.payout_method
+  end
+
+  def my_draft_reimbursements_icon
+    @draft_reimbursements_count = current_user.reimbursement_reports.draft.count
+    @review_requested_reimbursements_count = current_user.assigned_reimbursement_reports.submitted.count
+
+    render :my_draft_reimbursements_icon, layout: false
   end
 
   def receipt
@@ -163,13 +230,19 @@ class StaticPagesController < ApplicationController
 
   def feedback
     message = params[:message]
-    share_email = params[:share_email] || "1"
+    share_email = (params[:share_email] || "1") == "1"
+    url = share_email ? "#{request.base_url}#{params[:page_path]}" : ""
+
+    routing = Rails.application.routes.recognize_path(params[:page_path])
+    location = "#{routing[:controller]}##{routing[:action]} #{routing[:id] if routing[:id] && share_email}".strip
 
     feedback = {
       "Share your idea(s)" => message,
+      "URL"                => url,
+      "Location"           => location,
     }
 
-    if share_email == "1"
+    if share_email
       feedback["Name"] = current_user.name
       feedback["Email"] = current_user.email
       feedback["Organization"] = current_user.events.first&.name

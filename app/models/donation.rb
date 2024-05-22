@@ -55,18 +55,21 @@ class Donation < ApplicationRecord
   include AASM
   include Commentable
 
+  include HasStripeDashboardUrl
+  has_stripe_dashboard_url "payments", :stripe_payment_intent_id
+
   include PgSearch::Model
   pg_search_scope :search_name, against: [:name, :email], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "donations.created_at"
 
   belongs_to :event
-  belongs_to :fee_reimbursement, required: false
-  belongs_to :payout, class_name: "DonationPayout", required: false
-  belongs_to :recurring_donation, required: false
+  belongs_to :fee_reimbursement, optional: true
+  belongs_to :payout, class_name: "DonationPayout", optional: true
+  belongs_to :recurring_donation, optional: true
 
   before_create :create_stripe_payment_intent, unless: -> { recurring? }
   before_create :assign_unique_hash, unless: -> { recurring? }
 
-  after_update_commit :send_payment_notification_if_needed
+  after_commit :send_payment_notification_if_needed
 
   validates :name, :email, presence: true, unless: -> { recurring? } # recurring donations have a name/email in their `RecurringDonation` object
   validates_presence_of :amount
@@ -123,10 +126,6 @@ class Donation < ApplicationRecord
 
   def donated_at
     in_transit_at || created_at
-  end
-
-  def stripe_dashboard_url
-    "https://dashboard.stripe.com/payments/#{self.stripe_payment_intent_id}"
   end
 
   def state
@@ -289,8 +288,8 @@ class Donation < ApplicationRecord
     recurring? && recurring_donation.donations.order(created_at: :asc).first == self
   end
 
-  def name
-    recurring_donation&.name || super
+  def name(show_anonymous: false)
+    anonymous? && !show_anonymous ? "Anonymous" : recurring_donation&.name(show_anonymous:) || super()
   end
 
   def email
@@ -308,6 +307,7 @@ class Donation < ApplicationRecord
   end
 
   def send_payment_notification_if_needed
+    # only runs when status becomes succeeded, should not run on delete.
     return unless status_previously_changed?(to: "succeeded")
 
     if first_donation?

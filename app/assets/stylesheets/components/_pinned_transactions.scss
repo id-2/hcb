@@ -1,0 +1,43 @@
+.pinned__container {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+
+  @media (max-width: 32em) {
+    margin-right: -1rem;
+    padding-right: 1rem;
+  }
+
+  .pinned__transaction {
+    width: 100%;
+    scroll-snap-align: start;
+    min-width: 18rem;
+    max-width: 504px; // width of 1 card at max screen
+
+    &__text {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      flex: 1 1 auto;
+    }
+
+    &__pin {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.125s ease;
+    }
+
+    &:hover {
+      .pinned__transaction__pin {
+        opacity: 1;
+      }
+    }
+
+    footer svg {
+      fill: map-get($palette, muted);
+    }
+  }
+}

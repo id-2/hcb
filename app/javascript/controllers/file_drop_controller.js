@@ -17,7 +17,7 @@ function extractId(dataTransfer) {
     receiptId = imgTag.getAttribute('data-receipt-id')
   } catch (err) {
     console.error(err)
-    airbrake?.notify(err)
+    // airbrake?.notify(err)
   }
 
   if (!receiptId) {
@@ -91,9 +91,9 @@ export default class extends Controller {
     }
 
     if (this.hasFormTarget) {
-      this.formTarget.submit()
+      this.formTarget.requestSubmit()
     } else {
-      this.element.submit()
+      this.element.requestSubmit()
     }
 
     this.submitting = true

@@ -36,11 +36,13 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
   include Commentable
 
   belongs_to :submitted_by, class_name: "User"
-  belongs_to :closed_by, class_name: "User", required: false
+  belongs_to :closed_by, class_name: "User", optional: true
   belongs_to :organizer_position, with_deleted: true
   has_one :event, through: :organizer_position
 
   scope :under_review, -> { where(closed_at: nil) }
+
+  after_create_commit { AdminMailer.with(opdr: self).opdr_notification.deliver_later }
 
   validates_presence_of :reason
 
@@ -90,6 +92,10 @@ class OrganizerPositionDeletionRequest < ApplicationRecord
 
   def organizer_active_cards
     organizer_stripe_cards.active
+  end
+
+  def organizer_last_signee?
+    event.signees.size == 1 && organizer_position.signee?
   end
 
   private

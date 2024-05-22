@@ -4,55 +4,59 @@
 #
 # Table name: events
 #
-#  id                              :bigint           not null, primary key
-#  aasm_state                      :string
-#  activated_at                    :datetime
-#  address                         :text
-#  can_front_balance               :boolean          default(TRUE), not null
-#  category                        :integer
-#  country                         :integer
-#  custom_css_url                  :string
-#  deleted_at                      :datetime
-#  demo_mode                       :boolean          default(FALSE), not null
-#  demo_mode_request_meeting_at    :datetime
-#  description                     :text
-#  donation_page_enabled           :boolean          default(TRUE)
-#  donation_page_message           :text
-#  donation_reply_to_email         :text
-#  donation_thank_you_message      :text
-#  end                             :datetime
-#  expected_budget                 :integer
-#  has_fiscal_sponsorship_document :boolean
-#  hidden_at                       :datetime
-#  holiday_features                :boolean          default(TRUE), not null
-#  is_indexable                    :boolean          default(TRUE)
-#  is_public                       :boolean          default(TRUE)
-#  last_fee_processed_at           :datetime
-#  name                            :text
-#  omit_stats                      :boolean          default(FALSE)
-#  organization_identifier         :string           not null
-#  owner_address                   :string
-#  owner_birthdate                 :date
-#  owner_email                     :string
-#  owner_name                      :string
-#  owner_phone                     :string
-#  pending_transaction_engine_at   :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
-#  public_message                  :text
-#  redirect_url                    :string
-#  slug                            :text
-#  sponsorship_fee                 :decimal(, )
-#  start                           :datetime
-#  stripe_card_shipping_type       :integer          default("standard"), not null
-#  transaction_engine_v2_at        :datetime
-#  webhook_url                     :string
-#  website                         :string
-#  created_at                      :datetime         not null
-#  updated_at                      :datetime         not null
-#  club_airtable_id                :text
-#  emburse_department_id           :string
-#  increase_account_id             :string           not null
-#  partner_id                      :bigint
-#  point_of_contact_id             :bigint
+#  id                                           :bigint           not null, primary key
+#  aasm_state                                   :string
+#  activated_at                                 :datetime
+#  address                                      :text
+#  can_front_balance                            :boolean          default(TRUE), not null
+#  category                                     :integer
+#  country                                      :integer
+#  custom_css_url                               :string
+#  deleted_at                                   :datetime
+#  demo_mode                                    :boolean          default(FALSE), not null
+#  demo_mode_request_meeting_at                 :datetime
+#  description                                  :text
+#  donation_page_enabled                        :boolean          default(TRUE)
+#  donation_page_message                        :text
+#  donation_reply_to_email                      :text
+#  donation_thank_you_message                   :text
+#  end                                          :datetime
+#  expected_budget                              :integer
+#  has_fiscal_sponsorship_document              :boolean
+#  hidden_at                                    :datetime
+#  holiday_features                             :boolean          default(TRUE), not null
+#  is_indexable                                 :boolean          default(TRUE)
+#  is_public                                    :boolean          default(TRUE)
+#  last_fee_processed_at                        :datetime
+#  name                                         :text
+#  omit_stats                                   :boolean          default(FALSE)
+#  organization_identifier                      :string           not null
+#  owner_address                                :string
+#  owner_birthdate                              :date
+#  owner_email                                  :string
+#  owner_name                                   :string
+#  owner_phone                                  :string
+#  pending_transaction_engine_at                :datetime         default(Sat, 13 Feb 2021 22:49:40.981965000 UTC +00:00)
+#  postal_code                                  :string
+#  public_message                               :text
+#  public_reimbursement_page_enabled            :boolean          default(FALSE), not null
+#  public_reimbursement_page_message            :text
+#  redirect_url                                 :string
+#  reimbursements_require_organizer_peer_review :boolean          default(FALSE), not null
+#  slug                                         :text
+#  sponsorship_fee                              :decimal(, )
+#  start                                        :datetime
+#  stripe_card_shipping_type                    :integer          default("standard"), not null
+#  transaction_engine_v2_at                     :datetime
+#  webhook_url                                  :string
+#  website                                      :string
+#  created_at                                   :datetime         not null
+#  updated_at                                   :datetime         not null
+#  club_airtable_id                             :text
+#  emburse_department_id                        :string
+#  increase_account_id                          :string           not null
+#  partner_id                                   :bigint
+#  point_of_contact_id                          :bigint
 #
 # Indexes
 #
@@ -76,7 +80,7 @@ class Event < ApplicationRecord
   set_public_id_prefix :org
 
   include CountryEnumable
-  has_country_enum :country
+  has_country_enum
 
   has_paper_trail
   acts_as_paranoid
@@ -113,15 +117,19 @@ class Event < ApplicationRecord
   scope :not_organized_by_hack_clubbers, -> { includes(:event_tags).where.not(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }).or(includes(:event_tags).where(event_tags: { name: nil })) }
   scope :organized_by_teenagers, -> { includes(:event_tags).where(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }) }
   scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(includes(:event_tags).where(event_tags: { name: nil })) }
+  scope :flag_enabled, ->(flag) {
+    joins("INNER JOIN flipper_gates ON CONCAT('Event;', events.id) = flipper_gates.value")
+      .where("flipper_gates.feature_key = ? AND flipper_gates.key = ?", flag, "actors")
+  }
 
-  scope :event_ids_with_pending_fees_greater_than_0_v2, -> do
+  scope :event_ids_with_pending_fees, -> do
     query = <<~SQL
       ;select event_id, fee_balance from (
       select
       q1.event_id,
       COALESCE(q1.sum, 0) as total_fees,
       COALESCE(q2.sum, 0) as total_fee_payments,
-      COALESCE(q1.sum, 0) + COALESCE(q2.sum, 0) as fee_balance
+      CEIL(COALESCE(q1.sum, 0)) + CEIL(COALESCE(q2.sum, 0)) as fee_balance
 
       from (
           select
@@ -147,7 +155,7 @@ class Event < ApplicationRecord
 
       on q1.event_id = q2.event_id
       ) q3
-      where fee_balance > 0
+      where fee_balance != 0
       order by fee_balance desc
     SQL
 
@@ -155,7 +163,7 @@ class Event < ApplicationRecord
   end
 
   scope :pending_fees_v2, -> do
-    where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees_greater_than_0_v2.to_a.map { |a| a["event_id"] })
+    where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees.to_a.map { |a| a["event_id"] })
   end
 
   scope :demo_mode, -> { where(demo_mode: true) }
@@ -230,6 +238,7 @@ class Event < ApplicationRecord
   has_many :organizer_position_invites, dependent: :destroy
   has_many :organizer_positions, dependent: :destroy
   has_many :users, through: :organizer_positions
+  has_many :signees, -> { where(organizer_positions: { is_signee: true }) }, through: :organizer_positions, source: :user
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
 
@@ -261,6 +270,8 @@ class Event < ApplicationRecord
   has_many :invoices, through: :sponsors
   has_many :payouts, through: :invoices
 
+  has_many :reimbursement_reports, class_name: "Reimbursement::Report"
+
   has_many :documents
 
   has_many :canonical_pending_event_mappings, -> { on_main_ledger }
@@ -269,11 +280,21 @@ class Event < ApplicationRecord
   has_many :canonical_event_mappings, -> { on_main_ledger }
   has_many :canonical_transactions, through: :canonical_event_mappings
 
+  scope :engaged, -> {
+    Event.where(id: Event.joins(:canonical_transactions)
+        .where("canonical_transactions.date >= ?", 6.months.ago)
+        .distinct)
+  }
+
+  scope :dormant, -> { where.not(id: Event.engaged) }
+
   has_many :fees, through: :canonical_event_mappings
   has_many :bank_fees
 
   has_many :tags, -> { includes(:hcb_codes) }
   has_and_belongs_to_many :event_tags
+
+  has_many :pinned_hcb_codes, -> { includes(hcb_code: [:canonical_transactions, :canonical_pending_transactions]) }, class_name: "HcbCode::Pin"
 
   has_many :check_deposits
 
@@ -291,7 +312,7 @@ class Event < ApplicationRecord
   has_one :increase_account_number
 
   has_one :column_account_number, class_name: "Column::AccountNumber"
-  delegate :account_number, :routing_number, to: :column_account_number, allow_nil: true
+  delegate :account_number, :routing_number, :bic_code, to: :column_account_number, allow_nil: true
 
   has_many :grants
 
@@ -317,6 +338,7 @@ class Event < ApplicationRecord
   validates :website, format: URI::DEFAULT_PARSER.make_regexp(%w[http https]), if: -> { website.present? }
 
   validates :sponsorship_fee, numericality: { in: 0..0.5, message: "must be between 0 and 0.5" }
+  validates :postal_code, zipcode: { country_code_attribute: :country, message: "is not valid" }, allow_blank: true
 
   before_create { self.increase_account_id ||= IncreaseService::AccountIds::FS_MAIN }
 
@@ -366,6 +388,7 @@ class Event < ApplicationRecord
     'grant recipient': 9,
     salary: 10, # e.g. Sam's Shillings
     ai: 11,
+    'hcb internals': 12 # eg. https://hcb.hackclub.com/clearing
   }
 
   enum stripe_card_shipping_type: {
@@ -374,16 +397,12 @@ class Event < ApplicationRecord
     priority: 2,
   }
 
-  def country_us?
-    country == "US"
-  end
-
   def admin_formatted_name
     "#{name} (#{id})"
   end
 
   def admin_dropdown_description
-    "#{name} - #{id}"
+    "#{name} - #{id}#{" (DEMO)" if demo_mode?}"
 
     # Causing n+1 queries on admin pages with an event dropdown
 
@@ -516,7 +535,14 @@ class Event < ApplicationRecord
   end
 
   def balance_available_v2_cents
-    @balance_available_v2_cents ||= balance_v2_cents - (can_front_balance? ? fronted_fee_balance_v2_cents : fee_balance_v2_cents)
+    @balance_available_v2_cents ||= begin
+      fee_balance = can_front_balance? ? fronted_fee_balance_v2_cents : fee_balance_v2_cents
+      if fee_balance.positive?
+        balance_v2_cents - fee_balance
+      else # `fee_balance` is negative, indicating a fee credit
+        balance_v2_cents
+      end
+    end
   end
 
   alias balance balance_v2_cents
@@ -607,8 +633,49 @@ class Event < ApplicationRecord
 
   def total_fee_payments_v2_cents
     @total_fee_payments_v2_cents ||=
-      canonical_transactions.includes(:fee).where(fee: { reason: "HACK CLUB FEE" }).sum(:amount_cents).abs +
-      canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents).abs
+      begin
+        paid = canonical_transactions.includes(:fee).where(fee: { reason: "HACK CLUB FEE" }).sum(:amount_cents)
+        in_transit = canonical_pending_transactions.bank_fee.unsettled.sum(:amount_cents)
+
+        (paid + in_transit) * -1
+      end
+  end
+
+  def color
+    options = [
+      "#ec3750",
+      "#ff8c37",
+      "#f1c40f",
+      "#33d6a6",
+      "#5bc0de",
+      "#338eda",
+      "#a633d6",
+    ]
+
+    options[hashid.codepoints.first % options.size]
+  end
+
+  def service_level
+    return 1 if robotics_team?
+    return 1 if hack_club_hq?
+    return 1 if organized_by_hack_clubbers?
+    return 1 if organized_by_teenagers?
+    return 1 if canonical_transactions.revenue.where("date >= ?", 1.year.ago).sum(:amount_cents) >= 50_000_00
+    return 1 if balance_available_v2_cents > 50_000_00
+
+    2
+  end
+
+  def engaged?
+    canonical_transactions.where("date >= ?", 6.months.ago).any?
+  end
+
+  def dormant?
+    !engaged?
+  end
+
+  def airtable_record
+    ApplicationsTable.all(filter: "{HCB ID} = '#{id}'").first
   end
 
   private
@@ -644,7 +711,6 @@ class Event < ApplicationRecord
       sum + [pt_sum - (ct_sum_by_hcb_code[hcb_code] || 0), 0].max
     end
   end
-
 
   def move_friendly_id_error_to_slug
     errors.add :slug, *errors.delete(:friendly_id) if errors[:friendly_id].present?

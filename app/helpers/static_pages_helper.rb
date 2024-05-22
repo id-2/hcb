@@ -11,12 +11,20 @@ module StaticPagesHelper
                 badge_for "⏳", class: "bg-muted pr2"
               end
             else
-              ""
+              content_tag(:div, "") # Empty div if no badge is present
             end
-    link_to content_tag(:li,
-                        [content_tag(:strong, name), badge].join.html_safe,
-                        class: "card card--item card--hover flex justify-between overflow-visible line-height-3 items-center"),
-            path, method: options[:method]
+    pin = inline_icon("pin", class: "pin transition-opacity group-hover:opacity-100 absolute top-0 right-0", size: 24, ':color': "isPinned($el.closest('a').parentElement.id) ? 'orange' : 'var(--muted)'", '@click.prevent': "pin($el.closest('a').parentElement.id, $el.closest('.grid').id)", ":class": "isPinned($el.closest('a').parentElement.id) ? 'opacity-100' : 'opacity-0'")
+    content_tag(:div, id: "card-#{name.parameterize}", class: "group relative") do
+      link_to content_tag(:div,
+                          [
+                            content_tag(:strong, name, class: "card-name"),
+                            pin,
+                            content_tag(:span, "", style: "flex-grow: 1"),
+                            badge
+                          ].join.html_safe,
+                          class: "card card--item card--hover flex justify-between items-center"),
+              path, class: "link-reset", method: options[:method]
+    end
   end
 
   def flavor_text
@@ -29,12 +37,6 @@ module StaticPagesHelper
 
   def airtable_info
     {
-      hackathons: {
-        id: "apptapPDAi0eBaaG1",
-        table: "applications",
-        query: { filterByFormula: "AND(Approved=0,Rejected=0)" },
-        destination: "https://airtable.com/tblYVTFLwY378YZa4/viwpJOp6ZmMDfcbgb"
-      },
       grant: {
         id: "appEzv7w2IBMoxxHe",
         table: "Github%20Grant",
@@ -144,5 +146,48 @@ module StaticPagesHelper
         destination: "https://airtable.com/appEzv7w2IBMoxxHe/tbl9CkfZHKZYrXf1T/viwgfJvrrD9Jn9VLj"
       }
     }
+  end
+
+  def apply_form_url(user = current_user)
+    "https://hackclub.com/fiscal-sponsorship/apply/?#{URI.encode_www_form({ userEmail: user.email, firstName: user.first_name, lastName: user.last_name, userPhone: user.phone_number, userBirthday: user.birthday&.year }.compact)}"
+  end
+
+  def render_permissions(permissions, depth = 0)
+    capture do
+      permissions.each_with_index do |(k, v), i|
+
+        # Nested title (for feature groups)
+        if v.is_a?(Hash)
+          concat(content_tag(:tr) do
+            content_tag(:th, class: "h#{depth + 2} #{"pt3" unless i.zero?}", style: "padding-left: #{depth * 2}rem") do
+              concat k
+
+              if v[:_preface]
+                concat content_tag(:span, v[:_preface], class: "muted regular pl2 h5")
+              end
+            end
+          end)
+
+          concat render_permissions(v, depth + 1)
+
+        # Row for feature with permission icons
+        elsif v.is_a?(Symbol)
+          concat(content_tag(:tr) do
+            concat content_tag(:th, k, class: "regular", style: "padding-left: #{depth * 2}rem")
+
+            needed_role_num = OrganizerPosition.roles[v]
+
+            OrganizerPosition.roles.each do |_role, role_num|
+              if role_num >= needed_role_num
+                concat content_tag(:td, "✅")
+              else
+                concat content_tag(:td, "❌")
+              end
+            end
+          end)
+        end
+
+      end
+    end
   end
 end

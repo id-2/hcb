@@ -6,6 +6,7 @@
 #
 #  id                                  :bigint           not null, primary key
 #  amount                              :integer
+#  anonymous                           :boolean          default(FALSE), not null
 #  canceled_at                         :datetime
 #  email                               :text
 #  last4_ciphertext                    :text
@@ -35,6 +36,9 @@
 #
 class RecurringDonation < ApplicationRecord
   include Hashid::Rails
+
+  include HasStripeDashboardUrl
+  has_stripe_dashboard_url "subscriptions", :stripe_subscription_id
 
   has_paper_trail
 
@@ -123,6 +127,10 @@ class RecurringDonation < ApplicationRecord
     end
   end
 
+  def name(show_anonymous: false)
+    anonymous? && !show_anonymous ? "Anonymous" : super()
+  end
+
   private
 
   def create_stripe_subscription
@@ -154,7 +162,8 @@ class RecurringDonation < ApplicationRecord
       ],
       payment_behavior: "default_incomplete",
       payment_settings: { save_default_payment_method: "on_subscription" },
-      expand: ["latest_invoice.payment_intent", "default_payment_method"]
+      expand: ["latest_invoice.payment_intent", "default_payment_method"],
+      metadata: { event_id: event.id }
     )
 
     sync_with_stripe_subscription!(subscription)

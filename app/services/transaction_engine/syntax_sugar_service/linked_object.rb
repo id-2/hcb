@@ -32,6 +32,10 @@ module TransactionEngine
 
           return likely_bank_fee if outgoing_bank_fee?
 
+          return reimbursement_expense_payout if reimbursement_expense_payout
+
+          return reimbursement_payout_holding if reimbursement_payout_holding
+
           nil
         end
       end
@@ -63,12 +67,16 @@ module TransactionEngine
       end
 
       def likely_increase_check
-        increase_check_transfer_id = @canonical_transaction.raw_increase_transaction.increase_transaction.dig("source", "check_transfer_intention", "transfer_id")
+        if @canonical_transaction.transaction_source_type == "RawColumnTransaction"
+          IncreaseCheck.find_by(column_id: @canonical_transaction.column_transaction_id)
+        elsif @canonical_transaction.transaction_source_type == "RawIncreaseTransaction"
+          increase_check_transfer_id = @canonical_transaction.raw_increase_transaction.increase_transaction.dig("source", "check_transfer_intention", "transfer_id")
 
-        if increase_check_transfer_id
-          IncreaseCheck.find_by(increase_id: increase_check_transfer_id)
-        else
-          IncreaseCheck.find_by("increase_object->'deposit'->>'transaction_id' = ?", @canonical_transaction.raw_increase_transaction.increase_transaction_id)
+          if increase_check_transfer_id
+            IncreaseCheck.find_by(increase_id: increase_check_transfer_id)
+          else
+            IncreaseCheck.find_by("increase_object->'deposit'->>'transaction_id' = ?", @canonical_transaction.raw_increase_transaction.increase_transaction_id)
+          end
         end
       end
 
@@ -135,6 +143,18 @@ module TransactionEngine
         return nil unless event
 
         Disbursement.where(id: likely_disbursement_id).first
+      end
+
+      def reimbursement_expense_payout
+        return nil unless @canonical_transaction.transaction_source_type == "Reimbursement::ExpensePayout"
+
+        Reimbursement::ExpensePayout.find(@canonical_transaction.transaction_source_id)
+      end
+
+      def reimbursement_payout_holding
+        return nil unless @canonical_transaction.transaction_source_type == "Reimbursement::PayoutHolding"
+
+        Reimbursement::PayoutHolding.find(@canonical_transaction.transaction_source_id)
       end
 
       def event

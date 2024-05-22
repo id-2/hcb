@@ -25,11 +25,9 @@
 #  owner_phone               :string
 #  redirect_url              :string           not null
 #  rejected_at               :datetime
-#  signed_contract           :boolean
 #  submitted_at              :datetime
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
-#  docusign_envelope_id      :string
 #  event_id                  :bigint
 #  partner_id                :bigint           not null
 #  user_id                   :bigint
@@ -47,17 +45,19 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class PartneredSignup < ApplicationRecord
+  self.ignored_columns = ["docusign_template_id"]
+
   has_paper_trail
 
   include PublicIdentifiable
   set_public_id_prefix :sup
 
   include CountryEnumable
-  has_country_enum :countries
+  has_country_enum
 
-  belongs_to :partner, required: true
-  belongs_to :event,   required: false
-  belongs_to :user,    required: false
+  belongs_to :partner
+  belongs_to :event, optional: true
+  belongs_to :user,  optional: true
 
   validates :redirect_url, presence: true
   validates_presence_of [:organization_name,
@@ -119,7 +119,6 @@ class PartneredSignup < ApplicationRecord
   end
 
   scope :not_unsubmitted, -> { where.not(aasm_state: :unsubmitted) }
-  scope :with_envelope, -> { where.not(docusign_envelope_id: nil) }
 
   def continue_url
     Rails.application.routes.url_helpers.edit_partnered_signups_url(public_id:)

@@ -2,89 +2,37 @@
 
 class ExportsController < ApplicationController
   skip_before_action :signed_in_user
-  skip_after_action :verify_authorized, only: [:transactions, :collect_email]
+  skip_after_action :verify_authorized, only: :collect_email
 
   def transactions
     @event = Event.friendly.find(params[:event])
 
-    if !@event.is_public?
-      authorize @event.canonical_transactions.first, :show? # temporary hack for policies
-    end
+    authorize @event, :show?
 
-    # 300 is slightly arbitrary. HQ didn't run into issues until 5k
     should_queue = @event.canonical_transactions.size > 300
 
     respond_to do |format|
-      format.csv do
+      format.any(*export_options.keys) do
+        file_extension = params[:format]
+
         if should_queue
-          if current_user
-            ExportJob::Csv.perform_later(event_id: @event.id, email: current_user.email)
-            flash[:success] = "This export is too big, so we'll send you an email when it's ready."
-            redirect_back fallback_location: @event and return
-          elsif params[:email]
-            # this handles the second stage of large transparent exports
-            ExportJob::Csv.perform_later(event_id: @event.id, email: params[:email])
-            flash[:success] = "We'll send you an email when your export is ready."
-            redirect_to @event and return
-          else
-            # handles when large exports are requested by the non-signed-in users viewing transparent orgs
-            # this redirects them to a form that collects their email and then goes to the above statement
-            redirect_to collect_email_exports_path(file_extension: "csv", event_slug: params[:event]) and return
-          end
+          handle_large_export(file_extension)
+        else
+          send("stream_transactions_#{file_extension}")
         end
-
-        stream_transactions_csv
-      end
-
-      format.json do
-        if should_queue
-          if current_user
-            ExportJob::Json.perform_later(event_id: @event.id, email: current_user.email)
-            flash[:success] = "This export is too big, so we'll send you an email when it's ready."
-            redirect_back fallback_location: @event and return
-          elsif params[:email]
-            # this handles the second stage of large transparent exports
-            ExportJob::Json.perform_later(event_id: @event.id, email: params[:email])
-            flash[:success] = "We'll send you an email when your export is ready."
-            redirect_to @event and return
-          else
-            # handles when large exports are requested by the non-signed-in users viewing transparent orgs
-            # this redirects them to a form that collects their email and then goes to the above statement
-            redirect_to collect_email_exports_path(file_extension: "json", event_slug: params[:event]) and return
-          end
-        end
-
-        stream_transactions_json
-      end
-
-      format.ledger do
-        if should_queue
-          if current_user
-            ExportJob::Ledger.perform_later(event_id: @event.id, email: current_user.email)
-            flash[:success] = "This export is too big, so we'll send you an email when it's ready."
-            redirect_back fallback_location: @event and return
-          elsif params[:email]
-            # this handles the second stage of large transparent exports
-            ExportJob::Ledger.perform_later(event_id: @event.id, email: params[:email])
-            flash[:success] = "We'll send you an email when your export is ready."
-            redirect_to @event and return
-          else
-            # handles when large exports are requested by the non-signed-in users viewing transparent orgs
-            # this redirects them to a form that collects their email and then goes to the above statement
-            redirect_to collect_email_exports_path(file_extension: "ledger", event_slug: params[:event]) and return
-          end
-        end
-
-        stream_transactions_ledger
       end
 
       format.pdf do
         @start = (params[:start_date] || Date.today.prev_month).to_datetime.beginning_of_month
         if @start >= Date.today.beginning_of_month
-          flash[:error] = "Can not create an account statement for #{@start.strftime("%B %Y")}"
+          flash[:error] = "Can not create a financial statement for #{@start.strftime("%B %Y")}"
           redirect_back fallback_location: event_statements_path(@event) and return
         end
-        @end = @start.end_of_month
+        @end = (params[:end_date] || @start).to_datetime.end_of_month
+        if @end < @start
+          flash[:error] = "End date cannot be before the start date."
+          redirect_back fallback_location: event_statements_path(@event) and return
+        end
         all = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
         TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: all, event: @event).run!
 
@@ -114,7 +62,6 @@ class ExportsController < ApplicationController
         end
         render pdf: "statement", page_height: "11in", page_width: "8.5in"
       end
-
     end
   end
 
@@ -127,6 +74,33 @@ class ExportsController < ApplicationController
   end
 
   private
+
+  def export_options
+    {
+      "csv"    => ExportJob::Csv,
+      "json"   => ExportJob::Json,
+      "ledger" => ExportJob::Ledger
+    }
+  end
+
+  def handle_large_export(file_extension)
+    if current_user
+      export_job = export_options[file_extension]
+      export_job.perform_later(event_id: @event.id, email: current_user.email, public_only: !organizer_signed_in?)
+      flash[:success] = "This export is too big, so we'll send you an email when it's ready."
+      redirect_back fallback_location: @event and return
+    elsif params[:email]
+      # this handles the second stage of large transparent exports
+      export_job = export_options[file_extension]
+      export_job.perform_later(event_id: @event.id, email: params[:email], public_only: true)
+      flash[:success] = "We'll send you an email when your export is ready."
+      redirect_to @event and return
+    else
+      # handles when large exports are requested by the non-signed-in users viewing transparent orgs
+      # this redirects them to a form that collects their email and then goes to the above statement
+      redirect_to collect_email_exports_path(file_extension:, event_slug: params[:event]) and return
+    end
+  end
 
   def stream_transactions_csv
     set_file_headers_csv
@@ -171,15 +145,15 @@ class ExportsController < ApplicationController
   end
 
   def transactions_csv
-    ::ExportService::Csv.new(event_id: @event.id).run
+    ::ExportService::Csv.new(event_id: @event.id, public_only: !organizer_signed_in?).run
   end
 
   def transactions_json
-    ::ExportService::Json.new(event_id: @event.id).run
+    ::ExportService::Json.new(event_id: @event.id, public_only: !organizer_signed_in?).run
   end
 
   def transactions_ledger
-    ::ExportService::Ledger.new(event_id: @event.id).run
+    ::ExportService::Ledger.new(event_id: @event.id, public_only: !organizer_signed_in?).run
   end
 
 end

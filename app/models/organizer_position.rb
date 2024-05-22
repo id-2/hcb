@@ -7,7 +7,8 @@
 #  id         :bigint           not null, primary key
 #  deleted_at :datetime
 #  first_time :boolean          default(TRUE)
-#  is_signee  :boolean
+#  is_signee  :boolean          default(FALSE)
+#  role       :integer          default("manager"), not null
 #  sort_index :integer
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -27,6 +28,7 @@
 class OrganizerPosition < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
+  include OrganizerPosition::HasRole
 
   scope :not_hidden, -> { where(event: { hidden_at: nil }) }
 
@@ -50,5 +52,7 @@ class OrganizerPosition < ApplicationRecord
       initial: initial?
     }
   end
+
+  private
 
 end

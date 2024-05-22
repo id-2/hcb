@@ -15,7 +15,7 @@ class RecurringDonationsController < ApplicationController
   def create
     params[:recurring_donation][:amount] = Monetize.parse(params[:recurring_donation][:amount]).cents
 
-    @recurring_donation = RecurringDonation.new(params.require(:recurring_donation).permit(:name, :email, :amount, :message).merge(event: @event))
+    @recurring_donation = RecurringDonation.new(params.require(:recurring_donation).permit(:name, :email, :amount, :message, :anonymous).merge(event: @event))
 
     authorize @recurring_donation
 
@@ -53,7 +53,7 @@ class RecurringDonationsController < ApplicationController
     setup_intent = StripeService::SetupIntent.create(
       customer: @recurring_donation.stripe_customer_id,
       usage: "off_session",
-      metadata: { recurring_donation_id: @recurring_donation.id }
+      metadata: { recurring_donation_id: @recurring_donation.id, event_id: @recurring_donation.event.id }
     )
 
     @client_secret = setup_intent.client_secret
