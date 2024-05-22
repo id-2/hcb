@@ -20,32 +20,4 @@ module OrganizerPosition::Spending::AllowancesHelper
       @spending_items = (transactions + allowances).sort_by(&:created_at).reverse
     end
   end
-
-  def render_spending_items(items)
-    if items.nil? || items.count == 0
-      concat blankslate("Nothing to see here")
-    else
-      capture do
-        concat(content_tag(:div, class: "table-container") do
-          concat(content_tag(:table) do
-            concat(content_tag(:thead) do
-              concat(content_tag(:tr) do
-                concat content_tag(:th, "Date")
-                concat content_tag(:th, "Memo")
-                concat content_tag(:th, "Created by")
-                concat content_tag(:th, "Amount")
-              end)
-            end)
-            concat(content_tag(:tbody) do
-              items.each do |i|
-                concat(render("organizer_positions/spending/controls/spending_item", item: i))
-                # concat render_spending_item(i)
-              end
-            end)
-          end)
-        end)
-      end
-    end
-  end
-
 end
