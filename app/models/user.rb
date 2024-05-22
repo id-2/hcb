@@ -138,8 +138,6 @@ class User < ApplicationRecord
 
   enum comment_notifications: { all_threads: 0, my_threads: 1, no_threads: 2 }
 
-  enummer authentication_factors: %i[email phone_number webauthn], _prefix: 'authenticated_with'
-
   comma do
     id
     name
@@ -287,6 +285,10 @@ class User < ApplicationRecord
 
   def hack_clubber?
     return events.organized_by_hack_clubbers.any?
+  end
+  
+  def using_2fa?
+    Flipper.enabled?(:two_factor_authentication_2024_05_22, self) && phone_number_verified
   end
 
   private

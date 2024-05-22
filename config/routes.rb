@@ -90,10 +90,9 @@ Rails.application.routes.draw do
 
   resources :user_sessions, only: [] do
     member do
-      get "login_preference", to: "users#choose_login_preference", as: :choose_login_preference
-      post "login_preference", to: "users#set_login_preference", as: :set_login_preference
+      get "login_preference", to: "user_sessions#choose_login_preference", as: :choose_login_preference
+      post "login_preference", to: "user_sessions#set_login_preference", as: :set_login_preference
       post "webauthn"
-      get "webauthn/auth_options", to: "user_sessions#webauthn_options"
       post "login_code"
       post "exchange_login_code"
     end
@@ -103,6 +102,7 @@ Rails.application.routes.draw do
     collection do
       get "auth", to: "users#auth"
       post "auth", to: "users#auth_submit"
+      get "webauthn/auth_options", to: "users#webauthn_options"
 
       # SMS Auth
       post "start_sms_auth_verification", to: "users#start_sms_auth_verification"

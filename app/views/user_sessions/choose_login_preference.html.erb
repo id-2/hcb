@@ -27,7 +27,7 @@
 
   <p>How would you like to sign in?</p>
 
-  <%= form_with url: set_login_preference_users_path, method: :post, data: { "controller" => "webauthn-auth form-disable", "webauthn-auth-target" => "authForm", "action" => "webauthn-auth#submit", webauthn_auth_return_to_value: @return_to } do |form| %>
+  <%= form_with url: set_login_preference_user_session_path(@session), method: :post, data: { "controller" => "webauthn-auth form-disable", "webauthn-auth-target" => "authForm", "action" => "webauthn-auth#submit", webauthn_auth_return_to_value: @return_to, turbo: false, session_id_value: @session.id } do |form| %>
     <div data-webauthn-auth-target="error" class="mb2 display-none">
       <p class="flash error mb1">Security key authentication failed.</p>
     </div>

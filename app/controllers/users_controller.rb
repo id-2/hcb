@@ -51,6 +51,27 @@ class UsersController < ApplicationController
     end
   end
 
+  def webauthn_options
+    return head :not_found if !params[:email]
+  
+    session[:auth_email] = params[:email]
+  
+    return head :not_found if params[:require_webauthn_preference] && session[:login_preference] != "webauthn"
+  
+    user = User.find_by(email: params[:email])
+  
+    return head :not_found if !user || user.webauthn_credentials.empty?
+  
+    options = WebAuthn::Credential.options_for_get(
+      allow: user.webauthn_credentials.pluck(:webauthn_id),
+      user_verification: "discouraged"
+    )
+  
+    session[:webauthn_challenge] = options.challenge
+  
+    render json: options
+  end
+
   def logout
     sign_out
     redirect_to root_path
@@ -324,16 +345,6 @@ class UsersController < ApplicationController
     end
 
     params.require(:user).permit(attributes)
-  end
-
-  def initialize_sms_params
-    return if @force_use_email
-
-    user = User.find_by(email: @email)
-    if user&.use_sms_auth
-      @use_sms_auth = true
-      @phone_last_four = user.phone_number.last(4)
-    end
   end
 
   # HCB used to run on bank.hackclub.com— this ensures that any old references to `bank.` URLs are translated into `hcb.`

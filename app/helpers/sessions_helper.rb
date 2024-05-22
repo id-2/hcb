@@ -36,6 +36,8 @@ module SessionsHelper
     end
 
     user_session.save!
+
+    user_session
   end
   
   def complete_authentication_factor(session:, factor:, fingerprint_info: {}, webauthn_credential: nil)
@@ -47,6 +49,16 @@ module SessionsHelper
       timezone: fingerprint_info[:timezone],
       ip: fingerprint_info[:ip],
     )
+    if factor == :email
+      session.authenticated_with_email!
+    elsif factor == :sms
+      session.authenticated_with_sms!
+    elsif factor == :webauthn
+      session.authenticated_with_webauthn!
+    else
+      byebug
+    end
+    session.save!
     authenticate_session(session:) if session.may_mark_authenticated?
   end
   

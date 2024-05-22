@@ -15,7 +15,7 @@
   <% if Rails.env.development? %>
     <p class="h5"><%= link_to "Seems like you're in development. Check your dev email outbox here!", letter_opener_web_path, target: :_blank %></p>
   <% end %>
-   <%= form_tag exchange_login_code_users_path do %>
+   <%= form_tag exchange_login_code_user_session_path(@session) do %>
     <%= label_tag :login_code, "Enter your login code", class: "left-align" %>
     <%= telephone_field_tag :login_code, "", placeholder: "Login code", autofocus: true, autocomplete: "off", class: "left-align mb2", required: true %>
     <%= hidden_field_tag :email, @email %>
@@ -36,23 +36,23 @@
     <% end %>
     <%= submit_tag "Submit" %>
   <% end %>
-  <% if @use_sms_auth %>
+  <% if @use_sms_auth && !@session.authenticated_with_email? %>
     <div data-controller="form">
       <p>Don't have access to your phone?
         Click
-        <%= link_to "here", login_code_users_path, data: { action: "form#submit:prevent" } %>
+        <%= link_to "here", login_code_user_session_path(@session), data: { action: "form#submit:prevent" } %>
         to send a login code to your
         email instead</p>
 
-      <%= form_with id: "use_email_form", url: login_code_users_path, class: "display-none", data: { form_target: "form" } do |form| %>
+      <%= form_with id: "use_email_form", url: login_code_user_session_path(@session), class: "display-none", data: { form_target: "form" } do |form| %>
         <%= form.hidden_field :force_use_email, value: true %>
         <%= form.hidden_field :email, value: @email %>
       <% end %>
     </div>
   <% end %>
 
-  <% if @webauthn_available %>
-    <%= link_to "Sign in another way", choose_login_preference_users_path(return_to: @return_to), class: "block mt2" %>
+  <% if @webauthn_available && !@session.authenticated_with_webauthn? %>
+    <%= link_to "Sign in another way", choose_login_preference_user_session_path(@session, return_to: @return_to), class: "block mt2" %>
   <% end %>
 </article>
 <%= javascript_include_tag "fingerprint.js" %>

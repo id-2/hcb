@@ -5,11 +5,14 @@
 # Table name: user_sessions
 #
 #  id                       :bigint           not null, primary key
+#  aasm_state               :string
+#  authentication_factors   :integer          default([]), not null
 #  deleted_at               :datetime
 #  device_info              :string
 #  expiration_at            :datetime         not null
 #  fingerprint              :string
 #  ip                       :string
+#  last_active_at           :datetime
 #  latitude                 :decimal(, )
 #  longitude                :decimal(, )
 #  os_info                  :string
@@ -90,16 +93,16 @@ class UserSession < ApplicationRecord
 
   validate :user_is_unlocked, on: :create
 
-  enummer authentication_factors: %i[email phone_number webauthn], _prefix: 'authenticated_with'
+  enummer authentication_factors: %i[email sms webauthn], _prefix: 'authenticated_with'
 
   aasm do
     state :unauthenticated, initial: true
     state :authenticated
   
     event :mark_authenticated do
-      transitions from: :unauthenticated, to: :settled do
+      transitions from: :unauthenticated, to: :authenticated do
         guard do
-         authentication_factors.sort == user.authentication_factors.sort || impersonated_by.present?
+         !user.using_2fa? || authentication_factors.length == 2 || impersonated_by.present?
         end
       end
     end

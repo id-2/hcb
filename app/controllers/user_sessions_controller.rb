@@ -1,5 +1,9 @@
-class UserSessionController < ApplicationController
+class UserSessionsController < ApplicationController
+  skip_before_action :signed_in_user
+  skip_after_action :verify_authorized
+
   def choose_login_preference
+    @session = UserSession.find(params[:id])
     @email = session[:auth_email]
     @user = User.find_by_email(@email)
     @return_to = params[:return_to]
@@ -9,21 +13,23 @@ class UserSessionController < ApplicationController
   end
   
   def set_login_preference
+    @session = UserSession.find(params[:id])
     @email = params[:email]
     remember = params[:remember] == "1"
   
     case params[:login_preference]
     when "email"
       session[:login_preference] = "email" if remember
-      redirect_to login_code_users_path, status: :temporary_redirect
+      redirect_to login_code_user_session_path(@session), status: :temporary_redirect
     when "webauthn"
       # This should never happen, because WebAuthn auth is handled on the frontend
-      redirect_to choose_login_preference_users_path
+      redirect_to choose_login_preference_user_session_path(@session)
     end
   end
   
   # post to request login code
   def login_code
+    @session = UserSession.find(params[:id])
     @return_to = params[:return_to]
     @email = params.require(:email)
     @force_use_email = params[:force_use_email]
@@ -38,8 +44,8 @@ class UserSessionController < ApplicationController
       flash[:error] = resp[:error]
       return redirect_to auth_users_path
     end
-  
-    if resp[:login_code]
+
+    if resp[:login_code].present?
       cookies.signed[:"browser_token_#{resp[:login_code].id}"] = { value: resp[:browser_token], expires: LoginCode::EXPIRATION.from_now }
     end
   
@@ -54,29 +60,9 @@ class UserSessionController < ApplicationController
     redirect_to auth_users_path
   end
   
-  def webauthn_options
-    return head :not_found if !params[:email]
-  
-    session[:auth_email] = params[:email]
-  
-    return head :not_found if params[:require_webauthn_preference] && session[:login_preference] != "webauthn"
-  
+  def webauthn
     user = User.find_by(email: params[:email])
-  
-    return head :not_found if !user || user.webauthn_credentials.empty?
-  
-    options = WebAuthn::Credential.options_for_get(
-      allow: user.webauthn_credentials.pluck(:webauthn_id),
-      user_verification: "discouraged"
-    )
-  
-    session[:webauthn_challenge] = options.challenge
-  
-    render json: options
-  end
-  
-  def webauthn_auth
-    user = User.find_by(email: params[:email])
+    @session = params[:id] == "new" ? create_session(user:) : UserSession.find(params[:id])
   
     if !user
       return redirect_to auth_users_path
@@ -105,9 +91,13 @@ class UserSessionController < ApplicationController
   
       session[:login_preference] = "webauthn" if params[:remember] == "true"
   
-      sign_in(user:, fingerprint_info:, webauthn_credential: stored_credential)
-  
-      redirect_to(params[:return_to] || root_path)
+      complete_authentication_factor(session: @session, factor: :webauthn, fingerprint_info:, webauthn_credential: stored_credential)
+      
+      if @session.authenticated?
+        redirect_to(params[:return_to] || root_path)
+      else
+        redirect_to login_code_user_session_path(@session), status: :temporary_redirect
+      end
   
     rescue WebAuthn::SignCountVerificationError, WebAuthn::Error => e
       redirect_to auth_users_path, flash: { error: "Something went wrong." }
@@ -118,6 +108,8 @@ class UserSessionController < ApplicationController
   
   # post to exchange auth token for access token
   def exchange_login_code
+    @session = UserSession.find(params[:id])
+
     fingerprint_info = {
       fingerprint: params[:fingerprint],
       device_info: params[:device_info],
@@ -133,15 +125,20 @@ class UserSessionController < ApplicationController
       cookies:
     ).run
   
-    sign_in(user:, fingerprint_info:)
+    complete_authentication_factor(session: @session, factor: params[:sms] ? :sms : :email, fingerprint_info:)
   
     # Clear the flash - this prevents the error message showing up after an unsuccessful -> successful login
     flash.clear
   
-    if user.full_name.blank? || user.phone_number.blank?
-      redirect_to edit_user_path(user.slug)
+    if @session.authenticated?
+      if user.full_name.blank? || user.phone_number.blank?
+        redirect_to edit_user_path(user.slug)
+      else
+        redirect_to(params[:return_to] || root_path)
+      end
     else
-      redirect_to(params[:return_to] || root_path)
+      # user failed webauthn & has 
+      redirect_to login_code_user_session_path(@session), status: :temporary_redirect
     end
   rescue Errors::InvalidLoginCode, Errors::BrowserMismatch => e
     message = case e
@@ -161,5 +158,15 @@ class UserSessionController < ApplicationController
   rescue ActiveRecord::RecordInvalid => e
     flash[:error] = e.record.errors&.messages&.values&.flatten&.join(". ")
     redirect_to auth_users_path
+  end
+  
+  def initialize_sms_params
+    return if @force_use_email || @session.authenticated_with_sms?
+  
+    user = User.find_by(email: @email)
+    if user&.use_sms_auth || @session.authenticated_with_email?
+      @use_sms_auth = true
+      @phone_last_four = user.phone_number.last(4)
+    end
   end
 end

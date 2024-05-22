@@ -18,6 +18,7 @@ export default class extends Controller {
   static values = {
     returnTo: String,
     requireWebauthnPreference: Boolean,
+    sessionId: String
   }
 
   initialize() {
@@ -59,7 +60,7 @@ export default class extends Controller {
 
       this.storeLoginEmail(loginEmail)
 
-      submitForm('/users/webauthn', {
+      submitForm(`/user_sessions/${this.sessionIdValue}/webauthn`, {
         credential: JSON.stringify(credential),
         email: loginEmail,
         return_to: this.returnToValue,
