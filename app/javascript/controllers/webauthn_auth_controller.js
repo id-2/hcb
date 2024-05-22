@@ -18,7 +18,7 @@ export default class extends Controller {
   static values = {
     returnTo: String,
     requireWebauthnPreference: Boolean,
-    sessionId: String
+    sessionId: String,
   }
 
   initialize() {
