@@ -15,7 +15,7 @@
     <% if @session.authentication_factors.length > 0 %>
       For additional security (two factor authentication), we've just sent a login code to
     <% else %>
-      We just sent a login code to 
+      We just sent a login code to
     <% end %>
     <%= @use_sms_auth ? "your phone number ending in: " + @phone_last_four : @email %>
   </p>
