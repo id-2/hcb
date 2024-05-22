@@ -30,10 +30,10 @@ module OrganizerPosition::Spending::AllowancesHelper
           concat(content_tag(:table) do
             concat(content_tag(:thead) do
               concat(content_tag(:tr) do
-                concat content_tag(:th, "Amount")
+                concat content_tag(:th, "Date")
                 concat content_tag(:th, "Memo")
                 concat content_tag(:th, "Created by")
-                concat content_tag(:th, "Date")
+                concat content_tag(:th, "Amount")
               end)
             end)
             concat(content_tag(:tbody) do
@@ -52,13 +52,13 @@ module OrganizerPosition::Spending::AllowancesHelper
 
     capture do
       concat(content_tag(:tr, class: item.is_a?(OrganizerPosition::Spending::Allowance) ? "transaction--positive" : "transaction--negative") do
-        concat content_tag(:td, render_money(item.amount_cents))
+        concat content_tag(:td, format_date(item.created_at))
         concat content_tag(:td, item.memo, style: "max-width: 400px; overflow: hidden; text-overflow: elipsis;")
         concat(content_tag(:td, class: "flex items-center g1") do
           concat avatar_for(item_user, 24)
           concat item_user.name
         end)
-        concat content_tag(:td, format_date(item.created_at))
+        concat content_tag(:td, render_money(item.amount_cents))
       end)
     end
   end
