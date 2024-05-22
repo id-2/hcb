@@ -74,6 +74,8 @@ class EventsController < ApplicationController
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
 
+    @hide_table_header = params[:hide_table_header] ? true : false
+
     if params[:tag] && Flipper.enabled?(:transaction_tags_2022_07_29, @event)
       @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
     end

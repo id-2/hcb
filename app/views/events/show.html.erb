@@ -168,30 +168,43 @@
     <%= render partial: "filter" %>
 
     <% if @pending_transactions.any? || @transactions.any? || show_mock_data? %>
-      <div class="table-container" data-tour-step="transactions">
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-                <th>Date</th>
-                <th>Description</th>
-                <th class="right-align">Amount</th>
-                <% if @show_running_balance %>
-                  <th>Running Balance</th>
-                <% end %>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody data-behavior="transactions">
-              <%= render "pending_fee_transaction" if @event.fronted_fee_balance_v2_cents > 0 %>
-
-              <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 } %>
-
-              <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 } %>
-          </tbody>
-          </table>
-      </div>
-      <%= paginate @transactions %>
+      <turbo-frame id="transactions-<%= @transactions.current_page %>">
+        <div class="table-container" data-tour-step="transactions">
+            <table>
+              <% unless @hide_table_header %>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th class="right-align">Amount</th>
+                    <% if @show_running_balance %>
+                      <th>Running Balance</th>
+                    <% end %>
+                    <th></th>
+                  </tr>
+                </thead>
+              <% end %>
+              <tbody data-behavior="transactions">
+                <%= render "pending_fee_transaction" if @event.fronted_fee_balance_v2_cents > 0 %>
+                
+                  <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 } %>
+                  <turbo-frame id="transactions-<%= @transactions.current_page %>">
+                  <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 } %>
+            </tbody>
+            </table>
+        </div>
+        <% if @transactions.next_page %>
+          <%= turbo_frame_tag(
+                "transactions-#{@transactions.next_page}",
+                loading: :lazy,
+                src: "/#{@event.slug}?page=#{@transactions.next_page}&hide_table_header=true",
+                target: "ledger"
+              ) do %>
+            <p class="muted text-center py-2"><i>Loading more transactions...</i></p>
+          <% end %>
+        <% end %>
+      </turbo-frame>
     <% else %>
       <%= blankslate "No transactions yet" %>
     <% end %>
