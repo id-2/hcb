@@ -27,19 +27,6 @@ module OrganizerPosition::Spending
 
     has_one :organizer_position, through: :organizer_position_spending_control
 
-    def total_spent
-    end
-
-    def total_allocated
-    end
-
-    def balance
-    end
-
-    def event
-
-    end
-
     # def organizer_position
     #   OrganizerPosition.find(organizer_position_id)
     # end
