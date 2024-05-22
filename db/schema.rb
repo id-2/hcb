@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_14_142642) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_22_142307) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1893,6 +1893,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_14_142642) do
     t.datetime "expiration_at", precision: nil, null: false
     t.text "session_token_ciphertext"
     t.string "session_token_bidx"
+    t.string "aasm_state"
+    t.integer "authentication_factors", default: 0, null: false
     t.index ["impersonated_by_id"], name: "index_user_sessions_on_impersonated_by_id"
     t.index ["session_token_bidx"], name: "index_user_sessions_on_session_token_bidx"
     t.index ["user_id"], name: "index_user_sessions_on_user_id"
