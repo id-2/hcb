@@ -22,18 +22,10 @@
 #
 module OrganizerPosition::Spending
   class Allowance < ApplicationRecord
-    # belongs_to :control, class_name: "OrganizerPosition::Spending::Control", foreign_key: "organizer_position_spending_control_id", inverse_of: :allowances
     belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
+    belongs_to :authorized_by, class_name: "OrganizerPosition"
 
     has_one :organizer_position, through: :organizer_position_spending_control
-
-    # def organizer_position
-    #   OrganizerPosition.find(organizer_position_id)
-    # end
-
-    def authorized_by
-      OrganizerPosition.find(authorized_by_id)
-    end
 
   end
 
