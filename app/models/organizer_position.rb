@@ -43,7 +43,7 @@ class OrganizerPosition < ApplicationRecord
   validates :user, uniqueness: { scope: :event, conditions: -> { where(deleted_at: nil) } }
 
   delegate :initial?, to: :organizer_position_invite, allow_nil: true
-  delegate :stripe_cards, to: :user
+  has_many :stripe_cards, through: :user,  -> { where(stripe_card) }
 
   alias_attribute :signee, :is_signee
 
