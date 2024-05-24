@@ -68,7 +68,7 @@
   <% if policy(@provisional_control).new? %>
     <%= control_enable_button %>
   <% else %>
-    <div class="w-fit tooltipped tooltipped--e" aria-label="You're not allowed to set spending controls on yourself as a member.">
+<div class="w-fit tooltipped tooltipped--e" aria-label="You're not allowed to set spending controls on <%= @provisional_control.organizer_position.user == current_user ? "yourself" : "this user" %>.">
       <%= control_enable_button %>
     </div>
   <% end %>
