@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -10,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -52,6 +54,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.bigint "payment_recipient_id"
     t.string "recipient_email"
     t.boolean "send_email_notification", default: false
+    t.string "company_name"
+    t.string "company_entry_description"
     t.boolean "same_day", default: false, null: false
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
@@ -96,6 +100,27 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "activities", force: :cascade do |t|
+    t.string "trackable_type"
+    t.bigint "trackable_id"
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.string "key"
+    t.text "parameters"
+    t.string "recipient_type"
+    t.bigint "recipient_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "event_id"
+    t.index ["event_id"], name: "index_activities_on_event_id"
+    t.index ["owner_id", "owner_type"], name: "index_activities_on_owner_id_and_owner_type"
+    t.index ["owner_type", "owner_id"], name: "index_activities_on_owner"
+    t.index ["recipient_id", "recipient_type"], name: "index_activities_on_recipient_id_and_recipient_type"
+    t.index ["recipient_type", "recipient_id"], name: "index_activities_on_recipient"
+    t.index ["trackable_id", "trackable_type"], name: "index_activities_on_trackable_id_and_trackable_type"
+    t.index ["trackable_type", "trackable_id"], name: "index_activities_on_trackable"
   end
 
   create_table "admin_ledger_audit_tasks", force: :cascade do |t|
@@ -404,6 +429,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.bigint "created_by_id", null: false
     t.string "increase_status"
     t.string "rejection_reason"
+    t.string "column_id"
     t.index ["created_by_id"], name: "index_check_deposits_on_created_by_id"
     t.index ["event_id"], name: "index_check_deposits_on_event_id"
     t.index ["increase_id"], name: "index_check_deposits_on_increase_id", unique: true
@@ -443,6 +469,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "deposit_only", default: true, null: false
+    t.string "account_number_bidx"
+    t.index ["account_number_bidx"], name: "index_column_account_numbers_on_account_number_bidx"
     t.index ["event_id"], name: "index_column_account_numbers_on_event_id"
   end
 
@@ -451,6 +479,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "end_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "starting_balance"
+    t.integer "closing_balance"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -1270,7 +1300,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "cancelled_at", precision: nil
     t.string "slug"
     t.boolean "initial", default: false
-    t.boolean "is_signee"
+    t.boolean "is_signee", default: false
     t.integer "role", default: 100, null: false
     t.index ["event_id"], name: "index_organizer_position_invites_on_event_id"
     t.index ["organizer_position_id"], name: "index_organizer_position_invites_on_organizer_position_id"
@@ -1287,7 +1317,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "deleted_at", precision: nil
     t.integer "sort_index"
     t.boolean "first_time", default: true
-    t.boolean "is_signee"
+    t.boolean "is_signee", default: false
     t.integer "role", default: 100, null: false
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
@@ -1331,8 +1361,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "submitted_at", precision: nil
-    t.string "docusign_envelope_id"
-    t.boolean "signed_contract"
     t.string "owner_address_line1"
     t.string "owner_address_line2"
     t.string "owner_address_city"
@@ -1358,7 +1386,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.string "public_stripe_api_key"
     t.text "stripe_api_key_ciphertext"
     t.string "webhook_url"
-    t.string "docusign_template_id"
     t.bigint "representative_id"
     t.text "api_key_ciphertext"
     t.string "api_key_bidx"
@@ -1600,6 +1627,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_05_185833) do
     t.datetime "updated_at", null: false
     t.integer "expense_number", null: false
     t.datetime "deleted_at", precision: nil
+    t.string "type"
+    t.decimal "value", default: "0.0", null: false
     t.index ["approved_by_id"], name: "index_reimbursement_expenses_on_approved_by_id"
     t.index ["reimbursement_report_id"], name: "index_reimbursement_expenses_on_reimbursement_report_id"
   end

@@ -8,7 +8,7 @@
 #  accepted_at           :datetime
 #  cancelled_at          :datetime
 #  initial               :boolean          default(FALSE)
-#  is_signee             :boolean
+#  is_signee             :boolean          default(FALSE)
 #  rejected_at           :datetime
 #  role                  :integer          default("manager"), not null
 #  slug                  :string
@@ -61,6 +61,9 @@ class OrganizerPositionInvite < ApplicationRecord
 
   include FriendlyId
   include OrganizerPosition::HasRole
+
+  include PublicActivity::Model
+  tracked owner: proc{ |controller, record| controller&.current_user || User.find_by(email: "bank@hackclub.com") }, event_id: proc { |controller, record| record.event.id }, recipient: proc { |controller, record| record.user }, only: [:create]
 
   friendly_id :slug_candidates, use: :slugged
 

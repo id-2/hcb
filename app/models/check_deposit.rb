@@ -11,6 +11,7 @@
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  back_file_id     :string
+#  column_id        :string
 #  created_by_id    :bigint           not null
 #  event_id         :bigint           not null
 #  front_file_id    :string
@@ -42,7 +43,10 @@ class CheckDeposit < ApplicationRecord
   belongs_to :created_by, class_name: "User"
   has_one :canonical_pending_transaction
 
-  after_create_commit :submit!
+  # after_create_commit :submit!
+  after_create_commit do
+    create_canonical_pending_transaction!(event:, amount_cents:, memo: "CHECK DEPOSIT", date: created_at)
+  end
 
   after_update if: -> { increase_status_previously_changed?(to: "rejected") } do
     canonical_pending_transaction.decline!
@@ -66,7 +70,7 @@ class CheckDeposit < ApplicationRecord
     submitted: "submitted",
     rejected: "rejected",
     returned: "returned",
-  }
+  }, default: :pending
 
   enum :rejection_reason, {
     incomplete_image: "incomplete_image",
@@ -116,6 +120,8 @@ class CheckDeposit < ApplicationRecord
   end
 
   def state
+    return :success if local_hcb_code.ct.present?
+
     if pending?
       :info
     elsif rejected? || returned?
@@ -126,6 +132,8 @@ class CheckDeposit < ApplicationRecord
   end
 
   def state_text
+    return "Deposited" if local_hcb_code.ct.present?
+
     if pending?
       "Pending"
     elsif rejected?

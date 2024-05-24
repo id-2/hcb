@@ -2,7 +2,7 @@
   "name": "@hackclub/bank",
   "private": true,
   "engines": {
-    "node": ">=18.0.0 <=21"
+    "node": ">=18.0.0 <=22"
   },
   "dependencies": {
     "@airbrake/browser": "^2.1.8",
@@ -25,14 +25,13 @@
     "@shopify/draggable": "^1.0.0-beta.12",
     "@stripe/stripe-js": "^1.46.0",
     "ahoy.js": "^0.4.3",
-    "alpinejs": "^3.12.2",
+    "alpinejs": "^3.13.10",
     "autoprefixer": "^10.4.19",
     "babel-loader": "^8.2.5",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "clsx": "^1.2.1",
     "cssnano": "^6.1.2",
     "gsap": "^3.11.3",
-    "jquery": "^3.6.1",
     "js-confetti": "^0.12.0",
     "kbar": "^0.1.0-beta.45",
     "local-time": "^3.0.2",
@@ -66,5 +65,8 @@
     "format:check": "prettier --check app/javascript/",
     "format": "prettier --write app/javascript/",
     "build:css": "postcss app/assets/stylesheets/{application,admin,mailer}.scss --base app/assets/stylesheets --dir app/assets/builds --ext css"
-  }
+  },
+  "browserslist": [
+    "defaults"
+  ]
 }

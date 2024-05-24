@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby File.read(File.join(File.dirname(__FILE__), ".ruby-version")).strip
 
 gem "dotenv-rails", groups: [:development, :test]
 
-gem "rails", "~> 7.0.8"
+gem "rails", "~> 7.1.3"
 
 gem "puma", "~> 6.4" # app server
 
@@ -36,7 +35,7 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.1"
 gem "stripe", "8.5.0"
 gem "plaid", "~> 26.0"
-gem "yellow_pages", git: "https://github.com/hackclub/yellow_pages", ref: "117d13e"
+gem "yellow_pages", github: "hackclub/yellow_pages", ref: "117d13e"
 
 gem "aws-sdk-s3", require: false
 
@@ -45,8 +44,6 @@ gem "airrecord", "~> 1.0" # Airtable API for internal operations
 gem "twilio-ruby" # SMS notifications
 
 gem "lob"
-
-gem "docusign_esign", "~> 3.24" # DocuSign API
 
 gem "google-apis-admin_directory_v1", "~> 0.45.0" # GSuite
 
@@ -57,13 +54,13 @@ gem "blind_index" # needed to query and/or guarantee uniqueness for encrypted fi
 
 gem "aasm" # state machine
 
-gem "paper_trail" # track changes to models
+gem "paper_trail", "~> 15.1.0" # track changes to models
 gem "acts_as_paranoid", "~> 0.9.0" # enables soft deletions
 
 gem "friendly_id", "~> 5.5.0" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
 
-gem "active_storage_validations", "1.0.4" # file validations
+gem "active_storage_validations", "1.1.4" # file validations
 gem "validates_email_format_of" # email address validations
 gem "phonelib" # phone number validations
 
@@ -150,7 +147,6 @@ gem "lograge" # Log formatting
 gem "statsd-instrument", "~> 3.5", ">= 3.5.12" # For reporting to HC Grafana
 
 group :production do
-  gem "skylight"
 
   # gem "heroku-deflater" # compression
 
@@ -202,6 +198,8 @@ group :development do
   gem "htmlbeautifier", require: false # for https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb
 
   gem "foreman"
+
+  gem "bullet"
 end
 
 gem "jbuilder", "~> 2.11"
@@ -212,3 +210,5 @@ gem "doorkeeper", "~> 5.6"
 gem "cssbundling-rails", "~> 1.4"
 
 gem "sprockets-rails", "~> 3.4"
+
+gem "public_activity"

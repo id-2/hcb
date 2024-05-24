@@ -24,18 +24,22 @@ class EventsController < ApplicationController
           {
             name: x.name,
             slug: x.slug,
+            category: x.category,
             logo: x.logo.attached? ? Rails.application.routes.url_helpers.url_for(x.logo) : "none",
+            demo_mode: x.demo_mode,
             member: true
           }
         }
 
         if admin_signed_in?
           events.concat(
-            Event.not_demo_mode.excluding(@current_user.events).with_attached_logo.select([:slug, :name]).map { |e|
+            Event.not_demo_mode.excluding(@current_user.events).with_attached_logo.select([:slug, :name, :category]).map { |e|
               {
                 slug: e.slug,
                 name: e.name,
+                category: e.category,
                 logo: e.logo.attached? ? Rails.application.routes.url_helpers.url_for(e.logo) : "none",
+                demo_mode: false,
                 member: false
               }
             }
@@ -198,6 +202,11 @@ class EventsController < ApplicationController
 
       @transactions = Kaminari.paginate_array(@transactions).page(params[:page]).per(params[:per] || 75)
       @mock_total = @transactions.sum(&:amount_cents)
+    end
+
+    if current_user && !Flipper.enabled?(:the_bin_popup_2024_05_17, current_user) && @event.robotics_team? && !@first_time
+      Flipper.enable_actor(:the_bin_popup_2024_05_17, current_user)
+      @the_bin = true
     end
 
     if flash[:popover]
@@ -405,15 +414,6 @@ class EventsController < ApplicationController
   end
 
   # (@msw) these pages are for the WIP resources page.
-  def receive_check
-    @event_name = @event.name
-    @document_title = "Receive Checks"
-    @document_subtitle = "Deposit checks into your HCB account"
-    @document_image = "https://cloud-9sk4no7es-hack-club-bot.vercel.app/0slaps-jpg-this-image-can-hold-so-many-pixels.avi.onion.gif.7zip.msw.jpg"
-    authorize @event
-  end
-
-  # (@msw) these pages are for the WIP resources page.
   def sell_merch
     event_name = @event.name
     @document_title = "Sell Merch with Redbubble"
@@ -560,11 +560,10 @@ class EventsController < ApplicationController
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
 
-    @transfers_enabled = Flipper.enabled?(:transfers_2022_04_21, current_user)
     @ach_transfers = @event.ach_transfers
     @checks = @event.checks.includes(:lob_address)
     @increase_checks = @event.increase_checks
-    @disbursements = @transfers_enabled ? @event.outgoing_disbursements.includes(:destination_event) : Disbursement.none
+    @disbursements = @event.outgoing_disbursements.includes(:destination_event)
     @card_grants = @event.card_grants.includes(:user, :subledger, :stripe_card)
 
     @disbursements = @disbursements.not_card_grant_related if Flipper.enabled?(:card_grants_2023_05_25, @event)
@@ -591,12 +590,10 @@ class EventsController < ApplicationController
 
     @card_grants = @card_grants.search_recipient(params[:q]) if params[:q].present?
 
-    if @transfers_enabled
-      @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
-      @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
-      @disbursements = @disbursements.rejected if params[:filter] == "canceled"
-      @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
-    end
+    @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
+    @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
+    @disbursements = @disbursements.rejected if params[:filter] == "canceled"
+    @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
 
     @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements + @card_grants).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
 
@@ -702,33 +699,6 @@ class EventsController < ApplicationController
     @event.logo.purge_later
 
     redirect_back fallback_location: edit_event_path(@event)
-  end
-
-  def enable_feature
-    authorize @event
-    feature = params[:feature]
-    if Flipper.enable_actor(feature, @event)
-      flash[:success] = "Opted into beta"
-    else
-      flash[:error] = "Error while opting into beta"
-    end
-    redirect_to edit_event_path(@event)
-  end
-
-  def disable_feature
-    authorize @event
-    feature = params[:feature]
-    if Flipper.disable_actor(feature, @event)
-      # If it's the user permissions feature, make all the users & invites in the org managers.
-      if feature == "user_permissions_2024_03_09"
-        @event.organizer_positions.update_all(role: :manager)
-        @event.organizer_position_invites.pending.update_all(role: :manager)
-      end
-      flash[:success] = "Opted out of beta"
-    else
-      flash[:error] = "Error while opting out of beta"
-    end
-    redirect_to edit_event_path(@event)
   end
 
   def toggle_event_tag

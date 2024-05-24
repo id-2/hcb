@@ -67,25 +67,15 @@ class AdminController < ApplicationController
 
   def partner_edit
     @partner = Partner.find(params.require(:id))
-    edit_params = params.require(:partner).permit(
-      :docusign_template_id
-    )
+    edit_params = params.require(:partner)
     @partner.update!(edit_params)
     flash[:success] = "Partner updated"
     redirect_to partners_admin_index_path
   end
 
   def partnered_signup_sign_document
-    @partnered_signup = PartneredSignup.find(params.require(:id))
-
-    # Do not allow admins to sign if the applicant has not already signec
-    unless @partnered_signup.applicant_signed?
-      flash[:error] = "Applicant has not signed yet!"
-      redirect_to partnered_signups_admin_index_path and return
-    end
-
-    admin_contract_signing = Partners::Docusign::AdminContractSigning.new(@partnered_signup)
-    redirect_to admin_contract_signing.admin_signing_link, allow_other_host: true
+    # @msw: now that we're removing the partnered signup flow with docusign, this is just hardcoded to redirect to the root path
+    redirect_to root_path
   end
 
   def partnered_signups
@@ -228,6 +218,14 @@ class AdminController < ApplicationController
       @event.balance.to_i
     end
     render :event_balance, layout: false
+  end
+
+  def event_raised
+    @event = Event.friendly.find(params[:id])
+    @raised = Rails.cache.fetch("admin_event_raised_#{@event.id}", expires_in: 5.minutes) do
+      @event.total_raised.to_i
+    end
+    render :event_raised, layout: false
   end
 
   def event_toggle_approved
@@ -968,6 +966,20 @@ class AdminController < ApplicationController
     redirect_to google_workspace_process_admin_path(@g_suite), flash: { success: "#{has_existing_key ? 'Updated verification key' : 'Approved'} (it may take a few seconds for the dashboard to reflect this change)" }
   end
 
+  def google_workspace_verify
+    @g_suite = GSuite.find(params[:id])
+
+    GSuiteService::Verify.new(g_suite_id: @g_suite.id).run
+
+    redirect_to google_workspace_process_admin_path(@g_suite), flash: { success: "Verification in progress. It may take a few minutes for this domain to reflect an updated verification status." }
+  end
+
+  def google_workspaces_verify_all
+    GSuiteJob::VerifyAll.perform_later
+
+    redirect_to google_workspaces_admin_index_path, flash: { success: "Verification in progress. It may take a few minutes for domains to reflect updated verification statuses." }
+  end
+
   def google_workspace_update
     @g_suite = GSuite.find(params[:id])
 
@@ -1156,6 +1168,33 @@ class AdminController < ApplicationController
     @page = params[:page] || 1
     @per = params[:per] || 20
     @users = User.where(id: Event.hack_club_hq.or(Event.omitted).includes(:users).flat_map(&:users).map(&:id)).page(@page).per(@per).order(created_at: :desc)
+
+    render layout: "admin"
+  end
+
+  def account_numbers
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @q = params[:q].present? ? params[:q] : nil
+    @event_id = params[:event_id].present? ? params[:event_id] : nil
+    @account_number_type = params[:account_number_type].present? ? params[:account_number_type] : nil # default/nil = show all, 1 = deposit only, 2 = spend + deposit
+
+    relation = Column::AccountNumber.includes(:event)
+
+    if @event_id
+      relation = relation.where(event_id: @event_id)
+    end
+
+    if @account_number_type == "1"
+      relation = relation.where(deposit_only: true)
+    elsif @account_number_type == "2"
+      relation = relation.where(deposit_only: false)
+    end
+
+    relation = relation.where(account_number: @q) if @q
+
+    @count = relation.count
+    @account_numbers = relation.page(@page).per(@per).order("events.id desc")
 
     render layout: "admin"
   end

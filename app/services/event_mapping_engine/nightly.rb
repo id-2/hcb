@@ -13,7 +13,6 @@ module EventMappingEngine
       map_column_account_number_transactions!
 
       map_stripe_transactions!
-      map_github!
       map_checks!
       map_increase_checks!
       map_clearing_checks!
@@ -59,10 +58,6 @@ module EventMappingEngine
       ::EventMappingEngine::Map::StripeTransactions.new(start_date: @start_date).run
     end
 
-    def map_github!
-      ::EventMappingEngine::Map::Github.new.run
-    end
-
     def map_checks!
       begin
         ::EventMappingEngine::Map::Checks.new.run
@@ -81,6 +76,13 @@ module EventMappingEngine
 
     def map_check_deposits!
       CanonicalTransaction.unmapped.likely_increase_check_deposit.find_each(batch_size: 100) do |ct|
+        check_deposit = ct.check_deposit
+        next unless check_deposit
+
+        CanonicalEventMapping.create!(event: check_deposit.event, canonical_transaction: ct)
+      end
+
+      CanonicalTransaction.unmapped.with_column_transaction_type("check.outgoing_debit").find_each(batch_size: 100) do |ct|
         check_deposit = ct.check_deposit
         next unless check_deposit
 

@@ -7,7 +7,7 @@
 #  id                       :bigint           not null, primary key
 #  access_level             :integer          default("user"), not null
 #  birthday_ciphertext      :text
-#  comment_notifications    :integer          default(0), not null
+#  comment_notifications    :integer          default("all_threads"), not null
 #  email                    :text
 #  full_name                :string
 #  locked_at                :datetime
@@ -43,6 +43,9 @@ class User < ApplicationRecord
   extend FriendlyId
 
   has_paper_trail only: [:access_level]
+
+  include PublicActivity::Model
+  tracked owner: proc{ |controller, record| controller&.current_user || User.find_by(email: "bank@hackclub.com") }, recipient: proc { |controller, record| record }, only: [:create, :update]
 
   include PgSearch::Model
   pg_search_scope :search_name, against: [:full_name, :email, :phone_number], using: { tsearch: { prefix: true, dictionary: "english" } }
@@ -95,7 +98,7 @@ class User < ApplicationRecord
 
   has_many :reimbursement_reports, class_name: "Reimbursement::Report"
   has_many :created_reimbursement_reports, class_name: "Reimbursement::Report", foreign_key: "invited_by_id", inverse_of: :inviter
-  has_many :reimbursement_reports_to_review, class_name: "Reimbursement::Report", foreign_key: "reviewer_id", inverse_of: :reviewer
+  has_many :assigned_reimbursement_reports, class_name: "Reimbursement::Report", foreign_key: "reviewer_id", inverse_of: :reviewer
 
   has_many :card_grants
 
@@ -129,6 +132,7 @@ class User < ApplicationRecord
 
   validates :email, uniqueness: true, presence: true
   validates_email_format_of :email
+  normalizes :email, with: ->(email) { email.strip.downcase }
   validates :phone_number, phone: { allow_blank: true }
 
   validates :preferred_name, length: { maximum: 30 }

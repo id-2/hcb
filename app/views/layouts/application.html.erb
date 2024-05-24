@@ -12,8 +12,8 @@
 
     <%= javascript_include_tag "dark", 'data-turbo-track': "reload" %>
     <%= stylesheet_link_tag "application", media: "all", 'data-turbo-track': "reload" %>
-    <%= javascript_include_tag "bundle", 'data-turbo-track': "reload", defer: true %>
     <%= javascript_include_tag "application", 'data-turbo-track': "reload", defer: true %>
+    <%= javascript_include_tag "bundle", 'data-turbo-track': "reload", defer: true %>
 
     <% if signed_in? %>
       <script>
@@ -30,31 +30,33 @@
       <script async src="https://cdn.headwayapp.co/widget.js"></script>
     <% end %>
 
-    <script>
-      console.log(`%c                -*%@@%*-
-            .=#@@@@@@@@@@#=.
-         .=%@@@@@*-..-*@@@@@%=.
-       -#@@@@@+:        :+@@@@@#-
-    :*@@@@@*:              :*@@@@@*:
-  =%@@@@#-                    -#@@@@%=.
-*@@@@@+.                        .+@@@@@*
-*@@*-   *@@*      *@@*      *@@*   :*@@*
-        @@@@      @@@@      @@@@
-        @@@@      @@@@      @@@@
-        @@@@      @@@@      @@@@
-        @@@@      @@@@      @@@@
-        @@@@      @@@@      @@@@
-        @@@@      @@@@      @@@@
-        @@@@      @@@@      @@@@
-        *@@*      *@@*      *@@*
+    <% if Rails.env.production? %>
+      <script>
+        console.log(`%c                -*%@@%*-
+              .=#@@@@@@@@@@#=.
+          .=%@@@@@*-..-*@@@@@%=.
+        -#@@@@@+:        :+@@@@@#-
+      :*@@@@@*:              :*@@@@@*:
+    =%@@@@#-                    -#@@@@%=.
+  *@@@@@+.                        .+@@@@@*
+  *@@*-   *@@*      *@@*      *@@*   :*@@*
+          @@@@      @@@@      @@@@
+          @@@@      @@@@      @@@@
+          @@@@      @@@@      @@@@
+          @@@@      @@@@      @@@@
+          @@@@      @@@@      @@@@
+          @@@@      @@@@      @@@@
+          @@@@      @@@@      @@@@
+          *@@*      *@@*      *@@*
 
-  *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
-  *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
+    *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
+    *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
 
-        Come hack on HCB with us!
-<%= Rails.configuration.constants.hack_on_hcb_form_url %>
-`, 'color: #ec3750; font-weight: bold; font-size: 10px;')
-    </script>
+          Come hack on HCB with us!
+  <%= Rails.configuration.constants.hack_on_hcb_form_url %>
+  `, 'color: #ec3750; font-weight: bold; font-size: 10px;')
+      </script>
+    <% end %>
 
     <meta name="format-detection" content="telephone=no">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -87,31 +89,25 @@
     <% end %>
     <% if @event&.is_public && !organizer_signed_in? && !@no_app_shell && !@no_transparency_header && !@use_user_nav %>
       <div class="w-100 px3 bg-white transparency-banner" data-behavior="hide_iframe">
-        <p class="h5 medium center mt1 mb1">
-          This HCB project has been made public so you can see all its finances.
-          Hey, <%= link_to "what’s HCB?", "https://hackclub.com/hcb/", target: "_blank", class: "primary" %>
+        <p class="h5 font-medium text-center text-balance mt1 mb1">
+          This HCB organization has made their finances public.
+          Hey, <%= link_to "what’s HCB?", "https://hackclub.com/fiscal-sponsorship/", target: "_blank", class: "primary" %>
         </p>
       </div>
     <% end %>
 
     <% if @event&.demo_mode? && !@no_app_shell && !@no_transparency_header %>
-      <%= link_to "#{event_url @event}#playground-callout", class: "w-full dev-banner dev-banner--info rounded-b no-underline", style: "color: unset" do %>
+      <div class="w-full dev-banner dev-banner--info rounded-b no-underline">
         <div class="flex flex-col md:flex-row gap-y-2 gap-x-6 py-6 items-center justify-center">
-          <p class="font-semibold text-xl m0">Playground Mode</p>
-          <button id="mock-data-toggle" data-mock-data-status="<%= show_mock_data? %>" class="btn btn-small w-fit shrink-none nowrap">
+          <%= link_to "#playground-callout", class: "no-underline text-[inherit] hover:text-[inherit]" do %>
+            <p class="font-semibold text-xl m0">Playground Mode</p>
+          <% end %>
+          <%= link_to({ show_mock_data: !show_mock_data? }, class: "btn btn-small w-fit shrink-none nowrap") do %>
             <%= inline_icon "view" %>
             <%= show_mock_data? ? "Hide" : "Show" %> Mock Data
-          </button>
-          <script>
-            document.getElementById("mock-data-toggle").addEventListener("click", ({ target }) => {
-              const currentStatus = target.dataset.mockDataStatus === "true" ? true : false;
-              const url = new URL(window.location.href);
-              url.searchParams.set("show_mock_data", !currentStatus);
-              window.location.href = url.toString();
-            });
-          </script>
+          <% end %>
         </div>
-      <% end %>
+      </div>
     <% end %>
 
     <%# LET THERE BE SNOW %>
@@ -149,7 +145,7 @@
             </div>
           </div>
         <% end %>
-
+        <%= render "application/the_bin" if @the_bin %>
         <aside class="app__sidebar">
           <%= render "application/header" %>
           <%= render "application/flash" %>

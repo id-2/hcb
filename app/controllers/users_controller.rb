@@ -36,7 +36,7 @@ class UsersController < ApplicationController
   end
 
   def auth_submit
-    @email = params[:email]&.downcase
+    @email = params[:email]
     user = User.find_by(email: @email)
 
     has_webauthn_enabled = user&.webauthn_credentials&.any?
@@ -76,7 +76,7 @@ class UsersController < ApplicationController
   # post to request login code
   def login_code
     @return_to = params[:return_to]
-    @email = params.require(:email)&.downcase
+    @email = params.require(:email)
     @force_use_email = params[:force_use_email]
 
     initialize_sms_params
@@ -250,46 +250,6 @@ class UsersController < ApplicationController
     ReceiptReportJob::Send.perform_later(current_user.id, force_send: true)
     flash[:success] = "Receipt report generating. Check #{current_user.email}"
     redirect_to settings_previews_path
-  end
-
-  FEATURES = { # the keys are current feature flags, the values are emojis that show when-enabled.
-    receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
-    sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
-    hcb_code_popovers_2023_06_16: nil,
-    rename_on_homepage_2023_12_06: %w[🖊️ ⚡ ⌨️]
-  }.freeze
-
-  def enable_feature
-    @user = current_user
-    @feature = params[:feature]
-    authorize @user
-    if FEATURES.key?(@feature.to_sym) || @user.admin?
-      if Flipper.enable_actor(@feature, @user)
-        confetti!(emojis: FEATURES[@feature.to_sym])
-        flash[:success] = "Opted into beta"
-      else
-        flash[:error] = "Error while opting into beta"
-      end
-    else
-      flash[:error] = "Beta doesn't exist."
-    end
-    redirect_back fallback_location: settings_previews_path
-  end
-
-  def disable_feature
-    @user = current_user
-    @feature = params[:feature]
-    authorize @user
-    if FEATURES.key?(@feature.to_sym) || @user.admin?
-      if Flipper.disable_actor(@feature, @user)
-        flash[:success] = "Opted out of beta"
-      else
-        flash[:error] = "Error while opting out of beta"
-      end
-    else
-      flash[:error] = "Beta doesn't exist."
-    end
-    redirect_back fallback_location: settings_previews_path
   end
 
   def edit

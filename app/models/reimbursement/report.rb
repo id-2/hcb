@@ -42,7 +42,7 @@ module Reimbursement
     belongs_to :user
     belongs_to :event
     belongs_to :inviter, class_name: "User", foreign_key: "invited_by_id", optional: true, inverse_of: :created_reimbursement_reports
-    belongs_to :reviewer, class_name: "User", optional: true, inverse_of: :reimbursement_reports_to_review
+    belongs_to :reviewer, class_name: "User", optional: true, inverse_of: :assigned_reimbursement_reports
 
     has_paper_trail ignore: :expense_number
 
@@ -53,7 +53,7 @@ module Reimbursement
     has_many :expenses, foreign_key: "reimbursement_report_id", inverse_of: :report, dependent: :delete_all
     has_one :payout_holding, inverse_of: :report
     alias_attribute :report_name, :name
-    attribute :name, :string, default: "Expenses from #{Time.now.strftime("%B %e, %Y")}"
+    attribute :name, :string, default: -> { "Expenses from #{Time.now.strftime("%B %e, %Y")}" }
 
     scope :search, ->(q) { joins(:user).where("users.full_name ILIKE :query OR reimbursement_reports.name ILIKE :query", query: "%#{User.sanitize_sql_like(q)}%") }
     scope :pending, -> { where(aasm_state: ["draft", "submitted", "reimbursement_requested"]) }
@@ -62,6 +62,9 @@ module Reimbursement
     include AASM
     include Commentable
     include Hashid::Rails
+
+    include PublicActivity::Model
+    tracked owner: proc{ |controller, record| controller&.current_user || User.find_by(email: "bank@hackclub.com") }, recipient: proc { |controller, record| record.user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
 
     acts_as_paranoid
 
@@ -111,6 +114,7 @@ module Reimbursement
         end
         after do
           ReimbursementMailer.with(report: self).reimbursement_approved.deliver_later
+          create_activity(key: "reimbursement_report.approved", owner: user)
         end
       end
 
@@ -223,7 +227,13 @@ module Reimbursement
     end
 
     def team_review_required?
-      !event.users.include?(user) || (event.reimbursements_require_organizer_peer_review && event.users.size > 1)
+      !event.users.include?(user) || OrganizerPosition.find_by(user:, event:)&.member? || (event.reimbursements_require_organizer_peer_review && event.users.size > 1)
+    end
+
+    def reimbursement_confirmation_message
+      return nil if expenses.pending.none?
+
+      "#{expenses.pending.count} #{"expense".pluralize(expenses.pending.count)} #{expenses.pending.count == 1 ? "hasn't" : "haven't"} been approved; if you continue, #{expenses.pending.count == 1 ? "it" : "these"} will not be reimbursed."
     end
 
     private

@@ -101,6 +101,9 @@ class Invoice < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix :inv
 
+  include HasStripeDashboardUrl
+  has_stripe_dashboard_url "invoices", :stripe_invoice_id
+
   extend FriendlyId
   include AASM
   include Commentable
@@ -144,6 +147,7 @@ class Invoice < ApplicationRecord
     state :open_v2, initial: true
     state :paid_v2
     state :void_v2
+    state :refunded_v2
 
     event :mark_paid do
       transitions from: :open_v2, to: :paid_v2
@@ -151,6 +155,10 @@ class Invoice < ApplicationRecord
 
     event :mark_void do
       transitions from: :open_v2, to: :void_v2
+    end
+
+    event :mark_refunded do
+      transitions from: :paid_v2, to: :refunded_v2
     end
   end
 
@@ -281,16 +289,6 @@ class Invoice < ApplicationRecord
       self.payment_method_ach_credit_transfer_account_number = details.account_number
       self.payment_method_ach_credit_transfer_swift_code = details.swift_code
     end
-  end
-
-  def stripe_dashboard_url
-    url = "https://dashboard.stripe.com"
-
-    url += "/test" if StripeService.mode == :test
-
-    url += "/invoices/#{self.stripe_invoice_id}"
-
-    url
   end
 
   def arrival_date

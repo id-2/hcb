@@ -15,6 +15,12 @@ class StaticPagesController < ApplicationController
       @organizer_positions = @service.organizer_positions.not_hidden
       @invites = @service.invites
 
+      if admin_signed_in?
+        @activities = PublicActivity::Activity.all.order(created_at: :desc).page(params[:page]).per(25)
+      else
+        @activities = PublicActivity::Activity.for_user(current_user).order(created_at: :desc).page(params[:page]).per(25)
+      end
+
       @show_event_reorder_tip = current_user.organizer_positions.where.not(sort_index: nil).none?
 
       @hcb_expansion = Rails.cache.read("hcb_acronym_expansions")&.sample || "Hack Club Buckaroos"
@@ -23,6 +29,15 @@ class StaticPagesController < ApplicationController
     if admin_signed_in?
       @transaction_volume = CanonicalTransaction.included_in_stats.sum("@amount_cents")
     end
+  end
+
+  def my_activities
+    if admin_signed_in?
+      @activities = PublicActivity::Activity.all.order(created_at: :desc).page(params[:page]).per(25)
+    else
+      @activities = PublicActivity::Activity.for_user(current_user).order(created_at: :desc).page(params[:page]).per(25)
+    end
+    render partial: "static_pages/my_activities"
   end
 
   def branding
@@ -87,6 +102,11 @@ class StaticPagesController < ApplicationController
         "View another user's card number": :manager,
         "View card expiration date": :member,
         "View card billing address": :member,
+      },
+      Reimbursements: {
+        "Get reimbursed through HCB": :member,
+        "View reimbursement reports": :member,
+        "Review, approve, and reject reports": :manager,
       },
       "Google Workspace": {
         "Create an account": :manager,
@@ -157,16 +177,15 @@ class StaticPagesController < ApplicationController
   end
 
   def my_reimbursements
-    @reports = current_user.reimbursement_reports
-    @reports = @reports.pending if params[:filter] == "pending"
-    @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:filter] == "reimbursed"
-    @reports = @reports.rejected if params[:filter] == "rejected"
+    @reports = current_user.reimbursement_reports unless params[:filter] == "review_requested"
+    @reports = current_user.assigned_reimbursement_reports if params[:filter] == "review_requested"
     @reports = @reports.search(params[:q]) if params[:q].present?
     @payout_method = current_user.payout_method
   end
 
   def my_draft_reimbursements_icon
     @draft_reimbursements_count = current_user.reimbursement_reports.draft.count
+    @review_requested_reimbursements_count = current_user.assigned_reimbursement_reports.submitted.count
 
     render :my_draft_reimbursements_icon, layout: false
   end

@@ -2,11 +2,11 @@
 
 <% instance = local_assigns.__id__.to_s + receipt.id.to_s %>
 
-<div class="receipt flex flex-col relative mb1 hidden_except_<%= receipt.id %> <%= "receipt--pairing" if defined?(pairing) && pairing %>" <% if defined?(textual_content) %> data-textual-content="<%= j receipt.textual_content %>"<% end %> <% if defined?(style) %> style="<%= j style %>"<% end %> data-receipt-id="<%= receipt.id %>" style="--receipt-size: <%= defined?(size) ? size : 256 %>px;<% if defined?(selectable) %> cursor: pointer;" data-receipt-select-target="receipt" data-action="click->receipt-select#select<% end %>">
+<div id="receipt_<%= receipt.id %>" class="receipt flex flex-col relative mb1 hidden_except_<%= receipt.id %> <%= "receipt--pairing" if defined?(pairing) && pairing %>" <% if defined?(textual_content) %> data-textual-content="<%= j receipt.textual_content %>"<% end %> <% if defined?(style) %> style="<%= j style %>"<% end %> data-receipt-id="<%= receipt.id %>" style="--receipt-size: <%= defined?(size) ? size : 256 %>px;<% if defined?(selectable) %> cursor: pointer;" data-receipt-select-target="receipt" data-action="click->receipt-select#select<% end %>">
 
 <% unless defined?(hide_info) %>
   <span class="<%= "muted " unless defined?(selectable) %>mb1 flex items-center">
-    <button class="pop receipt__minimize" onClick="unexpandReceipt()">
+    <button class="pop receipt__minimize mr1" onClick="unexpandReceipt()">
       <%= inline_icon "view-back", size: 24 %>
     </button>
     <span>
@@ -90,7 +90,7 @@
               turbo: local_assigns[:turbo_for_deletion] ? "true" : "false",
               "turbo-method": "delete",
               "turbo-confirm": "Are you sure you'd like to delete this receipt?",
-              "confirm": "Are you sure you'd like to delete this receipt?"
+              "confirm": !local_assigns[:turbo_for_deletion] ? "Are you sure you'd like to delete this receipt?" : nil
             },
             size: 24,
             class: "error tooltipped tooltipped--w",
