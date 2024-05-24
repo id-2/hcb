@@ -3,21 +3,20 @@ module OrganizerPositions
     class ControlsController < ApplicationController
       before_action :set_organizer_position
 
+
       def new
         attributes = filtered_params
         attributes[:active] = true
 
-        @control = @op.spending_controls.create(attributes)
+        @control = @op.spending_controls.new(attributes)
 
         authorize @control
 
         if @control.save
-          @op.spending_controls.where(active: true).where.not(id: @control.id).update_all(active: false)
-
           flash[:success] = "Spending control successfully created!"
           redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
         else
-          # render :new, status: :unprocessable_entity
+          render :new, status: :unprocessable_entity
         end
       end
 
@@ -25,7 +24,11 @@ module OrganizerPositions
         authorize @op.active_spending_control
 
         if active_control = @op.active_spending_control
-          active_control.destroy if active_control.organizer_position_spending_allowances.count == 0
+          if active_control.organizer_position_spending_allowances.count == 0
+            active_control.destroy
+          else
+            active_control.update(active: false, ended_at: Time.current)
+          end
 
           flash[:success] = "Spending controls disabled for #{@op.user.name}!"
           redirect_to event_organizer_allowances_path organizer_id: @op.user.slug
