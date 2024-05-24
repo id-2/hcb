@@ -1,17 +1,14 @@
 class OrganizerPositions::Spending::AllowancesController < ApplicationController
   before_action :set_organizer_position
+  include Pundit::Authorization
 
   def index
-    skip_authorization
-    # authorize @op, :view_allowances?, policy_class: OrganizerPositionPolicy
+    authorize @op, policy_class: OrganizerPosition::Spending::AllowancePolicy # Uhhhhhh
+
 
     @active_control = @op.active_spending_control
     @inactive_control_count = @op.spending_controls.where(active: false).count
     @provisional_control = OrganizerPosition::Spending::Control.new(organizer_position: @op)
-
-    # @allowances_total = @allowances&.sum(:amount_cents) || 0
-    # @transactions_total = @op.stripe_cards.where(event: @op.event).sum(&:total_spent)
-    # @allowance_balance = @allowances_total - @transactions_total
   end
 
   def new
