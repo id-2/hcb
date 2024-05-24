@@ -25,11 +25,7 @@ module OrganizerPositions
         authorize @op.active_spending_control
 
         if active_control = @op.active_spending_control
-          if active_control.organizer_position_spending_allowances.count == 0
-            active_control.destroy
-          else
-            active_control.update(active: false, ended_at: Time.current)
-          end
+          active_control.destroy if active_control.organizer_position_spending_allowances.count == 0
 
           flash[:success] = "Spending controls disabled for #{@op.user.name}!"
           redirect_to event_organizer_allowances_path organizer_id: @op.user.slug

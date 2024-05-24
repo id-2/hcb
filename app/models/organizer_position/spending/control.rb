@@ -25,6 +25,8 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
   validate :one_active_control
   validate :inactive_control_has_end_date
 
+  after_create :deactive_other_controls
+
   def balance
     total_allocation_amount - total_spent
   end
@@ -46,6 +48,10 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
   end
 
   private
+
+  def deactive_other_controls
+    organizer_position.spending_controls.where(active: true).excluding(self).update_all(active: false, ended_at: Time.current)
+  end
 
   def one_active_control
     if organizer_position.spending_controls.where(active: true).size > 1
