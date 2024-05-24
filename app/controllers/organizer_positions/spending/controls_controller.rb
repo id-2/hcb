@@ -3,7 +3,6 @@ module OrganizerPositions
     class ControlsController < ApplicationController
       before_action :set_organizer_position
 
-
       def new
         attributes = filtered_params
         attributes[:active] = true
