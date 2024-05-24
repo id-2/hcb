@@ -10,7 +10,7 @@
       <% end %>
   <% end %>
 
-  <% if @op.active_spending_control %>
+  <% if @active_control %>
     <%= link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "new" } do %>
       <%= inline_icon "docs" %>
       New
