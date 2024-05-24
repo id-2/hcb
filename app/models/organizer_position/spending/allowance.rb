@@ -24,6 +24,7 @@ module OrganizerPosition::Spending
   class Allowance < ApplicationRecord
     belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
     belongs_to :authorized_by, class_name: "OrganizerPosition"
+    monetize :amount_cents
 
     has_one :organizer_position, through: :organizer_position_spending_control
 
