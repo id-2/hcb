@@ -40,14 +40,9 @@ class OrganizerPosition::Spending::Control < ApplicationRecord
 
   def transactions
     card_ids = organizer_position.stripe_cards.pluck(:stripe_id)
-    RawPendingStripeTransaction.pending.where("stripe_transaction->'card'->>'id' IN (?)", card_ids)
+    RawPendingStripeTransaction.pending.where("(stripe_transaction->'card'->>'id' IN (?)) AND (CAST(stripe_transaction->>'created' AS BIGINT) BETWEEN EXTRACT(EPOCH FROM TIMESTAMP ?) AND EXTRACT(EPOCH FROM TIMESTAMP ?))", card_ids, created_at, (ended_at || Float::INFINITY))
                                .includes(:canonical_pending_transaction)
                                .map(&:canonical_pending_transaction)
-    # organizer_position
-    #   .stripe_cards
-    #   .map { |card| card.canonical_pending_transactions }
-    #   .flatten
-    #   .select { |transaction| (created_at..ended_at).cover?(Time.at(transaction.raw_pending_stripe_transaction.stripe_transaction["created"])) }
   end
 
   private
