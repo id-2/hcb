@@ -23,18 +23,18 @@
   <%= render "form" %>
 </div>
 
-<% if @op.active_spending_control %>
+<% if @active_control %>
     <div class="statset mt3 mb2">
     <div class="stat stat--small">
         <span class="stat__label">Balance</span>
         <span class="stat__value">
-        <%= render_money_amount @op.active_spending_control.balance %>
+        <%= render_money_amount @active_control.balance %>
         </span>
     </div>
     <div class="stat stat--small">
         <span class="stat__label">Total Allowances</span>
         <span class="stat__value">
-        <%= render_money_amount @op.active_spending_control.total_allocation_amount %>
+        <%= render_money_amount @active_control.total_allocation_amount %>
         </span>
     </div>
     <div class="stat stat--small">
@@ -74,7 +74,7 @@
   <% end %>
 <% end %>
 <% end %>
-<%= render "callout", type: "info", title: "Spending controls are #{@op.active_spending_control ? "enabled" : "disabled"} for #{@op.user.first_name}.", footer: spending_controls_callout_footer  do %>
+<%= render "callout", type: "info", title: "Spending controls are #{@active_control ? "enabled" : "disabled"} for #{@op.user.first_name}.", footer: spending_controls_callout_footer  do %>
   <ul>
     <li>Spending controls let managers control and pre-authorize an amount to be spent by a user.</li>
     <li>Your organization's balance will not change when an allowance is created.</li>
@@ -93,7 +93,7 @@
     <% if @active_control&.organizer_position_spending_allowances.blank? %>
       <%= blankslate "No allowances yet" %>
     <% else %>
-        <%= render "organizer_positions/spending/controls/spending_items", items: sorted_spending_items(@op.active_spending_control) %>
+<%= render "organizer_positions/spending/controls/spending_items", items: sorted_spending_items(@active_control) %>
     <% end %>
 <% end %>
 
