@@ -29,7 +29,7 @@ module OrganizerPositions
           flash[:success] = "Spending allowance created."
           redirect_to event_organizer_allowances_path organizer_id: @allowance.organizer_position.user.slug
         else
-          #      render :new, status: :unprocessable_entity
+          render :new, status: :unprocessable_entity
         end
       end
 
