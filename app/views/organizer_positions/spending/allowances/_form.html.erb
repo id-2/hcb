@@ -1,7 +1,7 @@
 <%= form_with(model: @spending_allowance, local: true, data: { turbo: false }) do |form| %>
   <div class="field">
     <%= form.label :amount %>
-    <%= form.number_field :amount_cents, placeholder: "500.00", required: true, step: 0.01, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()" %>
+    <%= form.number_field :amount, placeholder: "500.00", required: true, step: 0.01, onkeydown: "event.key == 'Enter' && event.target.form.requestSubmit()" %>
   </div>
 
   <div class="field">
