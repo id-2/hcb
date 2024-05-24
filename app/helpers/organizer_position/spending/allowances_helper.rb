@@ -9,15 +9,9 @@ module OrganizerPosition::Spending::AllowancesHelper
   end
 
   def sorted_spending_items(control)
-    transactions = control.transactions
-    allowances = control.organizer_position_spending_allowances
-
-    if !allowances || params[:filter] == "transactions"
-      @spending_items = transactions.sort_by(&:created_at).reverse
-    elsif !transactions || params[:filter] == "allowances"
-      @spending_items = allowances.order(created_at: :desc)
-    else
-      @spending_items = (transactions + allowances).sort_by(&:created_at).reverse
-    end
+    @spending_items = []
+    @spending_items << control.transactions.sort_by(&:created_at).reverse! unless params[:filter] == "allowances"
+    @spending_items << control.organizer_position_spending_allowances.order(created_at: :desc) unless params[:filter] == "transactions"
+    @spending_items.flatten!.sort_by(&:created_at).reverse!
   end
 end
