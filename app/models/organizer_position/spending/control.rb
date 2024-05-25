@@ -26,6 +26,7 @@ class OrganizerPosition
 
       validate :one_active_control
       validate :inactive_control_has_end_date
+      validates_presence_of :active, on: :create # can't create inactive control
 
       after_create :deactive_other_controls
 
