@@ -23,10 +23,12 @@ class OrganizerPosition
     class Control < ApplicationRecord
       belongs_to :organizer_position
       has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", dependent: :destroy
+      scope :inactive, -> { where(active: false) }
 
       validate :one_active_control
       validate :inactive_control_has_end_date
       validates_presence_of :active, on: :create # can't create inactive control
+
 
       after_create :deactive_other_controls
 
