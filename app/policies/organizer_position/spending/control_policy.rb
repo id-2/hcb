@@ -1,10 +1,8 @@
 class OrganizerPosition::Spending::ControlPolicy < ApplicationPolicy
   def new?
-    record.active && (
-      user.admin? || (
-        OrganizerPosition.find_by(user:, event: record.organizer_position.event).manager? &&
-        user != record.organizer_position.user
-      )
+    user.admin? || (
+      OrganizerPosition.find_by(user:, event: record.organizer_position.event).manager? &&
+      user != record.organizer_position.user
     )
   end
 
