@@ -1,7 +1,8 @@
-class OrganizerPosition
+module OrganizerPositions
   module Spending
     class AllowancesController < ApplicationController
       before_action :set_organizer_position
+      include Pundit::Authorization
 
       def index
         authorize @op, policy_class: OrganizerPosition::Spending::AllowancePolicy # Uhhhhhh
@@ -50,5 +51,4 @@ class OrganizerPosition
 
     end
   end
-
 end

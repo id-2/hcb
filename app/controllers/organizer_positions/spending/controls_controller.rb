@@ -1,4 +1,4 @@
-class OrganizerPosition
+module OrganizerPositions
   module Spending
     class ControlsController < ApplicationController
       before_action :set_organizer_position
@@ -55,5 +55,4 @@ class OrganizerPosition
 
     end
   end
-
 end

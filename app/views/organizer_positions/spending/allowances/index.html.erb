@@ -125,7 +125,7 @@
     <div data-behavior="modal" role="dialog" id="past-controls" class="modal modal--scroll modal--huge bg-snow">
         <%= modal_header "Past controls" %>
 
-        <% @op.spending_controls.inactive.order(created_at: :desc).each do |c| %>
+        <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each_with_index do |c, i| %>
             <div class="card <%= "mt-8" unless i.zero? %>">
                 <h4 class="m0 mb1 inline-flex items-center g2">
                     Active
