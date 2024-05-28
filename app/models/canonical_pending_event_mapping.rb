@@ -28,5 +28,8 @@ class CanonicalPendingEventMapping < ApplicationRecord
   belongs_to :subledger, optional: true
 
   scope :on_main_ledger, -> { where(subledger_id: nil) }
-
+  
+  after_create_commit do
+    canonical_pending_transaction.activities.update(event_id: event.id)
+  end
 end

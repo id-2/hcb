@@ -135,6 +135,9 @@ class CanonicalPendingTransaction < ApplicationRecord
 
   attr_writer :stripe_cardholder
 
+  include PublicActivity::Model
+  tracked owner: proc{ |controller, record| record.stripe_card&.user }, event_id: proc { |controller, record| record.event&.id }, recipient: proc { |controller, record| record.stripe_card&.user }, only: [:create]
+
   def mapped?
     @mapped ||= canonical_pending_event_mapping.present?
   end
