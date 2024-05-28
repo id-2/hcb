@@ -20,18 +20,20 @@
 #  fk_rails_...  (authorized_by_id => users.id)
 #  fk_rails_...  (organizer_position_spending_control_id => organizer_position_spending_controls.id)
 #
-module OrganizerPosition::Spending
-  class Allowance < ApplicationRecord
-    belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
-    belongs_to :authorized_by, class_name: "OrganizerPosition"
-    monetize :amount_cents
+class OrganizerPosition
+  module Spending
+    class Allowance < ApplicationRecord
+      belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
+      belongs_to :authorized_by, class_name: "OrganizerPosition"
+      monetize :amount_cents
 
-    has_one :organizer_position, through: :organizer_position_spending_control
+      has_one :organizer_position, through: :organizer_position_spending_control
 
-  end
+    end
 
-  def self.table_name_prefix
-    "organizer_position_spending_"
+    def self.table_name_prefix
+      "organizer_position_spending_"
+    end
   end
 
 end
