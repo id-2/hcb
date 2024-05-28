@@ -9,7 +9,7 @@
       donated <%= render_money hcb_code.amount %> to <%= link_to activity.trackable.event.name, activity.trackable.event %>
     <% end %>
   <% end %>
-  
+
   <%# invoice %>
   <% if hcb_code.invoice? && hcb_code.invoice.present? %>
     <%= render layout: "/public_activity/common", locals: { activity:, hide_owner: true, icon: "briefcase", color: "info" } do %>
@@ -17,7 +17,7 @@
       invoice on <%= link_to activity.trackable.event.name, activity.trackable.event %>
     <% end %>
   <% end %>
-  
+
   <%# ach_transfer %>
   <% if hcb_code.ach_transfer? && hcb_code.ach_transfer.present? %>
     <%= render layout: "/public_activity/common", locals: { activity:, hide_owner: true, icon: "payment-transfer", color: "info" } do %>
@@ -25,7 +25,7 @@
       to <%= hcb_code.ach_transfer.recipient_name %> from <%= link_to activity.trackable.event.name, activity.trackable.event %>
     <% end %>
   <% end %>
-  
+
   <%# check %>
   <% if hcb_code.increase_check? && hcb_code.increase_check.present? %>
     <%= render layout: "/public_activity/common", locals: { activity:, hide_owner: true, icon: "email", color: "info" } do %>
@@ -64,14 +64,14 @@
       <% end %>
     <% end %>
   <% end %>
-  
+
   <%# fee revenue %>
   <% if hcb_code.fee_revenue? && hcb_code.fee_revenue.present? %>
     <%= render layout: "/public_activity/common", locals: { activity:, hide_owner: true, icon: "plus-fill", color: "primary" } do %>
       HCB received <%= render_money hcb_code.amount %> in fee revenue
     <% end %>
   <% end %>
-  
+
   <%# the activity log currently doesn't support any other HCB code types. %>
 
 <% end %>
