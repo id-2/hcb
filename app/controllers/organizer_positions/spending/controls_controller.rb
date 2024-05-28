@@ -22,7 +22,7 @@ module OrganizerPositions
 
         if @control.save
           flash[:success] = "Spending control successfully created!"
-          redirect_to event_organizer_allowances_path organizer_id: @organizer_position.user.slug
+          redirect_to event_organizer_controls_path organizer_id: @organizer_position
         else
           render :new, status: :unprocessable_entity
         end
@@ -39,7 +39,7 @@ module OrganizerPositions
           end
 
           flash[:success] = "Spending controls disabled for #{@organizer_position.user.name}!"
-          redirect_to event_organizer_allowances_path organizer_id: @organizer_position.user.slug
+          redirect_to event_organizer_controls_path organizer_id: @organizer_position
         else
           flash[:error] = "There is no active spending control to destroy"
           redirect_to root_path
