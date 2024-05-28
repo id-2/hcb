@@ -3,6 +3,15 @@ module OrganizerPositions
     class ControlsController < ApplicationController
       before_action :set_organizer_position
 
+      def index
+        @provisional_control = OrganizerPosition::Spending::Control.new(organizer_position: @op)
+
+        authorize @provisional_control
+
+        @active_control = @op.active_spending_control
+        @inactive_control_count = @op.spending_controls.where(active: false).count
+      end
+
       def new
         attributes = filtered_params
         attributes[:active] = true
