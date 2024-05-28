@@ -1,0 +1,337 @@
+diff --git a/app/controllers/organizer_positions/spending/allowances_controller.rb b/app/controllers/organizer_position/spending/allowances_controller.rb
+similarity index 96%
+rename from app/controllers/organizer_positions/spending/allowances_controller.rb
+rename to app/controllers/organizer_position/spending/allowances_controller.rb
+index 3d535c987..0bc7575eb 100644
+--- a/app/controllers/organizer_positions/spending/allowances_controller.rb
++++ b/app/controllers/organizer_position/spending/allowances_controller.rb
+@@ -1,8 +1,7 @@
+-module OrganizerPositions
++class OrganizerPosition
+   module Spending
+     class AllowancesController < ApplicationController
+       before_action :set_organizer_position
+-      include Pundit::Authorization
+ 
+       def index
+         authorize @op, policy_class: OrganizerPosition::Spending::AllowancePolicy # Uhhhhhh
+@@ -51,4 +50,5 @@ module OrganizerPositions
+ 
+     end
+   end
++
+ end
+diff --git a/app/controllers/organizer_positions/spending/controls_controller.rb b/app/controllers/organizer_position/spending/controls_controller.rb
+similarity index 98%
+rename from app/controllers/organizer_positions/spending/controls_controller.rb
+rename to app/controllers/organizer_position/spending/controls_controller.rb
+index e25f1f8d2..ef3827849 100644
+--- a/app/controllers/organizer_positions/spending/controls_controller.rb
++++ b/app/controllers/organizer_position/spending/controls_controller.rb
+@@ -1,9 +1,8 @@
+-module OrganizerPositions
++class OrganizerPosition
+   module Spending
+     class ControlsController < ApplicationController
+       before_action :set_organizer_position
+ 
+-
+       def new
+         attributes = filtered_params
+         attributes[:active] = true
+@@ -56,4 +55,5 @@ module OrganizerPositions
+ 
+     end
+   end
++
+ end
+diff --git a/app/helpers/organizer_position/spending/allowances_helper.rb b/app/helpers/organizer_position/spending/allowances_helper.rb
+index 25d353e31..8f47459d5 100644
+--- a/app/helpers/organizer_position/spending/allowances_helper.rb
++++ b/app/helpers/organizer_position/spending/allowances_helper.rb
+@@ -1,17 +1,22 @@
+-module OrganizerPosition::Spending::AllowancesHelper
++class OrganizerPosition
++  module Spending
++    class AllowancesHelper
++      def item_to_real_created_date(item)
++        if item.is_a? CanonicalPendingTransaction
++          return Time.at(item.raw_pending_stripe_transaction.stripe_transaction["created"])
++        end
+ 
+-  def item_to_real_created_date(item)
+-    if item.is_a? CanonicalPendingTransaction
+-      return Time.at(item.raw_pending_stripe_transaction.stripe_transaction["created"])
+-    end
++        return item.created_at
++      end
+ 
+-    return item.created_at
+-  end
++      def sorted_spending_items(control)
++        @spending_items = []
++        @spending_items << control.transactions.sort_by(&:created_at).reverse! unless params[:filter] == "allowances"
++        @spending_items << control.organizer_position_spending_allowances.order(created_at: :desc) unless params[:filter] == "transactions"
++        @spending_items.flatten!.sort_by(&:created_at).reverse!
++      end
+ 
+-  def sorted_spending_items(control)
+-    @spending_items = []
+-    @spending_items << control.transactions.sort_by(&:created_at).reverse! unless params[:filter] == "allowances"
+-    @spending_items << control.organizer_position_spending_allowances.order(created_at: :desc) unless params[:filter] == "transactions"
+-    @spending_items.flatten!.sort_by(&:created_at).reverse!
++    end
+   end
++
+ end
+diff --git a/app/models/organizer_position.rb b/app/models/organizer_position.rb
+index 2522eabdb..024e42291 100644
+--- a/app/models/organizer_position.rb
++++ b/app/models/organizer_position.rb
+@@ -43,7 +43,7 @@ class OrganizerPosition < ApplicationRecord
+   validates :user, uniqueness: { scope: :event, conditions: -> { where(deleted_at: nil) } }
+ 
+   delegate :initial?, to: :organizer_position_invite, allow_nil: true
+-  has_many :stripe_cards, ->(organizer_position) { where event_id: organizer_position.event.id }, through: :user
++  has_many :stripe_cards, ->(organizer_position) { where event: organizer_position.event }, through: :user
+ 
+   alias_attribute :signee, :is_signee
+ 
+diff --git a/app/models/organizer_position/spending.rb b/app/models/organizer_position/spending.rb
+index 23fb69724..ccace51bd 100644
+--- a/app/models/organizer_position/spending.rb
++++ b/app/models/organizer_position/spending.rb
+@@ -1,5 +1,8 @@
+-module OrganizerPosition::Spending
+-  def self.table_name_prefix
+-    "organizer_position_spending_"
++class OrganizerPosition
++  module Spending
++    def self.table_name_prefix
++      "organizer_position_spending_"
++    end
+   end
++
+ end
+diff --git a/app/models/organizer_position/spending/allowance.rb b/app/models/organizer_position/spending/allowance.rb
+index 43db8942e..8ed3346dd 100644
+--- a/app/models/organizer_position/spending/allowance.rb
++++ b/app/models/organizer_position/spending/allowance.rb
+@@ -20,18 +20,21 @@
+ #  fk_rails_...  (authorized_by_id => users.id)
+ #  fk_rails_...  (organizer_position_spending_control_id => organizer_position_spending_controls.id)
+ #
+-module OrganizerPosition::Spending
+-  class Allowance < ApplicationRecord
+-    belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
+-    belongs_to :authorized_by, class_name: "OrganizerPosition"
+-    monetize :amount_cents
++class OrganizerPosition
++  module Spending
++    class Allowance < ApplicationRecord
++      belongs_to :organizer_position_spending_control, class_name: "OrganizerPosition::Spending::Control"
++      belongs_to :authorized_by, class_name: "OrganizerPosition"
++      monetize :amount_cents
+ 
+-    has_one :organizer_position, through: :organizer_position_spending_control
++      has_one :organizer_position, through: :organizer_position_spending_control
+ 
+-  end
++    end
++
++    def self.table_name_prefix
++      "organizer_position_spending_"
++    end
+ 
+-  def self.table_name_prefix
+-    "organizer_position_spending_"
+   end
+ 
+ end
+diff --git a/app/models/organizer_position/spending/control.rb b/app/models/organizer_position/spending/control.rb
+index edff1715c..f7d6ed8e8 100644
+--- a/app/models/organizer_position/spending/control.rb
++++ b/app/models/organizer_position/spending/control.rb
+@@ -18,50 +18,58 @@
+ #
+ #  fk_rails_...  (organizer_position_id => organizer_positions.id)
+ #
+-class OrganizerPosition::Spending::Control < ApplicationRecord
+-  belongs_to :organizer_position
+-  has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", dependent: :destroy
++class OrganizerPosition
++  module Spending
++    class Control < ApplicationRecord
++      belongs_to :organizer_position
++      has_many :organizer_position_spending_allowances, class_name: "OrganizerPosition::Spending::Allowance", foreign_key: "organizer_position_spending_control_id", dependent: :destroy
++      scope :inactive, -> { where(active: false) }
+ 
+-  validate :one_active_control
+-  validate :inactive_control_has_end_date
++      validate :one_active_control
++      validate :inactive_control_has_end_date
++      validates_presence_of :active, on: :create # can't create inactive control
+ 
+-  after_create :deactive_other_controls
+ 
+-  def balance
+-    total_allocation_amount - total_spent
+-  end
++      after_create :deactive_other_controls
+ 
+-  def total_allocation_amount
+-    organizer_position_spending_allowances.sum(:amount_cents)
+-  end
++      def balance
++        total_allocation_amount - total_spent
++      end
+ 
++      def total_allocation_amount
++        organizer_position_spending_allowances.sum(:amount_cents)
++      end
+ 
+-  def total_spent
+-    transactions.map(&:amount_cents).sum.abs
+-  end
+ 
+-  def transactions
+-    card_ids = organizer_position.stripe_cards.pluck(:stripe_id)
+-    RawPendingStripeTransaction.pending.where("(stripe_transaction->'card'->>'id' IN (?)) AND (CAST(stripe_transaction->>'created' AS BIGINT) BETWEEN EXTRACT(EPOCH FROM TIMESTAMP ?) AND EXTRACT(EPOCH FROM TIMESTAMP ?))", card_ids, created_at, (ended_at || Float::INFINITY))
+-                               .includes(:canonical_pending_transaction)
+-                               .map(&:canonical_pending_transaction)
+-  end
++      def total_spent
++        transactions.map(&:amount_cents).sum.abs
++      end
+ 
+-  private
++      def transactions
++        card_ids = organizer_position.stripe_cards.pluck(:stripe_id)
++        RawPendingStripeTransaction.pending.where("(stripe_transaction->'card'->>'id' IN (?)) AND (CAST(stripe_transaction->>'created' AS BIGINT) BETWEEN EXTRACT(EPOCH FROM TIMESTAMP ?) AND EXTRACT(EPOCH FROM TIMESTAMP ?))", card_ids, created_at, (ended_at || Float::INFINITY))
++                                   .includes(:canonical_pending_transaction)
++                                   .map(&:canonical_pending_transaction)
++      end
+ 
+-  def deactive_other_controls
+-    organizer_position.spending_controls.where(active: true).excluding(self).update_all(active: false, ended_at: Time.current)
+-  end
++      private
+ 
+-  def one_active_control
+-    if organizer_position.spending_controls.where(active: true).size > 1
+-      errors.add(:organizer_position, "may only have one active spending control")
+-    end
+-  end
++      def deactive_other_controls
++        organizer_position.spending_controls.where(active: true).excluding(self).update_all(active: false, ended_at: Time.current)
++      end
++
++      def one_active_control
++        if organizer_position.spending_controls.where(active: true).size > 1
++          errors.add(:organizer_position, "may only have one active spending control")
++        end
++      end
++
++      def inactive_control_has_end_date
++        if !active && ended_at.nil?
++          errors.add(:ended_at, "inactive controls must have an ended_at date")
++        end
++      end
+ 
+-  def inactive_control_has_end_date
+-    if !active && ended_at.nil?
+-      errors.add(:ended_at, "inactive controls must have an ended_at date")
+     end
+   end
+ 
+diff --git a/app/policies/organizer_position/spending/allowance_policy.rb b/app/policies/organizer_position/spending/allowance_policy.rb
+index 088fae6d9..c6be77a59 100644
+--- a/app/policies/organizer_position/spending/allowance_policy.rb
++++ b/app/policies/organizer_position/spending/allowance_policy.rb
+@@ -1,16 +1,22 @@
+-class OrganizerPosition::Spending::AllowancePolicy < ApplicationPolicy
+-  def index?
+-    # `record` in this method is an OrganizerPosition
+-    user.admin? || record.manager? || user == record.user
+-  end
++class OrganizerPosition
++  module Spending
++    class AllowancePolicy < ApplicationPolicy
++      def index?
++        # `record` in this method is an OrganizerPosition
++        user.admin? || record.manager? || user == record.user
++      end
+ 
+-  def new?
+-    true
+-  end
++      def new?
++        true
++      end
++
++      def create?
++        user.admin? ||
++          OrganizerPosition.find_by(user:, event: record.event)&.manager?
++      end
++
++    end
+ 
+-  def create?
+-    user.admin? ||
+-      OrganizerPosition.find_by(user:, event: record.event)&.manager?
+   end
+ 
+ end
+diff --git a/app/policies/organizer_position/spending/control_policy.rb b/app/policies/organizer_position/spending/control_policy.rb
+index 19e6cf80a..c1a3b464c 100644
+--- a/app/policies/organizer_position/spending/control_policy.rb
++++ b/app/policies/organizer_position/spending/control_policy.rb
+@@ -1,18 +1,21 @@
+-class OrganizerPosition::Spending::ControlPolicy < ApplicationPolicy
+-  def new?
+-    record.active && (
+-      user.admin? || (
+-        OrganizerPosition.find_by(user:, event: record.organizer_position.event).manager? &&
+-        user != record.organizer_position.user
+-      )
+-    )
+-  end
++class OrganizerPosition
++  module Spending
++    class ControlPolicy < ApplicationPolicy
++      def new?
++        user.admin? || (
++          OrganizerPosition.find_by(user:, event: record.organizer_position.event).manager? &&
++          user != record.organizer_position.user
++        )
++      end
+ 
+-  def destroy?
+-    user.admin? ||
+-      OrganizerPosition.find_by(user:, event: record.organizer_position.event).manager?
+-  end
++      def destroy?
++        user.admin? ||
++          OrganizerPosition.find_by(user:, event: record.organizer_position.event).manager?
++      end
+ 
+-  private
++      private
++
++    end
++  end
+ 
+ end
+diff --git a/app/views/organizer_positions/spending/allowances/index.html.erb b/app/views/organizer_positions/spending/allowances/index.html.erb
+index b55ce6d4d..2691bf24c 100644
+--- a/app/views/organizer_positions/spending/allowances/index.html.erb
++++ b/app/views/organizer_positions/spending/allowances/index.html.erb
+@@ -125,7 +125,7 @@
+     <div data-behavior="modal" role="dialog" id="past-controls" class="modal modal--scroll modal--huge bg-snow">
+         <%= modal_header "Past controls" %>
+ 
+-        <% @op.spending_controls.filter { |c| !c.active }.sort_by(&:created_at).reverse.each_with_index do |c, i| %>
++        <% @op.spending_controls.inactive.order(created_at: :desc).each do |c| %>
+             <div class="card <%= "mt-8" unless i.zero? %>">
+                 <h4 class="m0 mb1 inline-flex items-center g2">
+                     Active
