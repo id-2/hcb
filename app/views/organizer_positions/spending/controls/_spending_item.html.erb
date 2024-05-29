@@ -1,7 +1,7 @@
 <% item_user = item.is_a?(OrganizerPosition::Spending::Allowance) ? item.authorized_by.user : item.stripe_cardholder.user %>
 
 <tr class="<%= item.is_a?(OrganizerPosition::Spending::Allowance) ? "transaction--positive" : "transaction--negative" %>">
-    <td><%= format_date(item.created_at) %></td>
+    <td><%= format_date(item_to_real_created_date(item)) %></td>
     <td style="max-width: 400px; overflow: hidden; text-overflow: elipsis;"><%= item.memo %></td>
     <td class="flex items-center g1">
         <%= avatar_for item_user, 24 %>
