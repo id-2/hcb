@@ -64,7 +64,7 @@ module Reimbursement
     include Hashid::Rails
 
     include PublicActivity::Model
-    tracked owner: proc{ |controller, record| controller&.current_user || User.find_by(email: "bank@hackclub.com") }, recipient: proc { |controller, record| record.user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
+    tracked owner: proc{ |controller, record| controller&.current_user }, recipient: proc { |controller, record| record.user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
 
     acts_as_paranoid
 
@@ -83,12 +83,13 @@ module Reimbursement
       event :mark_submitted do
         transitions from: [:draft, :reimbursement_requested], to: :submitted do
           guard do
-            user.payout_method.present? && (!maximum_amount_cents || amount_cents <= maximum_amount_cents)
+            user.payout_method.present? && !exceeds_maximum_amount? && expenses.any? && !missing_receipts?
           end
         end
         after do
           if team_review_required?
             ReimbursementMailer.with(report: self).review_requested.deliver_later
+            create_activity(key: "reimbursement_report.review_requested", owner: user, recipient: (reviewer.presence || event), event_id: event.id)
           else
             expenses.pending.each do |expense|
               expense.mark_approved!
@@ -136,13 +137,13 @@ module Reimbursement
 
     def status_text
       return "Pending" if reimbursement_requested?
-      return "Approved" if reimbursement_approved?
+      return "In Transit" if reimbursement_approved?
 
       aasm_state.humanize.titleize
     end
 
     def admin_status_text
-      return "Review Required" if reimbursement_requested?
+      return "Review Requested" if reimbursement_requested?
       return "Organizers Reviewing" if submitted?
 
       status_text
@@ -234,6 +235,14 @@ module Reimbursement
       return nil if expenses.pending.none?
 
       "#{expenses.pending.count} #{"expense".pluralize(expenses.pending.count)} #{expenses.pending.count == 1 ? "hasn't" : "haven't"} been approved; if you continue, #{expenses.pending.count == 1 ? "it" : "these"} will not be reimbursed."
+    end
+
+    def missing_receipts?
+      expenses.complete.with_receipt.count != expenses.count
+    end
+
+    def exceeds_maximum_amount?
+      maximum_amount_cents && amount_cents >= maximum_amount_cents
     end
 
     private

@@ -42,13 +42,13 @@ class User < ApplicationRecord
   include Commentable
   extend FriendlyId
 
-  has_paper_trail only: [:access_level]
+  has_paper_trail only: [:access_level, :email]
 
   include PublicActivity::Model
-  tracked owner: proc{ |controller, record| controller&.current_user || User.find_by(email: "bank@hackclub.com") }, recipient: proc { |controller, record| record }, only: [:create, :update]
+  tracked owner: proc{ |controller, record| record }, recipient: proc { |controller, record| record }, only: [:create, :update]
 
   include PgSearch::Model
-  pg_search_scope :search_name, against: [:full_name, :email, :phone_number], using: { tsearch: { prefix: true, dictionary: "english" } }
+  pg_search_scope :search_name, against: [:full_name, :email, :phone_number], associated_against: { email_updates: :original }, using: { tsearch: { prefix: true, dictionary: "english" } }
 
   friendly_id :slug_candidates, use: :slugged
   scope :admin, -> { where(access_level: [:admin, :superadmin]) }
@@ -75,6 +75,8 @@ class User < ApplicationRecord
   has_many :webauthn_credentials
   has_many :mailbox_addresses
   has_many :api_tokens
+  has_many :email_updates, class_name: "User::EmailUpdate", inverse_of: :user
+  has_many :email_updates_created, class_name: "User::EmailUpdate", inverse_of: :updated_by
 
   has_many :events, through: :organizer_positions
 
@@ -99,6 +101,7 @@ class User < ApplicationRecord
   has_many :reimbursement_reports, class_name: "Reimbursement::Report"
   has_many :created_reimbursement_reports, class_name: "Reimbursement::Report", foreign_key: "invited_by_id", inverse_of: :inviter
   has_many :assigned_reimbursement_reports, class_name: "Reimbursement::Report", foreign_key: "reviewer_id", inverse_of: :reviewer
+  has_many :approved_expenses, class_name: "Reimbursement::Expense", inverse_of: :approved_by
 
   has_many :card_grants
 
@@ -147,6 +150,16 @@ class User < ApplicationRecord
     slug "url" do |slug| "https://hcb.hackclub.com/users/#{slug}/admin" end
     email
     transactions_missing_receipt_count "Missing Receipts"
+  end
+
+  after_save do
+    if use_sms_auth_previously_changed?
+      if use_sms_auth
+        create_activity(key: "user.enabled_sms_auth")
+      else
+        create_activity(key: "user.disabled_sms_auth")
+      end
+    end
   end
 
   # admin? takes into account an admin user's preference
@@ -288,6 +301,10 @@ class User < ApplicationRecord
 
   def hack_clubber?
     return events.organized_by_hack_clubbers.any?
+  end
+
+  def last_seen_at
+    user_sessions.maximum(:last_seen_at)
   end
 
   private

@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_22_045214) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -113,7 +113,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
     t.bigint "recipient_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "event_id"
+    t.bigint "event_id"
     t.index ["event_id"], name: "index_activities_on_event_id"
     t.index ["owner_id", "owner_type"], name: "index_activities_on_owner_id_and_owner_type"
     t.index ["owner_type", "owner_id"], name: "index_activities_on_owner"
@@ -1224,23 +1224,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
     t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
-  create_table "mfa_codes", force: :cascade do |t|
-    t.text "message"
-    t.string "code"
-    t.string "provider"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "mfa_requests", force: :cascade do |t|
-    t.string "provider"
-    t.bigint "mfa_code_id"
-    t.string "aasm_state"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["mfa_code_id"], name: "index_mfa_requests_on_mfa_code_id"
-  end
-
   create_table "oauth_access_grants", force: :cascade do |t|
     t.bigint "resource_owner_id", null: false
     t.bigint "application_id", null: false
@@ -1880,6 +1863,22 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "user_email_updates", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "aasm_state", null: false
+    t.string "original", null: false
+    t.string "replacement", null: false
+    t.string "authorization_token", null: false
+    t.string "verification_token", null: false
+    t.boolean "verified", default: false, null: false
+    t.boolean "authorized", default: false, null: false
+    t.bigint "updated_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["updated_by_id"], name: "index_user_email_updates_on_updated_by_id"
+    t.index ["user_id"], name: "index_user_email_updates_on_user_id"
+  end
+
   create_table "user_payout_method_ach_transfers", force: :cascade do |t|
     t.text "account_number_ciphertext", null: false
     t.text "routing_number_ciphertext", null: false
@@ -1916,6 +1915,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
     t.datetime "expiration_at", precision: nil, null: false
     t.text "session_token_ciphertext"
     t.string "session_token_bidx"
+    t.datetime "last_seen_at"
     t.index ["impersonated_by_id"], name: "index_user_sessions_on_impersonated_by_id"
     t.index ["session_token_bidx"], name: "index_user_sessions_on_session_token_bidx"
     t.index ["user_id"], name: "index_user_sessions_on_user_id"
@@ -2057,7 +2057,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
-  add_foreign_key "mfa_requests", "mfa_codes"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"
@@ -2099,6 +2098,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_175040) do
   add_foreign_key "transactions", "fee_reimbursements"
   add_foreign_key "transactions", "fee_relationships"
   add_foreign_key "transactions", "invoice_payouts"
+  add_foreign_key "user_email_updates", "users"
+  add_foreign_key "user_email_updates", "users", column: "updated_by_id"
   add_foreign_key "user_sessions", "users"
   add_foreign_key "user_sessions", "users", column: "impersonated_by_id"
   add_foreign_key "webauthn_credentials", "users"
