@@ -33,7 +33,7 @@
     <% if organizer_signed_in? %>
       <div class="flex g1 h-fit-content">
           <% if policy(position).view_allowances? %>
-              <%= pop_icon_to "payment", event_organizer_controls_path(organizer_id: position), data: {turbo: false} %>
+              <%= pop_icon_to "payment", event_organizer_spending_controls_path(organizer_id: position), data: {turbo: false} %>
             <% end %>
           <% if admin_signed_in? %>
           <div class="tooltipped tooltipped--s" aria-label="Edit user's settings">
