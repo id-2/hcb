@@ -1,4 +1,4 @@
-module OrganizerPositions
+class OrganizerPosition
   module Spending
     class ControlsController < ApplicationController
       before_action :set_organizer_position
@@ -10,6 +10,7 @@ module OrganizerPositions
 
         @active_control = @organizer_position.active_spending_control
         @inactive_control_count = @organizer_position.spending_controls.where(active: false).count
+        render template: "organizer_positions/spending/controls/index"
       end
 
       def new
@@ -22,7 +23,7 @@ module OrganizerPositions
 
         if @control.save
           flash[:success] = "Spending control successfully created!"
-          redirect_to event_organizer_controls_path organizer_id: @organizer_position
+          redirect_to event_organizer_spending_control_path id: @organizer_position
         else
           render :new, status: :unprocessable_entity
         end
@@ -39,7 +40,7 @@ module OrganizerPositions
           end
 
           flash[:success] = "Spending controls disabled for #{@organizer_position.user.name}!"
-          redirect_to event_organizer_controls_path organizer_id: @organizer_position
+          redirect_to event_organizer_spending_control_path id: @organizer_position
         else
           flash[:error] = "There is no active spending control to destroy"
           redirect_to root_path
@@ -49,17 +50,12 @@ module OrganizerPositions
       private
 
       def set_organizer_position
-        @event = Event.friendly.find(params[:event_id])
-        begin
-          @user = User.friendly.find(params[:organizer_id])
-          @organizer_position = OrganizerPosition.find_by!(event: @event, user: @user)
-        rescue ActiveRecord::RecordNotFound
-          @organizer_position = OrganizerPosition.find_by!(event: @event, id: params[:organizer_id])
-        end
+        @organizer_position = OrganizerPosition.find(params[:organizer_id])
+        @event = @organizer_position.event
       end
 
       def filtered_params
-        params.permit(:organizer_position_id)
+        params.permit(:organizer_id)
       end
 
     end
