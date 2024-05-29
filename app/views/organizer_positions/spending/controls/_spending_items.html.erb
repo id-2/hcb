@@ -13,9 +13,7 @@
             </thead>
 
             <tbody>
-                <% items.each do |item| %>
-                    <%= render "organizer_positions/spending/controls/spending_item", item: %>
-                <% end %>
+                <%= render "organizer_positions/spending/controls/spending_item", collection: items, as: :item %>
             </tbody>
         </table>
     </div>
