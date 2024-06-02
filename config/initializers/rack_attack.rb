@@ -28,7 +28,12 @@ class Rack::Attack
   throttle("req/ip", limit: 600, period: 5.minutes) do |req|
     req.ip unless req.path.start_with?("/assets") ||
                   req.path.start_with?("/admin") ||
-                  req.path.start_with?("/stats")
+                  req.path.start_with?("/stats") ||
+                  req.path.start_with?("/receipts")
+  end
+
+  throttle("req/ip", limit: 1200, period: 5.minutes) do |req|
+    req.ip if req.path.start_with?("/receipts")
   end
 
   ### Prevent Brute-Force Login Attacks ###
