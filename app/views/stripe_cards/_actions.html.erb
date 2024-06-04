@@ -6,5 +6,5 @@
   <% else %>
     <%= render "stripe_cards/actions/freeze", stripe_card: %>
     <%= render "stripe_cards/actions/rename", stripe_card: %>
-  <% end %>
+<%= link_to "Simulate card charge", simulate_card_charge_path(stripe_card), method: :post, class: "btn btn-accent" %>  <% end %>
 </div>

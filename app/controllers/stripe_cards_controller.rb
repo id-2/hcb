@@ -123,6 +123,15 @@ class StripeCardsController < ApplicationController
     redirect_to stripe_card_url(card)
   end
 
+  def simulate_charge
+    skip_authorization
+    card = StripeCard.find(params[:stripe_card_id])
+    system("echo 'Simulating charge for card #{card.id}'")
+    flash[:success] = "Card charge simulated successfully"
+    redirect_to stripe_card_url(card)
+
+  end
+
   private
 
   def suggested(field)

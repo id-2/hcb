@@ -313,6 +313,10 @@ Rails.application.routes.draw do
   end
   resources :emburse_cards, except: %i[new create]
 
+  if Rails.env.development?
+    post "simulate_card_charge/:stripe_card_id", to: "stripe_cards#simulate_charge", as: "simulate_card_charge"
+  end
+
   resources :checks, only: [:show] do
     resources :comments
   end
