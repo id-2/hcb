@@ -50,7 +50,7 @@
     <h4 class="w-100 mb0 text-left mt3 border-bottom pb1 activity flex">
       <span class="flex items-center">
           Recent Activity
-          <% admin_tool("ml2 h6") do %>
+          <% admin_tool("ml2 h6 badge bg-muted", style: "padding: 0.25rem 0.625rem;") do %>
             👤 <%= User.currently_online.count %>
           <% end %>
       </span>
