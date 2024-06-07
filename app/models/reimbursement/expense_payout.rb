@@ -54,6 +54,7 @@ module Reimbursement
 
     before_destroy do
       canonical_pending_transaction&.decline!
+      payout_holding.update(amount_cents: payout_holding.amount_cents - amount_cents)
     end
 
     aasm do
