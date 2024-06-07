@@ -54,7 +54,7 @@ module Reimbursement
 
     before_destroy do
       unless payout_holding.pending? && expense.pending?
-        self.errors.add(:base, "non-pending expenses or expenses non-pending payout holdings can not be destroyed")
+        self.errors.add(:base, "non-pending expenses or expenses with non-pending payout holdings can not be destroyed")
         throw :abort
       end
       canonical_pending_transaction&.decline!
