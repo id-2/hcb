@@ -53,6 +53,10 @@ module Reimbursement
     end
 
     before_destroy do
+      unless payout_holding.pending? && expense.pending?
+        self.errors.add(:base, "non-pending expenses or expenses non-pending payout holdings can not be destroyed")
+        throw :abort
+      end
       canonical_pending_transaction&.decline!
       payout_holding.update(amount_cents: payout_holding.amount_cents - amount_cents)
     end
