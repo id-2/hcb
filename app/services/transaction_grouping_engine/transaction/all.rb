@@ -3,7 +3,7 @@
 module TransactionGroupingEngine
   module Transaction
     class All
-      def initialize(event_id:, search: nil, tag_id: nil, expenses: false, revenue: false, minimum_amount: nil, maximum_amount: nil)
+      def initialize(event_id:, search: nil, tag_id: nil, expenses: false, revenue: false, minimum_amount: nil, maximum_amount: nil, hack_club_hq: false)
         @event_id = event_id
         @search = ActiveRecord::Base.connection.quote_string(search || "")
         @tag_id = tag_id
@@ -11,6 +11,7 @@ module TransactionGroupingEngine
         @revenue = revenue
         @minimum_amount = minimum_amount
         @maximum_amount = maximum_amount
+        @hack_club_hq = hack_club_hq
       end
 
       def run
@@ -47,7 +48,11 @@ module TransactionGroupingEngine
       end
 
       def canonical_event_mappings
-        @canonical_event_mappings ||= CanonicalEventMapping.where(event_id: event.id)
+        if @hack_club_hq
+          @canonical_event_mappings ||= CanonicalEventMapping.joins(:event).where(event: {category: :hack_club_hq})
+        else
+          @canonical_event_mappings ||= CanonicalEventMapping.where(event_id: event.id)
+        end
       end
 
       def canonical_transactions
@@ -109,7 +114,8 @@ module TransactionGroupingEngine
               from
                 canonical_pending_event_mappings cpem
               where
-                cpem.event_id = #{event.id}
+                #{"cpem.event_id = #{event.id}" unless @hack_club_hq}
+                #{"cpem.event_id IN (#{Event.hack_club_hq.pluck(:id).join(',')})" if @hack_club_hq}
                 and cpem.subledger_id is null
               except ( -- hide pending transactions that have either settled or been declined.
                 select
@@ -128,7 +134,9 @@ module TransactionGroupingEngine
               select *
               from canonical_transactions ct
               inner join canonical_event_mappings cem on cem.canonical_transaction_id = ct.id
-              where ct.hcb_code = pt.hcb_code and cem.event_id = #{event.id}
+              where ct.hcb_code = pt.hcb_code 
+              #{"and cem.event_id = #{event.id}" unless @hack_club_hq}
+              #{"and cem.event_id IN (#{Event.hack_club_hq.pluck(:id).join(',')})" if @hack_club_hq}
             )
             #{search_modifier_for :pt}
           group by
@@ -151,7 +159,8 @@ module TransactionGroupingEngine
               from
                 canonical_event_mappings cem
               where
-                cem.event_id = #{event.id}
+                #{"cem.event_id = #{event.id}" unless @hack_club_hq}
+                #{"cem.event_id IN (#{Event.hack_club_hq.pluck(:id).join(',')})" if @hack_club_hq}
                 and cem.subledger_id is null
             )
             #{search_modifier_for :ct}
@@ -226,7 +235,7 @@ module TransactionGroupingEngine
             ,(#{canonical_transaction_ids_select}) as canonical_transaction_ids
             ,(#{canonical_transactions_select}) as canonical_transactions
           from (
-            #{event.can_front_balance? ? "#{pt_group_sql}\nunion" : ''}
+            #{event&.can_front_balance? ? "#{pt_group_sql}\nunion" : ''}
             #{ct_group_sql}
           ) q1
           #{modifiers}

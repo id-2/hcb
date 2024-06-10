@@ -3,12 +3,13 @@
 module PendingTransactionEngine
   module PendingTransaction
     class All
-      def initialize(event_id:, search: nil, tag_id: nil, minimum_amount: nil, maximum_amount: nil)
+      def initialize(event_id:, search: nil, tag_id: nil, minimum_amount: nil, maximum_amount: nil, hack_club_hq: false)
         @event_id = event_id
         @search = search
         @tag_id = tag_id
         @minimum_amount = minimum_amount
         @maximum_amount = maximum_amount
+        @hack_club_hq = hack_club_hq
       end
 
       def run
@@ -18,11 +19,15 @@ module PendingTransactionEngine
       private
 
       def event
-        @event ||= Event.find(@event_id)
+        @event ||= @event_id ? Event.find(@event_id) : nil
       end
 
       def canonical_pending_event_mappings
-        @canonical_pending_event_mappings ||= CanonicalPendingEventMapping.where(event_id: event.id, subledger_id: nil)
+        if @hack_club_hq
+          @canonical_pending_event_mappings ||= CanonicalPendingEventMapping.joins(:event).where(event: {category: :hack_club_hq}, subledger_id: nil)
+        else 
+          @canonical_pending_event_mappings ||= CanonicalPendingEventMapping.where(event_id: event.id, subledger_id: nil)
+        end
       end
 
       def canonical_pending_transactions
@@ -51,7 +56,7 @@ module PendingTransactionEngine
               cpts = cpts.where("ABS(canonical_pending_transactions.amount_cents) <= #{@maximum_amount.cents}")
             end
 
-            if event.can_front_balance?
+            if event&.can_front_balance?
               cpts = cpts.not_fronted
             end
 

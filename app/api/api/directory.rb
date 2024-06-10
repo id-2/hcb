@@ -25,6 +25,25 @@ module Api
 
         present @organizations, with: Api::Entities::DirectoryOrganization
       end
+      get :hq_organizations do
+        present Event.transparent.hack_club_hq, with: Api::Entities::DirectoryOrganization
+      end
+      params do
+        use :pagination, per_page: 50, max_per_page: 100
+      end
+      get :hq_transactions do
+        @transactions ||=
+        begin
+          transactions = Rails.cache.fetch("hq_transactions", expires_in: 20.minutes) do
+            transactions_array = []
+            transactions_array += PendingTransactionEngine::PendingTransaction::All.new(event_id: 183, hack_club_hq: true).run
+            transactions_array += TransactionGroupingEngine::Transaction::All.new(event_id: 183, hack_club_hq: true).run
+          end
+          combined = paginate(Kaminari.paginate_array(transactions))
+          combined.map(&:local_hcb_code)
+        end
+        present @transactions, with: Api::Entities::Transaction, **type_expansion(expand: %w[transaction])
+      end
     end
 
   end
