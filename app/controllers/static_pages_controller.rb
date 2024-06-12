@@ -267,4 +267,28 @@ class StaticPagesController < ApplicationController
     head :no_content
   end
 
+  def create_another_event
+    authorize current_user
+
+    event = Event.new(
+      name: params[:org_name],
+      country: params[:country],
+      postal_code: params[:postal_code],
+      sponsorship_fee: 0.07,
+      organization_identifier: "bank_#{SecureRandom.hex}",
+      demo_mode: true,
+    )
+
+    ActiveRecord::Base.transaction do
+      event.save!
+      OrganizerPosition.create!(
+        event:,
+        user: current_user,
+        is_signee: false,
+      )
+    end
+
+    redirect_to event_path(event)
+  end
+
 end
