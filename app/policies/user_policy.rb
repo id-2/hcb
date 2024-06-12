@@ -69,4 +69,7 @@ class UserPolicy < ApplicationPolicy
     user.admin? || record == user
   end
 
+  def create_another_event?
+    record == user
+  end
 end
