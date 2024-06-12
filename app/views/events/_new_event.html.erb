@@ -1,4 +1,4 @@
-<%= link_to "#", data: { behavior: "modal_trigger", modal: "new-event" }, class: "card flex flex-col items-center justify-between bold" do %>
+<%= link_to "#", data: { behavior: "modal_trigger", modal: "new-event", turbo: true, controller: "confetti", action: "click->confetti#party", emojis: ["🏦", "💸"] }, class: "card flex flex-col items-center justify-center bold" do %>
     <div class="pop success mx-auto flex mb-1">
       <%= inline_icon "plus", size: 28 %>
     </div>
