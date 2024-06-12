@@ -78,8 +78,8 @@
     </div>
   <% end %>
   <div class="muted flex justify-between align-bottom relative w-100 h6 mt1">
-    <p class="m0">Invited <%= relative_timestamp(position.organizer_position_invite.created_at) %> by <%= position.organizer_position_invite.sender.name %></p>
-    <% user_mention position.organizer_position_invite.sender %>
+    <p class="m0">Invited <%= relative_timestamp(position.organizer_position_invite&.created_at || position.created_at) %> by <%= position.organizer_position_invite&.sender&.name || position.user.name %></p>
+    <% user_mention position.organizer_position_invite&.sender || position.user %>
     <% if admin_signed_in? %>
       <div class="absolute right-0 bottom-0 line-height-0 tooltipped tooltipped--w" aria-label="<%= (position.signee? ? "Contract signee" : "No contract signature") + ". Click to toggle." %>">
         <%= link_to toggle_signee_status_organizer_path(position.id), data: { turbo_method: "post", turbo_frame: "_top", turbo_confirm: "Are you sure you want to toggle #{position.user.name}'s contract signee status?" } do %>

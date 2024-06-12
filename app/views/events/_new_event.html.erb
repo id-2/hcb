@@ -1,0 +1,32 @@
+<%= link_to "#", data: { behavior: "modal_trigger", modal: "new-event" }, class: "card flex flex-col items-center justify-between bold" do %>
+    <div class="pop success mx-auto flex mb-1">
+      <%= inline_icon "plus", size: 28 %>
+    </div>
+    New organization
+<% end %>
+
+<div data-behavior="modal" role="dialog" id="new-event" class="modal modal--scroll bg-snow">
+  <%= modal_header "New organization" %>
+
+  <%= form_with url: create_another_event_path, method: :post do |form| %>
+    <div class="field">
+      <%= form.label :org_name, "Organization name" %>
+      <%= form.text_field :org_name %>
+    </div>
+
+    <div class="field">
+      <%= form.label :postal_code, "Postal code" %>
+      <%= form.text_field :postal_code %>
+    </div>
+
+    <div class="field">
+      <%= form.label :country, "Country" %>
+      <%= form.select :country, ISO3166::Country.all.map{ |c| [c.iso_short_name, c.alpha2] }.sort_by{|c| c[0] }.unshift(["United States of America", "US"], ["Canada", "CA"]) %>
+    </div>
+
+    <div class="actions">
+      <%= form.submit "Create" %>
+    </div>
+
+  <% end %>
+</div>

@@ -39,6 +39,7 @@ Rails.application.routes.draw do
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
 
   post "feedback", to: "static_pages#feedback"
+  post "create_another_event", to: "static_pages#create_another_event"
 
   resources :receipts, only: [:create, :destroy] do
     collection do
