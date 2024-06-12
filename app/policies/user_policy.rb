@@ -72,4 +72,5 @@ class UserPolicy < ApplicationPolicy
   def create_another_event?
     record == user
   end
+
 end
