@@ -9,7 +9,7 @@
       </button>
 
       <script>
-        window.addEventListener("load", () => {
+        document.addEventListener("turbo:load", () => {
           const picker = new EmojiButton({
             theme: document.documentElement.getAttribute("data-dark") === "true" ? "dark" : "light"
           });
