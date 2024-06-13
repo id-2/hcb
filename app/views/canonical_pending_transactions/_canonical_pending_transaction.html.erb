@@ -58,12 +58,42 @@
           <% if !defined?(receipt_upload_button) && !defined?(hide_tags) && organizer_signed_in? && !pt.instance_of?(OpenStruct) && Flipper.enabled?(:transaction_tags_2022_07_29, @event || pt.local_hcb_code.event) %>
             <div class="overflow-visible relative" style="margin-left: 0.5rem;" data-controller="menu" data-menu-append-to-value="turbo-frame#ledger">
               <button class="list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">+ Add tag</button>
+              <section class="modal modal--scroll  bg-snow" data-behavior="modal" role="dialog" id="create_tag_<%= @event.id %>">
+                <%= modal_header("Create tag") %>
+                <%= form_with url: event_tags_path(@event || pt.local_hcb_code.event), data: { turbo: true } do |form| %>
+                  <%= form.hidden_field :hcb_code_id, value: pt.local_hcb_code.hashid %>
+                  <%= form.hidden_field :emoji, id: "create_tag_emoji_input_#{@event.id}"  %>
+                  <div class="flex gap-2">
+                    <button type="button" id="create_tag_emoji_<%= @event.id %>" class="list-badge rounded add-tag-badge ml0 menu__toggle menu__toggle--arrowless h-10" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
+                      <%= inline_icon "emoji", size: 24 %>
+                    </button>
+
+                    <script>
+                      window.addEventListener("load", () => {
+                        const picker = new EmojiButton({
+
+                        });
+                        const trigger = document.getElementById('create_tag_emoji_<%= @event.id %>');
+
+                        picker.on('emoji', selection => {
+                          console.log(selection)
+                          trigger.innerHTML = `<span style="font-size:24px">${selection.emoji}</span>`;
+                          document.getElementById('create_tag_emoji_input_<%= @event.id %>').value = selection.emoji;
+                        });
+
+                        trigger.addEventListener('click', () => picker.togglePicker(trigger));
+                      })
+                    </script>
+                    <%= form.text_field :label, data: { "behavior" => (@event || pt.local_hcb_code.event).tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
+                    <%= form.submit "Create", class: "btn bg-primary" %>
+                  </div>
+                <% end %>
+              </section>
               <div class="menu__content menu__content--2 menu__content--compact menu__content--left h6" data-menu-target="content">
                 <% (@event || pt.local_hcb_code.event).tags.each do |tag| %>
                   <div class="flex items-center" data-tag="<%= tag.id %>">
                     <%= button_to toggle_tag_hcb_code_path(id: pt.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(pt.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
                       <%= "✓" if tagged_with.include?(tag) %>
-
                       <%= tag.label %>
                     <% end %>
                     <%= button_to event_tag_path(@event || pt.local_hcb_code.event, tag), class: "menu__action", method: :delete, title: "Delete this tag", form: { "data-turbo" => "true", "data-turbo-confirm" => tag.removal_confirmation_message } do %>
@@ -74,9 +104,9 @@
                 <% if (@event || pt.local_hcb_code.event).tags.any? %>
                   <div class="menu__divider tags__divider"></div>
                 <% end %>
-                <%= form_with url: event_tags_path(@event || pt.local_hcb_code.event), data: { turbo: true } do |form| %>
-                  <%= form.hidden_field :hcb_code_id, value: pt.local_hcb_code.hashid %>
-                  <%= form.text_field :label, data: { "behavior" => (@event || pt.local_hcb_code.event).tags.none? ? "autofocus" : "" }, class: "menu__input", placeholder: "+ Create tag", autocomplete: "off", required: true %>
+                <%= link_to "#", class: "menu__input", data: { behavior: "modal_trigger", modal: "create_tag_#{@event.id}" } do %>
+                  <%= inline_icon "plus", size: 15 %>
+                  Create tag
                 <% end %>
               </div>
             </div>

@@ -243,6 +243,10 @@ summary {
 @import 'components/reimbursements/actions';
 @import 'components/event_settings';
 
+.emoji-picker__wrapper {
+  z-index: 99
+}
+
 .turbo-progress-bar {
   height: 0.125rem;
   background-color: map-get($palette, primary);

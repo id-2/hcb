@@ -35,8 +35,8 @@ import './controllers'
 import { Turbo } from '@hotwired/turbo-rails'
 window.Turbo = Turbo
 
-import * as EmojiMart from 'emoji-mart'
-window.EmojiMart = EmojiMart
+import { EmojiButton } from '@joeattardi/emoji-button';
+window.EmojiButton = EmojiButton
 
 import Alpine from 'alpinejs'
 import persist from '@alpinejs/persist'
