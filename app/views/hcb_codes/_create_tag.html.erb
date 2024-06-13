@@ -8,8 +8,8 @@
         <%= inline_icon "emoji", size: 24 %>
       </button>
       <%= form.text_field :label, data: { "behavior" => (@event || code.event).tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
-      <%= form.submit "Create", class: "btn bg-primary" %>
     </div>
+    <%= form.submit "Create", class: "btn bg-primary mt-2" %>
   <% end %>
 </section>
 <script>
