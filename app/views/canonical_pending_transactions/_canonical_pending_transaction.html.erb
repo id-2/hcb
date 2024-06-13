@@ -74,9 +74,11 @@
                         const trigger = document.getElementById('create_tag_emoji_<%= @event.id %>');
 
                         picker.on('emoji', selection => {
-                          console.log(selection)
-                          trigger.innerHTML = `<span style="font-size:24px">${selection.emoji}</span>`;
-                          document.getElementById('create_tag_emoji_input_<%= @event.id %>').value = selection.emoji;
+                          const unicodeValue = selection.emoji.length < 4
+                            ? selection.emoji.codePointAt(0).toString(16)
+                            : `${selection.emoji.codePointAt(0).toString(16)}-${selection.emoji.codePointAt(2).toString(16)}`;
+                            trigger.innerHTML = `<span style="font-size:24px">${selection.emoji}</span>`;
+                          document.getElementById('create_tag_emoji_input_<%= @event.id %>').value = unicodeValue;
                         });
 
                         trigger.addEventListener('click', () => picker.togglePicker(trigger));
@@ -92,6 +94,9 @@
                   <div class="flex items-center" data-tag="<%= tag.id %>">
                     <%= button_to toggle_tag_hcb_code_path(id: pt.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(pt.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
                       <%= "✓" if tagged_with.include?(tag) %>
+                      <% if tag.emoji %>
+                        <img class="mx-1" width="15px" width="15px" src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/<%= tag.emoji %>.png" />
+                      <% end %>
                       <%= tag.label %>
                     <% end %>
                     <%= button_to event_tag_path(@event || pt.local_hcb_code.event, tag), class: "menu__action", method: :delete, title: "Delete this tag", form: { "data-turbo" => "true", "data-turbo-confirm" => tag.removal_confirmation_message } do %>

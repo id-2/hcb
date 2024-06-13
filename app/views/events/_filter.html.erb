@@ -36,7 +36,12 @@
       <% if @tag %>
         <span class="xs-hide sm-hide md-hide flex items-center">
           <span class="nowrap">Filtered by</span>
-          <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1"><%= @tag.label %></span>
+          <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1">
+            <% if tag.emoji %>
+              <img class="mx-1" width="15px" width="15px" src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/<%= tag.emoji %>.png" />
+            <% end %>
+            <%= @tag.label %>
+          </span>
         </span>
       <% elsif @user %>
         <span class="xs-hide sm-hide md-hide flex items-center">

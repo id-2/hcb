@@ -202,10 +202,11 @@ class HcbCodesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
+        tag_emoji_image = tag.emoji ? "<img class=\"mx-1\" width=\"15px\" width=\"15px\" src=\"https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/#{tag.emoji}.png\" />" : ""
         if removed
-          render turbo_stream: turbo_stream.remove(tag_dom_id(hcb_code, tag)) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), tag.label)
+          render turbo_stream: turbo_stream.remove(tag_dom_id(hcb_code, tag)) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "#{tag_emoji_image} #{tag.label}")
         else
-          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ #{tag.label}")
+          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ #{tag_emoji_image} #{tag.label}")
         end
       end
       format.any { redirect_back fallback_location: @event }
