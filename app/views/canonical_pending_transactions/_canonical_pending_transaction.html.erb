@@ -70,9 +70,7 @@
 
                     <script>
                       window.addEventListener("load", () => {
-                        const picker = new EmojiButton({
-
-                        });
+                        const picker = new EmojiButton();
                         const trigger = document.getElementById('create_tag_emoji_<%= @event.id %>');
 
                         picker.on('emoji', selection => {
