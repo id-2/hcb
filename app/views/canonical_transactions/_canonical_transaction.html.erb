@@ -59,7 +59,7 @@
                     <%= button_to toggle_tag_hcb_code_path(id: ct.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(ct.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
                       <%= "✓" if tagged_with.include?(tag) %>
                       <% if tag.emoji %>
-                        <img class="mx-1" width="15px" width="15px" src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/<%= tag.emoji %>.png" />
+                        <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
                       <% end %>
                       <%= tag.label %>
                     <% end %>

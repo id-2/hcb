@@ -5,7 +5,7 @@
       <% hcb_code.tags.filter { |tag| tag.event == @event }.each do |tag| %>
         <span class="badge bg-muted ml0 mr1" data-tag="<%= tag.id %>">
           <% if tag.emoji %>
-            <img class="mx-1" width="15px" width="15px" src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/<%= tag.emoji %>.png" />
+            <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
           <% end %>
           <%= tag.label %>
           <%= button_to toggle_tag_hcb_code_path(id: @hcb_code.hashid, tag_id: tag.id), class: "p0 line-height-0 bg-transparent border-none cursor-pointer link-reset", form_class: "line-height-0", form: { "data-turbo" => "true" } do %>
@@ -23,7 +23,7 @@
                 <%= button_to toggle_tag_hcb_code_path(id: @hcb_code.hashid, tag_id: tag.id), class: "menu__action", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
                   <%= "✓" if @hcb_code.tags.include?(tag) %>
                   <% if tag.emoji %>
-                    <img class="mx-1" width="15px" width="15px" src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/<%= tag.emoji %>.png" />
+                    <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
                   <% end %>
                   <%= tag.label %>
                 <% end %>

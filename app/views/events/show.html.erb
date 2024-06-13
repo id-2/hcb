@@ -135,7 +135,7 @@
             <div class="flex items-center" data-tag="<%= tag.id %>">
               <button class="menu__action" title="Apply this tag" data-action="click->transactions#addTag menu#close" data-tag-id="<%= tag.id %>">
                  <% if tag.emoji %>
-                  <img class="mx-1" width="15px" width="15px" src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/<%= tag.emoji %>.png" />
+                  <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
                 <% end %>
                 <%= tag.label %>
               </button>
