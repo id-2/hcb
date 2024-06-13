@@ -139,6 +139,12 @@ module StaticPagesHelper
         query: { filterByFormula: "Status='Pending'" },
         destination: "https://airtable.com/appEzv7w2IBMoxxHe/tbl9CkfZHKZYrXf1T/viwgfJvrrD9Jn9VLj"
       },
+      you_ship_we_ship: {
+        id: "appre1xwKlj49p0d4",
+        table: "Users",
+        query: { filterByFormula: "{Verification Status}='Unknown'" },
+        destination: "https://airtable.com/appre1xwKlj49p0d4/tbl2Q2aCWqyBGi9mj/viwVYhUQYyNJOi0EH"
+      },
       boba: {
         id: "app05mIKwNPO2l1vT",
         table: "Event%20Codes",
@@ -148,7 +154,7 @@ module StaticPagesHelper
       arcade: {
         id: "app1VxI7f3twOIs2g",
         table: "tblKgmsperK0QHEQX",
-        query: { filterByFormula: "OR(Status='Awaiting Confirmation', Status='Awaiting Fulfillment')" },
+        query: { filterByFormula: "Status='Awaiting Fulfillment'" },
         destination: "https://airtable.com/app1VxI7f3twOIs2g/tblKgmsperK0QHEQX"
       }
     }
