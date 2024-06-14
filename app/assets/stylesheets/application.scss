@@ -53,13 +53,13 @@ body {
     display: block;
   }
 
-  .container:has(.activity)>.app__sidebar {
+  .container:has(.activity) > .app__sidebar {
     position: sticky;
     position: -webkit-sticky;
     top: 0;
   }
 
-  .container:has(.activity)>.app__content {
+  .container:has(.activity) > .app__content {
     padding-bottom: 2rem;
   }
 }
@@ -431,10 +431,7 @@ summary {
   }
 }
 
-[x-cloak],
-[hidden] {
-  display: none !important;
-}
+[x-cloak], [hidden] { display: none !important; }
 
 @import 'basscss';
 @import 'space';
@@ -447,7 +444,6 @@ summary {
 @tailwind utilities;
 
 @layer base {
-
   pre,
   code {
     @apply font-mono;
