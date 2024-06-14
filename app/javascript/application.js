@@ -35,7 +35,7 @@ import './controllers'
 import { Turbo } from '@hotwired/turbo-rails'
 window.Turbo = Turbo
 
-import { EmojiButton } from '@joeattardi/emoji-button';
+import { EmojiButton } from '@joeattardi/emoji-button'
 window.EmojiButton = EmojiButton
 
 import Alpine from 'alpinejs'
@@ -52,4 +52,3 @@ import LocalTime from 'local-time'
 LocalTime.start()
 
 import '@github/text-expander-element'
-import '@oddbird/popover-polyfill'
