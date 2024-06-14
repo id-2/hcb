@@ -34,7 +34,7 @@
       const unicodeValue = selection.emoji.length < 4
         ? selection.emoji.codePointAt(0).toString(16)
         : `${selection.emoji.codePointAt(0).toString(16)}-${selection.emoji.codePointAt(2).toString(16)}`;
-        trigger.innerHTML = `<%= emoji "replace", size: 18, class: "ml-1 mr-2" %>`.replace("replace", unicodeValue);
+        trigger.innerHTML = `<%= emoji "replace", size: 18, class: "ml-1 mr-2", style: "transform: scale(1.5)" %>`.replace("replace", unicodeValue);
       document.getElementById('create_tag_emoji_input_<%= instance %>').value = unicodeValue;
     });
 

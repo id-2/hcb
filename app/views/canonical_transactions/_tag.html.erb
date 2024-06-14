@@ -1,4 +1,4 @@
-<div class="badge tx-tag m0 shrink-none flex items-center" id="<%= tag_dom_id(hcb_code, tag) %>" data-tag="<%= tag.id %>">
+<div class="badge tx-tag m0 shrink-none flex items-center" id="<%= tag_dom_id(hcb_code, tag) %>" data-tag="<%= tag.id %>" style="background: <%= tag.color %>;color: white">
 <% if tag.emoji %>
   <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
 <% end %>

@@ -202,7 +202,7 @@ class HcbCodesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        tag_emoji_image = tag.emoji ? emoji(tag.emoji, size: 18, class: "ml-1 mr-2") : ""
+        tag_emoji_image = tag.emoji ? "<img width=\"24\" height=\"24\" src=\"https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/#{tag.emoji}.png\" />" : ""
         if removed
           render turbo_stream: turbo_stream.remove(tag_dom_id(hcb_code, tag)) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "#{tag_emoji_image} #{tag.label}")
         else

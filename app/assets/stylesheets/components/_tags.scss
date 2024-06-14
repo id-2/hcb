@@ -6,12 +6,9 @@
 .radio__control {
   width: 2rem;
   height: 2rem;
+  cursor: pointer;
   border-radius: 50%;
   position: relative;
-}
-
-.radio__control:hover {
-  border-color: #f1f1f1;
 }
 
 .radio__control:after {
