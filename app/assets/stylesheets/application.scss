@@ -53,13 +53,13 @@ body {
     display: block;
   }
 
-  .container:has(.activity) > .app__sidebar {
+  .container:has(.activity)>.app__sidebar {
     position: sticky;
     position: -webkit-sticky;
     top: 0;
   }
 
-  .container:has(.activity) > .app__content {
+  .container:has(.activity)>.app__content {
     padding-bottom: 2rem;
   }
 }
@@ -242,6 +242,7 @@ summary {
 @import 'components/reimbursements/expenses';
 @import 'components/reimbursements/actions';
 @import 'components/event_settings';
+@import 'components/tags';
 
 .emoji-picker__wrapper {
   z-index: 99
@@ -343,6 +344,7 @@ summary {
     border: 1px solid map-get($palette, warning);
     background-color: map-get($palette, warning);
   }
+
   to {
     border: 1px solid rgba(map-get($palette, warning), 0.25);
     background-color: none;
@@ -428,7 +430,10 @@ summary {
   }
 }
 
-[x-cloak], [hidden] { display: none !important; }
+[x-cloak],
+[hidden] {
+  display: none !important;
+}
 
 @import 'basscss';
 @import 'space';
@@ -441,6 +446,7 @@ summary {
 @tailwind utilities;
 
 @layer base {
+
   pre,
   code {
     @apply font-mono;

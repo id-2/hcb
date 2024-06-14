@@ -7,9 +7,20 @@
       <button type="button" id="create_tag_emoji_<%= instance %>" class="list-badge rounded add-tag-badge ml0 menu__toggle menu__toggle--arrowless h-10" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
         <%= inline_icon "emoji", size: 24 %>
       </button>
-      <%= form.text_field :label, data: { "behavior" => (@event || code.event).tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
+      <div>
+        <%= form.text_field :label, data: { "behavior" => (@event || code.event).tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
+        <% 
+          colors = ['#ec3750', '#ff8c37', '#f1c40f', '#33d6a6', '#5bc0de', '#338eda', '#a633d6']
+          colors.each do |color|
+        %>
+        <label class="tags__radio mt-2">
+          <%= form.radio_button :color, color, id: "tag_color_#{color}_#{instance}" %>
+          <div class="radio__control" style="background-color: <%= color %>"></div>
+        </label>
+        <% end %>
+      </div>
     </div>
-    <%= form.submit "Create", class: "btn bg-primary mt-2" %>
+    <%= form.submit "Create", class: "btn bg-primary mt-2 float-right" %>
   <% end %>
 </section>
 <script>
