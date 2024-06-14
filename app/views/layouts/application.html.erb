@@ -15,6 +15,9 @@
     <%= javascript_include_tag "application", 'data-turbo-track': "reload", defer: true %>
     <%= javascript_include_tag "bundle", 'data-turbo-track': "reload", defer: true %>
 
+    <%# Web component used for TOTP / donation QR codes %>
+    <script src="https://unpkg.com/@bitjson/qr-code@1.0.2/dist/qr-code.js"></script>
+
     <% if signed_in? %>
       <script>
         document.addEventListener("turbo:load", () => {
@@ -79,10 +82,6 @@
                         step: @tour&.step || 0,
                         options: @tour&.tourable&.try(:tourable_options) || {},
                         back_to_tour: @back_to_tour %>
-
-    <%= render "maintenance_banner", datetime: "2024-06-13 20:00:00 -0700".to_datetime, duration: 1.hour,
-               learn_more_url: "https://headwayapp.co/hcb-changelog/scheduled-maintenance-june-13th-294639" unless @no_app_shell %>
-
     <% if current_session&.impersonated? %>
       <div class="w-100 px4 bg-white transparency-banner">
         <p class="h5 medium center mt1 mb1">

@@ -101,6 +101,11 @@ Rails.application.routes.draw do
       post "login_code", to: "users#login_code"
       post "exchange_login_code", to: "users#exchange_login_code"
 
+      # TOTP
+      get "totp"
+      post "totp"
+      post "totp_auth"
+
       # SMS Auth
       post "start_sms_auth_verification", to: "users#start_sms_auth_verification"
       post "complete_sms_auth_verification", to: "users#complete_sms_auth_verification"
@@ -130,6 +135,8 @@ Rails.application.routes.draw do
       post "unimpersonate"
     end
     post "delete_profile_picture", to: "users#delete_profile_picture"
+    post "enable_totp"
+    post "disable_totp"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
 
     resources :webauthn_credentials, only: [:create, :destroy] do
@@ -702,6 +709,8 @@ Rails.application.routes.draw do
       post "validate_slug"
       get "termination"
     end
+
+    get "balance_by_date"
   end
 
   # rewrite old event urls to the new ones not prefixed by /events/

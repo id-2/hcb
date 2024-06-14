@@ -661,6 +661,7 @@ GEM
       nokogiri
     rexml (3.2.6)
     rinku (2.0.6)
+    rotp (6.3.0)
     rouge (4.2.1)
     rounding (1.0.1)
     rqrcode (2.2.0)
@@ -764,7 +765,7 @@ GEM
     statsd-instrument (3.5.12)
     statsd-ruby (1.5.0)
     stringio (3.1.0)
-    stripe (8.5.0)
+    stripe (11.7.0)
     strong_migrations (1.8.0)
       activerecord (>= 5.2)
     swagger-blocks (3.0.0)
@@ -922,6 +923,7 @@ DEPENDENCIES
   redis (~> 5.0)
   relaxed-rubocop
   rinku
+  rotp
   rounding
   rqrcode
   rspec-rails (~> 6.1.2)
@@ -938,7 +940,7 @@ DEPENDENCIES
   sprockets-rails (~> 3.4)
   stackprof
   statsd-instrument (~> 3.5, >= 3.5.12)
-  stripe (= 8.5.0)
+  stripe (= 11.7.0)
   strong_migrations
   swagger-blocks
   table_print
