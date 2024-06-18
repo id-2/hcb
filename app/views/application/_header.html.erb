@@ -24,11 +24,15 @@
 
   <div class="header-right line-height-0 flex items-center">
     <% if signed_in? %>
-      <%= link_to my_inbox_path,
-          class: "muted tooltipped tooltipped--s mr2",
-          'aria-label': "View transactions awaiting receipts" do %>
-            <%= inline_icon "payment-docs", size: home_action_size %>
-      <% end %>
+      <action data-behavior="modal_trigger" data-modal="my_inbox" class="muted tooltipped tooltipped--s mr2" aria-label="View transactions awaiting receipts">
+        <%= inline_icon "payment-docs", size: home_action_size %>
+      </action>
+      <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="my_inbox">
+        <%= modal_header("My Inbox", external_link: my_inbox_path) %>
+        <%= turbo_frame_tag "my_inbox", src: my_inbox_path(params: { frame: true }), turbo_frame: "_top" do %>
+          <strong>Loading...</strong>
+        <% end %>
+      </section>
       <%= button_to logout_users_path,
           method: :delete,
           class: "muted tooltipped tooltipped--s",
