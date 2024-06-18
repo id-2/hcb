@@ -8,11 +8,11 @@
 </h1>
 
 <%= turbo_frame_tag "my_inbox", turbo_frame: "_top" do %>
-  
+
   <p class="muted h3">Manage your receipts and transactions awaiting receipts.</p>
-  
+
   <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
-  
+
     <p class="muted h3">
       Alternatively, text your receipts to <%= sms_to "+1-864-548-4225", class: "break-none" %>
       <% if @mailbox_address %>
@@ -21,21 +21,21 @@
         or configure an email for receipt uploads in <%= link_to "your settings", my_settings_path %>.
       <% end %>
     </p>
-  
+
     <%= render partial: "suggested_pairings", locals: { pairings: @pairings, current_slide: 0 } %>
-  
+
     <h2>
       Receipt Bin
     </h2>
-  
+
     <%= render partial: "receipts/form_v3", locals: {
           upload_method: "receipt_center",
           restricted_dropzone: true,
           turbo: true
         } %>
-  
+
     <%= render partial: "receipts/blankslate", locals: { count: @receipts.size } %>
-  
+
     <ul class="grid grid--medium-narrow left-align w-100 mt0" id="receipts_list">
       <% @receipts.each do |receipt| %>
         <li class="flex grid flex-col justify-between h-100 mx-auto" id="receipt_<%= receipt.id %>">
@@ -43,24 +43,24 @@
         </li>
       <% end %>
     </ul>
-  
+
   <% end %>
-  
+
   <h2>
     Transactions
   </h2>
-  
+
   <% @cards.each do |card| %>
     <section class="mb3 card p0 receipt-card">
       <h2 class="heading line-height-4 p1 pl2 mt0 ml0 flex justify-between items-center">
         <%= card.event.name %>
-  
+
         <%= link_to card, class: "regular h3 mention flex items-center" do %>
           <%= inline_icon "card", class: "mr1", size: 25 %>
           <%= card.last_four %>
         <% end %>
       </h2>
-  
+
       <div class="table-container">
         <table>
           <tbody data-behavior="transactions">
@@ -80,11 +80,11 @@
       </div>
     </section>
   <% end %>
-  
+
   <% if @count == 0 %>
     <%= blankslate "No missing receipts!" %>
   <% end %>
-  
+
   <style>
     @media (min-width: 72em) {
       .receipt-card {
@@ -92,7 +92,7 @@
       }
     }
   </style>
-  
+
   <%= paginate @hcb_codes %>
 
 <% end %>
