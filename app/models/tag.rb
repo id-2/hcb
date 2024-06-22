@@ -6,7 +6,6 @@
 #
 #  id         :bigint           not null, primary key
 #  color      :text
-#  emoji      :string
 #  label      :text
 #  created_at :datetime         not null
 #  updated_at :datetime         not null

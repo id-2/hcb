@@ -173,10 +173,6 @@ module ApplicationHelper
     content_tag :pre, pp(item.attributes.to_yaml)
   end
 
-  def emoji(point, options = {})
-    content_tag :img, "", width: options[:size] || 24, height: options[:size] || 24, src: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/#{point}.png", alt: "", class: "emoji", **options
-  end
-
   def inline_icon(filename, options = {})
     # cache parsed SVG files to reduce file I/O operations
     @icon_svg_cache ||= {}
