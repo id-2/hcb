@@ -9,6 +9,7 @@ $mono: ui-monospace, 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace
 @import 'components/badges';
 @import 'components/receipts';
 @import 'components/modals';
+@import 'components/tooltips';
 
 @import 'components/buttons';
 
@@ -856,15 +857,16 @@ summary {
 }
 
 .events-filter-select {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 300px);
-  gap: 0px 16px;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .events-filter-select > label {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 300px;
+  margin-right: 16px;
 }
 
 .events-filter-select > label > select, .events-filter-select > label > input {
@@ -873,6 +875,18 @@ summary {
 
 .logo {
   height: 36px;
+}
+
+#admin-theme-toggle, #admin-logout-button {
+  color: var(--hcb-link-1);
+  background: none;
+  padding: 0px;
+}
+#admin-theme-toggle:hover, #admin-logout-button:hover {
+  color: var(--hcb-link-2);
+}
+form:has(> #admin-logout-button) {
+  margin: 0px;
 }
 
 @tailwind base;

@@ -19,7 +19,8 @@
     <% end %>
   </p>
 
-  <%= render partial: "suggested_pairings", locals: { pairings: @pairings, current_slide: 0 } %>
+  <%= turbo_stream_from current_user, :suggested_pairings %>
+  <%= turbo_frame_tag "suggested_pairings", src: suggested_pairings_path %>
 
   <h2>
     Receipt Bin
@@ -28,7 +29,8 @@
   <%= render partial: "receipts/form_v3", locals: {
         upload_method: "receipt_center",
         restricted_dropzone: true,
-        turbo: true
+        turbo: true,
+        global_paste: true
       } %>
 
   <%= render partial: "receipts/blankslate", locals: { count: @receipts.size } %>

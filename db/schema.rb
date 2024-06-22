@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_13_205428) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -777,8 +777,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_13_205428) do
 
   create_table "events", force: :cascade do |t|
     t.text "name"
-    t.datetime "start", precision: nil
-    t.datetime "end", precision: nil
     t.text "address"
     t.decimal "sponsorship_fee"
     t.datetime "created_at", precision: nil, null: false
@@ -1641,6 +1639,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_13_205428) do
     t.bigint "receiptable_id"
     t.integer "upload_method"
     t.text "textual_content_ciphertext"
+    t.string "suggested_memo"
+    t.text "extracted_card_last4_ciphertext"
+    t.integer "extracted_subtotal_amount_cents"
+    t.integer "extracted_total_amount_cents"
+    t.datetime "extracted_date"
+    t.string "extracted_merchant_name"
+    t.string "extracted_merchant_url"
+    t.string "extracted_merchant_zip_code"
+    t.boolean "data_extracted", default: false, null: false
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["user_id"], name: "index_receipts_on_user_id"
   end
@@ -2048,6 +2055,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_13_205428) do
     t.string "payout_method_type"
     t.bigint "payout_method_id"
     t.integer "comment_notifications", default: 0, null: false
+    t.integer "charge_notifications", default: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

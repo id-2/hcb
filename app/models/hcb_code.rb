@@ -26,11 +26,14 @@ class HcbCode < ApplicationRecord
   include Commentable
   include Receiptable
 
+  include Turbo::Broadcastable
+
   include Memo
 
   monetize :amount_cents
 
-  has_and_belongs_to_many :tags
+  has_many :hcb_code_tags
+  has_many :tags, through: :hcb_code_tags
 
   has_many :suggested_pairings
   has_many :suggested_receipts, source: :receipt, through: :suggested_pairings
@@ -83,6 +86,10 @@ class HcbCode < ApplicationRecord
 
   def date
     @date ||= ct.try(:date) || pt.try(:date)
+  end
+
+  def has_pending_expired?
+    canonical_pending_transactions.pending_expired.any?
   end
 
   def type
@@ -385,6 +392,10 @@ class HcbCode < ApplicationRecord
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::UNKNOWN_CODE
   end
 
+  def unused?
+    unknown? && no_transactions?
+  end
+
   def hcb_i1
     split_code[1]
   end
@@ -551,6 +562,10 @@ class HcbCode < ApplicationRecord
 
   def accepts_receipts?
     !reimbursement_expense_payout?
+  end
+
+  def suggested_memos
+    receipts.pluck(:suggested_memo).compact
   end
 
 end

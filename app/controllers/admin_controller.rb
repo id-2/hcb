@@ -367,12 +367,12 @@ class AdminController < ApplicationController
     @event_id = params[:event_id].present? ? params[:event_id] : nil
     @user_id = params[:user_id].present? ? params[:user_id] : nil
 
+    relation = CanonicalTransaction.left_joins(:canonical_event_mapping)
+
     if @event_id
       @event = Event.find(@event_id)
 
-      relation = @event.canonical_transactions.includes(:canonical_event_mapping)
-    else
-      relation = CanonicalTransaction.includes(:canonical_event_mapping)
+      relation = relation.where("canonical_event_mappings.event_id = ?", @event.id)
     end
 
     if @q
@@ -1414,6 +1414,8 @@ class AdminController < ApplicationController
         airtable_task_size :boba
       when :pending_you_ship_we_ship_airtable
         airtable_task_size :you_ship_we_ship
+      when :pending_power_hour_airtable
+        airtable_task_size :power_hour
       when :pending_arcade_airtable
         airtable_task_size :arcade
       when :emburse_card_requests

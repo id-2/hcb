@@ -33,6 +33,8 @@ class HcbCodesController < ApplicationController
 
     authorize @hcb_code
 
+    return not_found if @hcb_code.unused?
+
     if params[:show_details] == "true" && @hcb_code.ach_transfer?
       ahoy.track "ACH details shown", hcb_code_id: @hcb_code.id
       @show_ach_details = true
@@ -67,6 +69,7 @@ class HcbCodesController < ApplicationController
   def edit
     @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
     @event = @hcb_code.event
+    @ai_memo = params[:display_ai_memo] == "true" ? @hcb_code.suggested_memos.last : nil
 
     authorize @hcb_code
 
@@ -203,9 +206,9 @@ class HcbCodesController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         if removed
-          render turbo_stream: turbo_stream.remove(tag_dom_id(hcb_code, tag)) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), tag.label)
+          render partial: "tags/destroy", locals: { hcb_code:, tag: }
         else
-          render turbo_stream: turbo_stream.append("hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code: }) + turbo_stream.update_all(tag_dom_class(hcb_code, tag, "_toggle"), "✓ #{tag.label}")
+          render partial: "tags/create", locals: { hcb_code:, tag: }
         end
       end
       format.any { redirect_back fallback_location: @event }

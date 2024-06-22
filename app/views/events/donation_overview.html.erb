@@ -9,11 +9,16 @@
   </span>
   <% unless show_mock_data? %>
     <% if organizer_signed_in? && @donations.not_pending.any? %>
+      <%= pop_icon_to "email",
+          "mailto:?bcc=#{@donations.not_pending.pluck(:email).uniq.compact.join(',')}",
+          target: "_blank",
+          class: "tooltipped tooltipped--s", "aria-label": "Email donors" %>
       <action type="button" class="pop menu__toggle" data-behavior="menu_toggle" aria-expanded="false" tabindex="0">
         <%= inline_icon "download" %>
         <div class="menu__content h5" data-behavior="menu_content">
           <%= link_to "Export donations (CSV)", export_donations_path(event: @event, format: :csv), target: :_blank %>
           <%= link_to "Export donations (JSON)", export_donations_path(event: @event, format: :json), target: :_blank %>
+          <%= link_to "Export donors (CSV)", export_donors_donations_path(event: @event, format: :csv), target: :_blank %>
         </div>
       </action>
     <% end %>
@@ -120,8 +125,8 @@
   <p>You can start accepting donations once you enable it in your organization’s <%= link_to "settings", edit_event_path(@event, anchor: "donations") %>.</p>
 <% end %>
 
-<div class="mt3 mb2">
-  <div class="stat stat--small">
+<div class="mt3 mb2 statset">
+  <div class="stat">
     <span class="stat__label">Total</span>
     <span class="stat__value"><%= render_money_amount @stats[:deposited] %></span>
   </div>
@@ -129,7 +134,6 @@
     <span class="stat__label">Per month</span>
     <span class="stat__value"><%= render_money_amount @recurring_donations_monthly_sum %></span>
   </div>
-
 </div>
 
 <% if @recurring_donations.size > 0 %>
@@ -179,18 +183,17 @@
   Past donations
 </h2>
 
-<div style="text-align: center;">
-  <%= link_to "Deposited", "?filter=deposited", class: "filterbar__item", "aria-selected": !["refunded"].include?(params[:filter]), role: "tab" %>
-  <%= link_to "Refunded", "?filter=refunded", class: "filterbar__item", "aria-selected": params[:filter] == "refunded", role: "tab" %>
-</div>
-
-<%= form_with(model: nil, local: true, method: :get) do |form| %>
-  <div class="filterbar flex flex-wrap items-center w-100">
-
-    <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2 w-auto", style: "max-width: none;", value: params[:q] %>
-
+<div class="flex items-center gap-4 flex-col-reverse sm:flex-row">
+  <%= form_with(model: nil, local: true, method: :get, class: "flex-1 w-full sm:w-auto") do |form| %>
+    <div class="filterbar flex flex-wrap items-center w-100">
+      <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2 w-auto", style: "max-width: none;", value: params[:q] %>
+    </div>
+  <% end %>
+  <div>
+    <%= link_to "Deposited", "?filter=deposited", class: "filterbar__item", "aria-selected": !["refunded"].include?(params[:filter]), role: "tab" %>
+    <%= link_to "Refunded", "?filter=refunded", class: "filterbar__item", "aria-selected": params[:filter] == "refunded", role: "tab" %>
   </div>
-<% end %>
+</div>
 
 <% if @donations.size > 0 %>
 <article class="table-container">

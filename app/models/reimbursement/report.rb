@@ -66,6 +66,8 @@ module Reimbursement
     include PublicActivity::Model
     tracked owner: proc{ |controller, record| controller&.current_user }, recipient: proc { |controller, record| record.user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
 
+    broadcasts_refreshes_to ->(report) { report }
+
     acts_as_paranoid
 
     after_create_commit do
@@ -142,7 +144,9 @@ module Reimbursement
     def status_text
       return "Review Requested" if submitted?
       return "Processing" if reimbursement_requested?
+      return "⚠️ Processing" if reimbursed? && payout_holding&.failed?
       return "In Transit" if reimbursement_approved?
+      return "In Transit" if reimbursed? && !payout_holding.sent?
 
       aasm_state.humanize.titleize
     end
@@ -159,6 +163,7 @@ module Reimbursement
       return "info" if submitted?
       return "error" if rejected?
       return "purple" if reimbursement_requested?
+      return "warning" if reimbursed? && payout_holding&.failed?
       return "success" if reimbursement_approved? || reimbursed?
 
       return "primary"

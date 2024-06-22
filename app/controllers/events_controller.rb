@@ -215,6 +215,22 @@ class EventsController < ApplicationController
     end
   end
 
+  def breakdown
+    authorize @event
+
+    @heatmap = BreakdownEngine::Heatmap.new(@event).run
+    @maximum_positive_change = @heatmap.values.map { |change| change[:positive] }.max || 0
+    @maximum_negative_change = @heatmap.values.map { |change| change[:negative] }.min || 0
+
+    @merchants = BreakdownEngine::Merchants.new(@event).run
+
+    @categories = BreakdownEngine::Categories.new(@event).run
+
+    @users = BreakdownEngine::Users.new(@event).run
+
+    @tags = BreakdownEngine::Tags.new(@event).run
+  end
+
   def balance_by_date
     begin
       authorize @event
@@ -837,6 +853,25 @@ class EventsController < ApplicationController
     end
   end
 
+  def activation_flow
+    authorize @event
+  end
+
+  def activate
+    authorize @event
+
+    params[:event][:files].each do |file|
+      Document.create(user: current_user, event_id: @event.id, name: file.original_filename, file:)
+    end
+
+    if @event.update(event_params.except(:files).merge({ demo_mode: false }))
+      flash[:success] = "Organization successfully activated."
+      redirect_to event_path(@event)
+    else
+      render :activation_flow, status: :unprocessable_entity
+    end
+  end
+
   def claim_point_of_contact
     authorize @event
 
@@ -893,7 +928,7 @@ class EventsController < ApplicationController
         :merchant_lock,
         :category_lock,
         :invite_message
-      ]
+      ],
     )
 
     # Expected budget is in cents on the backend, but dollars on the frontend

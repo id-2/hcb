@@ -350,11 +350,13 @@ Rails.application.routes.draw do
     resources :comments
   end
 
-  resources :disbursements, only: [:index, :new, :create, :show, :edit, :update] do
+  resources :disbursements, only: [:new, :create, :show, :edit, :update] do
     post "mark_fulfilled"
     post "reject"
     get "confirmation", to: "disbursements#transfer_confirmation_letter"
   end
+
+  get "disbursements", to: redirect("/admin/disbursements")
 
   resources :comments, only: [:edit, :update]
 
@@ -484,6 +486,7 @@ Rails.application.routes.draw do
       get ":event_name/:donation", to: "donations#finish_donation", as: "finish_donation"
       get ":event_name/:donation/finished", to: "donations#finished", as: "finished_donation"
       get "export"
+      get "export_donors"
     end
 
     member do
@@ -569,6 +572,7 @@ Rails.application.routes.draw do
 
   post "api/v1/users/find", to: "api#user_find"
   post "api/v1/events/create_demo", to: "api#create_demo_event"
+  get "api/current_user", to: "api#the_current_user"
 
   post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
@@ -610,14 +614,18 @@ Rails.application.routes.draw do
   match "/404", to: "errors#not_found", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
+  Rack::Utils::HTTP_STATUS_CODES.keys.select { |c| c >= 400 }.each do |code|
+    match "/#{code}", to: "errors#error", via: :all, code:
+  end
+
   get "/search" => "search#index"
 
   get "/events" => "events#index"
   get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
   resources :events, except: [:new, :create], path_names: { edit: "settings" }, path: "/" do
     get "edit", to: redirect("/%{event_id}/settings")
+    get "breakdown"
     put "toggle_hidden"
-
     post "claim_point_of_contact"
 
     post "remove_header_image"
@@ -649,7 +657,9 @@ Rails.application.routes.draw do
     get "expensify"
     get "reimbursements"
     get "donations", to: "events#donation_overview", as: :donation_overview
-    get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overview
+    get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overviews
+    get "activation_flow", to: "events#activation_flow", as: :activation_flow
+    post "activate", to: "events#activate", as: :activate
     post "demo_mode_request_meeting"
     post "finish_signee_backfill"
     resources :disbursements, only: [:new, :create]

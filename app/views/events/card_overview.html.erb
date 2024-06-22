@@ -25,7 +25,7 @@
       <% end %>
     <% end %>
 
-    <%= link_to "?view=#{params[:view] == 'list' ? 'grid' : 'list'}", class: "btn" do %>
+    <%= link_to "?view=#{params[:view] == 'list' ? 'grid' : 'list'}#{"&q=#{@q}" if @q}#{"&status=#{@status}" if @status}", class: "btn" do %>
       <%= inline_icon params[:view] == "list" ? "grid" : "list", size: 16 %>
       <%= (params[:view] == "list" ? "grid" : "list").capitalize %> view
     <% end %>
@@ -54,14 +54,17 @@
       <% if @status %>
         <%= form.hidden_field :status, value: @status %>
       <% end %>
+      <% if params[:view] %>
+        <%= form.hidden_field :view, value: params[:view] %>
+      <% end %>
       <%= form.text_field :q, value: @q, placeholder: "Search by cardholder", class: "w-100", style: "max-width: 100%" %>
     <% end %>
 
     <% unless show_mock_data? %>
       <div style="text-align: center;">
-        <%= link_to "All", event_cards_overview_path(event_id: @event.slug), class: "filterbar__item", "aria-selected": @status.nil?, role: "tab" %>
+        <%= link_to "All", event_cards_overview_path(event_id: @event.slug, view: params[:view], q: @q), class: "filterbar__item", "aria-selected": @status.nil?, role: "tab" %>
         <% %w[virtual physical active inactive].each do |status| %>
-          <%= link_to status.humanize, "?status=#{status}#{"&q=#{@q}" if @q}", class: "filterbar__item", "aria-selected": @status == status, role: "tab" %>
+          <%= link_to status.humanize, "?status=#{status}#{"&q=#{@q}" if @q}#{"&view=#{params[:view]}" if params[:view]}", class: "filterbar__item", "aria-selected": @status == status, role: "tab" %>
         <% end %>
       </div>
     <% end %>
@@ -90,12 +93,10 @@
     <div class="flex flex-col justify-center mt4">
       <section class="grid">
         <% if organizer_signed_in? %>
-          <div class="flex justify-center">
-            <%= link_to my_cards_path, class: "btn btn-small flex w-fit mx-auto" do %>
-              <%= inline_icon "view-back", style: "margin-left: -8px; height: 100%; width: fit-content;" %>
-              <p class="m0">See all your cards across organizations</p>
-            <% end %>
-          </div>
+          <%= link_to my_cards_path,
+                      class: "card card--hover block pt4 pb4 card--promo card--sunset cursor-pointer" do %>
+            <h3 class="mt0 mb0">See all your cards →</h3>
+          <% end %>
         <% end %>
         <% if @event.used_emburse? %>
           <%= link_to event_emburse_cards_overview_path(event_id: @event.slug),

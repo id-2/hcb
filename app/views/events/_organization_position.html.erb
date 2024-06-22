@@ -1,4 +1,4 @@
-<div class="organizer-position card flex flex-col overflow-visible mb2">
+<div class="organizer-position card flex flex-col overflow-visible mb2 max-w-md mx-auto">
   <div class="organizer-position__main-info flex">
     <div class="flex g2" style="flex-grow: 1">
       <div class="flex justify-between">
@@ -50,12 +50,15 @@
             <%= pop_icon_to "clock", "#", class: "muted", disabled: true %>
           </div>
         <% else %>
-          <div class="tooltipped tooltipped--w" aria-label="<%= policy(position).can_remove? ? "Remove user from organization" : "You don't have permission to remove users" %>">
+          <div class="tooltipped tooltipped--w" aria-label="<%= policy(position).can_request_removal? ? "Remove user from organization" : "You don't have permission to remove users" %>">
           <%= pop_icon_to "member-remove",
-                          new_event_organizer_position_remove_path(organizer_position_id: position.user.slug),
+                          policy(position).destroy? ? organizer_path(position) : new_event_organizer_position_remove_path(organizer_position_id: position.user.slug),
                           class: "error",
-                          data: { turbo_frame: "_top" },
-                          disabled: !policy(position).can_remove? %>
+                          data: {
+                            turbo_frame: "_top",
+                            turbo_method: policy(position).destroy? ? :DELETE : :GET
+                          },
+                          disabled: !policy(position).can_request_removal? %>
           </div>
         <% end %>
       </div>
@@ -81,7 +84,12 @@
     </div>
   <% end %>
   <div class="muted flex justify-between align-bottom relative w-100 h6 mt1">
-    <p class="m0">Invited <%= relative_timestamp(position.organizer_position_invite.created_at) %> by <%= position.organizer_position_invite.sender.name %></p>
+    <p class="m0">
+      Invited
+      <%= relative_timestamp(position.organizer_position_invite.created_at) %>
+      <%= "as a contract signee" if position.signee? && position.event.organizer_positions.where(is_signee: nil).none? %>
+      by <%= position.organizer_position_invite.sender.name %>
+    </p>
     <% user_mention position.organizer_position_invite.sender %>
     <% if admin_signed_in? %>
       <div class="absolute right-0 bottom-0 line-height-0 tooltipped tooltipped--w" aria-label="<%= (position.signee? ? "Contract signee" : "No contract signature") + ". Click to toggle." %>">

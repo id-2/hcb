@@ -52,7 +52,7 @@ module StaticPagesHelper
       bank_applications: {
         id: "apppALh5FEOKkhjLR",
         table: "Events",
-        query: { filterByFormula: "Pending='Pending'" },
+        query: { filterByFormula: "OR(Status='⭐️ New Application', Status='Applied - Approved', Status='Applied - Need Rejection')" },
         destination: "https://airtable.com/tblctmRFEeluG4do7/viwGhv19cV1ZRj61a"
       },
       stickers: {
@@ -151,11 +151,22 @@ module StaticPagesHelper
         query: { filterByFormula: "Status='Under Review'" },
         destination: "https://airtable.com/app05mIKwNPO2l1vT/tblcIuVemD63IbBuY/viw1Zo5lX8e7t2Vzu"
       },
-      arcade: {
+      power_hour: {
         id: "app1VxI7f3twOIs2g",
         table: "tblKgmsperK0QHEQX",
         query: { filterByFormula: "Status='Awaiting Fulfillment'" },
         destination: "https://airtable.com/app1VxI7f3twOIs2g/tblKgmsperK0QHEQX"
+      },
+      arcade: {
+        id: "app4kCWulfB02bV8Q",
+        table: "tblNUDETwMdUlBCSM",
+        query: { filterByFormula: "Status='Awaiting Fulfillment'" },
+        destination: "https://airtable.com/app4kCWulfB02bV8Q/tblNUDETwMdUlBCSM/viwM8PNakitt9nm9C"
+      },
+      marketing_shipment_request: {
+        id: "appK53aN0fz3sgJ4w",
+        table: "tblvSJMqoXnQyN7co",
+        destination: "https://airtable.com/appK53aN0fz3sgJ4w/tblvSJMqoXnQyN7co/viwk107ZoZqAsFfRS"
       }
     }
   end

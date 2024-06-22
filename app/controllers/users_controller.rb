@@ -365,6 +365,15 @@ class UsersController < ApplicationController
                                  .includes(:application)
     @all_sessions = (@sessions + @oauth_authorizations).sort_by { |s| s.created_at }.reverse!
 
+    @expired_sessions = @user
+                        .user_sessions
+                        .only_deleted
+                        .not_impersonated
+                        .where("deleted_at >= ?", 1.week.ago)
+                        .where
+                        .not(id: current_session)
+                        .sort_by { |s| s.created_at }.reverse!
+
     authorize @user
   end
 
@@ -542,7 +551,8 @@ class UsersController < ApplicationController
       :birthday,
       :seasonal_themes_enabled,
       :payout_method_type,
-      :comment_notifications
+      :comment_notifications,
+      :charge_notifications
     ]
 
     if @user.stripe_cardholder

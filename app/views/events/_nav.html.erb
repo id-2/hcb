@@ -14,7 +14,21 @@
       tooltip: "View your transactions",
       icon: "transactions",
       selected: local_assigns[:selected] == :transactions %>
-    <h4 class="mb0 h4 font-medium muted">Receive</h4>
+    <%= dock_item "Breakdown",
+      event_breakdown_path(event_id: @event.slug),
+      tooltip: "Breakdown",
+      icon: "grid",
+      selected: local_assigns[:selected] == :breakdown if policy(@event).breakdown? %>
+    <% if policy(@event).activation_flow? %>
+      <% admin_tool("m0 p0 overflow-visible w-fit") do %>
+        <%= dock_item "Activate",
+          event_activation_flow_path(event_id: @event.slug),
+          tooltip: "Activate This Organization",
+          icon: "checkmark",
+          selected: local_assigns[:selected] == :activation_flow %>
+        <% end %>
+    <% end %>
+    <h4 class="mb0 h5 muted">Receive</h4>
     <hr>
     <%= dock_item "Donations",
       @event&.partner&.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
@@ -127,6 +141,7 @@
       <action type="button" class="pop primary menu__toggle" data-behavior="menu_toggle" aria-expanded="false" tabindex="0">
         <%= inline_icon "more" %>
         <div class="menu__content" data-behavior="menu_content">
+          <%= link_to "Team", event_team_path(event_id: @event.slug) %>
           <%= link_to "Promotions & perks", event_promotions_path(event_id: @event.slug) if policy(@event).promotions? %>
           <%= link_to "Google Workspace", event_g_suite_overview_path(event_id: @event.slug) if policy(@event).g_suite_overview? %>
           <%= link_to "Documents", event_documentation_path(event_id: @event.slug) %>
