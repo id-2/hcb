@@ -2,11 +2,7 @@
   <%= modal_header("Create tag") %>
   <%= form_with url: event_tags_path(@event || code.event), data: { turbo: true } do |form| %>
     <%= form.hidden_field :hcb_code_id, value: instance %>
-    <%= form.hidden_field :emoji, id: "create_tag_emoji_input_#{instance}"  %>
     <div class="flex gap-2">
-      <button type="button" id="create_tag_emoji_<%= instance %>" class="list-badge rounded add-tag-badge ml0 menu__toggle menu__toggle--arrowless h-10" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
-        <%= inline_icon "emoji", size: 24 %>
-      </button>
       <div>
         <%= form.text_field :label, data: { "behavior" => (@event || code.event).tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
         <% 
@@ -23,21 +19,3 @@
     <%= form.submit "Create", class: "btn bg-primary mt-2 float-right" %>
   <% end %>
 </section>
-<script>
-  document.addEventListener("turbo:load", () => {
-    const picker = new EmojiButton({
-      theme: document.documentElement.getAttribute("data-dark") === "true" ? "dark" : "light"
-    });
-    const trigger = document.getElementById('create_tag_emoji_<%= instance %>');
-
-    picker.on('emoji', selection => {
-      const unicodeValue = selection.emoji.length < 4
-        ? selection.emoji.codePointAt(0).toString(16)
-        : `${selection.emoji.codePointAt(0).toString(16)}-${selection.emoji.codePointAt(2).toString(16)}`;
-        trigger.innerHTML = `<%= emoji "replace", size: 18, class: "ml-1 mr-2", style: "transform: scale(1.5)" %>`.replace("replace", unicodeValue);
-      document.getElementById('create_tag_emoji_input_<%= instance %>').value = unicodeValue;
-    });
-
-    trigger.addEventListener('click', () => picker.togglePicker(trigger));
-  })
-</script>

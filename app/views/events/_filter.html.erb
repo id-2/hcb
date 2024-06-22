@@ -37,9 +37,6 @@
         <span class="xs-hide sm-hide md-hide flex items-center">
           <span class="nowrap">Filtered by</span>
           <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1">
-            <% if tag.emoji %>
-              <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
-            <% end %>
             <%= @tag.label %>
           </span>
         </span>

@@ -4,9 +4,6 @@
     <div class="flex items-center flex-wrap" style="gap: 0.25rem">
       <% hcb_code.tags.filter { |tag| tag.event == @event }.each do |tag| %>
         <span class="badge bg-muted ml0 mr1" data-tag="<%= tag.id %>">
-          <% if tag.emoji %>
-            <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
-          <% end %>
           <%= tag.label %>
           <%= button_to toggle_tag_hcb_code_path(id: @hcb_code.hashid, tag_id: tag.id), class: "p0 line-height-0 bg-transparent border-none cursor-pointer link-reset", form_class: "line-height-0", form: { "data-turbo" => "true" } do %>
             <%= inline_icon "view-close", size: 16 %>
@@ -22,9 +19,6 @@
               <div class="flex items-center" data-tag="<%= tag.id %>">
                 <%= button_to toggle_tag_hcb_code_path(id: @hcb_code.hashid, tag_id: tag.id), class: "menu__action", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
                   <%= "✓" if @hcb_code.tags.include?(tag) %>
-                  <% if tag.emoji %>
-                    <%= emoji tag.emoji, size: 18, class: "ml-1 mr-2" %>
-                  <% end %>
                   <%= tag.label %>
                 <% end %>
                 <%= button_to event_tag_path(@event, tag), class: "menu__action", method: :delete, title: "Delete this tag", form: { "data-turbo" => "true", "data-turbo-confirm" => tag.removal_confirmation_message }  do %>

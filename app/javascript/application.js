@@ -35,9 +35,6 @@ import './controllers'
 import { Turbo } from '@hotwired/turbo-rails'
 window.Turbo = Turbo
 
-import { EmojiButton } from '@joeattardi/emoji-button'
-window.EmojiButton = EmojiButton
-
 import Alpine from 'alpinejs'
 import persist from '@alpinejs/persist'
 import ach_form from './datas/ach_form'

@@ -245,10 +245,6 @@ summary {
 @import 'components/event_settings';
 @import 'components/tags';
 
-.emoji-picker__wrapper {
-  z-index: 99
-}
-
 .turbo-progress-bar {
   height: 0.125rem;
   background-color: map-get($palette, primary);

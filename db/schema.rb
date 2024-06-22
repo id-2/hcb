@@ -1867,7 +1867,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_13_205428) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "event_id", null: false
-    t.string "emoji"
     t.index ["event_id"], name: "index_tags_on_event_id"
   end
 
