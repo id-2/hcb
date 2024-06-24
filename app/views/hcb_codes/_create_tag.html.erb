@@ -1,16 +1,22 @@
-<section class="modal modal--scroll  bg-snow" data-behavior="modal" role="dialog" id="create_tag_<%= instance %>">
+<% if button %>
+   <%= link_to "#", class: "menu__input", data: { behavior: "modal_trigger", modal: "create_tag" }, onclick: "document.getElementById('create_tag_hcb_code_id').value = '#{button}'" do %>
+      <%= inline_icon "plus", size: 15 %>
+      Create tag
+    <% end %>
+<% else %>
+<section class="modal modal--scroll  bg-snow" data-behavior="modal" role="dialog" id="create_tag">
   <%= modal_header("Create tag") %>
-  <%= form_with url: event_tags_path(@event || code.event), data: { turbo: true } do |form| %>
-    <%= form.hidden_field :hcb_code_id, value: instance %>
+  <%= form_with url: event_tags_path(@event), id: "create_tag_form", data: { turbo: true } do |form| %>
+    <%= form.hidden_field :hcb_code_id, value: "", id: "create_tag_hcb_code_id" %>
     <div class="flex gap-2">
       <div>
-        <%= form.text_field :label, data: { "behavior" => (@event || code.event).tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
+        <%= form.text_field :label, data: { "behavior" => @event.tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
         <% 
           colors = ['#f8b9c2', '#ffd4b3', '#fbedb6', '#bff2e3', '#bff2e3', '#bedbf3', '#e3bff2']
           colors.each do |color|
         %>
         <label class="tags__radio mt-2">
-          <%= form.radio_button :color, color, id: "tag_color_#{color}_#{instance}" %>
+          <%= form.radio_button :color, color %>
           <div class="radio__control" style="background-color: <%= color %>"></div>
         </label>
         <% end %>
@@ -19,3 +25,4 @@
     <%= form.submit "Create", class: "btn bg-primary mt-2 float-right" %>
   <% end %>
 </section>
+<% end %>

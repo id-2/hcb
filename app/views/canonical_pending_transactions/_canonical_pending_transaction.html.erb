@@ -58,7 +58,6 @@
           <% if !defined?(receipt_upload_button) && !defined?(hide_tags) && organizer_signed_in? && !pt.instance_of?(OpenStruct) && Flipper.enabled?(:transaction_tags_2022_07_29, @event || pt.local_hcb_code.event) %>
             <div class="overflow-visible relative" style="margin-left: 0.5rem;" data-controller="menu" data-menu-append-to-value="turbo-frame#ledger">
               <button class="list-badge add-tag-badge ml0 menu__toggle menu__toggle--arrowless" data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">+ Add tag</button>
-              <%= render "hcb_codes/create_tag", code: pt.local_hcb_code, instance: instance %>
               <div class="menu__content menu__content--2 menu__content--compact menu__content--left h6" data-menu-target="content">
                 <% (@event || pt.local_hcb_code.event).tags.each do |tag| %>
                   <div class="flex items-center" data-tag="<%= tag.id %>">
@@ -75,10 +74,7 @@
                 <% if (@event || pt.local_hcb_code.event).tags.any? %>
                   <div class="menu__divider tags__divider"></div>
                 <% end %>
-                <%= link_to "#", class: "menu__input", data: { behavior: "modal_trigger", modal: "create_tag_#{instance}" } do %>
-                  <%= inline_icon "plus", size: 15 %>
-                  Create tag
-                <% end %>
+                <%= render partial: "hcb_codes/create_tag", locals: { button: pt.local_hcb_code.hashid } %>
               </div>
             </div>
           <% end %>
