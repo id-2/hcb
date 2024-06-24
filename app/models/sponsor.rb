@@ -24,6 +24,10 @@
 #  index_sponsors_on_event_id  (event_id)
 #  index_sponsors_on_slug      (slug) UNIQUE
 #
+# Foreign Keys
+#
+#  fk_rails_...  (event_id => events.id)
+#
 class Sponsor < ApplicationRecord
   has_paper_trail
 
