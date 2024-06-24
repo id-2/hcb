@@ -21,6 +21,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (document_id => documents.id)
+#  fk_rails_...  (user_id => users.id)
 #
 class DocumentDownload < ApplicationRecord
   acts_as_paranoid
