@@ -30,6 +30,12 @@
 #  index_reimbursement_reports_on_reviewer_id    (reviewer_id)
 #  index_reimbursement_reports_on_user_id        (user_id)
 #
+# Foreign Keys
+#
+#  fk_rails_...  (event_id => events.id)
+#  fk_rails_...  (invited_by_id => users.id)
+#  fk_rails_...  (user_id => users.id)
+#
 module Reimbursement
   class Report < ApplicationRecord
     include ::Shared::AmpleBalance
