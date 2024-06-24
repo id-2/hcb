@@ -23,6 +23,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (canonical_transaction_id => canonical_transactions.id)
+#  fk_rails_...  (event_id => events.id)
 #
 class CanonicalEventMapping < ApplicationRecord
   broadcasts_refreshes_to ->(mapping) { [mapping.event, :transactions] }
