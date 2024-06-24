@@ -20,6 +20,10 @@
 #  index_column_account_numbers_on_account_number_bidx  (account_number_bidx)
 #  index_column_account_numbers_on_event_id             (event_id)
 #
+# Foreign Keys
+#
+#  fk_rails_...  (event_id => events.id)
+#
 module Column
   class AccountNumber < ApplicationRecord
     belongs_to :event
