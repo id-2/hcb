@@ -28,7 +28,8 @@ class OrganizerPositionInvite
       private
 
       def balance_is_positive
-        errors.add(:provisional_control_allowance, "balance must be positive") unless amount_cents.positive?
+        puts "sratoiarsntoeiarsnteisrt", amount_cents, "END"
+        errors.add(:provisional_control_allowance, "balance must be positive") if amount_cents.negative?
       end
 
       def one_provisional_control_allowance

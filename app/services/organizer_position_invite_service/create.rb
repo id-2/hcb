@@ -10,7 +10,6 @@ module OrganizerPositionInviteService
       @is_signee = is_signee
       @role = role
       @enable_controls = enable_controls
-      puts("rasontnsrtnsr, ", enable_controls, @enable_controls)
       @initial_control_amount = initial_control_amount
 
       args = {}
@@ -29,6 +28,7 @@ module OrganizerPositionInviteService
 
         @model.save
 
+        puts("OrganizerPositionInviteService::innit", @initial_control_amount, "OrganizerPositionInviteService::innitEND")
         OrganizerPositionInvite::Spending::ProvisionalControlAllowance.create!({organizer_position_invite: @model, amount: @initial_controls_amount}) if @enable_controls
       end
     rescue ActiveRecord::RecordInvalid => e
