@@ -10,14 +10,14 @@
     <%= form.hidden_field :hcb_code_id, value: "", id: "create_tag_hcb_code_id" %>
     <div class="flex gap-2">
       <div>
-        <%= form.text_field :label, data: { "behavior" => @event.tags.none? ? "autofocus" : "" }, placeholder: "Tag name", autocomplete: "off", required: true %>
+        <%= form.text_field :label, data: { "behavior" => "autofocus" }, placeholder: "Tag name", autocomplete: "off", required: true %>
         <% 
-          colors = ['#f8b9c2', '#ffd4b3', '#fbedb6', '#bff2e3', '#bff2e3', '#bedbf3', '#e3bff2']
+          colors = ["muted", "red", "orange", "yellow", "green", "cyan", "blue", "purple"]
           colors.each do |color|
         %>
         <label class="tags__radio mt-2">
           <%= form.radio_button :color, color %>
-          <div class="radio__control" style="background-color: <%= color %>"></div>
+          <div class="radio__control tag-darker tag-<%= color %>"></div>
         </label>
         <% end %>
       </div>
