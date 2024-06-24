@@ -87,10 +87,12 @@
 # Foreign Keys
 #
 #  fk_rails_...  (archived_by_id => users.id)
+#  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (fee_reimbursement_id => fee_reimbursements.id)
 #  fk_rails_...  (manually_marked_as_paid_user_id => users.id)
 #  fk_rails_...  (payout_id => invoice_payouts.id)
 #  fk_rails_...  (sponsor_id => sponsors.id)
+#  fk_rails_...  (voided_by_id => users.id)
 #
 class Invoice < ApplicationRecord
   has_paper_trail skip: [:payment_method_ach_credit_transfer_account_number] # ciphertext columns will still be tracked
