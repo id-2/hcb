@@ -8,7 +8,7 @@ class TagsController < ApplicationController
   def create
     authorize @event, policy_class: TagPolicy
 
-    tag = @event.tags.create_with(label: params[:label].strip, color: params[:color])
+    tag = @event.tags.find_or_create_by(label: params[:label].strip, color: params[:color])
 
     if params[:hcb_code_id]
       hcb_code = HcbCode.find(params[:hcb_code_id])
