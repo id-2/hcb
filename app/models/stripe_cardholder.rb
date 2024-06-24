@@ -25,6 +25,10 @@
 #  index_stripe_cardholders_on_stripe_id  (stripe_id)
 #  index_stripe_cardholders_on_user_id    (user_id)
 #
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id)
+#
 class StripeCardholder < ApplicationRecord
   include HasStripeDashboardUrl
   has_stripe_dashboard_url "issuing/cardholders", :stripe_id
