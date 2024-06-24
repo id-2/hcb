@@ -29,7 +29,10 @@
 #
 # Foreign Keys
 #
+#  fk_rails_... (event_id => events.id)
 #  fk_rails_...  (organizer_position_id => organizer_positions.id)
+#  fk_rails_...  (sender_id => users.id)
+#  fk_rails_...  (user_id => users.id)
 #
 
 # OrganizerPositionInvites are used to invite users - whether they already
