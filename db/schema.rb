@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_24_170440) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "amcheck"
   enable_extension "citext"
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -52,9 +53,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
     t.bigint "payment_recipient_id"
     t.string "recipient_email"
     t.boolean "send_email_notification", default: false
+    t.boolean "same_day", default: false, null: false
     t.string "company_name"
     t.string "company_entry_description"
-    t.boolean "same_day", default: false, null: false
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
     t.index ["event_id"], name: "index_ach_transfers_on_event_id"
@@ -137,6 +138,28 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
     t.date "start"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "admin_transaction_report_request_events", force: :cascade do |t|
+    t.bigint "admin_transaction_report_request_id", null: false
+    t.bigint "event_id", null: false
+    t.index ["admin_transaction_report_request_id"], name: "idx_on_admin_transaction_report_request_id_469953c172"
+    t.index ["event_id"], name: "index_admin_transaction_report_request_events_on_event_id"
+  end
+
+  create_table "admin_transaction_report_request_reportees", force: :cascade do |t|
+    t.bigint "admin_transaction_report_request_id", null: false
+    t.bigint "user_id", null: false
+    t.index ["admin_transaction_report_request_id"], name: "idx_on_admin_transaction_report_request_id_da57b6accf"
+    t.index ["user_id"], name: "index_admin_transaction_report_request_reportees_on_user_id"
+  end
+
+  create_table "admin_transaction_report_requests", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "frequency"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_admin_transaction_report_requests_on_user_id"
   end
 
   create_table "ahoy_events", force: :cascade do |t|
@@ -588,10 +611,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.text "slug"
+    t.datetime "deleted_at", precision: nil
     t.datetime "archived_at"
     t.bigint "archived_by_id"
     t.string "aasm_state"
-    t.datetime "deleted_at", precision: nil
     t.index ["archived_by_id"], name: "index_documents_on_archived_by_id"
     t.index ["event_id"], name: "index_documents_on_event_id"
     t.index ["slug"], name: "index_documents_on_slug", unique: true
@@ -1316,6 +1339,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
     t.index ["closed_by_id"], name: "index_organizer_position_deletion_requests_on_closed_by_id"
     t.index ["organizer_position_id"], name: "index_organizer_deletion_requests_on_organizer_position_id"
     t.index ["submitted_by_id"], name: "index_organizer_position_deletion_requests_on_submitted_by_id"
+  end
+
+  create_table "organizer_position_invite_spending_provisional_control_allows", force: :cascade do |t|
+    t.bigint "organizer_position_invite_id"
+    t.integer "amount_cents"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organizer_position_invite_id"], name: "idx_on_organizer_position_invite_id_ba06d5295c"
   end
 
   create_table "organizer_position_invites", force: :cascade do |t|
@@ -2091,39 +2122,32 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
   add_foreign_key "admin_ledger_audit_tasks", "admin_ledger_audits"
   add_foreign_key "admin_ledger_audit_tasks", "hcb_codes"
   add_foreign_key "admin_ledger_audit_tasks", "users", column: "reviewer_id"
+  add_foreign_key "admin_transaction_report_request_events", "admin_transaction_report_requests"
+  add_foreign_key "admin_transaction_report_request_events", "events"
+  add_foreign_key "admin_transaction_report_request_reportees", "admin_transaction_report_requests"
+  add_foreign_key "admin_transaction_report_request_reportees", "users"
+  add_foreign_key "admin_transaction_report_requests", "users"
   add_foreign_key "api_tokens", "users"
   add_foreign_key "bank_fees", "events"
   add_foreign_key "canonical_event_mappings", "canonical_transactions"
-  add_foreign_key "canonical_event_mappings", "events"
   add_foreign_key "canonical_hashed_mappings", "canonical_transactions"
   add_foreign_key "canonical_hashed_mappings", "hashed_transactions"
   add_foreign_key "canonical_pending_declined_mappings", "canonical_pending_transactions"
   add_foreign_key "canonical_pending_event_mappings", "canonical_pending_transactions"
-  add_foreign_key "canonical_pending_event_mappings", "events"
   add_foreign_key "canonical_pending_settled_mappings", "canonical_pending_transactions"
   add_foreign_key "canonical_pending_settled_mappings", "canonical_transactions"
   add_foreign_key "canonical_pending_transactions", "raw_pending_stripe_transactions"
-  add_foreign_key "card_grant_settings", "events"
-  add_foreign_key "card_grants", "events"
   add_foreign_key "card_grants", "stripe_cards"
   add_foreign_key "card_grants", "subledgers"
-  add_foreign_key "card_grants", "users"
   add_foreign_key "card_grants", "users", column: "sent_by_id"
-  add_foreign_key "check_deposits", "events"
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"
-  add_foreign_key "column_account_numbers", "events"
-  add_foreign_key "disbursements", "events"
-  add_foreign_key "disbursements", "events", column: "source_event_id"
   add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
   add_foreign_key "disbursements", "users", column: "requested_by_id"
   add_foreign_key "document_downloads", "documents"
-  add_foreign_key "document_downloads", "users"
-  add_foreign_key "documents", "events"
   add_foreign_key "documents", "users"
   add_foreign_key "documents", "users", column: "archived_by_id"
   add_foreign_key "donations", "donation_payouts", column: "payout_id"
-  add_foreign_key "donations", "events"
   add_foreign_key "donations", "fee_reimbursements"
   add_foreign_key "emburse_card_requests", "emburse_cards"
   add_foreign_key "emburse_card_requests", "events"
@@ -2142,9 +2166,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
   add_foreign_key "fee_relationships", "events"
   add_foreign_key "fees", "canonical_event_mappings"
   add_foreign_key "g_suite_accounts", "g_suites"
-  add_foreign_key "g_suite_accounts", "users", column: "creator_id"
-  add_foreign_key "g_suites", "events"
-  add_foreign_key "g_suites", "users", column: "created_by_id"
   add_foreign_key "grants", "events"
   add_foreign_key "grants", "users", column: "processed_by_id"
   add_foreign_key "grants", "users", column: "submitted_by_id"
@@ -2161,26 +2182,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
   add_foreign_key "invoices", "invoice_payouts", column: "payout_id"
   add_foreign_key "invoices", "sponsors"
   add_foreign_key "invoices", "users", column: "archived_by_id"
-  add_foreign_key "invoices", "users", column: "creator_id"
   add_foreign_key "invoices", "users", column: "manually_marked_as_paid_user_id"
-  add_foreign_key "invoices", "users", column: "voided_by_id"
   add_foreign_key "lob_addresses", "events"
-  add_foreign_key "login_codes", "users"
   add_foreign_key "login_tokens", "user_sessions"
   add_foreign_key "login_tokens", "users"
   add_foreign_key "mailbox_addresses", "users"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
-  add_foreign_key "organizer_position_deletion_requests", "users", column: "submitted_by_id"
-  add_foreign_key "organizer_position_invites", "events"
   add_foreign_key "organizer_position_invites", "organizer_positions"
-  add_foreign_key "organizer_position_invites", "users"
-  add_foreign_key "organizer_position_invites", "users", column: "sender_id"
   add_foreign_key "organizer_position_spending_control_allowances", "organizer_position_spending_controls"
   add_foreign_key "organizer_position_spending_control_allowances", "users", column: "authorized_by_id"
   add_foreign_key "organizer_position_spending_controls", "organizer_positions"
-  add_foreign_key "organizer_positions", "events"
-  add_foreign_key "organizer_positions", "users"
   add_foreign_key "partner_donations", "events"
   add_foreign_key "partnered_signups", "events"
   add_foreign_key "partnered_signups", "partners"
@@ -2191,21 +2203,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
   add_foreign_key "paypal_transfers", "users"
   add_foreign_key "raw_pending_incoming_disbursement_transactions", "disbursements"
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
-  add_foreign_key "receipts", "users"
-  add_foreign_key "recurring_donations", "events"
-  add_foreign_key "reimbursement_expense_payouts", "events"
   add_foreign_key "reimbursement_expenses", "reimbursement_reports"
   add_foreign_key "reimbursement_expenses", "users", column: "approved_by_id"
-  add_foreign_key "reimbursement_reports", "events"
-  add_foreign_key "reimbursement_reports", "users"
-  add_foreign_key "reimbursement_reports", "users", column: "invited_by_id"
-  add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_ach_payment_sources", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
-  add_foreign_key "stripe_cardholders", "users"
-  add_foreign_key "stripe_cards", "events"
   add_foreign_key "stripe_cards", "stripe_cardholders"
-  add_foreign_key "subledgers", "events"
   add_foreign_key "transactions", "ach_transfers"
   add_foreign_key "transactions", "bank_accounts"
   add_foreign_key "transactions", "checks"
@@ -2215,9 +2217,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_18_141324) do
   add_foreign_key "transactions", "fee_reimbursements"
   add_foreign_key "transactions", "fee_relationships"
   add_foreign_key "transactions", "invoice_payouts"
-  add_foreign_key "user_email_updates", "users"
-  add_foreign_key "user_email_updates", "users", column: "updated_by_id"
-  add_foreign_key "user_sessions", "users"
   add_foreign_key "user_sessions", "users", column: "impersonated_by_id"
-  add_foreign_key "webauthn_credentials", "users"
 end

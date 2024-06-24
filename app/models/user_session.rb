@@ -34,7 +34,6 @@
 # Foreign Keys
 #
 #  fk_rails_...  (impersonated_by_id => users.id)
-#  fk_rails_...  (user_id => users.id)
 #
 class UserSession < ApplicationRecord
   has_paper_trail skip: [:session_token] # ciphertext columns will still be tracked

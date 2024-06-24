@@ -30,10 +30,6 @@
 #  index_recurring_donations_on_stripe_subscription_id  (stripe_subscription_id) UNIQUE
 #  index_recurring_donations_on_url_hash                (url_hash) UNIQUE
 #
-# Foreign Keys
-#
-#  fk_rails_...  (event_id => events.id)
-#
 class RecurringDonation < ApplicationRecord
   include Hashid::Rails
 

@@ -42,7 +42,6 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (event_id => events.id)
 #  fk_rails_...  (fee_reimbursement_id => fee_reimbursements.id)
 #  fk_rails_...  (payout_id => donation_payouts.id)
 #

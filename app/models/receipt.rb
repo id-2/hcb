@@ -27,10 +27,6 @@
 #  index_receipts_on_receiptable_type_and_receiptable_id  (receiptable_type,receiptable_id)
 #  index_receipts_on_user_id                              (user_id)
 #
-# Foreign Keys
-#
-#  fk_rails_...  (user_id => users.id)
-#
 class Receipt < ApplicationRecord
   has_encrypted :textual_content
   has_encrypted :extracted_card_last4

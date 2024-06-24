@@ -20,10 +20,6 @@
 #  index_expense_payouts_on_expenses_id                 (reimbursement_expenses_id)
 #  index_reimbursement_expense_payouts_on_event_id      (event_id)
 #
-# Foreign Keys
-#
-#  fk_rails_...  (event_id => events.id)
-#
 module Reimbursement
   class ExpensePayout < ApplicationRecord
     has_paper_trail

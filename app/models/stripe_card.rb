@@ -43,7 +43,6 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (event_id => events.id)
 #  fk_rails_...  (stripe_cardholder_id => stripe_cardholders.id)
 #
 class StripeCard < ApplicationRecord

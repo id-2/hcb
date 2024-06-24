@@ -14,10 +14,6 @@
 #
 #  index_card_grant_settings_on_event_id  (event_id)
 #
-# Foreign Keys
-#
-#  fk_rails_...  (event_id => events.id)
-#
 class CardGrantSetting < ApplicationRecord
   belongs_to :event
   serialize :merchant_lock, coder: CommaSeparatedCoder # convert comma-separated merchant list to an array

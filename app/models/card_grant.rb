@@ -30,11 +30,9 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (event_id => events.id)
 #  fk_rails_...  (sent_by_id => users.id)
 #  fk_rails_...  (stripe_card_id => stripe_cards.id)
 #  fk_rails_...  (subledger_id => subledgers.id)
-#  fk_rails_...  (user_id => users.id)
 #
 class CardGrant < ApplicationRecord
   include Hashid::Rails

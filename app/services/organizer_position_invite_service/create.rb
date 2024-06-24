@@ -2,13 +2,16 @@
 
 module OrganizerPositionInviteService
   class Create
-    def initialize(event:, sender: nil, user_email: nil, initial: false, is_signee: false, role: nil)
+    def initialize(event:, sender: nil, user_email: nil, initial: false, is_signee: false, role: nil, enable_controls: nil, initial_control_amount: nil)
       @event = event
       @sender = sender
       @user_email = user_email
       @initial = initial
       @is_signee = is_signee
       @role = role
+      @enable_controls = enable_controls
+      puts("rasontnsrtnsr, ", enable_controls, @enable_controls)
+      @initial_control_amount = initial_control_amount
 
       args = {}
       args[:event] = @event
@@ -25,6 +28,8 @@ module OrganizerPositionInviteService
         find_or_create_user
 
         @model.save
+
+        OrganizerPositionInvite::Spending::ProvisionalControlAllowance.create!({organizer_position_invite: @model, amount: @initial_controls_amount}) if @enable_controls
       end
     rescue ActiveRecord::RecordInvalid => e
       @model.errors.add(:base, message: e.message)

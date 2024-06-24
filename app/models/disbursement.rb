@@ -34,10 +34,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (event_id => events.id)
 #  fk_rails_...  (fulfilled_by_id => users.id)
 #  fk_rails_...  (requested_by_id => users.id)
-#  fk_rails_...  (source_event_id => events.id)
 #
 class Disbursement < ApplicationRecord
   include PgSearch::Model

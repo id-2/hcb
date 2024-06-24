@@ -13,10 +13,6 @@
 #
 #  index_subledgers_on_event_id  (event_id)
 #
-# Foreign Keys
-#
-#  fk_rails_...  (event_id => events.id)
-#
 class Subledger < ApplicationRecord
   belongs_to :event
 

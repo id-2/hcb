@@ -22,11 +22,6 @@
 #  index_g_suites_on_created_by_id  (created_by_id)
 #  index_g_suites_on_event_id       (event_id)
 #
-# Foreign Keys
-#
-#  fk_rails_...  (created_by_id => users.id)
-#  fk_rails_...  (event_id => events.id)
-#
 class GSuite < ApplicationRecord
   VALID_DOMAIN = /[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,24}(:[0-9]{1,5})?(\/.*)?\z/ix
 

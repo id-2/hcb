@@ -26,7 +26,6 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (g_suite_id => g_suites.id)
 #
 class GSuiteAccount < ApplicationRecord

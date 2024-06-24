@@ -28,7 +28,6 @@
 #
 #  fk_rails_...  (closed_by_id => users.id)
 #  fk_rails_...  (organizer_position_id => organizer_positions.id)
-#  fk_rails_...  (submitted_by_id => users.id)
 #
 class OrganizerPositionDeletionRequest < ApplicationRecord
   has_paper_trail

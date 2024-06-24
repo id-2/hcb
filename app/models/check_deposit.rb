@@ -23,10 +23,6 @@
 #  index_check_deposits_on_event_id       (event_id)
 #  index_check_deposits_on_increase_id    (increase_id) UNIQUE
 #
-# Foreign Keys
-#
-#  fk_rails_...  (event_id => events.id)
-#
 class CheckDeposit < ApplicationRecord
   has_paper_trail
 
