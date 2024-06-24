@@ -1,11 +1,12 @@
 .tags__radio {
   display: inline-block;
-  margin-right: 0.5rem;
+  width: 100%;
+  aspect-ratio: 1 / 1;
 }
 
 .radio__control {
-  width: 2rem;
-  height: 2rem;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   cursor: pointer;
   border-radius: 50%;
   position: relative;
@@ -67,6 +68,10 @@ $colors: (
     [data-dark="true"] & {
       background-color: darken($color, 30%);
       color: lighten($color, 30%);
+
+      &.tag-darker {
+        background-color: saturate(darken($color, 5%), 50%);
+      }
     }
   }
 }

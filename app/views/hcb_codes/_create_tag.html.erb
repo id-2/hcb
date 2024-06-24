@@ -4,18 +4,18 @@
       Create tag
     <% end %>
 <% else %>
-<section class="modal modal--scroll  bg-snow" data-behavior="modal" role="dialog" id="create_tag">
+<section class="modal modal--scroll max-w-md bg-snow" data-behavior="modal" role="dialog" id="create_tag">
   <%= modal_header("Create tag") %>
   <%= form_with url: event_tags_path(@event), id: "create_tag_form", data: { turbo: true } do |form| %>
     <%= form.hidden_field :hcb_code_id, value: "", id: "create_tag_hcb_code_id" %>
-    <div class="flex gap-2">
-      <div>
-        <%= form.text_field :label, data: { "behavior" => "autofocus" }, placeholder: "Tag name", autocomplete: "off", required: true %>
+    <div class="flex flex-col gap-3 mb-2">
+      <%= form.text_field :label, data: { "behavior" => "autofocus" }, placeholder: "Tag name", style: "max-width: 100%", autocomplete: "off", required: true %>
+      <div class="flex gap-3">
         <% 
           colors = ["muted", "red", "orange", "yellow", "green", "cyan", "blue", "purple"]
           colors.each do |color|
         %>
-        <label class="tags__radio mt-2">
+        <label class="tags__radio">
           <%= form.radio_button :color, color %>
           <div class="radio__control tag-darker tag-<%= color %>"></div>
         </label>
