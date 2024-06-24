@@ -22,6 +22,11 @@
 #  index_user_email_updates_on_updated_by_id  (updated_by_id)
 #  index_user_email_updates_on_user_id        (user_id)
 #
+# Foreign Keys
+#
+#  fk_rails_...  (updated_by_id => users.id)
+#  fk_rails_...  (user_id => users.id)
+#
 class User
   class EmailUpdate < ApplicationRecord
     include AASM
