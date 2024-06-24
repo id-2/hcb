@@ -709,6 +709,7 @@ Rails.application.routes.draw do
     end
 
     resources :payment_recipients, only: [:destroy]
+    resources :hcb_codes, path: "transactions", only: [:show]
 
 
     member do

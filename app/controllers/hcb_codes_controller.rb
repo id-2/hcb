@@ -8,25 +8,20 @@ class HcbCodesController < ApplicationController
 
   def show
     @hcb_code = HcbCode.find_by(hcb_code: params[:id]) || HcbCode.find(params[:id])
-    @event =
-      begin
-        # Attempt to retrieve the event using the context of the
-        # previous page. Has a high chance of erroring, but we'll give it
-        # a shot.
-        route = Rails.application.routes.recognize_path(request.referrer)
-        model = route[:controller].classify.constantize
-        object = model.find(route[:id])
-        event = model == Event ? object : object.event
-        raise StandardError unless @hcb_code.events.include? event
 
-        event
-      rescue
-        @hcb_code.events.min_by do |e|
-          [e.users.include?(current_user), e.is_public?].map { |b| b ? 0 : 1 }
-        end
-      rescue
-        @hcb_code.event
+    if params[:event_id].blank?
+      skip_authorization
+      event = guess_event
+      if event
+        return redirect_to({ event_id: event.slug, frame: params[:frame] }.compact)
+      else
+        return not_found
       end
+    end
+
+    @event = Event.friendly.find(params[:event_id])
+
+    not_found if @hcb_code.events.exclude?(@event) || !organizer_signed_in?
 
     hcb = @hcb_code.hcb_code
     hcb_id = @hcb_code.hashid
@@ -47,18 +42,18 @@ class HcbCodesController < ApplicationController
       @frame = false
       render :show
     end
-  rescue Pundit::NotAuthorizedError => e
-    raise unless @event.is_public? && !params[:redirect_to_sign_in]
+  # rescue Pundit::NotAuthorizedError => e
+  #   raise unless @event.is_public? && !params[:redirect_to_sign_in]
 
-    if @hcb_code.canonical_transactions.any?
-      txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
-      pos = txs.index { |tx| tx.hcb_code == hcb } + 1
-      page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
+  #   if @hcb_code.canonical_transactions.any?
+  #     txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
+  #     pos = txs.index { |tx| tx.hcb_code == hcb } + 1
+  #     page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
 
-      redirect_to event_path(@event, page:, anchor: hcb_id)
-    else
-      redirect_to event_path(@event, anchor: hcb_id)
-    end
+  #     redirect_to event_path(@event, page:, anchor: hcb_id)
+  #   else
+  #     redirect_to event_path(@event, anchor: hcb_id)
+  #   end
   end
 
   def memo_frame
@@ -265,6 +260,12 @@ class HcbCodesController < ApplicationController
       end
 
     end
+  end
+
+  private
+
+  def guess_event
+    @hcb_code.events.find { |e| admin_signed_in? || e.users.include?(current_user) }
   end
 
 end
