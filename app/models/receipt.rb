@@ -41,7 +41,7 @@ class Receipt < ApplicationRecord
   belongs_to :receiptable, polymorphic: true, optional: true
 
   belongs_to :user, class_name: "User", optional: true
-  alias_attribute :uploader, :user
+  alias_method :uploader, :user
   alias_method :transaction, :receiptable
 
   has_many :suggested_pairings, dependent: :destroy
