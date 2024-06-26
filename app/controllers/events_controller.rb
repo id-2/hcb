@@ -218,9 +218,11 @@ class EventsController < ApplicationController
   def breakdown
     authorize @event
 
-    @heatmap = BreakdownEngine::Heatmap.new(@event).run
-    @maximum_positive_change = @heatmap.values.map { |change| change[:positive] }.max || 0
-    @maximum_negative_change = @heatmap.values.map { |change| change[:negative] }.min || 0
+    heatmap_engine_response = BreakdownEngine::Heatmap.new(@event).run
+    @heatmap = heatmap_engine_response[:heatmap]
+    @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
+    @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]
+    @past_year_transactions_count = heatmap_engine_response[:transactions_count]
 
     @merchants = BreakdownEngine::Merchants.new(@event).run
 
@@ -232,16 +234,15 @@ class EventsController < ApplicationController
   end
 
   def balance_by_date
-    begin
-      authorize @event
-    rescue Pundit::NotAuthorizedError
-      render json: { error: "We couldn’t find that organization!" }
-      return
-    end
+    authorize @event
 
     max = [365, (Date.today - @event.created_at.to_date).to_i + 5].min
 
-    balance_by_date = ::TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).running_balance_by_date
+    balance_by_date = Rails.cache.fetch("balance_by_date_#{@event.id}", expires_in: 5.minutes) do
+      ::TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).running_balance_by_date
+    end
+
+    balance_by_date[0.days.ago.to_date] = @event.balance_v2_cents
 
     begin
       if (balance_by_date[max.days.ago.to_date] || balance_by_date[balance_by_date.keys.first]) > balance_by_date[0.days.ago.to_date]
@@ -874,7 +875,7 @@ class EventsController < ApplicationController
   def activate
     authorize @event
 
-    params[:event][:files].each do |file|
+    params[:event][:files]&.each do |file|
       Document.create(user: current_user, event_id: @event.id, name: file.original_filename, file:)
     end
 
