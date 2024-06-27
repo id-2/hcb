@@ -111,6 +111,11 @@ class Donation < ApplicationRecord
     end
   end
 
+  after_create do
+    StatsD.increment("Donation.count")
+    StatsD.histogram("Donation.amount_cents", amount)
+  end
+
   def pending_expired?
     local_hcb_code.has_pending_expired?
   end
