@@ -151,11 +151,13 @@ class StripeCard < ApplicationRecord
   end
 
   def total_spent
-    # pending authorizations + settled transactions
-    RawPendingStripeTransaction
-      .pending
-      .where("stripe_transaction->'card'->>'id' = ?", stripe_id)
-      .sum(:amount_cents).abs + canonical_transactions.sum(:amount_cents).abs
+    StatsD.measure("StripeCard.total_spent.duration") do
+      # pending authorizations + settled transactions
+      RawPendingStripeTransaction
+        .pending
+        .where("stripe_transaction->'card'->>'id' = ?", stripe_id)
+        .sum(:amount_cents).abs + canonical_transactions.sum(:amount_cents).abs
+    end
   end
 
   def status_text
@@ -181,21 +183,27 @@ class StripeCard < ApplicationRecord
   end
 
   def freeze!
-    StripeService::Issuing::Card.update(self.stripe_id, status: :inactive)
-    sync_from_stripe!
-    save!
+    StatsD.measure("StripeCard.freeze.duration") do
+      StripeService::Issuing::Card.update(self.stripe_id, status: :inactive)
+      sync_from_stripe!
+      save!
+    end
   end
 
   def defrost!
-    StripeService::Issuing::Card.update(self.stripe_id, status: :active)
-    sync_from_stripe!
-    save!
+    StatsD.measure("StripeCard.defrost.duration") do
+      StripeService::Issuing::Card.update(self.stripe_id, status: :active)
+      sync_from_stripe!
+      save!
+    end
   end
 
   def cancel!
-    StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
-    sync_from_stripe!
-    save!
+    StatsD.measure("StripeCard.cancel.duration") do
+      StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
+      sync_from_stripe!
+      save!
+    end
   end
 
   def frozen?
@@ -203,10 +211,12 @@ class StripeCard < ApplicationRecord
   end
 
   def last_frozen_by
-    user_id = versions.where_object_changes_to(stripe_status: "inactive").last&.whodunnit
-    return nil unless user_id
+    StatsD.measure("StripeCard.last_frozen_by.duration") do
+      user_id = versions.where_object_changes_to(stripe_status: "inactive").last&.whodunnit
+      return nil unless user_id
 
-    User.find_by_id(user_id)
+      User.find_by_id(user_id)
+    end
   end
 
   def active?
@@ -255,57 +265,60 @@ class StripeCard < ApplicationRecord
   end
 
   def sync_from_stripe!
-    if stripe_obj[:deleted]
-      self.stripe_status = "deleted"
-      return self
-    end
-    self.stripe_id = stripe_obj[:id]
-    self.stripe_brand = stripe_obj[:brand]
-    self.stripe_exp_month = stripe_obj[:exp_month]
-    self.stripe_exp_year = stripe_obj[:exp_year]
-    self.last4 = stripe_obj[:last4]
-    self.stripe_status = stripe_obj[:status]
-    self.card_type = stripe_obj[:type]
-
-    if stripe_obj[:status] == "active"
-      self.activated = true
-    elsif stripe_obj[:status] == "inactive" && !self.activated
-      self.activated = false
-    end
-
-    if stripe_obj[:shipping]
-      if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?
-        self.lost_in_shipping = true
-        StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
-
-        # force a refresh of the cache; otherwise, the card will be marked as
-        # lost in shipping again since stripe_obj is cached
-        @stripe_obj = nil
-        self.cancel!
-
-        # `cancel!` calls `sync_from_stripe!`, so there is no need to continue
+    StatsD.increment("StripeCard.sync_from_stripe.count")
+    StatsD.measure("StripeCard.sync_from_stripe.duration") do
+      if stripe_obj[:deleted]
+        self.stripe_status = "deleted"
         return self
       end
-      self.stripe_shipping_address_city = stripe_obj[:shipping][:address][:city]
-      self.stripe_shipping_address_country = stripe_obj[:shipping][:address][:country]
-      self.stripe_shipping_address_line1 = stripe_obj[:shipping][:address][:line1]
-      self.stripe_shipping_address_postal_code = stripe_obj[:shipping][:address][:postal_code]
-      self.stripe_shipping_address_line2 = stripe_obj[:shipping][:address][:line2]
-      self.stripe_shipping_address_state = stripe_obj[:shipping][:address][:state]
-      self.stripe_shipping_name = stripe_obj[:shipping][:name]
-    end
+      self.stripe_id = stripe_obj[:id]
+      self.stripe_brand = stripe_obj[:brand]
+      self.stripe_exp_month = stripe_obj[:exp_month]
+      self.stripe_exp_year = stripe_obj[:exp_year]
+      self.last4 = stripe_obj[:last4]
+      self.stripe_status = stripe_obj[:status]
+      self.card_type = stripe_obj[:type]
 
-    spending_limits = stripe_obj[:spending_controls][:spending_limits]
-    if spending_limits.any?
-      self.spending_limit_interval = spending_limits.first[:interval]
-      self.spending_limit_amount = spending_limits.first[:amount]
-    end
+      if stripe_obj[:status] == "active"
+        self.activated = true
+      elsif stripe_obj[:status] == "inactive" && !self.activated
+        self.activated = false
+      end
 
-    if stripe_obj[:replacement_for]
-      self.replacement_for = StripeCard.find_by(stripe_id: stripe_obj[:replacement_for])
-    end
+      if stripe_obj[:shipping]
+        if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?
+          self.lost_in_shipping = true
+          StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
 
-    self
+          # force a refresh of the cache; otherwise, the card will be marked as
+          # lost in shipping again since stripe_obj is cached
+          @stripe_obj = nil
+          self.cancel!
+
+          # `cancel!` calls `sync_from_stripe!`, so there is no need to continue
+          return self
+        end
+        self.stripe_shipping_address_city = stripe_obj[:shipping][:address][:city]
+        self.stripe_shipping_address_country = stripe_obj[:shipping][:address][:country]
+        self.stripe_shipping_address_line1 = stripe_obj[:shipping][:address][:line1]
+        self.stripe_shipping_address_postal_code = stripe_obj[:shipping][:address][:postal_code]
+        self.stripe_shipping_address_line2 = stripe_obj[:shipping][:address][:line2]
+        self.stripe_shipping_address_state = stripe_obj[:shipping][:address][:state]
+        self.stripe_shipping_name = stripe_obj[:shipping][:name]
+      end
+
+      spending_limits = stripe_obj[:spending_controls][:spending_limits]
+      if spending_limits.any?
+        self.spending_limit_interval = spending_limits.first[:interval]
+        self.spending_limit_amount = spending_limits.first[:amount]
+      end
+
+      if stripe_obj[:replacement_for]
+        self.replacement_for = StripeCard.find_by(stripe_id: stripe_obj[:replacement_for])
+      end
+
+      self
+    end
   end
 
   def issuing_cost
@@ -340,15 +353,19 @@ class StripeCard < ApplicationRecord
   end
 
   def canonical_transactions
-    @canonical_transactions ||= CanonicalTransaction.stripe_transaction.where("raw_stripe_transactions.stripe_transaction->>'card' = ?", stripe_id)
+    StatsD.measure("StripeCard.canonical_transactions.duration") do
+      @canonical_transactions ||= CanonicalTransaction.stripe_transaction.where("raw_stripe_transactions.stripe_transaction->>'card' = ?", stripe_id)
+    end
   end
 
   def hcb_codes
-    all_hcb_codes = canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes
-    if Flipper.enabled?(:transaction_tags_2022_07_29, self.event)
-      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes).includes(:tags)
-    else
-      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes)
+    StatsD.measure("StripeCard.hcb_codes.duration") do
+      all_hcb_codes = canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes
+      if Flipper.enabled?(:transaction_tags_2022_07_29, self.event)
+        @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes).includes(:tags)
+      else
+        @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes)
+      end
     end
   end
 
@@ -371,12 +388,14 @@ class StripeCard < ApplicationRecord
   end
 
   def balance_available
-    if subledger.present?
-      subledger.balance_cents
-    elsif active_spending_control
-      active_spending_control.balance_cents
-    else
-      event.balance_available_v2_cents
+    StatsD.measure("StripeCard.balance_available.duration") do
+      if subledger.present?
+        subledger.balance_cents
+      elsif active_spending_control
+        active_spending_control.balance_cents
+      else
+        event.balance_available_v2_cents
+      end
     end
   end
 
