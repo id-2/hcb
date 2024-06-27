@@ -231,6 +231,14 @@ class EventsController < ApplicationController
     @users = BreakdownEngine::Users.new(@event).run
 
     @tags = BreakdownEngine::Tags.new(@event).run
+    
+    @balance_by_date = Rails.cache.fetch("balance_by_date_#{@event.id}", expires_in: 5.minutes) do
+      ::TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).running_balance_by_date
+    end
+    
+    @balance_by_date[0.days.ago.to_date] = @event.balance_v2_cents
+    
+    byebug
   end
 
   def balance_by_date
