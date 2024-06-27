@@ -93,13 +93,15 @@ class EventsController < ApplicationController
       @hide_seasonal_decorations = true
     end
 
-    @all_transactions = TransactionGroupingEngine::Transaction::All.new(
-      event_id: @event.id,
-      search: params[:q],
-      tag_id: @tag&.id,
-      minimum_amount: @minimum_amount,
-      maximum_amount: @maximum_amount
-    ).run
+    StatsD.measure("EventsController.show.all_transactions") do
+      @all_transactions = TransactionGroupingEngine::Transaction::All.new(
+        event_id: @event.id,
+        search: params[:q],
+        tag_id: @tag&.id,
+        minimum_amount: @minimum_amount,
+        maximum_amount: @maximum_amount
+      ).run
+    end
 
     if @user
       @all_transactions = @all_transactions.select { |t| t.stripe_cardholder&.user == @user }
@@ -181,19 +183,21 @@ class EventsController < ApplicationController
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
     if show_running_balance?
-      offset = page * per_page
+      StatsD.measure("EventsController.show.show_running_balance") do
+        offset = page * per_page
 
-      initial_subtotal = if @all_transactions.count > offset
-                           TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
-                           # sum up transactions on pages after this one to get the initial subtotal
-                           @all_transactions.slice(offset...).map(&:amount).sum
-                         else
-                           # this is the last page, so start from 0
-                           0
-                         end
+        initial_subtotal = if @all_transactions.count > offset
+                             TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
+                             # sum up transactions on pages after this one to get the initial subtotal
+                             @all_transactions.slice(offset...).map(&:amount).sum
+                           else
+                             # this is the last page, so start from 0
+                             0
+                           end
 
-      @transactions.reverse.reduce(initial_subtotal) do |running_total, transaction|
-        transaction.running_balance = running_total + transaction.amount
+        @transactions.reverse.reduce(initial_subtotal) do |running_total, transaction|
+          transaction.running_balance = running_total + transaction.amount
+        end
       end
     end
 
