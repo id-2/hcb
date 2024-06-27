@@ -186,6 +186,11 @@ class Invoice < ApplicationRecord
   # Stripe syncing…
   before_destroy :close_stripe_invoice
 
+  after_save ->() {
+    StatsD.gauge('Invoice.unpaid', Invoice.where("amount_due != amount_paid").count, sample_rate: 1.0)
+    StatsD.gauge('Invoice.paid', Invoice.where("amount_due = amount_paid").count, sample_rate: 1.0)
+  }
+
   def pending_expired?
     local_hcb_code.has_pending_expired?
   end
