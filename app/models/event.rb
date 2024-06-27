@@ -340,6 +340,8 @@ class Event < ApplicationRecord
 
   after_save :update_slug_history
 
+  after_save ->() { StatsD.gauge('Event.count', Event.count) }
+
   validates :website, format: URI::DEFAULT_PARSER.make_regexp(%w[http https]), if: -> { website.present? }
 
   validates :sponsorship_fee, numericality: { in: 0..0.5, message: "must be between 0 and 0.5" }

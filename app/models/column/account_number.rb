@@ -38,6 +38,8 @@ module Column
 
     has_paper_trail
 
+    after_save ->() { StatsD.gauge('Column::AccountNumber.count', Column::AccountNumber.count) }
+
     private
 
     def create_column_account_number
