@@ -93,7 +93,7 @@ class EventsController < ApplicationController
       @hide_seasonal_decorations = true
     end
 
-    StatsD.measure("EventsController.show.all_transactions.duration") do
+    StatsD.measure("EventsController.show.all_transactions") do
       @all_transactions = TransactionGroupingEngine::Transaction::All.new(
         event_id: @event.id,
         search: params[:q],
@@ -183,7 +183,7 @@ class EventsController < ApplicationController
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
     if show_running_balance?
-      StatsD.measure("EventsController.show.show_running_balance.duration") do
+      StatsD.measure("EventsController.show.show_running_balance") do
         offset = page * per_page
 
         initial_subtotal = if @all_transactions.count > offset
@@ -243,7 +243,7 @@ class EventsController < ApplicationController
     max = [365, (Date.today - @event.created_at.to_date).to_i + 5].min
 
     balance_by_date = Rails.cache.fetch("balance_by_date_#{@event.id}", expires_in: 5.minutes) do
-      StatsD.measure("EventsController.balance_by_date.running_balance_by_date.duration") do
+      StatsD.measure("EventsController.balance_by_date.running_balance_by_date") do
         ::TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).running_balance_by_date
       end
     end

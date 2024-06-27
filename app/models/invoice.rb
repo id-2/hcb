@@ -187,8 +187,8 @@ class Invoice < ApplicationRecord
   before_destroy :close_stripe_invoice
 
   after_save ->() {
-    StatsD.gauge('Invoice.unpaid', Invoice.where("amount_due != amount_paid").count, sample_rate: 1.0)
-    StatsD.gauge('Invoice.paid', Invoice.where("amount_due = amount_paid").count, sample_rate: 1.0)
+    StatsD.gauge('Invoice.unpaid_count.gauge', Invoice.where("amount_due != amount_paid").count, sample_rate: 1.0)
+    StatsD.gauge('Invoice.paid_count.gauge', Invoice.where("amount_due = amount_paid").count, sample_rate: 1.0)
   }
 
   def pending_expired?
