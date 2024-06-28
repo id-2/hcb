@@ -100,23 +100,18 @@
       <% pos_bg = "rgba(57, 211, 83, #{Math.log(entry[:positive]) / Math.log(@maximum_positive_change)})" %>
       <% neg_bg = "rgba(248, 81, 73, #{Math.log(entry[:negative].abs) / Math.log(@maximum_negative_change.abs)})" %>
 
-      <% if entry[:positive] > 0 && entry[:negative] == 0 %>
-        <div class="grid-item tooltipped tooltipped--s"
-             aria-label="<%= label %>"
+      <% if entry[:positive] > entry[:negative].abs %>
+        <div class="grid-item tooltipped tooltipped--s border-muted dark:border-dark"
+             aria-label="<%= "#{label}: #{render_money(entry[:positive])}" %>"
              style="background-color: <%= pos_bg %>">
         </div>
-      <% elsif entry[:negative] < 0 && entry[:positive] == 0 %>
-        <div class="grid-item tooltipped tooltipped--s"
-             aria-label="<%= label %>"
+      <% elsif entry[:negative].abs > entry[:positive] %>
+        <div class="grid-item tooltipped tooltipped--s border-muted dark:border-dark"
+             aria-label="<%= "#{label}: #{render_money(entry[:negative])}" %>"
              style="background-color: <%= neg_bg %>">
         </div>
-      <% elsif entry[:negative] + entry[:positive] != 0 %>
-        <div class="grid-item tooltipped tooltipped--s"
-             aria-label="<%= label %>"
-             style="background: linear-gradient(135deg, <%= pos_bg %>, <%= pos_bg %> 50%, <%= neg_bg %> 50%)">
-        </div>
       <% else %>
-        <div class="grid-item tooltipped tooltipped--s bg-snow dark:bg-darkless"
+        <div class="grid-item tooltipped tooltipped--s bg-snow dark:bg-darkless border-muted dark:border-dark"
             aria-label="<%= label %>"></div>
       <% end %>
     <% end %>
@@ -126,12 +121,12 @@
 <div class="grid-container grid-container--preview mb3">
   <% 5.times do |x| %>
     <% pos_bg = "rgba(57, 211, 83, #{Math.log(x + 2) / Math.log(6)})" %>
-    <div class="grid-item" style="background-color: <%= pos_bg %>"></div>
+    <div class="grid-item border-muted dark:border-dark" style="background-color: <%= pos_bg %>"></div>
   <% end %>
   <span style="height: 0px !important; grid-column: 6 / 20; font-size: 16px; transform: translate(4px, -5px);">MORE INCOME</span>
   <% 5.times do |x| %>
     <% neg_bg = "rgba(248, 81, 73, #{Math.log(x + 2) / Math.log(6)})" %>
-    <div class="grid-item" style="background-color: <%= neg_bg %>"></div>
+    <div class="grid-item border-muted dark:border-dark" style="background-color: <%= neg_bg %>"></div>
   <% end %>
   <span style="height: 0px !important; grid-column: 25 / 40; font-size: 16px; transform: translate(4px, -5px);">MORE SPENDING</span>
 </div>
@@ -148,18 +143,17 @@
 <div class="breakdown-row">
   <div class="card--breakdown" style="flex: 1">
     <h3>By User</h3>
-    <%= pie_chart @users, library: pie_chart_config("right"), download: true %>
+    <%= react_component "breakdown/Users", { data: @users }, { camelize_props: false } %>
   </div>
 </div>
 
 <div class="breakdown-row">
   <div class="card--breakdown" style="flex: 1">
-    <h3>By Merchant</h3>
-    <%= column_chart @merchants, colors: ["#EC3750"], xtitle: "Merchant", ytitle: "Amount", id: "merchant-chart", dataset: { borderWidth: 0 }, library: line_chart_config, download: true %>
+    <h3>Top Merchants</h3>
+    <%= react_component "breakdown/Merchants", { data: @merchants }, { camelize_props: false } %>
   </div>
-
   <div class="card--breakdown" style="flex: 1">
-    <h3>By Category</h3>
-    <%= pie_chart @categories, library: pie_chart_config("bottom"), download: true %>
+    <h3>Top Categories</h3>
+    <%= react_component "breakdown/Merchants", { data: @categories }, { camelize_props: false } %>
   </div>
 </div>
