@@ -291,7 +291,7 @@ class EventsController < ApplicationController
                            .where("users.full_name ILIKE :query OR users.email ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%")
                            .order(created_at: :desc)
 
-    @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || 10)
+    @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || params[:view] == "list" ? 20 : 10)
 
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
@@ -367,12 +367,14 @@ class EventsController < ApplicationController
 
   def card_overview
     @status = %w[virtual physical active inactive].include?(params[:status]) ? params[:status] : nil
-    @q = params[:q].presence
+
+    @user_id = params[:user].presence
+    @user = User.find(params[:user]) if params[:user]
 
     all_stripe_cards = @event.stripe_cards.where.missing(:card_grant).joins(:stripe_cardholder, :user)
                              .order("stripe_status asc, created_at desc")
 
-    all_stripe_cards = all_stripe_cards.where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.name ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
+    all_stripe_cards = all_stripe_cards.where(user: { id: @user_id }) if @user_id
 
     all_stripe_cards = case @status
                        when "active"
@@ -449,6 +451,7 @@ class EventsController < ApplicationController
                     end
 
     @paginated_stripe_cards = Kaminari.paginate_array(display_cards).page(page).per(per_page)
+    @all_unique_cardholders = @event.stripe_cards.map(&:stripe_cardholder).uniq
 
   end
 
@@ -483,6 +486,13 @@ class EventsController < ApplicationController
   end
 
   def account_number
+    @transactions = if @event.column_account_number.present?
+                      CanonicalTransaction.where(transaction_source_type: "RawColumnTransaction", transaction_source_id: RawColumnTransaction.where("column_transaction->>'account_number_id' = '#{@event.column_account_number.column_id}'").pluck(:id))
+                    else
+                      CanonicalTransaction.none
+                    end
+    page = (params[:page] || 1).to_i
+    @transactions = @transactions.page(page).per(params[:per] || 25)
     authorize @event
   end
 
