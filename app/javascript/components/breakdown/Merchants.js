@@ -80,10 +80,10 @@ export default function Users({ data }) {
   return (
     <ResponsiveContainer
       width="100%"
-      height={400}
+      height={450}
       padding={{ top: 32, left: 32 }}
     >
-      <BarChart data={data} width={256} height={150}>
+      <BarChart data={data} width={256} height={200}>
         <CartesianGrid strokeDasharray="3 3" />
         <YAxis
           tickFormatter={n => USDollarNoCents.format(n)}
