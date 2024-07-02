@@ -13,20 +13,20 @@
 }
 
 .radio__control:after {
-  content: "";
+  content: "✔";
   display: block;
-  width: 1rem;
-  height: 1rem;
   border-radius: 50%;
-  background-color: #000;
-  transition: background-color 0.2s;
+  font-size: 24px;
+  color: #000;
+  transition: color 0.2s;
   transform: scale(0);
   position: absolute;
   top: 50%;
   left: 50%;
+  padding-top: 0.05rem;
 
   [data-dark="true"] & {
-    background-color: #fff;
+    color: #fff;
   }
 }
 
@@ -71,6 +71,10 @@ $colors: (
 
       &.tag-darker {
         background-color: saturate(darken($color, 5%), 50%);
+
+        &.tag-muted {
+          background-color: darken($color, 5%)
+        }
       }
     }
   }

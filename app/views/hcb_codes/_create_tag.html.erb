@@ -16,7 +16,7 @@
           colors.each do |color|
         %>
         <label class="tags__radio">
-          <%= form.radio_button :color, color %>
+          <%= form.radio_button :color, color, checked: color === "muted" %>
           <div class="radio__control tag-darker tag-<%= color %>"></div>
         </label>
         <% end %>
