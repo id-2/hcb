@@ -42,17 +42,22 @@ class HcbCodesController < ApplicationController
       @frame = false
       render :show
     end
+
   # rescue Pundit::NotAuthorizedError => e
-  #   raise unless @event.is_public? && !params[:redirect_to_sign_in]
-
-  #   if @hcb_code.canonical_transactions.any?
-  #     txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
-  #     pos = txs.index { |tx| tx.hcb_code == hcb } + 1
-  #     page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
-
-  #     redirect_to event_path(@event, page:, anchor: hcb_id)
+  #   if @hcb_code.stripe_card.card_grant.present? && current_user == @hcb_code.stripe_card.card_grant.user
+  #     redirect_to card_grant_path(@hcb_code.stripe_card.card_grant, frame: params[:frame])
   #   else
-  #     redirect_to event_path(@event, anchor: hcb_id)
+  #     raise unless @event.is_public? && !params[:redirect_to_sign_in]
+
+  #     if @hcb_code.canonical_transactions.any?
+  #       txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
+  #       pos = txs.index { |tx| tx.hcb_code == hcb } + 1
+  #       page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
+
+  #       redirect_to event_path(@event, page:, anchor: hcb_id)
+  #     else
+  #       redirect_to event_path(@event, anchor: hcb_id)
+  #     end
   #   end
   end
 
@@ -73,7 +78,7 @@ class HcbCodesController < ApplicationController
     end
 
     @frame = turbo_frame_request?
-    @suggested_memos = [::HcbCodeService::AiGenerateMemo.new(hcb_code: @hcb_code).run].compact + ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
+    @suggested_memos = ::HcbCodeService::SuggestedMemos.new(hcb_code: @hcb_code, event: @event).run.first(4)
   end
 
   def pin

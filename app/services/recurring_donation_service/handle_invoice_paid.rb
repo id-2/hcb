@@ -25,14 +25,15 @@ module RecurringDonationService
         amount_received: @stripe_invoice.amount_paid,
         event: recurring_donation.event,
         stripe_payment_intent_id: @stripe_invoice.payment_intent,
-        anonymous: recurring_donation.anonymous
+        anonymous: recurring_donation.anonymous,
+        fee_covered: recurring_donation.fee_covered
       )
 
       if recurring_donation.message.present? && first_donation
         donation.message = recurring_donation.message
       end
 
-      donation.set_fields_from_stripe_payment_intent(StripeService::PaymentIntent.retrieve(id: @stripe_invoice.payment_intent, expand: ["charges.data.balance_transaction"]))
+      donation.set_fields_from_stripe_payment_intent(StripeService::PaymentIntent.retrieve(id: @stripe_invoice.payment_intent, expand: ["charges.data.balance_transaction", "latest_charge.balance_transaction"]))
       donation.save!
 
       donation.send_receipt!

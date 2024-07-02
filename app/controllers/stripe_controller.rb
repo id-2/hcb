@@ -222,7 +222,7 @@ class StripeController < ActionController::Base
 
     pi = StripeService::PaymentIntent.retrieve(
       id: donation.stripe_payment_intent_id,
-      expand: ["charges.data.balance_transaction"]
+      expand: ["charges.data.balance_transaction", "latest_charge.balance_transaction"]
     )
     donation.set_fields_from_stripe_payment_intent(pi)
     donation.save!
@@ -233,6 +233,21 @@ class StripeController < ActionController::Base
     rpdt = ::PendingTransactionEngine::RawPendingDonationTransactionService::Donation::ImportSingle.new(donation:).run
     cpt = ::PendingTransactionEngine::CanonicalPendingTransactionService::ImportSingle::Donation.new(raw_pending_donation_transaction: rpdt).run
     ::PendingEventMappingEngine::Map::Single::Donation.new(canonical_pending_transaction: cpt).run
+  end
+
+  def handle_charge_updated(event)
+    # only proceed if charge is related to a donation and not an invoice
+    return unless event.data.object.metadata[:donation].present?
+
+    # get donation to process
+    donation = Donation.find_by_stripe_payment_intent_id(event.data.object[:payment_intent])
+
+    pi = StripeService::PaymentIntent.retrieve(
+      id: donation.stripe_payment_intent_id,
+      expand: ["latest_charge.balance_transaction"]
+    )
+    donation.set_fields_from_stripe_payment_intent(pi)
+    donation.save!
   end
 
   def handle_source_transaction_created(event)

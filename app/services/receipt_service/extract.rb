@@ -57,7 +57,7 @@ module ReceiptService
       end
 
       extracted = begin
-        JSON.parse(ai_response).with_indifferent_access # JSON given by ChatGPT, may fail
+        JSON.parse(ai_response).yield_self { |r| r.is_a?(Array) ? r.first : r }.with_indifferent_access # JSON given by ChatGPT, may fail. The `yield_self` handles ChatGPT returning an array.
       rescue JSON::ParserError
         nil
       end
@@ -89,6 +89,16 @@ module ReceiptService
           target: "ai_memo",
           partial: "hcb_codes/ai_memo",
           locals: { hcb_code: }
+        )
+      end
+
+      unless @receipt.receiptable
+        @receipt.broadcast_replace_to(
+          [@receipt.user, :receipt_bin],
+          target: nil,
+          targets: "div[data-extracted-data-for='#{@receipt.id}']",
+          partial: "receipts/extracted",
+          locals: { receipt: @receipt, current_user: @receipt.user }
         )
       end
 

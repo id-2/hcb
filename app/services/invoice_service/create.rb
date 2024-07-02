@@ -38,8 +38,8 @@ module InvoiceService
 
         invoice = Invoice.create!(attrs)
 
-        item = StripeService::InvoiceItem.create(remote_invoice_item_attrs)
         remote_invoice = StripeService::Invoice.create(remote_invoice_attrs(invoice:))
+        item = StripeService::InvoiceItem.create(remote_invoice_item_attrs.merge({ invoice: remote_invoice.id }))
 
         invoice.item_stripe_id = item.id
         invoice.stripe_invoice_id = remote_invoice.id
@@ -68,12 +68,12 @@ module InvoiceService
       {
         customer: sponsor.stripe_customer_id,
         auto_advance: invoice.auto_advance,
-        billing: "send_invoice",
+        collection_method: "send_invoice",
         due_date: invoice.due_date.to_i, # convert to unixtime
         description: invoice.memo,
         status: invoice.status,
         statement_descriptor: invoice.statement_descriptor || "HCB",
-        tax_percent: invoice.tax_percent,
+        # tax_percent: invoice.tax_percent,
         footer:,
         metadata: { event_id: invoice.event.id }
       }

@@ -31,7 +31,7 @@ module ReceiptService
 
         if @receipt.receiptable.nil?
           content = turbo_stream_action_tag(:refresh_suggested_pairings)
-          ActionCable.server.broadcast(stream_name_from([@receipt.user, :suggested_pairings]), content)
+          Turbo::StreamsChannel.broadcast_action_to([@receipt.user, :receipt_bin], action: :refresh_suggested_pairings)
         end
 
         pairings
@@ -51,8 +51,8 @@ module ReceiptService
           weight: 200,
         },
         date: {
-          value: if (hcb_code.pt&.raw_pending_stripe_transaction&.created_at ||
-            hcb_code.date).to_date - @extracted.extracted_date.to_date <= 1
+          value: if @extracted.extracted_date.present? && ((hcb_code.pt&.raw_pending_stripe_transaction&.created_at ||
+            hcb_code.date).to_date - @extracted.extracted_date.to_date <= 1)
                    0
                  else
                    1

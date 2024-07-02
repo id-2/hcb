@@ -52,7 +52,7 @@ export const generateEventActions = data => {
     })),
     ...data.filter(restrictedFilter).map(event => ({
       id: `${event.slug}-account-number`,
-      name: 'Account & routing number',
+      name: 'Account numbers',
       perform: () =>
         (window.location.pathname = `/${event.slug}/account-number`),
       icon: <Icon glyph="bank-account" size={16} />,
@@ -80,6 +80,13 @@ export const generateEventActions = data => {
       icon: <Icon glyph="payment-transfer" size={16} />,
       parent: event.slug,
       keywords: 'ach check',
+    })),
+    ...data.filter(restrictedFilter).map(event => ({
+      id: `${event.slug}-reimbursements`,
+      name: 'Reimbursements',
+      perform: navigate(`/${event.slug}/reimbursements`),
+      icon: <Icon glyph="attachment" size={16} />,
+      parent: event.slug,
     })),
     ...data.map(event => ({
       id: `${event.slug}-team`,
