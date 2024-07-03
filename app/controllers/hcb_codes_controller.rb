@@ -13,7 +13,7 @@ class HcbCodesController < ApplicationController
       skip_authorization
       event = guess_event
       if event
-        return redirect_to({ event_id: event.slug, frame: params[:frame] }.compact)
+        return redirect_to event_hcb_code_path(event, @hcb_code, { frame: params[:frame] }.compact)
       else
         return not_found
       end
@@ -21,7 +21,7 @@ class HcbCodesController < ApplicationController
 
     @event = Event.friendly.find(params[:event_id])
 
-    not_found if @hcb_code.events.exclude?(@event) || !organizer_signed_in?
+    return not_found if @hcb_code.events.exclude?(@event) || !organizer_signed_in?
 
     hcb = @hcb_code.hcb_code
     hcb_id = @hcb_code.hashid
@@ -42,23 +42,12 @@ class HcbCodesController < ApplicationController
       @frame = false
       render :show
     end
-
-  # rescue Pundit::NotAuthorizedError => e
-  #   if @hcb_code.stripe_card.card_grant.present? && current_user == @hcb_code.stripe_card.card_grant.user
-  #     redirect_to card_grant_path(@hcb_code.stripe_card.card_grant, frame: params[:frame])
-  #   else
-  #     raise unless @event.is_public? && !params[:redirect_to_sign_in]
-
-  #     if @hcb_code.canonical_transactions.any?
-  #       txs = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
-  #       pos = txs.index { |tx| tx.hcb_code == hcb } + 1
-  #       page = (pos.to_f / EventsController::TRANSACTIONS_PER_PAGE).ceil
-
-  #       redirect_to event_path(@event, page:, anchor: hcb_id)
-  #     else
-  #       redirect_to event_path(@event, anchor: hcb_id)
-  #     end
-  #   end
+  rescue Pundit::NotAuthorizedError
+    if @hcb_code.stripe_card&.card_grant.present? && current_user == @hcb_code.stripe_card.card_grant.user
+      redirect_to card_grant_path(@hcb_code.stripe_card.card_grant, frame: params[:frame])
+    else
+      raise
+    end
   end
 
   def memo_frame

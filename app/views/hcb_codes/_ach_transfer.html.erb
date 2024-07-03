@@ -74,7 +74,7 @@
           <% if @show_ach_details %>
             <%= @hcb_code.ach_transfer.routing_number %>
           <% else %>
-            <%= link_to "Reveal", hcb_code_path(@hcb_code, show_details: "true"), data: { turbo: true } %>
+            <%= link_to "Reveal", event_hcb_code_path(@event, @hcb_code, show_details: "true"), data: { turbo: true } %>
           <% end %>
         </p>
 
@@ -83,7 +83,7 @@
           <% if @show_ach_details %>
             <%= @hcb_code.ach_transfer.account_number %>
           <% else %>
-            <%= link_to "Reveal", hcb_code_path(@hcb_code, show_details: "true"), data: { turbo: true } %>
+            <%= link_to "Reveal", event_hcb_code_path(@event, @hcb_code, show_details: "true"), data: { turbo: true } %>
           <% end %>
         </p>
       <% end %>
