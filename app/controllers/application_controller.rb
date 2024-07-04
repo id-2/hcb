@@ -15,6 +15,9 @@ class ApplicationController < ActionController::Base
   # Track papertrail edits to specific users
   before_action :set_paper_trail_whodunnit
 
+  # Whether they have an active an OAuth session (proxy for HCB app user)
+  before_action :set_app_user
+
   # Redirect users to the onboarding page if they haven't completed it yet
   before_action :redirect_to_onboarding
 
@@ -36,6 +39,15 @@ class ApplicationController < ActionController::Base
 
   def hide_footer
     @hide_footer = true
+  end
+
+  def set_app_user
+    return if current_user.nil?
+    cache_key = "user_#{current_user.id}_app_user"
+
+    @app_user = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+      current_user.api_tokens.exists?
+    end
   end
 
   # @msw: this handles a bug caused by CSRF changes between Rails 6 -> 6.1. If
