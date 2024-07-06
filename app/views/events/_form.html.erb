@@ -1,0 +1,97 @@
+
+<%= form_with html: { "x-data": "{ contactMethod: 'email' }" } do |form| %>
+    <fieldset>
+      <legend class="text-xl mb-4">Your organisation</legend>
+        <div class="field field--wide">
+            <%= form.label :organisation_name, "Organisation name" %>
+            <%= form.text_field :organisation_name, required: true %>
+        </div>
+
+        <div class="field field--wide">
+        <%= form.label :organisation_website, "Organization website" %>
+        <%= form.text_field :organisation_website, type: :url %>
+        </div>
+
+        <div class="field field--wide">
+            <%= form.label :organisation_address, "Primary country of operations" %>
+            <%= form.text_field :organisation_address, required: true %>
+            <span class="h5 muted">If you don’t have one yet, you can leave this blank.</span>
+        </div>
+
+        <div class="field">
+          <%= form.label :organisation_transparency, "Transparency mode" %>
+          <fieldset class="field--wide field--options w-full max-w-none">
+            <%= form.radio_button :organisation_transparency, true, checked: true %>
+            <%= form.label :organisation_transparency, value: true, class: "w-full g1", style: "flex-direction: row" do %>
+              <%= inline_icon "checkmark" %>
+              <strong>Yes</strong>
+            <% end %>
+
+            <%= form.radio_button :organisation_transparency, false %>
+            <%= form.label :organisation_transparency, value: false, class: "w-full g1", style: "flex-direction: row" do %>
+              <%= inline_icon "checkbox" %>
+              <strong>No</strong>
+            <% end %>
+          </fieldset>
+
+          <span class="h5 muted">
+            Transparent accounts’ balances and donations are public.
+            You choose who has access to personal details.
+            This can be changed later.
+            As an example, Hack Club's finances are transparent!
+          </span>
+        </div>
+
+        <div class="field field--wide">
+            <%= form.label :organisation_description, "Tell us about your organization" %>
+            <%= form.text_area :organisation_description %>
+        </div>
+
+        <div class="field field--wide">
+            <%= form.label :referred_by, "Who referred you?" %>
+            <%= form.text_field :referred_by %>
+        </div>
+
+        <div class="field field--wide">
+            <%= form.label :accommodations, "Accessibility needs" %>
+            <%= form.text_field :accommodations %>
+        </div>
+
+        <%= form.label :contact_method, "Contact method" %>
+        <div class="field field--wide field--options w-full max-w-none">
+        <%= form.radio_button :contact_method, "email", "x-model": "contactMethod", required: true %>
+        <%= form.label :contact_method, value: "email", class: "w-full g1", style: "flex-direction: row" do %>
+            <%= inline_icon "email" %>
+            <strong>Email</strong>
+        <% end %>
+
+        <% disable_slack_option = current_user.present? && !current_user.teenager? %>
+        <%= form.radio_button :contact_method, "slack", "x-model": "contactMethod", required: true, disabled: disable_slack_option %>
+        <%= form.label :contact_method, value: "slack", class: "w-full g1", style: "flex-direction: row" do %>
+          <%= inline_icon "slack" %>
+          <strong>Slack</strong>
+          <span class="h6">(Teenagers only!)</span>
+        <% end %>
+        </div>
+
+        <div class="field field--wide" x-show="contactMethod == 'slack'" x-cloak x-transition.duration.500ms>
+            <%= form.label :slack_username, "Slack username" %>
+            <%= form.text_field :slack_username %>
+        </div>
+    </fieldset>
+
+    <% if current_user %>
+      <%= render "callout", type: "info", title: "Hi, #{current_user.first_name}! 👋" do %>
+        Since you're logged in, we'll re-use your personal details.
+
+        This includes your name, email, phone number and date of birth we already have on file.
+        You can <%= link_to "review them here", my_settings_path %>.
+      <% end %>
+    <% else %>
+      <fieldset>
+        <legend class="text-xl mb-4">Personal details</legend>
+      </fieldset>
+    <% end %>
+
+    <%= form.submit "Submit" %>
+<% end %>

@@ -7,7 +7,7 @@ class EventsController < ApplicationController
 
   include Rails::Pagination
   before_action :set_event, except: [:index, :new, :create, :by_airtable_id]
-  before_action except: [:show, :index] do
+  before_action except: [:index, :show, :new, :create] do
     render_back_to_tour @organizer_position, :welcome, event_path(@event)
   end
   skip_before_action :signed_in_user
@@ -218,6 +218,71 @@ class EventsController < ApplicationController
       @popover = flash[:popover]
       flash.delete(:popover)
     end
+  end
+
+  def new
+    skip_authorization
+    puts "new events"
+    # render layout: "bare"
+    @no_app_shell = true
+  end
+
+  def create
+    skip_authorization
+
+    event = Event.new(
+      name: params[:organisation_name],
+      address: params[:organisation_address],
+      is_public: params[:organisation_transparency],
+      country: params[:country],
+      postal_code: params[:postal_code],
+      description: params[:organisation_description],
+      website: params[:organisation_website],
+      sponsorship_fee: 0.07,
+      organization_identifier: "bank_#{SecureRandom.hex}",
+      demo_mode: true,
+    )
+
+    puts event.inspect
+
+    # ActiveRecord::Base.transaction do
+    #   event.save!
+    #   OrganizerPosition.create!(
+    #     event:,
+    #     user: current_user,
+    #     is_signee: false,
+    #   )
+    # end
+
+    ApplicationsTable.create(
+      'First Name': current_user.first_name,
+      'Last Name': current_user.last_name,
+      'Email Address': current_user.email,
+      'Phone Number': current_user.phone_number,
+      'Date of Birth': current_user.birthday,
+      'Event Name': event.name,
+      'Event Website': event.website,
+      'Zip Code': event.address,
+      'Tell us about your event': event.description,
+      'Mailing Address': event.address,
+      'Address Line 1': event.address,
+      City: event.address,
+      State: event.address,
+      'Address Country': event.address,
+      'Address Country Code': event.address,
+      'Event Location': event.address,
+      'Event Country Code': event.address,
+      'Have you used HCB for any previous events?': current_user ? "Yes, I have used HCB before" : "No, first time!",
+      'How did you hear about HCB?': params[:referred_by],
+      Transparent: event.is_public ? "Yes, please!" : "No, thanks.",
+      'HCB account URL': "https://hcb.hackclub.com/#{event.slug}",
+      # 'Contact Option': params[:contact_option],
+      # 'Slack Username': params[:slack_username],
+      Accommodations: params[:accommodations],
+      'HCB ID': event.id
+    )
+
+    # redirect_to event_path(event)
   end
 
   def breakdown

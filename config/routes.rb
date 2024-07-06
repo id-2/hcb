@@ -44,6 +44,9 @@ Rails.application.routes.draw do
 
   post "feedback", to: "static_pages#feedback"
 
+  get "apply", to: "events#new"
+  post "apply", to: "events#create"
+
   resources :receipts, only: [:create, :destroy] do
     collection do
       post "link"
