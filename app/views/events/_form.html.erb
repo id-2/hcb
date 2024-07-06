@@ -10,12 +10,12 @@
         <div class="field field--wide">
         <%= form.label :organisation_website, "Organization website" %>
         <%= form.text_field :organisation_website, type: :url %>
+        <span class="h5 muted">If you don’t have one yet, you can leave this blank.</span>
         </div>
 
         <div class="field field--wide">
-            <%= form.label :organisation_address, "Primary country of operations" %>
-            <%= form.text_field :organisation_address, required: true %>
-            <span class="h5 muted">If you don’t have one yet, you can leave this blank.</span>
+          <%= form.label :organisation_country, "Primary country of operations"%>
+          <%= form.collection_select :organisation_country, Event.countries_for_select, :first, :last, { include_blank: "Select a country" }, required: true %>
         </div>
 
         <div class="field">
@@ -57,21 +57,25 @@
             <%= form.text_field :accommodations %>
         </div>
 
-        <%= form.label :contact_method, "Contact method" %>
-        <div class="field field--wide field--options w-full max-w-none">
-        <%= form.radio_button :contact_method, "email", "x-model": "contactMethod", required: true %>
-        <%= form.label :contact_method, value: "email", class: "w-full g1", style: "flex-direction: row" do %>
-            <%= inline_icon "email" %>
-            <strong>Email</strong>
-        <% end %>
+        <div class="field">
+          <%= form.label :contact_method, "Contact method" %>
+          <fieldset class="field--wide field--options w-full max-w-none">
+            <%= form.radio_button :contact_method, "email", "x-model": "contactMethod", required: true %>
+            <%= form.label :contact_method, value: "email", class: "w-full g1", style: "flex-direction: row" do %>
+              <%= inline_icon "email" %>
+              <strong>Email</strong>
+            <% end %>
 
-        <% disable_slack_option = current_user.present? && !current_user.teenager? %>
-        <%= form.radio_button :contact_method, "slack", "x-model": "contactMethod", required: true, disabled: disable_slack_option %>
-        <%= form.label :contact_method, value: "slack", class: "w-full g1", style: "flex-direction: row" do %>
-          <%= inline_icon "slack" %>
-          <strong>Slack</strong>
-          <span class="h6">(Teenagers only!)</span>
-        <% end %>
+            <% disable_slack_option = current_user.present? && !current_user.teenager? %>
+            <div class="tooltipped tooltipped--n" aria-label="The Hack Club Slack is for teenagers.">
+              <%= form.radio_button :contact_method, "slack", "x-model": "contactMethod", required: true, disabled: disable_slack_option %>
+              <%= form.label :contact_method, value: "slack", class: "w-full g1", style: "flex-direction: row" do %>
+                <%= inline_icon "slack" %>
+                <strong>Slack</strong>
+                <span class="h6">(Teenagers only!)</span>
+              <% end %>
+            </div>
+          </fieldset>
         </div>
 
         <div class="field field--wide" x-show="contactMethod == 'slack'" x-cloak x-transition.duration.500ms>

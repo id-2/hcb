@@ -149,7 +149,10 @@ input[type='search']::-webkit-search-decoration {
 }
 
 .field {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
 }
 .field--money {
   display: flex;
@@ -192,7 +195,8 @@ label {
   color: map-get($palette, black);
   font-weight: 500;
 
-  div:not(.field--options) > &:has(+ input[type='text']:required)::after {
+  div:not(.field--options)
+    > &:has(+ input[type='text']:required, + select:required)::after {
     content: '*';
     color: map-get($palette, primary);
     margin-left: calc(2ch / 3);

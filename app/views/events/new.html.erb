@@ -9,10 +9,10 @@
     <div class="w-1/2 h-full py-8 flex flex-col justify-between">
       <div class="flex-grow">
         <% if params[:ref] == "site" %>
-          <div class="flex items-center g1">
+          <%= link_to "https://hackclub.com/fiscal-sponsorship", class: "flex items-center g1 no-underline" do %>
             <%= inline_icon "inserter", class: "rotate-180" %>
-            <%= link_to "Back", "https://hackclub.com/fiscal-sponsorship" %>
-          </div>
+            <span>Back to hackclub.com</span>
+          <% end %>
         <% end %>
 
         <h1 class="border-none" style="font-weight: 800">

@@ -222,7 +222,6 @@ class EventsController < ApplicationController
 
   def new
     skip_authorization
-    puts "new events"
     # render layout: "bare"
     @no_app_shell = true
   end
