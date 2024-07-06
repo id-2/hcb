@@ -103,17 +103,24 @@ a {
 
   &.link--primary {
     color: map-get($palette, primary);
+    text-underline-position: under;
 
     &::after {
       content: '';
       display: inline-block;
-      width: 1rem;
-      height: 1rem;
+      padding: 0.6em;
+      margin-left: 0em;
       background-image: url('/assets/icons/external');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: invert(31%) sepia(59%) saturate(1969%) hue-rotate(325deg)
+        brightness(95%) contrast(97%);
     }
 
     &:hover {
       text-decoration-style: wavy;
+      text-underline-position: under;
     }
   }
 }
