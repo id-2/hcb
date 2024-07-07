@@ -3,14 +3,14 @@
     <fieldset>
       <legend class="text-xl mb-4">Your organisation</legend>
         <div class="field field--wide">
-            <%= form.label :organisation_name, "Organisation name" %>
-            <%= form.text_field :organisation_name, required: true %>
+          <%= form.label :organisation_name, "Organisation name" %>
+          <%= form.text_field :organisation_name, required: true %>
         </div>
 
         <div class="field field--wide">
-        <%= form.label :organisation_website, "Organization website" %>
-        <%= form.text_field :organisation_website, type: :url %>
-        <span class="h5 muted">If you don’t have one yet, you can leave this blank.</span>
+          <%= form.label :organisation_website, "Organization website" %>
+          <%= form.text_field :organisation_website, type: :url %>
+          <span class="h5 muted">If you don’t have one yet, you can leave this blank.</span>
         </div>
 
         <div class="field field--wide">
@@ -23,14 +23,14 @@
           <fieldset class="field--wide field--options w-full max-w-none">
             <%= form.radio_button :organisation_transparency, true, checked: true %>
             <%= form.label :organisation_transparency, value: true, class: "w-full g1", style: "flex-direction: row" do %>
-              <%= inline_icon "checkmark" %>
-              <strong>Yes</strong>
+              <%= inline_icon "explore" %>
+              <strong>Transparent</strong>
             <% end %>
 
             <%= form.radio_button :organisation_transparency, false %>
             <%= form.label :organisation_transparency, value: false, class: "w-full g1", style: "flex-direction: row" do %>
-              <%= inline_icon "checkbox" %>
-              <strong>No</strong>
+              <%= inline_icon "private-fill" %>
+              <strong>Private</strong>
             <% end %>
           </fieldset>
 
@@ -44,17 +44,22 @@
 
         <div class="field field--wide">
             <%= form.label :organisation_description, "Tell us about your organization" %>
-            <%= form.text_area :organisation_description %>
+            <%= form.text_area :organisation_description, placeholder: "We're a high school hackathon!" %>
         </div>
 
         <div class="field field--wide">
             <%= form.label :referred_by, "Who referred you?" %>
-            <%= form.text_field :referred_by %>
+            <%= form.text_field :referred_by, placeholder: "Max" %>
         </div>
 
         <div class="field field--wide">
             <%= form.label :accommodations, "Accessibility needs" %>
-            <%= form.text_field :accommodations %>
+            <%= form.text_field :accommodations, placeholder: "I use a screen reader/I need increased text size during onboarding" %>
+            <span class="h5 muted">
+              Please specify any accommodations, accessibility needs,
+              or other important information so we can support you
+              during onboarding and while using HCB.
+            </span>
         </div>
 
         <div class="field">
@@ -67,14 +72,23 @@
             <% end %>
 
             <% disable_slack_option = current_user.present? && !current_user.teenager? %>
-            <div class="tooltipped tooltipped--n" aria-label="The Hack Club Slack is for teenagers.">
+            <% teenager_option = capture do %>
               <%= form.radio_button :contact_method, "slack", "x-model": "contactMethod", required: true, disabled: disable_slack_option %>
               <%= form.label :contact_method, value: "slack", class: "w-full g1", style: "flex-direction: row" do %>
                 <%= inline_icon "slack" %>
                 <strong>Slack</strong>
                 <span class="h6">(Teenagers only!)</span>
               <% end %>
-            </div>
+            <% end %>
+
+            <% if disable_slack_option %>
+              <div class="tooltipped tooltipped--n" aria-label="The Hack Club Slack is teenager-only">
+                <%= teenager_option %>
+              </div>
+            <% else %>
+              <%= teenager_option %>
+            <% end %>
+
           </fieldset>
         </div>
 
@@ -92,8 +106,39 @@
         You can <%= link_to "review them here", my_settings_path %>.
       <% end %>
     <% else %>
-      <fieldset>
+      <fieldset class="mt-3">
         <legend class="text-xl mb-4">Personal details</legend>
+
+        <div class="flex w-full g2">
+          <div class="field field--wide flex-grow">
+            <%= form.label :first_name, "First name" %>
+            <%= form.text_field :first_name, required: true, placeholder: "Fiona" %>
+          </div>
+
+          <div class="field field--wide flex-grow">
+            <%= form.label :last_name, "Last name" %>
+            <%= form.text_field :last_name, required: true, placeholder: "Hackworth" %>
+          </div>
+        </div>
+
+        <div class="field field--wide">
+          <%= form.label :email, "Email" %>
+          <%= form.text_field :email, required: true, placeholder: "fiona@malted.dev" %>
+        </div>
+
+
+        <div class="field field--wide">
+          <%= form.label :birthday, "Birthday" %>
+          <%= form.date_field :birthday %>
+          <span class="h5 muted">We need to know if you're a child, for compliance reasons.</span>
+        </div>
+
+
+        <div class="field field--wide">
+          <%= form.label :phone, "Phone number" %>
+          <%= form.text_field :phone, type: :tel %>
+          <span class="h5 muted">We’ll only use this if we need to get in touch with you urgently.</span>
+        </div>
       </fieldset>
     <% end %>
 

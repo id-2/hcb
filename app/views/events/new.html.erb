@@ -5,8 +5,8 @@
 
 <%= render "watermark" %>
 
-<div class="flex h-screen w-full g4 px-4">
-    <div class="w-1/2 h-full py-8 flex flex-col justify-between">
+<div class="flex flex-col md:flex-row h-screen w-full g0 md:g4 px-4">
+    <div class="flex-1 h-full py-3 md:py-8 flex flex-col justify-between">
       <div class="flex-grow">
         <% if params[:ref] == "site" %>
           <%= link_to "https://hackclub.com/fiscal-sponsorship", class: "flex items-center g1 no-underline" do %>
@@ -35,7 +35,7 @@
         </div>
 
         <div>
-          <h2 class="border-none">HCB provides a financial platform.</h2>
+          <h2 class="border-none">HCB provides a financial platform</h2>
           <ul>
             <li>A donations page and invoicing system.</li>
             <li>Transfer money electronically.</li>
@@ -44,23 +44,23 @@
         </div>
 
         <div>
-          <h2 class="border-none">HCB is not a bank.</h2>
+          <h2 class="border-none">HCB is not a bank</h2>
           <ul>
-            <li>We partner with <%= link_to "Column Bank", "https://column.com", class: "link--primary" %> to offer a bank account to fiscally-sponsored projects.</li>
+            <li>We partner with <%= link_to "Column Bank", "https://column.com", class: "link--primary" %> to offer a restricted fund to fiscally-sponsored projects.</li>
             <li>You can't deposit or withdraw cash. But you can receive any kind of electronic payment!</li>
             <li>HCB is not for for-profits.</li>
             <li>If you’re looking to set up a for-profit entity, consider <%= link_to "Stripe Atlas", "https://stripe.com/atlas", class: "link--primary" %>.
           </ul>
         </div>
 
-        <div class="card inline-flex g1 items-center">
+        <div class="card inline-flex g1 items-center mt2">
           <%= inline_icon "message" %>
           <p class="m0">Questions? Email  <%= help_email %>. or call <%= help_phone %>.
         </div>
       </div>
     </div>
 
-    <div class="w-1/2 h-full py-8">
+    <div class="flex-1 h-full py-3 md:py-8">
       <div class="h-full card overflow-y-scroll">
         <%= render "form" %>
       </div>
