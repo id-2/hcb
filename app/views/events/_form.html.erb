@@ -1,5 +1,5 @@
 
-<%= form_with html: { "x-data": "{ contactMethod: 'email' }" } do |form| %>
+<%= form_with html: { "x-data": "{ contactMethod: 'email' }"}, data: { turbo: true } do |form| %>
   <fieldset>
     <legend class="text-xl mb-4">Your organisation</legend>
       <div class="field field--wide">
@@ -145,5 +145,12 @@
       </fieldset>
     <% end %>
 
-    <%= form.submit "Submit" %>
+    <section class="modal modal--scroll bg-snow modal--huge h-2/3" data-behavior="modal" role="dialog" id="success">
+      <div id="message_1" class="flex flex-col items-center justify-center h-full pt-8">
+        <%= image_tag "https://cloud-mpvs8batk-hack-club-bot.vercel.app/02x-speed-ezgif.com-gif-maker.gif", class: "w-1/2" %>
+        <p class="h1 font-bold">Loading...</p>
+      </div>
+    </section>
+
+    <%= form.submit "Submit", data: { behavior: "modal_trigger", modal: "success", controller: "confetti", action: "click->confetti#party" } %>
 <% end %>

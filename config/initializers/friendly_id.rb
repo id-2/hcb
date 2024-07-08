@@ -101,6 +101,7 @@ FriendlyId.defaults do |config|
     404
     500
     mobile
+    apply
   ]
 
   # This adds an option to to treat reserved words as conflicts rather than exceptions.

@@ -1,0 +1,11 @@
+<div id="message_1" class="flex flex-col items-center justify-center h-full pt-8">
+  <%= image_tag "https://cloud-4q3ilvs9v-hack-club-bot.vercel.app/0dino_debugging.png", alt: "Confused dinosaur", class: "w-1/2 max-h-80" %>
+
+  <p class="h1 font-bold error">Error</p>
+  <p class="h2 text-center w-1/2" style="text-wrap: balance;"><%= local_assigns[:failure_message] %></p>
+
+  <%= link_to "https://hackclub.com/fiscal-sponsorship", class: "btn flex items-center g1 no-underline" do %>
+    <%= inline_icon "view-back" %>
+    <span>Back to hackclub.com</span>
+  <% end %>
+</div>

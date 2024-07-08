@@ -247,22 +247,30 @@ class EventsController < ApplicationController
       partner_id: Partner.find_by!(slug: "bank")
     )
 
-    ActiveRecord::Base.transaction do
-      event.demo_mode_limit_email = params[:email]
-      event.save!
-      OrganizerPositionInviteService::Create.new(
-        event:,
-        sender: point_of_contact,
-        user_email: params[:email],
-        initial: true
-      ).run!
-      event
+    user_email = current_user&.email || params[:email]
+    success = true
+    failure_message = ""
+
+    begin
+      ActiveRecord::Base.transaction do
+        event.demo_mode_limit_email = user_email unless current_user.admin?
+        success = event.save!
+        OrganizerPositionInviteService::Create.new(
+          event:,
+          sender: current_user || point_of_contact,
+          user_email:,
+          initial: true
+        ).run!
+      end
+    rescue => e
+      success = false
+      failure_message = e.message
     end
 
     ApplicationsTable.create(
       'First Name': current_user.first_name,
       'Last Name': current_user.last_name,
-      'Email Address': current_user.email,
+      'Email Address': user_email,
       'Phone Number': current_user.phone_number,
       'Date of Birth': current_user.birthday,
       'Event Name': event.name,
@@ -285,7 +293,19 @@ class EventsController < ApplicationController
       'HCB ID': event.id
     )
 
-    # redirect_to event_path(event)
+    if current_user
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            "message_1",
+            partial: success ? "apply_success" : "apply_failure",
+            locals: {}
+          )
+        end
+      end
+    else
+      redirect_to event_path(event)
+    end
   end
 
   def breakdown
