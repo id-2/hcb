@@ -14,7 +14,7 @@
         </div>
 
         <div class="field field--wide">
-          <%= form.label :organisation_country, "Primary country of operations"%>
+          <%= form.label :organisation_country, "Primary country of operations" %>
           <%= form.collection_select :organisation_country, Event.countries_for_select, :first, :last, { include_blank: "Select a country" }, required: true %>
         </div>
 
@@ -132,13 +132,11 @@
           <%= form.text_field :email, required: true, placeholder: "fiona@malted.dev" %>
         </div>
 
-
         <div class="field field--wide">
           <%= form.label :birthday, "Birthday" %>
           <%= form.date_field :birthday %>
           <span class="h5 muted">We need to know if you're a child, for compliance reasons.</span>
         </div>
-
 
         <div class="field field--wide">
           <%= form.label :phone, "Phone number" %>
