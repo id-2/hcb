@@ -229,29 +229,35 @@ class EventsController < ApplicationController
   def create
     skip_authorization
 
+    point_of_contact = User.find_by(email: "bank@hackclub.com")
+
     event = Event.new(
       name: params[:organisation_name],
-      address: params[:organisation_address],
       is_public: params[:organisation_transparency],
-      country: params[:country],
-      postal_code: params[:postal_code],
+      country: params[:organisation_country],
+      postal_code: params[:organisation_postal_code],
       description: params[:organisation_description],
       website: params[:organisation_website],
       sponsorship_fee: 0.07,
       organization_identifier: "bank_#{SecureRandom.hex}",
+      point_of_contact_id: point_of_contact,
+      omit_stats: false,
+      can_front_balance: true,
       demo_mode: true,
+      partner_id: Partner.find_by!(slug: "bank")
     )
 
-    puts event.inspect
-
-    # ActiveRecord::Base.transaction do
-    #   event.save!
-    #   OrganizerPosition.create!(
-    #     event:,
-    #     user: current_user,
-    #     is_signee: false,
-    #   )
-    # end
+    ActiveRecord::Base.transaction do
+      event.demo_mode_limit_email = params[:email]
+      event.save!
+      OrganizerPositionInviteService::Create.new(
+        event:,
+        sender: point_of_contact,
+        user_email: params[:email],
+        initial: true
+      ).run!
+      event
+    end
 
     ApplicationsTable.create(
       'First Name': current_user.first_name,
@@ -261,22 +267,20 @@ class EventsController < ApplicationController
       'Date of Birth': current_user.birthday,
       'Event Name': event.name,
       'Event Website': event.website,
-      'Zip Code': event.address,
+      'Zip Code': event.postal_code,
       'Tell us about your event': event.description,
-      'Mailing Address': event.address,
-      'Address Line 1': event.address,
-      City: event.address,
-      State: event.address,
-      'Address Country': event.address,
-      'Address Country Code': event.address,
-      'Event Location': event.address,
-      'Event Country Code': event.address,
+      # City: event.address,
+      # State: event.address,
+      'Address Country': event.country,
+      # 'Address Country Code': event.address,
+      # 'Event Location': event.address,
+      # 'Event Country Code': event.address,
       'Have you used HCB for any previous events?': current_user ? "Yes, I have used HCB before" : "No, first time!",
       'How did you hear about HCB?': params[:referred_by],
       Transparent: event.is_public ? "Yes, please!" : "No, thanks.",
       'HCB account URL': "https://hcb.hackclub.com/#{event.slug}",
-      # 'Contact Option': params[:contact_option],
-      # 'Slack Username': params[:slack_username],
+      'Contact Option': params[:contact_option],
+      'Slack Username': params[:slack_username],
       Accommodations: params[:accommodations],
       'HCB ID': event.id
     )

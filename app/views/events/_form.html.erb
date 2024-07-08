@@ -18,6 +18,12 @@
           <%= form.collection_select :organisation_country, Event.countries_for_select, :first, :last, { include_blank: "Select a country" }, required: true %>
         </div>
 
+        <div class="field field--wide">
+          <%= form.label :organisation_postal_code %>
+          <%= form.text_field :organisation_postal_code, placeholder: "05482" %>
+          <span class="h5 muted">If your organization runs online, please put your own postal code.</span>
+        </div>
+
         <div class="field">
           <%= form.label :organisation_transparency, "Transparency mode" %>
           <fieldset class="field--wide field--options w-full max-w-none">
@@ -99,7 +105,7 @@
     </fieldset>
 
     <% if current_user %>
-      <%= render "callout", type: "info", title: "Hi, #{current_user.first_name}! 👋" do %>
+        <%= render "callout", type: "info", title: "Hi, #{current_user.first_name}! 👋", class: "mt-3 mb-6" do %>
         Since you're logged in, we'll re-use your personal details.
 
         This includes your name, email, phone number and date of birth we already have on file.
