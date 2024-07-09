@@ -1,3 +1,5 @@
+<% inline_modal = inline_modal || false %>
+
 <% form_state = capture do %>
   <div id="message_1" class="flex flex-col items-center justify-center h-full">
     <%= image_tag "https://cloud-mpvs8batk-hack-club-bot.vercel.app/02x-speed-ezgif.com-gif-maker.gif", class: "w-1/2" %>
@@ -5,15 +7,15 @@
   </div>
 <% end %>
 
-<div x-data="{ loading: false }">
-  <% unless local_assigns[:inline_modal] %>
+<div x-data="{ loading: false, inline_modal: <%= inline_modal %> }">
+  <% if inline_modal %>
     <div x-show="loading">
-        <%= form_state %>
+      <%= form_state %>
     </div>
   <% end %>
 
-  <div x-show="!loading">
-    <%= form_with url: apply_path, html: { "x-data": "{ contactMethod: 'email' }" }, method: :post,  data: { turbo: true } do |form| %>
+  <div x-show="!loading || !inline_modal">
+    <%= form_with url: apply_path, html: { "x-data": "{ contactMethod: 'email' }" }, method: :post, data: { turbo: true } do |form| %>
         <fieldset>
             <legend class="text-xl mb-4">Your organisation</legend>
             <div class="field field--wide">
@@ -159,13 +161,11 @@
             </fieldset>
             <% end %>
 
-            <section class="<%= "h2/3 #{"modal modal--scroll bg-snow modal--huge pt-8" if local_assigns[:inline_modal]}" %>" data-behavior="modal" role="dialog" id="success">
-            <% if local_assigns[:inline_modal] %>
-                <%= form_state %>
-            <% end %>
+            <section class="modal modal--scroll bg-snow modal--huge pt-8 h2/3" data-behavior="modal" role="dialog" id="success">
+              <%= form_state unless inline_modal %>
             </section>
 
-            <%= form.submit "Submit", data: { behavior: false ? "modal_trigger" : nil, modal: false ? "success" : nil, controller: "confetti", action: "click->confetti#party", emojis: ["🏦", "💸"], disable_with: "Submitting..." }, "x-on:click": "loading = true" %>
+            <%= form.submit "Submit", data: { behavior: inline_modal ? nil : "modal_trigger", modal: inline_modal ? nil : "success", controller: "confetti", action: "click->confetti#party", emojis: ["🏦", "💸"], disable_with: "Submitting..." }, "x-on:click": "loading = true" %>
     <% end %>
   </div>
 </div>
