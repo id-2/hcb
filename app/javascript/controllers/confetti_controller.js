@@ -5,8 +5,12 @@ const jsConfetti = new JSConfetti()
 
 export default class extends Controller {
   party(event) {
-    const emojis = JSON.parse(event.target.dataset.emojis)
-    console.log(emojis)
-    emojis ? jsConfetti.addConfetti({ emojis }) : jsConfetti.addConfetti()
+    const emojisRaw = event.target.dataset.emojis
+    if (emojisRaw) {
+      const emojis = JSON.parse(emojisRaw)
+      emojis ? jsConfetti.addConfetti({ emojis }) : jsConfetti.addConfetti()
+    } else {
+      jsConfetti.addConfetti()
+    }
   }
 }
