@@ -4,8 +4,10 @@
   <p class="h1 font-bold error">Error</p>
   <p class="h2 text-center w-1/2" style="text-wrap: balance;"><%= local_assigns[:failure_message] %></p>
 
-  <%= link_to "https://hackclub.com/fiscal-sponsorship", class: "btn flex items-center g1 no-underline" do %>
-    <%= inline_icon "view-back" %>
-    <span>Back to hackclub.com</span>
+  <% if params[:ref] == "site" %>
+    <%= link_to "https://hackclub.com/fiscal-sponsorship", class: "btn flex items-center g1 no-underline" do %>
+      <%= inline_icon "view-back" %>
+      Back to hackclub.com
+    <% end %>
   <% end %>
 </div>

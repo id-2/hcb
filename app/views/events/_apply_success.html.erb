@@ -4,8 +4,10 @@
   <p class="h1 font-bold">Thanks for applying!</p>
   <p class="h3 text-center w-2/3" style="text-wrap: balance;">We’ll review your application and get back to you within two business days.</p>
 
-  <%= link_to "https://hackclub.com/fiscal-sponsorship", class: "btn flex items-center g1 no-underline" do %>
-    <%= inline_icon "view-back" %>
-    <span>Back to hackclub.com</span>
+  <% if params[:ref] == "site" %>
+    <%= link_to "https://hackclub.com/fiscal-sponsorship", class: "btn flex items-center g1 no-underline" do %>
+      <%= inline_icon "view-back" %>
+      Back to hackclub.com
+    <% end %>
   <% end %>
 </div>

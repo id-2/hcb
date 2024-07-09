@@ -268,31 +268,33 @@ class EventsController < ApplicationController
       failure_message = e.message
     end
 
-    ApplicationsTable.create(
-      'First Name': current_user.first_name,
-      'Last Name': current_user.last_name,
-      'Email Address': user_email,
-      'Phone Number': current_user.phone_number,
-      'Date of Birth': current_user.birthday,
-      'Event Name': event.name,
-      'Event Website': event.website,
-      'Zip Code': event.postal_code,
-      'Tell us about your event': event.description,
-      # City: event.address,
-      # State: event.address,
-      'Address Country': event.country,
-      # 'Address Country Code': event.address,
-      # 'Event Location': event.address,
-      # 'Event Country Code': event.address,
-      'Have you used HCB for any previous events?': current_user ? "Yes, I have used HCB before" : "No, first time!",
-      'How did you hear about HCB?': params[:referred_by],
-      Transparent: event.is_public ? "Yes, please!" : "No, thanks.",
-      'HCB account URL': "https://hcb.hackclub.com/#{event.slug}",
-      'Contact Option': params[:contact_option],
-      'Slack Username': params[:slack_username],
-      Accommodations: params[:accommodations],
-      'HCB ID': event.id
-    )
+    if Rails.env.production?
+      ApplicationsTable.create(
+        'First Name': current_user.first_name,
+        'Last Name': current_user.last_name,
+        'Email Address': user_email,
+        'Phone Number': current_user.phone_number,
+        'Date of Birth': current_user.birthday,
+        'Event Name': event.name,
+        'Event Website': event.website,
+        'Zip Code': event.postal_code,
+        'Tell us about your event': event.description,
+        # City: event.address,
+        # State: event.address,
+        'Address Country': event.country,
+        # 'Address Country Code': event.address,
+        # 'Event Location': event.address,
+        # 'Event Country Code': event.address,
+        'Have you used HCB for any previous events?': current_user ? "Yes, I have used HCB before" : "No, first time!",
+        'How did you hear about HCB?': params[:referred_by],
+        Transparent: event.is_public ? "Yes, please!" : "No, thanks.",
+        'HCB account URL': "https://hcb.hackclub.com/#{event.slug}",
+        'Contact Option': params[:contact_option],
+        'Slack Username': params[:slack_username],
+        Accommodations: params[:accommodations],
+        'HCB ID': event.id
+      )
+    end
 
     if current_user
       respond_to do |format|
