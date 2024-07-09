@@ -298,7 +298,7 @@ class EventsController < ApplicationController
       respond_to do |format|
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace(
-            "message_1",
+            "application_response_stream",
             partial: success ? "apply_success" : "apply_failure",
             locals: {}
           )
