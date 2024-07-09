@@ -50,6 +50,7 @@ class EventsController < ApplicationController
 
         render json: events
       end
+      format.html { redirect_to root_path }
     end
   end
 
@@ -202,6 +203,11 @@ class EventsController < ApplicationController
 
       @transactions = Kaminari.paginate_array(@transactions).page(params[:page]).per(params[:per] || 75)
       @mock_total = @transactions.sum(&:amount_cents)
+    end
+
+    if current_user && !Flipper.enabled?(:native_changelog_2024_07_03, current_user)
+      # @latest_changelog_post = ChangelogPost.latest
+      Flipper.enable(:native_changelog_2024_07_03, current_user)
     end
 
     if current_user && !Flipper.enabled?(:the_bin_popup_2024_05_17, current_user) && @event.robotics_team? && !@first_time
@@ -487,7 +493,7 @@ class EventsController < ApplicationController
 
   def account_number
     @transactions = if @event.column_account_number.present?
-                      CanonicalTransaction.where(transaction_source_type: "RawColumnTransaction", transaction_source_id: RawColumnTransaction.where("column_transaction->>'account_number_id' = '#{@event.column_account_number.column_id}'").pluck(:id))
+                      CanonicalTransaction.where(transaction_source_type: "RawColumnTransaction", transaction_source_id: RawColumnTransaction.where("column_transaction->>'account_number_id' = '#{@event.column_account_number.column_id}'").pluck(:id)).order(created_at: :desc)
                     else
                       CanonicalTransaction.none
                     end

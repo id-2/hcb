@@ -165,7 +165,7 @@ class StaticPagesController < ApplicationController
 
     if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
       @mailbox_address = current_user.active_mailbox_address
-      @receipts = Receipt.in_receipt_bin.where(user: current_user)
+      @receipts = Receipt.in_receipt_bin.with_attached_file.where(user: current_user)
       @pairings = current_user.receipt_bin.suggested_receipt_pairings
     end
 
@@ -184,7 +184,7 @@ class StaticPagesController < ApplicationController
 
   def my_reimbursements
     @reports = current_user.reimbursement_reports unless params[:filter] == "review_requested"
-    @reports = current_user.assigned_reimbursement_reports if params[:filter] == "review_requested"
+    @reports = Reimbursement::Report.submitted.where(event: current_user.events, reviewer_id: nil).or(current_user.assigned_reimbursement_reports.submitted) if params[:filter] == "review_requested"
     @reports = @reports.search(params[:q]) if params[:q].present?
     @payout_method = current_user.payout_method
   end
