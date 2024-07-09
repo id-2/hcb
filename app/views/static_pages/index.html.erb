@@ -58,16 +58,18 @@
 
         <%= render partial: "events/event_card", collection: @events.not_hidden, as: :event %>
 
-        <%= link_to apply_form_url do %>
-          <li class="card card--hover bold font-brand flex items-center justify-center align-center h-full" style="max-width: calc(100vw - 2rem)">
-            <div class="center">
-              <div class="pop success mx-auto flex mb-1">
-                <%= inline_icon "plus", size: 28 %>
-              </div>
-              New organization
+        <%= link_to "#", data: { behavior: "modal_trigger", modal: "new-event", turbo: true, controller: "confetti", action: "click->confetti#party", emojis: ["🏦", "💸"] }, class: "card flex flex-col items-center justify-center bold" do %>
+            <div class="pop success mx-auto flex mb-1">
+              <%= inline_icon "plus", size: 28 %>
             </div>
-          </li>
+            New organization
         <% end %>
+
+        <div data-behavior="modal" role="dialog" id="new-event" class="modal modal--scroll bg-snow">
+          <%= modal_header "New organization" %>
+
+          <%= render "events/form" %>
+        </div>
       </ul>
 
       <% if @events.hidden.any? %>
