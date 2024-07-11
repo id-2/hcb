@@ -175,7 +175,33 @@ class AchTransfer < ApplicationRecord
 
     account_number_id = event.column_account_number&.column_id ||
                         Rails.application.credentials.dig(:column, ColumnService::ENVIRONMENT, :default_account_number)
+    bank_account_id = Rails.application.credentials.dig(:column, ColumnService::ENVIRONMENT, :fs_main_account_id)
 
+    # We try a FedNow transfer first, then if the recv bank doesn't support it, we fall back to ACH.
+
+    # Step 1: Create a counterparty (recipient) record.
+    counterparty = ColumnService.post("/counterparties", {
+      routing_number:,
+      account_number:,
+      routing_number_type: "aba",
+      description: "#{recipient_name} counterparty for RTP",
+      name: recipient_name,
+      phone: recipient_tel,
+      email: recipient_email
+    }.compact_blank)
+    counterparty_id  = counterparty["id"]
+
+    # Step 2: Send the RTP using the above counterparty ID.
+    rtp = ColumnService.post("/transfers/realtime", {
+      idempotency_key: "a",
+      description: "123",
+      amount: 100,
+      currency_code: "USD",
+      bank_account_id:,
+      counterparty_id:
+    }.compact_blank)
+
+    # Step 3: If the bank doesn't support it, fall back to ACH.
     column_ach_transfer = ColumnService.post("/transfers/ach", {
       idempotency_key: self.id.to_s,
       amount:,
