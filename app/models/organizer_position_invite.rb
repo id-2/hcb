@@ -4,21 +4,20 @@
 #
 # Table name: organizer_position_invites
 #
-#  id                                     :bigint           not null, primary key
-#  accepted_at                            :datetime
-#  cancelled_at                           :datetime
-#  initial                                :boolean          default(FALSE)
-#  initial_control_allowance_amount_cents :integer
-#  is_signee                              :boolean          default(FALSE)
-#  rejected_at                            :datetime
-#  role                                   :integer          default("manager"), not null
-#  slug                                   :string
-#  created_at                             :datetime         not null
-#  updated_at                             :datetime         not null
-#  event_id                               :bigint           not null
-#  organizer_position_id                  :bigint
-#  sender_id                              :bigint
-#  user_id                                :bigint           not null
+#  id                    :bigint           not null, primary key
+#  accepted_at           :datetime
+#  cancelled_at          :datetime
+#  initial               :boolean          default(FALSE)
+#  is_signee             :boolean          default(FALSE)
+#  rejected_at           :datetime
+#  role                  :integer          default("manager"), not null
+#  slug                  :string
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  event_id              :bigint           not null
+#  organizer_position_id :bigint
+#  sender_id             :bigint
+#  user_id               :bigint           not null
 #
 # Indexes
 #
