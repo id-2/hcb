@@ -770,6 +770,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_03_152158) do
     t.index ["fulfilled_by_id"], name: "index_emburse_transfers_on_fulfilled_by_id"
   end
 
+  create_table "event_configurations", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.boolean "anonymous_donations", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_event_configurations_on_event_id"
+  end
+
   create_table "event_tags", force: :cascade do |t|
     t.string "name", null: false
     t.string "description"
@@ -1659,6 +1667,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_03_152158) do
     t.string "extracted_merchant_url"
     t.string "extracted_merchant_zip_code"
     t.boolean "data_extracted", default: false, null: false
+    t.integer "textual_content_source", default: 0
     t.string "textual_content_bidx"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["textual_content_bidx"], name: "index_receipts_on_textual_content_bidx"
@@ -2152,6 +2161,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_03_152158) do
   add_foreign_key "emburse_transfers", "events"
   add_foreign_key "emburse_transfers", "users", column: "creator_id"
   add_foreign_key "emburse_transfers", "users", column: "fulfilled_by_id"
+  add_foreign_key "event_configurations", "events"
   add_foreign_key "events", "partners"
   add_foreign_key "events", "users", column: "point_of_contact_id"
   add_foreign_key "fee_relationships", "events"
