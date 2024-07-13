@@ -537,10 +537,59 @@ class AdminController < ApplicationController
         tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.nil? ||
         @clearinghouse_transactions.select { |ctx| ctx.hcb_code == tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.hcb_code }.none? ||
         tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.local_hcb_code.amount_cents.abs != tx.local_hcb_code.amount_cents.abs
-      )
+      ) && tx.hcb_code != "HCB-712-732" # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
     }
 
     render layout: false
+  end
+
+  def stripe_card_personalization_designs
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @q = params[:q].presence
+    @pending = params[:pending] == "1"
+
+    @event_id = params[:event_id].presence
+
+    if @event_id
+      @event = Event.find(@event_id)
+
+      relation = @event.stripe_card_personalization_designs.includes(:event)
+    else
+      relation = StripeCard::PersonalizationDesign.includes(:event)
+    end
+
+    relation = relation.search(@q) if @q
+
+    relation = relation.under_review if @pending
+
+    @count = relation.count
+    relation = relation.page(@page).per(@per).order(
+      Arel.sql("stripe_status = 'review' ASC"),
+      "stripe_card_personalization_designs.created_at desc"
+    )
+
+    @common_designs = relation.common
+    @designs = relation
+
+    render layout: "admin"
+  end
+
+  def stripe_card_personalization_design_new
+    render layout: "admin"
+  end
+
+  def stripe_card_personalization_design_create
+    return unless params[:logo].present?
+
+    ::StripeCardService::PersonalizationDesign::Create.new(
+      file: params[:logo],
+      color: params[:color].to_sym,
+      name: params[:name],
+      common: params[:common].to_i == 1,
+    ).run
+
+    redirect_to stripe_card_personalization_designs_admin_index_path, flash: { success: "Successfully created #{params[:name]}" }
   end
 
   def ach_start_approval
