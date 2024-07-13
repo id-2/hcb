@@ -1,20 +1,20 @@
-<div class="card card--breakdown shadow-none p-0" style="gap: 8px; pointer-events: none;">
+<div class="card card--breakdown shadow-none p-0" style="gap: 8px; pointer-events: none;position: relative;">
   <h3 class="m-0 p-4 pb-0">Account balance</h3>
   <div
     class="flex z-10"
-    style="flex-direction: row; gap: 8px; position: relative;"
+    style="flex-direction: row; gap: 8px;position: relative;"
     data-controller="balance-graph"
     data-balance-graph-available-value="<%= @event.balance_available_v2_cents %>"
   >
-    <div class="p-4 pt-0">
+    <div class="p-4 pt-2">
       <div class="" data-tour-step="balance" data-balance-graph-target="stat">
         <span class="stat__label" data-balance-graph-target="label">&nbsp;</span>
         <% if @event.fee_balance_v2_cents < 0 # this event has a fee credit (owes negative fees) %>
-          <span class="stat__value" data-balance-graph-target="balance"><%= render_money_amount @event.balance_v2_cents %></span>
+          <span class="stat__value" data-balance-graph-target="balance">$<%= render_money_amount @event.balance_v2_cents %></span>
           <span class="self-end" style="font-size: 10px;">+$<%= render_money_amount @event.fee_balance_v2_cents.abs %> fee credit</span>
         <% else %>
           <span class="stat__value" data-balance-graph-target="balance">
-            <%= render_money_amount(show_mock_data? ? @mock_total : @event.balance_available_v2_cents) %>
+            $<%= render_money_amount(show_mock_data? ? @mock_total : @event.balance_available_v2_cents) %>
           </span>
         <% end %>
       </div>
@@ -22,11 +22,11 @@
       <div data-nosnippet class="hidden" aria-hidden="true" class="" data-tour-step="balance" data-balance-graph-target="size">
         <span class="stat__label">&nbsp;</span>
         <% if @event.fee_balance_v2_cents < 0 # this event has a fee credit (owes negative fees) %>
-          <span class="stat__value" data-balance-graph-target="sizing"><%= render_money_amount @event.balance_v2_cents %></span>
+          <span class="stat__value" data-balance-graph-target="sizing">$<%= render_money_amount @event.balance_v2_cents %></span>
           <span class="self-end" style="font-size: 10px;">+$<%= render_money_amount @event.fee_balance_v2_cents.abs %> fee credit</span>
         <% else %>
           <span class="stat__value" data-balance-graph-target="sizing">
-            <%= render_money_amount(show_mock_data? ? @mock_total : @event.balance_available_v2_cents) %>
+            $<%= render_money_amount(show_mock_data? ? @mock_total : @event.balance_available_v2_cents) %>
           </span>
         <% end %>
       </div>

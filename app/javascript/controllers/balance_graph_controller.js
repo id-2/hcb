@@ -10,7 +10,7 @@ export default class extends Controller {
   }
   renderBalance(amount) {
     return (
-      ' ' +
+      '$' +
       (amount / 100)
         .toLocaleString('en-US', {
           style: 'currency',
