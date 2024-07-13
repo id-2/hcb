@@ -24,8 +24,16 @@
   Financials
 </h1>
 
-<div class="flex gap-4 mb-4">
+<div class="flex gap-4">
   <%= render partial: "events/home/balance", event: @event %>
   <%= render partial: "events/home/transactions", event: @event %>
 </div>
-<%= render partial: "events/home/team", event: @event %>
+
+<div class="my-4">
+  <%= render partial: "events/home/team", event: @event %>
+</div>
+
+<div class="flex gap-4">
+  <%= render partial: "events/home/recent_activity", event: @event %>
+  <%= render partial: "events/home/cards", event: @event %>
+</div>

@@ -59,6 +59,7 @@ class EventsController < ApplicationController
     authorize @event
     @recent_transactions = @event.canonical_transactions.order(created_at: :desc).limit(3)
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc).limit(10)
+    @cards = @event.stripe_cards.order(created_at: :desc).limit(10)
   end
   
   def transactions
