@@ -20,7 +20,7 @@ export default class extends Controller {
     )
   }
   connect() {
-    fetch(window.location.pathname + '/balance_by_date')
+    fetch(window.location.pathname.replace("/transactions", "") + '/balance_by_date')
       .then(r => r.json())
       .then(jsonData => {
         const { balanceTrend, balanceByDate: rawBalanceByDate } = jsonData
@@ -56,11 +56,8 @@ export default class extends Controller {
         }
 
         this.sizingTarget.textContent = this.renderBalance(maxBalance)
-        this.graphTarget.setAttribute(
-          'width',
-          `${this.sizeTarget.clientWidth + 18}px`
-        )
-        this.statTarget.style.minWidth = `${this.sizeTarget.clientWidth + 24}px`
+        this.graphTarget.setAttribute( 'width', this.graphTarget.getBoundingClientRect().width + 'px' )
+        this.statTarget.style.minWidth = this.graphTarget.getBoundingClientRect().width + 'px'
         this.graphTarget.classList.add(`sparkline--${balanceTrend}`)
         sparkline(this.graphTarget, balances.reverse(), {
           interactive: true,
@@ -71,7 +68,7 @@ export default class extends Controller {
   }
   update(_, { date, value }) {
     this.balanceTarget.textContent = this.renderBalance(value)
-    this.labelTarget.textContent = `Account balance on ${new Date(
+    this.labelTarget.textContent = `${new Date(
       date
     ).toLocaleString('en-US', {
       month: 'short',
@@ -80,7 +77,7 @@ export default class extends Controller {
     })}`
   }
   clear() {
-    this.labelTarget.textContent = 'Account balance'
+    this.labelTarget.innerHTML = '&nbsp;'
     this.balanceTarget.textContent = this.renderBalance(this.availableValue)
   }
 }

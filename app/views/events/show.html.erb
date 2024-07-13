@@ -1,7 +1,27 @@
 <% title @event.name %>
 <% page_md %>
 <%= render "nav", selected: :home %>
+<% if @event&.is_public %>
+  <% content_for :head do %>
+    <% img = "https://hcb-og.hackclub.com/api/embeds/#{@event.slug}" %>
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="<%= img %>">
+    <meta name="twitter:image" content="<%= img %>">
+    <meta property="og:site_name" content="HCB">
+    <meta property="og:url" content="<%= event_url(@event) %>">
+    <meta property="og:title" content="<%= @event.name %>">
+    <meta name="twitter:title" content="<%= @event.name %>">
+    <% description = "#{@event.name}'s finances have been made public on HCB so you can see how their money is spent." %>
+    <meta property="og:description" content="<%= description %>">
+    <meta name="twitter:description" content="<%= description %>">
+    <meta name="description" content="<%= description %>">
+  <% end %>
+<% end %>
+
 
 <h1 class="items-center hidden md:flex">
   Financials
 </h1>
+
+<%= render partial: "events/home/balance", event: @event %>
