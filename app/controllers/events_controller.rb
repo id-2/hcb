@@ -57,6 +57,7 @@ class EventsController < ApplicationController
   # GET /events/1
   def show
     authorize @event
+    @recent_transactions = @event.canonical_transactions.order(created_at: :desc).limit(3)
   end
   
   def transactions

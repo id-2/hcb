@@ -1,0 +1,24 @@
+<div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col">
+  <h3 class="m-0 p-4 pb-0 mb-1">Recent transactions</h3>
+  <% [*@recent_transactions, @recent_transactions[0]].each do |transaction| %>
+    <div class="flex py-1.5 px-4 gap-4 items-start">
+      <div>
+        <%= transaction.memo %>
+        <div class="text-sm text-gray-500">
+          <%= time_ago_in_words(transaction.created_at) %> ago
+        </div>
+      </div>
+      <span class="ml-auto badge <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
+    </div>
+  <% end %>
+  <div class="flex items-center px-4 pb-2 mt-auto justify-between">
+    <%= link_to event_transactions_path(event_id: @event.slug), class: "flex items-center" do %>
+      View all transactions
+      <%=inline_icon "enter" %>
+    <% end %>
+    <%= link_to event_breakdown_path(event_id: @event.slug), class: "flex items-center" do %>
+      Breakdown
+      <%=inline_icon "enter" %>
+    <% end %>
+  </div>
+</div>
