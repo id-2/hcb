@@ -9,8 +9,13 @@
     <% end %>
   </div>
   <nav class="dock dock--desktop mt2 font-medium">
-    <%= dock_item "Transactions",
+    <%= dock_item "Home",
       event_path(id: @event.slug),
+      tooltip: "See everything at-a-glance",
+      icon: "home",
+      selected: local_assigns[:selected] == :home %>
+    <%= dock_item "Transactions",
+      event_transactions_path(event_id: @event.slug),
       tooltip: "View your transactions",
       icon: "transactions",
       selected: local_assigns[:selected] == :transactions %>

@@ -5,6 +5,10 @@ class EventPolicy < ApplicationPolicy
     user.present?
   end
 
+  def transactions?
+    user.present?
+  end
+
   def toggle_hidden?
     user&.admin?
   end

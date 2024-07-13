@@ -56,6 +56,10 @@ class EventsController < ApplicationController
 
   # GET /events/1
   def show
+    authorize @event
+  end
+  
+  def transactions
     render_tour @organizer_position, :welcome
 
     maybe_pending_invite = OrganizerPositionInvite.pending.find_by(user: current_user, event: @event)

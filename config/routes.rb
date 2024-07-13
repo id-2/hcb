@@ -604,6 +604,7 @@ Rails.application.routes.draw do
   resources :events, except: [:new, :create, :edit], concerns: :commentable, path: "/" do
     get "edit", to: redirect("/%{event_id}/settings")
     get "breakdown"
+    get "transactions"
     put "toggle_hidden"
     post "claim_point_of_contact"
 
