@@ -265,6 +265,7 @@ class Event < ApplicationRecord
   has_many :emburse_transactions
 
   has_many :ach_transfers
+  has_many :wire_transfers
   has_many :payment_recipients
   has_many :disbursements
   has_many :incoming_disbursements, class_name: "Disbursement"

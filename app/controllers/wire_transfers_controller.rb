@@ -2,7 +2,7 @@ class WireTransfersController < ApplicationController
   before_action :set_wire_transfer, except: [:new, :create, :index, :validate_bic_code]
   before_action :set_event, only: [:new, :create]
 
-  # GET /ach_transfers/1
+  # GET /wire_transfers/1
   def show
     authorize @wire_transfer
 
@@ -14,7 +14,7 @@ class WireTransfersController < ApplicationController
 
   #   respond_to do |format|
   #     # unless @wire_transfer.deposited?
-  #     #   redirect_to @ach_transfer and return
+  #     #   redirect_to @wire_transfer and return
   #     # end
 
   #     format.html do
@@ -27,28 +27,28 @@ class WireTransfersController < ApplicationController
   #   end
   # end
 
-  # GET /ach_transfers/new
+  # GET /wire_transfers/new
   def new
-    @ach_transfer = AchTransfer.new(event: @event)
-    authorize @ach_transfer
+    @wire_transfer = WireTransfer.new(event: @event)
+    authorize @wire_transfer
   end
 
-  # POST /ach_transfers
+  # POST /wire_transfers
   def create
-    @ach_transfer = @event.ach_transfers.build(ach_transfer_params.except(:file).merge(creator: current_user))
+    @wire_transfer = @event.wire_transfers.build(wire_transfer_params.except(:file).merge(creator: current_user))
 
-    authorize @ach_transfer
+    authorize @wire_transfer
 
-    if @ach_transfer.save
-      if ach_transfer_params[:file]
+    if @wire_transfer.save
+      if wire_transfer_params[:file]
         ::ReceiptService::Create.new(
           uploader: current_user,
-          attachments: ach_transfer_params[:file],
+          attachments: wire_transfer_params[:file],
           upload_method: :transfer_create_page,
-          receiptable: @ach_transfer.local_hcb_code
+          receiptable: @wire_transfer.local_hcb_code
         ).run!
       end
-      redirect_to event_transfers_path(@event), flash: { success: "ACH transfer successfully submitted." }
+      redirect_to event_transfers_path(@event), flash: { success: "Wire transfer successfully submitted." }
     else
       render :new, status: :unprocessable_entity
     end
