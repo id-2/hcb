@@ -2,36 +2,26 @@
 #
 # Table name: wire_transfers
 #
-#  id                                        :bigint           not null, primary key
-#  account_number_ciphertext                 :text
-#  amount_cents                              :integer
-#  approved_at                               :datetime
-#  bank_name                                 :string
-#  bic_number                                :string
-#  currency_code                             :string
-#  payment_for                               :text
-#  recipient_address_city_ciphertext         :text
-#  recipient_address_country_code_ciphertext :text
-#  recipient_address_line1_ciphertext        :text
-#  recipient_address_line2_ciphertext        :text
-#  recipient_address_postal_code_ciphertext  :text
-#  recipient_email_ciphertext                :text
-#  recipient_legal_id_ciphertext             :text
-#  recipient_legal_type_ciphertext           :text
-#  recipient_local_account_number_ciphertext :text
-#  recipient_local_bank_code_ciphertext      :text
-#  recipient_name_ciphertext                 :text
-#  recipient_phone_ciphertext                :text
-#  created_at                                :datetime         not null
-#  updated_at                                :datetime         not null
-#  column_id                                 :text
-#  creator_id                                :bigint
-#  event_id                                  :bigint
+#  id                        :bigint           not null, primary key
+#  account_number_ciphertext :text
+#  amount_cents              :integer
+#  approved_at               :datetime
+#  bank_name                 :string
+#  bic_number                :string
+#  currency_code             :string
+#  payment_for               :text
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  column_id                 :text
+#  creator_id                :bigint
+#  event_id                  :bigint
+#  payment_recipient_id      :bigint
 #
 # Indexes
 #
-#  index_wire_transfers_on_creator_id  (creator_id)
-#  index_wire_transfers_on_event_id    (event_id)
+#  index_wire_transfers_on_creator_id            (creator_id)
+#  index_wire_transfers_on_event_id              (event_id)
+#  index_wire_transfers_on_payment_recipient_id  (payment_recipient_id)
 #
 # Foreign Keys
 #
@@ -76,6 +66,7 @@ class WireTransfer < ApplicationRecord
   belongs_to :creator, class_name: "User", optional: true
   belongs_to :processor, class_name: "User", optional: true
   belongs_to :event
+  belongs_to :payment_recipient, optional: true
 
   validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
 
@@ -85,20 +76,18 @@ class WireTransfer < ApplicationRecord
   after_create :local_hcb_code
 
   def send_wire_transfer!
-    return unless may_mark_in_transit?
+    # return unless may_mark_in_transit?
     # Create a counterparty
     counterparty = ColumnService.post("/counterparties", {
       routing_number: bic_number,
       routing_number_type: "bic",
       account_number:,
       name: recipient_name,
-      address: {
-        line1: recipient_address_line1,
-        line2: recipient_address_line2,
-        city: recipient_address_city,
-        postal_code: recipient_address_postal_code,
-        country_code: recipient_address_country_code,
-      },
+      "address[line_1]": recipient_address_line1,
+      "address[line_2]": recipient_address_line2,
+      "address[city]": recipient_address_city,
+      "address[postal_code]": recipient_address_postal_code,
+      "address[country_code]": recipient_address_country_code,
       phone: recipient_phone,
       email: recipient_email,
       legal_id: recipient_legal_id,

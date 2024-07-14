@@ -7,6 +7,7 @@
   data: { controller: "input" },
   html: {
     "x-data" => "ach(#{{
+      payment_recipient: (@wire_transfer.payment_recipient.to_safe_hash if @wire_transfer.payment_recipient&.event&.== @event),
       editing: @wire_transfer.account_number.present?,
     }.to_json})"
   }) do |form| %>
