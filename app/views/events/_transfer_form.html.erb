@@ -5,7 +5,7 @@
 
       <%= link_to new_event_ach_transfer_path(@event), class: "text-decoration-none btn--form-option", data: { turbo_frame: "_top" } do %>
         <%= inline_icon "payment-transfer", size: 28 %>
-        <strong>ACH transfer</strong>
+        <strong>ACH</strong>
       <% end %>
 
       <%= link_to new_event_increase_check_path(@event), class: "text-decoration-none btn--form-option", data: { turbo_frame: "_top" } do %>
@@ -22,6 +22,11 @@
         <%= inline_icon "bank-account", size: 28 %>
         <strong>HCB transfer</strong>
         <small>(between HCB accounts)</small>
+      <% end %>
+
+      <%= link_to new_disbursement_path(source_event_id: @event), class: "text-decoration-none btn--form-option", data: { turbo_frame: "_top" } do %>
+        <%= inline_icon "web", size: 28 %>
+        <strong>International wire</strong>
       <% end %>
 
       <% if Flipper.enabled?(:card_grants_2023_05_25, @event) %>

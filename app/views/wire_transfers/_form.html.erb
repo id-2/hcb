@@ -1,18 +1,17 @@
 <% disabled = !policy(@event).create_transfer? %>
 
 <%= form_with(
-  model: @ach_transfer,
+  model: @wire_transfer,
   local: true,
-  url: event_ach_transfers_path(@event),
+  url: event_wire_transfers_path(@event),
   data: { controller: "input" },
   html: {
     "x-data" => "ach(#{{
-      payment_recipient: (@ach_transfer.payment_recipient.to_safe_hash if @ach_transfer.payment_recipient&.event&.== @event),
-      editing: @ach_transfer.account_number.present?,
+      editing: @wire_transfer.account_number.present?,
     }.to_json})"
   }) do |form| %>
 
-  <%= form_errors(@ach_transfer, "ACH transfer", "We couldn't send this") %>
+  <%= form_errors(@wire_transfer, "Wire transfer", "We couldn't send this") %>
 
   <%= form.hidden_field :payment_recipient_id, ":value" => "payment_recipient?.id" %>
 
@@ -20,7 +19,7 @@
     <pre x-text="'Debug info:\n\n' + JSON.stringify(payment_recipient || {}, null, 2)" class="fixed left-2 bottom-2 min-w-60 hidden lg:block"></pre>
   <% end %>
 
-  <div class="field" id="ach_transfer_name_field" data-controller="menu text-filter" data-menu-content-id-value="payment-recipient-search" data-menu-append-to-value="#ach_transfer_name_field" data-text-filter-empty-class="display-none">
+  <div class="field" id="wire_transfer_name_field" data-controller="menu text-filter" data-menu-content-id-value="payment-recipient-search" data-menu-append-to-value="#wire_transfer_name_field" data-text-filter-empty-class="display-none">
     <%= form.label :recipient_name %>
     <%= form.text_field :recipient_name,
                         placeholder: "Max Kern",
@@ -57,7 +56,7 @@
               <span class="truncate"><%= payment_recipient.name %></span>
               <span class="muted ml1">••••<%= payment_recipient.account_number.slice(-4, 4) %></span>
             </button>
-            <%= link_to event_payment_recipient_path(@event, payment_recipient), data: { turbo_method: "delete", turbo_confirm: "Are you sure you want to remove this ACH recipient?" } do %>
+            <%= link_to event_payment_recipient_path(@event, payment_recipient), data: { turbo_method: "delete", turbo_confirm: "Are you sure you want to remove this wire recipient?" } do %>
               <%= inline_icon "view-close", size: 24, class: "align-middle" %>
             <% end %>
           </div>
@@ -76,18 +75,13 @@
   <div class="card mb-4 relative">
     <template x-if="!payment_recipient || editing">
       <div>
-        <div class="field">
-          <%= form.label :bank_name %>
-          <%= form.text_field :bank_name, placeholder: "Name of the bank", required: true, disabled: %>
-        </div>
-
         <div
           class="field"
           data-controller="external-validation"
-          data-external-validation-url-value="<%= validate_routing_number_ach_transfers_path %>"
+          data-external-validation-url-value="<%= validate_bic_code_wire_transfers_path %>"
         >
-          <%= form.label :routing_number %>
-          <%= form.text_field :routing_number, placeholder: "123456789", required: true, disabled:, class: "fs-mask", data: { action: "input->external-validation#validate" } %>
+          <%= form.label :bic_code, "SWIFT/BIC code" %>
+          <%= form.text_field :bic_code, placeholder: "CLNOUS66", required: true, disabled:, class: "fs-mask", data: { action: "input->external-validation#validate" } %>
           <span class="muted" data-external-validation-target="hint"></span>
         </div>
 
@@ -102,9 +96,7 @@
         <button type="button" class="text-muted cursor-pointer select-none tooltipped tooltipped--w bg-transparent border-none absolute top-3 right-3" aria-label="Edit payment details" @click="editing = true">
           <%= inline_icon "pen", size: 18 %>
         </button>
-
-        <div class="field"><label>Bank name</label>     <input disabled class="!text-muted bg-transparent" type="text" :value="payment_recipient.bank_name"></div>
-        <div class="field"><label>Routing number</label><input disabled class="!text-muted bg-transparent" type="text" :value="payment_recipient.routing_number"></div>
+        <div class="field"><label>SWIFT/BIC code</label><input disabled class="!text-muted bg-transparent" type="text" :value="payment_recipient.routing_number"></div>
         <div class="field"><label>Account number</label><input disabled class="!text-muted bg-transparent" type="text" :value="payment_recipient.masked_account_number"></div>
       </div>
     </template>
@@ -163,10 +155,10 @@
       <%= form.check_box :same_day %>
       <%= form.label :same_day, "Process same-day? May incur a fee on HCB's end." %>
     </div>
-    <p class="h5 muted mt0 mb1">See <%= link_to "this page", "https://column.com/docs/ach/timing", target: "_blank" %> for ACH timing details.</p>
+    <p class="h5 muted mt0 mb1">See <%= link_to "this page", "https://column.com/docs/wire", target: "_blank" %> for wire timing details.</p>
   <% end %>
 
-  <div class="actions tooltipped tooltipped--n inline-block" aria-label="ACH transfers can't be cancelled">
+  <div class="actions tooltipped tooltipped--n inline-block" aria-label="Wire transfers can't be cancelled">
     <%= form.submit "Transfer money now", class: "btn", disabled: %>
   </div>
 <% end %>

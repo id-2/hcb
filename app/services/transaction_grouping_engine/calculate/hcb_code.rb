@@ -17,6 +17,7 @@ module TransactionGroupingEngine
       DONATION_CODE = "200"
       PARTNER_DONATION_CODE = "201"
       ACH_TRANSFER_CODE = "300"
+      WIRE_TRANSFER_CODE = "330"
       PAYPAL_TRANSFER_CODE = "350"
       CHECK_CODE = "400"
       INCREASE_CHECK_CODE = "401"

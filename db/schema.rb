@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_12_171126) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_03_152158) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "amcheck"
   enable_extension "citext"
@@ -2117,34 +2117,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_12_171126) do
     t.index ["user_id"], name: "index_webauthn_credentials_on_user_id"
   end
 
-  create_table "wire_transfers", force: :cascade do |t|
-    t.bigint "event_id"
-    t.bigint "creator_id"
-    t.text "account_number_ciphertext"
-    t.integer "amount_cents"
-    t.string "currency_code"
-    t.datetime "approved_at"
-    t.string "bank_name"
-    t.string "bic_number"
-    t.text "payment_for"
-    t.text "recipient_name_ciphertext"
-    t.text "recipient_address_line1_ciphertext"
-    t.text "recipient_address_line2_ciphertext"
-    t.text "recipient_address_city_ciphertext"
-    t.text "recipient_address_postal_code_ciphertext"
-    t.text "recipient_address_country_code_ciphertext"
-    t.text "recipient_phone_ciphertext"
-    t.text "recipient_email_ciphertext"
-    t.text "recipient_legal_id_ciphertext"
-    t.text "recipient_legal_type_ciphertext"
-    t.text "recipient_local_bank_code_ciphertext"
-    t.text "recipient_local_account_number_ciphertext"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["creator_id"], name: "index_wire_transfers_on_creator_id"
-    t.index ["event_id"], name: "index_wire_transfers_on_event_id"
-  end
-
   add_foreign_key "ach_payments", "stripe_ach_payment_sources"
   add_foreign_key "ach_transfers", "events"
   add_foreign_key "ach_transfers", "users", column: "creator_id"
@@ -2281,6 +2253,4 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_12_171126) do
   add_foreign_key "user_sessions", "users"
   add_foreign_key "user_sessions", "users", column: "impersonated_by_id"
   add_foreign_key "webauthn_credentials", "users"
-  add_foreign_key "wire_transfers", "events"
-  add_foreign_key "wire_transfers", "users", column: "creator_id"
 end

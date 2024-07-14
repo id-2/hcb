@@ -181,6 +181,7 @@ Rails.application.routes.draw do
       get "stripe_cards", to: "admin#stripe_cards"
       get "pending_ledger", to: "admin#pending_ledger"
       get "ach", to: "admin#ach"
+      # get "wire", to: "admin#wire"
       get "reimbursements", to: "admin#reimbursements"
       get "reimbursements_status", to: "admin#reimbursements_status"
       get "checks", to: "admin#checks"
@@ -223,6 +224,9 @@ Rails.application.routes.draw do
       get "ach_start_approval", to: "admin#ach_start_approval"
       post "ach_approve", to: "admin#ach_approve"
       post "ach_reject", to: "admin#ach_reject"
+      # get "wire_start_approval", to: "admin#wire_start_approval"
+      # post "wire_approve", to: "admin#wire_approve"
+      # post "wire_reject", to: "admin#wire_reject"
       get "disbursement_process", to: "admin#disbursement_process"
       post "disbursement_approve", to: "admin#disbursement_approve"
       post "disbursement_reject", to: "admin#disbursement_reject"
@@ -347,6 +351,17 @@ Rails.application.routes.draw do
       post "validate_routing_number"
     end
     get "confirmation", to: "ach_transfers#transfer_confirmation_letter"
+  end
+
+  resources :wire_transfers, only: [:show] do
+    member do
+      post "cancel"
+      post "toggle_speed"
+    end
+    collection do
+      post "validate_bic_code"
+    end
+    # get "confirmation", to: "wire_transfers#transfer_confirmation_letter"
   end
 
   resources :disbursements, only: [:new, :create, :show, :edit, :update] do
@@ -649,6 +664,7 @@ Rails.application.routes.draw do
     resources :increase_checks, only: [:new, :create], path: "checks"
     resources :paypal_transfers, only: [:new, :create]
     resources :ach_transfers, only: [:new, :create]
+    resources :wire_transfers, only: [:new, :create]
     resources :organizer_position_invites,
               only: [:new, :create],
               path: "invites"

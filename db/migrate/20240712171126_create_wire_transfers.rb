@@ -23,6 +23,7 @@ class CreateWireTransfers < ActiveRecord::Migration[7.1]
       t.text :recipient_legal_type_ciphertext
       t.text :recipient_local_bank_code_ciphertext
       t.text :recipient_local_account_number_ciphertext
+      t.text :column_id
 
       t.timestamps
     end

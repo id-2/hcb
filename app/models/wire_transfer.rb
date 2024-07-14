@@ -77,6 +77,13 @@ class WireTransfer < ApplicationRecord
   belongs_to :processor, class_name: "User", optional: true
   belongs_to :event
 
+  validates :amount, numericality: { greater_than: 0, message: "must be greater than 0" }
+
+  has_one :canonical_pending_transaction, through: :raw_pending_outgoing_ach_transaction
+
+  # Eagerly create HcbCode object
+  after_create :local_hcb_code
+
   def send_wire_transfer!
     return unless may_mark_in_transit?
     # Create a counterparty
@@ -117,5 +124,13 @@ class WireTransfer < ApplicationRecord
     self.column_id = column_wire_transfer["id"]
 
     save!
+  end
+
+  def hcb_code
+    "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::WIRE_TRANSFER_CODE}-#{id}"
+  end
+
+  def local_hcb_code
+    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 end
