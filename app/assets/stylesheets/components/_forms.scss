@@ -220,6 +220,10 @@ legend {
   width: 100%;
   max-width: 24rem;
 
+  & > *:nth-last-child(2):nth-child(even) ~ * {
+    grid-column: span 2;
+  }
+
   &.trio {
     grid-template-columns: repeat(3, 1fr);
   }
