@@ -131,6 +131,14 @@ class CanonicalTransactionGrouped
     smartish_custom_memo || "ACH TO #{ach_transfer.smart_memo}"
   end
 
+  def wire_transfer
+    WireTransfer.find(hcb_i2)
+  end
+
+  def wire_transfer_memo
+    smartish_custom_memo || "WIRE TO #{wire_transfer.smart_memo}"
+  end
+
   def check
     Check.find(hcb_i2)
   end

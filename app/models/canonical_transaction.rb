@@ -316,6 +316,12 @@ class CanonicalTransaction < ApplicationRecord
     nil
   end
 
+  def wire_transfer
+    return linked_object if linked_object.is_a?(WireTransfer)
+
+    nil
+  end
+
   def likely_ach_confirmation_number
     memo.match(/BUSBILLPAY TRAN#(\d+)/)&.[](1)
   end

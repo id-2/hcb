@@ -24,6 +24,7 @@
 #  recipient_phone_ciphertext                :text
 #  created_at                                :datetime         not null
 #  updated_at                                :datetime         not null
+#  column_id                                 :text
 #  creator_id                                :bigint
 #  event_id                                  :bigint
 #
@@ -76,11 +77,10 @@ class WireTransfer < ApplicationRecord
   belongs_to :processor, class_name: "User", optional: true
   belongs_to :event
 
-
   def send_wire_transfer!
     return unless may_mark_in_transit?
     # Create a counterparty
-    column_wire_transfer = ColumnService.post("/counterparties", {
+    counterparty = ColumnService.post("/counterparties", {
       routing_number: bic_number,
       routing_number_type: "bic",
       account_number:,
@@ -99,25 +99,23 @@ class WireTransfer < ApplicationRecord
       local_bank_code: recipient_local_bank_code,
       local_account_number: recipient_local_account_number
     }.compact_blank)
+    counterparty_id = counterparty["id"]
 
-    puts column_wire_transfer
+    account_number_id = event.column_account_number&.column_id ||
+                        Rails.application.credentials.dig(:column, ColumnService::ENVIRONMENT, :default_account_number)
 
+    # Initiate the wire
+    column_wire_transfer = ColumnService.post("/transfers/wire", {
+      description: payment_for,
+      amount:,
+      currency_code: "USD",
+      account_number_id:,
+      counterparty_id:,
+    }.compact_blank)
 
-    # account_number_id = event.column_account_number&.column_id ||
-    #                     Rails.application.credentials.dig(:column, ColumnService::ENVIRONMENT, :default_account_number)
+    mark_in_transit
+    self.column_id = column_wire_transfer["id"]
 
-    # # Initiate the wire
-    # column_wire_transfer = ColumnService.post("/transfers/wire", {
-    #   description: payment_for,
-    #   amount:,
-    #   currency_code: "USD",
-    #   account_number_id:,
-    #   counterparty_id:,
-    # }.compact_blank)
-
-    # mark_in_transit
-    # self.column_id = column_ach_transfer["id"]
-
-    # save!
+    save!
   end
 end

@@ -240,6 +240,12 @@ class CanonicalPendingTransaction < ApplicationRecord
     nil
   end
 
+  def wire_transfer
+    return linked_object if linked_object.is_a?(WireTransfer)
+
+    nil
+  end
+
   def check
     return linked_object if linked_object.is_a?(Check)
 
