@@ -1,3 +1,20 @@
-<div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col">
+<div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col overflow-scroll" style="max-height: 600px;">
   <h3 class="m-0 p-4 pb-0 mb-1">Recent activity</h3>
+  <ul class="list-reset comments w-100 my-0 pb-2 overflow-y-scroll p-4 pt-0">
+    <%= turbo_stream_from current_user, @event, "activities" %>
+    <turbo-frame id="activities-<%= @activities.current_page %>" target="_top">
+      <%= render_activities(@activities.reject { |activity| activity.trackable.nil? && !activity.trackable_is_deletable? }) %>
+      <% if @activities.next_page %>
+        <%= turbo_frame_tag(
+              "activities-#{@activities.next_page}",
+              loading: :lazy,
+              src: "/#{@event.slug}/settings/audit_log?page=#{@activities.next_page}",
+              target: "_top"
+            ) do %>
+          <i class="muted block text-center">Loading more activities...</i>
+        <% end %>
+      <% end %>
+    </turbo-frame>
+  </ul>
+
 </div>

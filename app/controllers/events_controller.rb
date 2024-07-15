@@ -58,6 +58,7 @@ class EventsController < ApplicationController
   def show
     authorize @event
     @recent_transactions = @event.canonical_transactions.order(created_at: :desc).limit(3)
+    @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @cards = @event.stripe_cards.order(created_at: :desc).limit(10)
   end
