@@ -42,10 +42,7 @@
   <% end %>
 
   <% if organizer_signed_in? %>
-    <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="order_card">
-      <%= modal_header "Order a card" %>
-      <%= render "stripe_cards/form", stripe_card: StripeCard.new %>
-    </section>
+    <%= render "stripe_card_modal" %>
   <% end %>
 
   <% if params[:view] == "list" %>

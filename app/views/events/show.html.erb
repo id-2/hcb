@@ -24,6 +24,34 @@
   Financials
 </h1>
 
+<div class="flex mb2">
+  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
+    <%= inline_icon "briefcase", size: 16 %>
+    Send an invoice
+  <% end %>
+  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
+    <%= inline_icon "payment-transfer", size: 16 %>
+    Transfer money
+  <% end %>
+  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "create_reimbursement" } do %>
+    <%= inline_icon "attachment", size: 16 %>
+    Get reimbursed
+  <% end %>
+  <%= link_to event_check_deposits_path(@event), class: "list-badge quick-action" do %>
+    <%= inline_icon "cheque", size: 16 %>
+    Deposit a check
+  <% end %>
+  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "order_card" } do %>
+    <%= inline_icon "card", size: 16 %>
+    Order a card
+  <% end %>
+</div>
+
+<%= render "reimbursement/reports/create_form", modal_id: "create_reimbursement" %>
+<%= render "stripe_card_modal" %>
+<%= render "transfer_modal" %>
+<%= render "invoices/modal" %>
+
 <div class="flex gap-4">
   <%= render partial: "events/home/balance", event: @event %>
   <%= render partial: "events/home/transactions", event: @event %>

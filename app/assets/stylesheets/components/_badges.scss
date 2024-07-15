@@ -94,6 +94,17 @@
   margin-left: 0.5rem;
 }
 
+.list-badge.quick-action {
+  font-size: 16px;
+  padding: 0.25rem 0.675rem;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.list-badge.quick-action:hover {
+  color: map-get($palette, info);
+}
+
 // Circular button
 .pop {
   border-radius: 9999px;
