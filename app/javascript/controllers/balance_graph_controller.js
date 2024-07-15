@@ -20,7 +20,9 @@ export default class extends Controller {
     )
   }
   connect() {
-    fetch(window.location.pathname.replace("/transactions", "") + '/balance_by_date')
+    fetch(
+      window.location.pathname.replace('/transactions', '') + '/balance_by_date'
+    )
       .then(r => r.json())
       .then(jsonData => {
         const { balanceTrend, balanceByDate: rawBalanceByDate } = jsonData
@@ -56,8 +58,12 @@ export default class extends Controller {
         }
 
         this.sizingTarget.textContent = this.renderBalance(maxBalance)
-        this.graphTarget.setAttribute( 'width', this.graphTarget.getBoundingClientRect().width + 'px' )
-        this.statTarget.style.minWidth = this.graphTarget.getBoundingClientRect().width + 'px'
+        this.graphTarget.setAttribute(
+          'width',
+          this.graphTarget.getBoundingClientRect().width + 'px'
+        )
+        this.statTarget.style.minWidth =
+          this.graphTarget.getBoundingClientRect().width + 'px'
         this.graphTarget.classList.add(`sparkline--${balanceTrend}`)
         sparkline(this.graphTarget, balances.reverse(), {
           interactive: true,

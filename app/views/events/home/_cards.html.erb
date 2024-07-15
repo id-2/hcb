@@ -1,12 +1,17 @@
 <div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col">
   <h3 class="m-0 p-4 pb-0 mb-1">Cards</h3>
   <% @cards.each do |card| %>
-    <div class="flex items-center gap-4 py-2 px-4">
-      <div class="h-7 w-10 bg-gray-200 rounded-sm"></div>
-      <%= card.stripe_brand %>
+    <div class="flex items-center gap-3 py-2 px-4">
+      <div class="h-7 w-10 rounded-sm <%= "stripe-card--white" if card.personalization_design&.white? %>
+      <%= "stripe-card--black" if card.personalization_design&.black? %>" style="background-size: 12px; background-image: <%= GeoPattern.generate(card.id).to_data_uri  unless card.platinum? || card.personalization_design.present? %>"></div>
+      <% if card.user == current_user %>
+        Your
+      <% else %>
+        <%= card.user.name %>'<%= 's' unless card.user.name.ends_with?("s") %>
+      <% end %>
+      <%= card.stripe_brand %> Card <%= "(#{card.hidden_card_number_with_last_four})" if card.user == current_user  %>
     </div>
   <% end %>
-
   <%= link_to event_cards_overview_path(event_id: @event.slug), class: "flex items-center mt-auto px-4 pb-2" do %>
     View all
     <%= inline_icon "enter" %>
