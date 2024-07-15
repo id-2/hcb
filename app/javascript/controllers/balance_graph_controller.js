@@ -20,7 +20,7 @@ export default class extends Controller {
     )
   }
   connect() {
-    fetch(window.location.pathname + '/balance_by_date')
+    fetch(window.location.pathname.replace("/transactions", "") + '/balance_by_date')
       .then(r => r.json())
       .then(jsonData => {
         const { balanceTrend, balanceByDate: rawBalanceByDate } = jsonData
