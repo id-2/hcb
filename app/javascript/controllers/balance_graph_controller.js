@@ -10,7 +10,7 @@ export default class extends Controller {
   }
   renderBalance(amount) {
     return (
-      ' ' +
+      '$' +
       (amount / 100)
         .toLocaleString('en-US', {
           style: 'currency',
@@ -56,11 +56,8 @@ export default class extends Controller {
         }
 
         this.sizingTarget.textContent = this.renderBalance(maxBalance)
-        this.graphTarget.setAttribute(
-          'width',
-          `${this.sizeTarget.clientWidth + 18}px`
-        )
-        this.statTarget.style.minWidth = `${this.sizeTarget.clientWidth + 24}px`
+        this.graphTarget.setAttribute( 'width', this.graphTarget.getBoundingClientRect().width + 'px' )
+        this.statTarget.style.minWidth = this.graphTarget.getBoundingClientRect().width + 'px'
         this.graphTarget.classList.add(`sparkline--${balanceTrend}`)
         sparkline(this.graphTarget, balances.reverse(), {
           interactive: true,
