@@ -6,21 +6,16 @@
       <%= inline_icon "enter" %>
     <% end %>
     </div>
-   <div class="flex items-center px-4 pb-1">
+   <div class="flex items-center px-4 pb-1 mt1">
     <% if @organizers.any? %>
-      <div class="flex items-center">
-        <% @organizers.limit(5).each do |position| %>
+      <div class="grid gap-2 w-100" style="grid-template-columns: repeat(auto-fill, 45px);">
+        <% @organizers.each do |position| %>
           <div class="avatar-grow line-height-0 tooltipped tooltipped--s mr1" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">
             <%= avatar_for position.user, 45 %>
           </div>
         <% end %>
+        <%= pop_icon_to "member-add", event_team_path(@event), class: "info", style: "width:45px;height:45px;color:#338eda!important", data: { "tour-step" => "invite" } %>
       </div>
-      <% if @event.organizer_positions.count > 5 %>
-        <%= link_to event_team_path(@event), class: "pop" do %>
-          +<%= @event.organizer_positions.count - 5 %>
-        <% end %>
-      <% end %>
-      <%= pop_icon_to "member-add", event_team_path(@event), class: "ml1", style: "width:45px;height:45px", data: { "tour-step" => "invite" } %>
     <% else %>
       <p class="slate bold h3 mr2">No organizers invited yet</p>
       <%= pop_icon_to "member-add", event_team_path(@event) %>
