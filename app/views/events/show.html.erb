@@ -23,8 +23,8 @@
   Financials
 </h1>
 
-<div class="flex mb2">
-  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
+<div class="flex mb2 max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
+  <%= link_to "#", class: "list-badge quick-action ml-0", data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
     <%= inline_icon "briefcase", size: 16 %>
     Send an invoice
   <% end %>
@@ -51,7 +51,7 @@
 <%= render "transfer_modal" %>
 <%= render "invoices/modal" %>
 
-<div class="flex gap-4">
+<div class="flex gap-4 flex-col sm:flex-row">
   <%= render partial: "events/home/balance", event: @event %>
   <%= render partial: "events/home/transactions", event: @event %>
 </div>
@@ -60,7 +60,7 @@
   <%= render partial: "events/home/team", event: @event %>
 </div>
 
-<div class="flex gap-4">
+<div class="flex gap-4 flex-col sm:flex-row">
   <%= render partial: "events/home/recent_activity", event: @event %>
   <%= render partial: "events/home/cards", event: @event %>
 </div>

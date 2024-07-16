@@ -4,7 +4,7 @@
     <%= blankslate "Nothing to see here (yet!)" %>
   <% end %>
   <% @recent_transactions.each do |transaction| %>
-    <div class="flex py-1.5 px-4 gap-4 items-start">
+    <div class="flex py-1.5 px-4 gap-4 items-start <%= Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && (@event || transaction.local_hcb_code.event).present? ? "cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors" : "" %>" data-behavior="modal_trigger" data-modal="transaction_details_<%= transaction.__id__ %>">
       <div>
         <%= transaction.memo %>
         <div class="text-sm text-gray-500">
@@ -13,6 +13,15 @@
       </div>
       <span class="ml-auto badge <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
     </div>
+
+    <% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && (@event || transaction.local_hcb_code.event).present? %>
+      <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= transaction.__id__ %>">
+        <%= modal_header(transaction.local_hcb_code.pretty_title(show_event_name: defined?(show_event_name), show_amount: defined?(show_amount), event_name: @event&.name, amount_cents: transaction.amount), external_link: transaction.local_hcb_code.url) %>
+        <%= async_frame_to transaction.local_hcb_code.popover_url, as: :span, lazy: true do %>
+          Loading...
+        <% end %>
+      </section>
+    <% end %>
   <% end %>
   <div class="flex items-center px-4 pb-2 mt-auto justify-between">
     <%= link_to event_transactions_path(event_id: @event.slug), class: "flex items-center" do %>
