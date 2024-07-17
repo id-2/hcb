@@ -2,8 +2,9 @@
 
 module BreakdownEngine
   class Categories
-    def initialize(event)
+    def initialize(event, past_month: false)
       @event = event
+      @past_month = past_month
     end
 
     def run
@@ -13,7 +14,7 @@ module BreakdownEngine
       )
                           .joins("LEFT JOIN canonical_transactions ct ON raw_stripe_transactions.id = ct.transaction_source_id AND ct.transaction_source_type = 'RawStripeTransaction'")
                           .joins("LEFT JOIN canonical_event_mappings event_mapping ON ct.id = event_mapping.canonical_transaction_id")
-                          .where("event_mapping.event_id = ?", @event.id)
+                          .where("event_mapping.event_id = ? #{"AND raw_stripe_transactions.created_at > NOW() - INTERVAL '1 month'" if @past_month}", @event.id)
                           .group("category")
                           .order(Arel.sql("SUM(raw_stripe_transactions.amount_cents) * -1 DESC"))
                           .each_with_object({}) do |merchant, object|

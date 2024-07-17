@@ -8,7 +8,7 @@
       <div>
         <%= transaction.memo %>
         <div class="text-sm text-gray-500">
-          <%= time_ago_in_words(transaction.created_at) %> ago
+          <%= time_ago_in_words(transaction.created_at) %> ago<% if transaction.try(:raw_stripe_transaction) || transaction.try(:raw_pending_stripe_transaction_id) %>, <%= transaction.stripe_cardholder.user.name %><% end %>
         </div>
       </div>
       <span class="ml-auto badge <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
@@ -26,10 +26,6 @@
   <div class="flex items-center px-4 pb-2 mt-auto justify-between">
     <%= link_to event_transactions_path(event_id: @event.slug), class: "flex items-center" do %>
       View all transactions
-      <%= inline_icon "enter" %>
-    <% end %>
-    <%= link_to event_breakdown_path(event_id: @event.slug), class: "flex items-center" do %>
-      Breakdown
       <%= inline_icon "enter" %>
     <% end %>
   </div>

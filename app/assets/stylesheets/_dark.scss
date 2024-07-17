@@ -304,6 +304,10 @@ html[data-dark='true'] {
     background-color: rgba(0, 0, 0, 0.125);
   }
 
+  .list-badge.quick-action {
+    border: 1px dashed
+  }
+
   .filterbar__item:active,
   .filterbar__item[aria-selected='true'] {
     background-color: rgba(map-get($palette, info), 0.125);

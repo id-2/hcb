@@ -1,6 +1,6 @@
 <% @show_card_popovers = Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) %>
 
-<div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col h-80">
+<div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col">
   <h3 class="m-0 p-4 pb-0 mb-1">Cards</h3>
    <% if @cards.length === 0 %>
     <%= blankslate "Nothing to see here (yet!)" %>
@@ -24,10 +24,9 @@
         <% end %>
       </section>
     <% end %>
-
   <% end %>
   <%= link_to event_cards_overview_path(event_id: @event.slug), class: "flex items-center mt-auto px-4 pb-2" do %>
-    View all
+    View all cards
     <%= inline_icon "enter" %>
   <% end %>
 </div>
