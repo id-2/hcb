@@ -1889,7 +1889,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_17_180813) do
     t.datetime "purchased_at", precision: nil
     t.integer "spending_limit_interval"
     t.integer "spending_limit_amount"
-    t.boolean "activated", default: false
     t.bigint "replacement_for_id"
     t.string "name"
     t.boolean "is_platinum_april_fools_2023"
