@@ -35,7 +35,6 @@ export default class extends Controller {
         const today = new Date(new Date().setHours(0, 0, 0, 0))
           .toISOString()
           .split('T')[0]
-        let next = true
 
         const entries = Object.entries(rawBalanceByDate)
         entries.sort((a, b) => new Date(b[0]) - new Date(a[0]))
@@ -43,11 +42,9 @@ export default class extends Controller {
 
         for (const date in balanceByDate) {
           const value =
-            date == today || next
+            date == today
               ? this.availableValue
               : parseFloat(balanceByDate[date])
-
-          if (date == today) next = false
 
           balances.push({
             date,
