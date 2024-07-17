@@ -30,7 +30,7 @@ class ApplicationController < ActionController::Base
   end
 
   # Force usage of Pundit on actions
-  after_action :verify_authorized, unless: -> { controller_path.starts_with?("doorkeeper/") || controller_path.starts_with?("audits1984/") }
+  after_action :verify_authorized, unless: -> { controller_path.starts_with?("doorkeeper/") || controller_path.starts_with?("audits1984/") || controller_path.starts_with?("emailbutler/") }
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 

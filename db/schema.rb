@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_03_152158) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_17_180813) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -668,6 +668,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_03_152158) do
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
     t.index ["payout_id"], name: "index_donations_on_payout_id"
     t.index ["recurring_donation_id"], name: "index_donations_on_recurring_donation_id"
+  end
+
+  create_table "emailbutler_messages", force: :cascade do |t|
+    t.uuid "uuid", null: false
+    t.string "mailer", null: false
+    t.string "action", null: false
+    t.jsonb "params", default: {}, null: false
+    t.string "send_to", array: true
+    t.integer "status", default: 0, null: false
+    t.datetime "timestamp"
+    t.integer "lock_version"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["uuid"], name: "index_emailbutler_messages_on_uuid", unique: true
   end
 
   create_table "emburse_card_requests", force: :cascade do |t|

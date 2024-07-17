@@ -222,3 +222,6 @@ gem "audits1984"
 gem "rotp"
 
 gem "ruby-limiter"
+
+gem 'emailbutler'
+gem 'pagy'
