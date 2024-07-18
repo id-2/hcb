@@ -33,8 +33,8 @@ jobs:
           bundler-cache: true
       - name: Run erblint
         run: bundle exec erblint app/views/
-  eslint:
-    name: ESLint
+  eslint22:
+    name: ESLint 22
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -42,8 +42,23 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: package.json
+          node-version: 22
       - run: yarn install
+      - run: echo $PATH
+      - name: Run ESLint
+        run: yarn lint
+  eslint2241:
+    name: ESLint 22.4.1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.4.1
+      - run: yarn install
+      - run: echo $PATH
       - name: Run ESLint
         run: yarn lint
   prettier:
