@@ -43,6 +43,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
+      - name: Install pinned NPM version
+        run: npm install -g npm@10.8.1
       - run: yarn install
       - name: Run ESLint
         run: yarn lint
@@ -56,6 +58,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
+      - name: Install pinned NPM version
+        run: npm install -g npm@10.8.1
       - run: yarn install
       - name: Run Prettier
         run: yarn format:check
@@ -90,6 +94,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
+      - name: Install pinned NPM version
+        run: npm install -g npm@10.8.1
       - name: Find yarn cache location
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -141,6 +147,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
+      - name: Install pinned NPM version
+        run: npm install -g npm@10.8.1
       - name: Find yarn cache location
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
