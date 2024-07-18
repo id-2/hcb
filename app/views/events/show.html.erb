@@ -65,6 +65,21 @@
   <%= render partial: "events/home/cards", event: @event %>
 </div>
 
+<div class="flex gap-4 mt-4 flex-col sm:flex-row">
+  <div class="card card--breakdown shadow-none w-100" style="flex: 1">
+    <h3 class="mb0">
+      <%= @event.plan_name.titleize %>
+    </h3>
+    <h5 class="breakdown-eyebrow mt-1 mb0">Current plan</h5>
+  </div>
+  <div class="card card--breakdown shadow-none w-100" style="flex: 1">
+    <h3 class="mb0">
+      <%= number_to_percentage(@event.sponsorship_fee * 100, significant: true, strip_insignificant_zeros: true) %>
+    </h3>
+    <h5 class="breakdown-eyebrow mt-1 mb0">Fee on revenue</h5>
+  </div>
+</div>
+
 <div class="breakdown-row mt-4">
   <div class="card card--breakdown shadow-none w-100" style="flex: 1">
     <div class="flex flex-row justify-between mb2 mt2 items-center">
