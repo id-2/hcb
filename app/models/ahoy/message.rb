@@ -21,4 +21,5 @@ class Ahoy::Message < ActiveRecord::Base
   belongs_to :user, polymorphic: true, optional: true
 
   encrypts :to, deterministic: true
+
 end
