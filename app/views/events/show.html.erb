@@ -40,9 +40,11 @@
     <%= inline_icon "cheque", size: 16 %>
     Deposit a check
   <% end %>
-  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "order_card" } do %>
-    <%= inline_icon "card", size: 16 %>
-    Order a card
+  <% unless @user_stripe_cards.any? %>
+    <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "order_card" } do %>
+      <%= inline_icon "card", size: 16 %>
+      Order a card
+    <% end %>
   <% end %>
 </div>
 
@@ -63,21 +65,6 @@
 <div class="flex gap-4 flex-col sm:flex-row">
   <%= render partial: "events/home/recent_activity", event: @event %>
   <%= render partial: "events/home/cards", event: @event %>
-</div>
-
-<div class="flex gap-4 mt-4 flex-col sm:flex-row">
-  <div class="card card--breakdown shadow-none w-100" style="flex: 1">
-    <h3 class="mb0">
-      <%= @event.plan_name.titleize %>
-    </h3>
-    <h5 class="breakdown-eyebrow mt-1 mb0">Current plan</h5>
-  </div>
-  <div class="card card--breakdown shadow-none w-100" style="flex: 1">
-    <h3 class="mb0">
-      <%= number_to_percentage(@event.sponsorship_fee * 100, significant: true, strip_insignificant_zeros: true) %>
-    </h3>
-    <h5 class="breakdown-eyebrow mt-1 mb0">Fee on revenue</h5>
-  </div>
 </div>
 
 <div class="breakdown-row mt-4">
