@@ -23,7 +23,5 @@ module Ahoy
 
     belongs_to :user, polymorphic: true, optional: true
 
-    encrypts :to, deterministic: true
-
   end
 end
