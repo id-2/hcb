@@ -1,5 +1,28 @@
 .table-container {
   overflow-x: auto;
+
+  @media (max-width: 56em) {
+    & > table {
+      table-layout: fixed;
+      width: 100vw;
+    }
+
+    & .transaction__icon {
+      width: 3em;
+
+      & svg {
+        scale: 1.25;
+      }
+    }
+
+    & thead {
+      display: none;
+    }
+
+    & .transaction__details-link {
+      display: none;
+    }
+  }
 }
 
 @media (min-width: 72em) {
@@ -85,6 +108,25 @@ html[data-dark='true'] {
   .add-tag-badge {
     visibility: hidden;
     cursor: pointer;
+  }
+}
+
+.transaction__author-right {
+  display: flex !important;
+  width: 100%;
+  justify-content: center;
+
+  @media (max-width: 56em) {
+    display: none !important;
+  }
+}
+
+.transaction__author-left {
+  display: none !important;
+
+  @media (max-width: 56em) {
+    display: flex !important;
+    gap: 0.25em;
   }
 }
 

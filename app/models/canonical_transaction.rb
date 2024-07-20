@@ -378,6 +378,10 @@ class CanonicalTransaction < ApplicationRecord
     end
   end
 
+  def author
+    stripe_cardholder&.user || local_hcb_code.try(:ach_transfer)&.creator || local_hcb_code.try(:increase_check)&.user || local_hcb_code.try(:disbursement)&.requested_by
+  end
+
   private
 
   def hashed_transaction

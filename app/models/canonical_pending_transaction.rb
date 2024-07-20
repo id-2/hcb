@@ -353,6 +353,10 @@ class CanonicalPendingTransaction < ApplicationRecord
     end
   end
 
+  def author
+    stripe_cardholder&.user || local_hcb_code.try(:ach_transfer)&.creator || local_hcb_code.try(:increase_check)&.user || local_hcb_code.try(:disbursement)&.requested_by
+  end
+
   private
 
   def write_hcb_code

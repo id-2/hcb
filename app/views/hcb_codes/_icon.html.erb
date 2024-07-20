@@ -63,6 +63,7 @@
       <%= inline_icon(tx.local_hcb_code.disbursement.special_appearance&.dig(:icon) || "door-enter") %>
     </td>
   <% end %>
+<<<<<<< Updated upstream
 <% elsif tx.local_hcb_code.card_grant? %>
   <td class="transaction__icon tooltipped tooltipped--e" aria-label="Outgoing grant">
     <%= inline_icon "bag" %>
@@ -86,3 +87,9 @@
     <%= inline_icon "cash" %>
   </td>
 <% end %>
+=======
+
+<td class="transaction__icon tooltipped tooltipped--e <%= "transaction__fee_icon" if fee %> <%= local_assigns[:class] if local_assigns[:class].present? %>" aria-label="<%= label %>">
+  <%= icon %>
+</td>
+>>>>>>> Stashed changes

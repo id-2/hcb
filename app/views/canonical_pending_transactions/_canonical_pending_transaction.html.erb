@@ -31,10 +31,15 @@
     </td>
   <% end %>
   <%= render "hcb_codes/icon", tx: pt, authorless: local_assigns[:authorless] %>
+<<<<<<< Updated upstream
   <td>
     <%= format_date pt.date %>
   </td>
   <td class="transaction__memo">
+=======
+
+  <td class="transaction__memo flex flex-col">
+>>>>>>> Stashed changes
     <div>
       <div class="flex-auto">
         <div class="flex items-center justify-start">
@@ -95,6 +100,13 @@
         <%= list_badge_for pt.local_hcb_code.receipts.size, "receipt", "payment-docs", optional: pt.local_hcb_code.receipt_optional?, required: pt.local_hcb_code.missing_receipt? %>
       <% end %>
     </div>
+
+    <% if pt.author.present? %>
+      <div class="transaction__author-left">
+        <%= avatar_for pt.author, 18 %>
+        <%= pt.author.name %>
+      </div>
+    <% end %>
   </td>
   <td class="nowrap">
     <%= render_transaction_amount pt.amount %>
@@ -102,7 +114,18 @@
   <% if @show_running_balance %>
     <td></td>
   <% end %>
+<<<<<<< Updated upstream
   <td>
+=======
+
+  <% unless local_assigns[:hide_author_column] %>
+    <td class="tooltipped tooltipped--e transaction__author-right" aria-label="<%= pt.author&.name || "???" %>">
+      <%= avatar_for pt.author, 24, { class: "align-middle" } if pt.author.present? %>
+    </td>
+  <% end %>
+
+  <td class="transaction__details-link">
+>>>>>>> Stashed changes
     <%= link_to "Details", pt.url, data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && !@force_no_popover ? { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{instance}" } : { turbo_frame: "_top" } if organizer_signed_in? || defined?(force_display_details) %>
   </td>
   <% if local_assigns[:receipt_upload_button] %>
