@@ -26,14 +26,8 @@
       position: absolute;
       top: 0.75rem;
       right: 0.75rem;
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.125s ease;
-    }
-
-    &:hover {
-      .pinned__transaction__pin {
-        opacity: 1;
-      }
     }
 
     footer svg {

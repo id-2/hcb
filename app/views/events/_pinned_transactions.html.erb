@@ -4,7 +4,7 @@
       <%= link_to pin.hcb_code, class: "pinned__transaction relative card shadow-none border flex flex-col black" do %>
         <%= form_with url: pin_hcb_code_path(pin.hcb_code), model: @hcb_code, data: { turbo_method: :post, turbo_confirm: "This will unpin the transaction for all team members. Continue?" } do |form| %>
           <button type="submit" class="pinned__transaction__pin pointer pop tooltipped tooltipped--w" aria-label="Unpin" style="margin-left: auto" onclick="event.stopPropagation()">
-            <%= inline_icon "pin-remove", size: 28 %>
+            <%= inline_icon "pin", size: 28 %>
           </button>
         <% end if organizer_signed_in? %>
 

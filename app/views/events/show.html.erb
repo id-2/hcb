@@ -19,8 +19,26 @@
   <% end %>
 <% end %>
 
-<h1 class="items-center hidden md:flex">
-  Home
+<h1 class="flex items-center">
+  <span class="flex-grow">Home</span>
+  <% admin_tool("p0 badge", "span") do %>
+    <span class="m0 badge bg-muted">
+      #<%= @event.id %>
+    </span>
+    <span class="m0 badge bg-muted ml1">
+      SL<%= @event.service_level %>
+    </span>
+  <% end %>
+
+  <% if @event.increase_account_id != IncreaseService::AccountIds::FS_MAIN %>
+    <% admin_tool("p0 badge", "span") do %>
+      <%= link_to "https://dashboard.increase.com/accounts/#{@event.increase_account_id}" do %>
+        <span class="m0 badge bg-muted">
+          <%= @event.increase_account_id %>
+        </span>
+      <% end %>
+    <% end %>
+  <% end %>
 </h1>
 
 <div class="flex mb2 max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
@@ -48,6 +66,8 @@
   <% end %>
 </div>
 
+<%= render "events/public_message" %>
+
 <%= render "reimbursement/reports/create_form", modal_id: "create_reimbursement" %>
 <%= render "stripe_card_modal" %>
 <%= render "transfer_modal" %>
@@ -56,6 +76,55 @@
 <div class="flex gap-4 flex-col sm:flex-row">
   <%= render partial: "events/home/balance", event: @event %>
   <%= render partial: "events/home/transactions", event: @event %>
+</div>
+
+<%= render "pinned_transactions" %>
+
+<div class="my-4">
+  <div class="card card--breakdown shadow-none overflow-visible px-0 sm:p-4 flex-1 flex items-start justify-start h2" style="gap: 2rem">
+    <span class="flex flex-col" data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="CLNOUS66">
+      <span class="h4 muted">SWIFT / BIC code</span>
+      <span class="font-mono pointer tooltipped tooltipped--n fs-mask" aria-label="<%= organizer_signed_in? ? "Click to copy" : "Sign in to view" %>" data-action="click->clipboard#copy" data-controller="<%= "reveal-animation" if @animated %>">
+        CLNOUS66
+      </span>
+    </span>
+    <span class="flex flex-col" data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="<%= @event.routing_number if organizer_signed_in? %>">
+      <span class="h4 muted">Routing</span>
+      <span class="font-mono pointer tooltipped tooltipped--n fs-mask" aria-label="<%= organizer_signed_in? ? "Click to copy" : "Sign in to view" %>" data-action="click->clipboard#copy" data-controller="<%= "reveal-animation" if @animated %>">
+        <% if organizer_signed_in? %>
+          <%= @event.routing_number %>
+        <% else %>
+          <%= "•" * @event.routing_number.length %>
+        <% end %>
+      </span>
+    </span>
+    <span class="flex flex-col" data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="<%= @event.account_number if organizer_signed_in? %>">
+      <span class="h4 muted">
+        Account
+        <% if @event.column_account_number&.deposit_only? %>
+          (receive-only)
+        <% else %>
+          (receive + send)
+        <% end %>
+      </span>
+      <span class="font-mono pointer tooltipped tooltipped--n fs-mask" aria-label="<%= organizer_signed_in? ? "Click to copy" : "Sign in to view" %>" data-action="click->clipboard#copy" data-controller="<%= "reveal-animation" if @animated %>">
+        <% if organizer_signed_in? %>
+          <%= @event.account_number %>
+        <% else %>
+          <%= "•" * @event.account_number.length %>
+        <% end %>
+      </span>
+    </span>
+    <span class="flex-grow"></span>
+    <% admin_tool "flex-col justify-center" do %>
+      <%= button_to @event.column_account_number.deposit_only? ? "Enable debits" : "Make deposit-only",
+                    event_column_account_number_path(@event),
+                    method: :patch,
+                    params: { column_account_number: { deposit_only: !@event.column_account_number.deposit_only } },
+                    class: "btn bg-muted text-sm py-1 px-3",
+                    data: { turbo_confirm: "Are you sure you want to change this? Debits are usually disabled for account security." } %>
+    <% end %>
+  </div>
 </div>
 
 <div class="my-4">
