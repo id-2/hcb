@@ -81,6 +81,6 @@ export default class extends Controller {
   }
   clear() {
     this.labelTarget.textContent = 'Account balance'
-    this.balanceTarget.textContent = this.renderBalance(this.availableValue)
+    this.balanceTarget.textContent = this.initial.balance
   }
 }
