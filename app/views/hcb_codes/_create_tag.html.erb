@@ -12,8 +12,7 @@
       <%= form.text_field :label, autofocus: true, placeholder: "Tag name", style: "max-width: 100%", autocomplete: "off", data: { turbo: true }, required: true %>
       <div class="flex gap-3">
         <% 
-          colors = ["muted", "red", "orange", "yellow", "green", "cyan", "blue", "purple"]
-          colors.each do |color|
+          Tag::COLORS.each do |color|
         %>
         <label class="tags__radio">
           <%= form.radio_button :color, color, checked: color === "muted" %>

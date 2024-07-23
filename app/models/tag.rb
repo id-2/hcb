@@ -27,6 +27,9 @@ class Tag < ApplicationRecord
 
   validates :label, presence: true, uniqueness: { scope: :event_id, case_sensitive: false }
 
+  COLORS = %w[muted red orange yellow green cyan blue purple].freeze
+  validates :color, inclusion: { in: COLORS }
+
   include PgSearch::Model
   pg_search_scope :search_label, against: :label
 
