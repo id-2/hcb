@@ -1,3 +1,4 @@
+<% if @activities.length > 0 %>
 <div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col" style="height: <%= [(@cards.length + 1.5) * 45, 320].max %>px">
   <h3 class="m-0 p-4 pb-0 mb-1">Recent activity</h3>
   <% if @activities.none? %>
@@ -23,3 +24,13 @@
   </ul>
 
 </div>
+<% else %>
+  <div class="card card--breakdown shadow-none p-0 text-center flex-1 flex flex-col items-center justify-center" style="height: <%= [(@cards.length + 1.5) * 45, 320].max %>px">
+    <h3 class="m-0 p-4 pb-0 max-w-xs">
+      It's quiet here...
+    </h3>
+    <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
+      Here's where you'll see recent activity from your team.
+    </p>
+  </div>
+<% end %>

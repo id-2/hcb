@@ -1,10 +1,8 @@
 <% @show_card_popovers = Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) %>
 
+<% if @cards.length > 0 %>
 <div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col">
   <h3 class="m-0 p-4 pb-0 mb-1">Cards</h3>
-   <% if @cards.length === 0 %>
-    <%= blankslate "Nothing to see here (yet!)" %>
-  <% end %>
   <% @cards.each do |card| %>
     <div class="flex items-center gap-3 py-2 px-4 cursor-pointer <%= @show_card_popovers ? "hover:bg-gray-50 active:bg-gray-100 transition-colors dark:hover:bg-neutral-700 dark:active:bg-neutral-600" : "" %>"  <% if @show_card_popovers && !show_mock_data? %> data-behavior="modal_trigger" data-modal="card_popover_<%= card.id %>" <% end %> data-turbo-frame="_top" href="<%= !show_mock_data? ? (local_assigns[:href] || stripe_card_path(card)) : "javascript:;" %>">
       <div class="h-7 w-10 rounded-sm <%= "stripe-card--white" if card.personalization_design&.white? %>
@@ -30,3 +28,18 @@
     <%= inline_icon "enter" %>
   <% end %>
 </div>
+
+<% else %>
+  <div class="card card--breakdown shadow-none p-0 text-center flex-1 flex flex-col items-center justify-center" style="height: <%= [(@cards.length + 1.5) * 45, 320].max %>px">
+    <h3 class="m-0 p-4 pb-0 max-w-xs">
+      No cards yet
+    </h3>
+    <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
+      Cards for your event will appear here.
+    </p>
+    <%= link_to event_cards_new_path(event_id: @event.slug), class: "btn mt-2", data: { behavior: "modal_trigger", modal: "order_card" } do %>
+      <%= inline_icon "card-add" %>
+      Order a card
+    <% end %>
+  </div>
+<% end %>

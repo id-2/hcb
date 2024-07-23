@@ -137,6 +137,7 @@
 </div>
 
 <div class="breakdown-row mt-4">
+  <% if @merchants.length > 0 %>
   <div class="card card--breakdown shadow-none w-100" style="flex: 1">
     <div class="flex flex-row justify-between mb2 mt2 items-center">
       <h3 class="mt0 mb0">Top merchants</h3>
@@ -148,6 +149,16 @@
     </div>
     <%= react_component "breakdown/Merchants", { data: @merchants }, { camelize_props: false } %>
   </div>
+  <% else %>
+  <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
+    <h3 class="mt0 mb0">Top merchants</h3>
+      <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
+      As your team spends money, we'll categorize it here.
+    </p>
+  </div>
+  <% end %>
+
+  <% if @categories.length > 0 %>
   <div class="card card--breakdown shadow-none w-100" style="flex: 1">
     <div class="flex flex-row justify-between mb2 mt2 items-center">
       <h3 class="mt0 mb0">Top categories</h3>
@@ -159,4 +170,12 @@
     </div>
     <%= react_component "breakdown/Categories", { data: @categories }, { camelize_props: false } %>
   </div>
+  <% else %>
+  <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
+    <h3 class="mt0 mb0">Top categories</h3>
+      <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
+      As your team spends money, we'll categorize it here.
+    </p>
+  </div>
+  <% end %>
 </div>

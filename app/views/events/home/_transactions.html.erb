@@ -1,8 +1,6 @@
+<% if @recent_transactions.length > 0 %>
 <div class="card card--breakdown shadow-none p-0 flex-1 flex flex-col">
   <h3 class="m-0 p-4 pb-0 mb-1">Recent transactions</h3>
-  <% if @recent_transactions.length === 0 %>
-    <%= blankslate "Nothing to see here (yet!)" %>
-  <% end %>
   <% @recent_transactions.each do |transaction| %>
     <div class="flex py-1.5 px-4 gap-4 items-start <%= Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && (@event || transaction.local_hcb_code.event).present? ? "cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors dark:hover:bg-neutral-700 dark:active:bg-neutral-600" : "" %>" data-behavior="modal_trigger" data-modal="transaction_details_<%= transaction.__id__ %>">
       <div>
@@ -30,3 +28,15 @@
     <% end %>
   </div>
 </div>
+<% else %>
+  <div class="card card--breakdown shadow-none text-center p-0 flex-1 flex flex-col items-center justify-center">
+    <div class="max-w-xs">
+      <h3 class="m-0 p-4 pb-0 mb-2">
+      Recent transactions
+      </h3>
+      <p class="m-0 mb-0 muted">
+        You haven't made any transactions yet. When you do, they'll show up here.
+      </p>
+    </div>
+  </div>
+<% end %>
