@@ -305,7 +305,7 @@ html[data-dark='true'] {
   }
 
   .list-badge.quick-action {
-    border: 1px dashed
+    border: 1px solid darken(map-get($palette, muted), 20%);
   }
 
   .filterbar__item:active,
