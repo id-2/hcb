@@ -1,8 +1,8 @@
 <% if button %>
-   <%= link_to "#", class: "menu__input", data: { behavior: "modal_trigger", modal: "create_tag" }, onclick: "document.getElementById('create_tag_hcb_code_id').value = '#{button}'" do %>
-      <%= inline_icon "plus", size: 15 %>
+  <%= link_to "#", class: "menu__input", data: { behavior: "modal_trigger", modal: "create_tag" }, onclick: "document.getElementById('create_tag_hcb_code_id').value = '#{button}'" do %>
+    <%= inline_icon "plus", size: 15 %>
       Create tag
-    <% end %>
+  <% end %>
 <% else %>
 <section class="modal modal--scroll max-w-md bg-snow" data-behavior="modal" role="dialog" id="create_tag">
   <%= modal_header("Create tag") %>
