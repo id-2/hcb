@@ -22,12 +22,12 @@
   <div class="p-4 w-full flex flex-col">
     <div>
       <h1 class="mt-0">
-        <span class="muted h1">Donate to<br /></span>
+        <span class="muted h1">Donate to<br></span>
         <%= @event.name %>
       </h1>
       <% if @event.logo %>
         <%= image_tag url_for(@event.logo), class: "w-36" %>
-        <%= image_tag url_for(@event.logo), class: "fixed w-screen opacity-5", style:"left: -40%; top: -40%;" %>
+        <%= image_tag url_for(@event.logo), class: "fixed w-screen opacity-5", style: "left: -40%; top: -40%;" %>
       <% end %>
     </div>
 
