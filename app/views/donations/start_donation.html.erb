@@ -1,5 +1,5 @@
 <% title "Give to " + @event.name %>
-<% page_sm %>
+<% page_xl %>
 <% no_app_shell %>
 
 <% content_for :head do %>
@@ -14,26 +14,58 @@
   <meta name="description" content="<%= description %>">
 <% end %>
 
-<%= render "events/landing/header" %>
-
-<% if @event.donation_page_message.present? %>
-  <div class="container container--sm">
-    <div class="card border b--info mt3 mb3 pb0 pt0 public-message">
-      <%== MarkdownService.instance.renderer.render @event.donation_page_message %>
+<div class="grid grid-cols-5 gap-4 h-screen w-full px-4 py-8 bg-snow">
+  <div class="col-span-3 border p-4 w-full flex flex-col justify-between">
+    <div>
+      <h1 class="mt-0">
+        <span class="muted h1">Donate to<br /></span>
+        <%= @event.name %>
+      </h1>
+      <% if @event.logo %>
+        <%= image_tag url_for(@event.logo), class: "w-36" %>
+      <% end %>
     </div>
-  </div>
-<% end %>
 
-<%= render "donations/donation_form", donation: @donation %>
-
-<% if @event.demo_mode? %>
-  <div class="container container--sm">
-    <div class="card border b--info mt3 mb3 pb0 pt0 public-message">
-      <p>
-        Your account is in Playground Mode. If you want to try out a live donation page, you can see <%= link_to "our own donation page", "https://hcb.hackclub.com/donations/start/hq" %>.
+    <div class="flex flex-col gap-4">
+      <p class="h3">
+        Recurring contributions from people like you not only show that our movement and demands are not radical but in fact something most of us support, but they also help Sunrisers mobilize at full speed year-round.
+        Please consider becoming a monthly Sunrise Sustainer to help us keep at this work!
       </p>
+
+      <% if organizer_signed_in? %>
+        <div class="flex items-center m2 absolute top-0 left-0">
+          <%= form_with model: @event, class: "embedded-display-none", data: { "controller" => "form" } do |form| %>
+            <%= form.file_field :donation_header_image, required: true, class: "display-none", data: { action: "change->form#submit" } %>
+            <%= form.label :donation_header_image do %>
+              <div
+                role="button"
+                class="muted pointer no-select tooltipped tooltipped--e line-height-0"
+                aria-label="<%= @has_header_image ? "Edit" : "Upload" %> header image">
+                <%= inline_icon "photo", size: home_action_size %>
+              </div>
+            <% end %>
+          <% end %>
+          <% if @has_header_image %>
+            <%= link_to event_remove_header_image_path(@event), method: :post, data: { turbo_confirm: "Are you sure you want to remove this image?" } do %>
+              <div
+                role="button"
+                class="muted pointer ml1 no-select tooltipped tooltipped--e line-height-0"
+                aria-label="Remove header image">
+                <%= inline_icon "view-close", size: home_action_size %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if @event.donation_header_image %>
+        <%= image_tag url_for(@event.donation_header_image), class: "w-full rounded-lg" %>
+      <% end %>
     </div>
   </div>
-<% end %>
 
-<%= render "events/landing/footer" %>
+  <div class="col-span-2 border p-4">
+    <%= render "donations/donation_form", donation: @donation %>
+    <%= render "events/landing/footer" %>
+  </div>
+</div>
