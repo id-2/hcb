@@ -18,7 +18,7 @@
   body { padding: 0 }
 </style>
 
-<div class="grid gap-8 h-screen w-full px-4 py-8 bg-snow" style="grid-template-columns: 3fr 2fr">
+<div class="flex flex-col md:grid gap-8 h-screen w-full px-4 py-8 bg-snow" style="grid-template-columns: 3fr 2fr">
   <div class="p-4 w-full flex flex-col">
     <div>
       <h1 class="mt-0">
@@ -38,7 +38,7 @@
       </p>
 
       <% if @event.donation_header_image %>
-        <div class="flex-grow relative">
+        <div class="flex-grow relative" style="min-height: 25vh">
           <%= image_tag url_for(@event.donation_header_image), class: "rounded-lg absolute inset-0 w-full h-full object-cover" %>
           <% if organizer_signed_in? %>
             <div class="flex items-center m2 absolute top-0 left-0">
@@ -70,7 +70,7 @@
     </div>
   </div>
 
-  <div class="p-4">
+  <div class="p-4 -mt-24 md:mt-0">
     <%= render "donations/donation_form", donation: @donation %>
     <%= render "events/landing/footer" %>
   </div>
