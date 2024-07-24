@@ -1,5 +1,5 @@
 <% if button %>
-  <%= link_to "#", class: "menu__input", data: { behavior: "modal_trigger", modal: "create_tag" }, onclick: "document.getElementById('create_tag_hcb_code_id').value = '#{button}'" do %>
+  <%= link_to "#", class: "menu__input", data: { behavior: "modal_trigger", modal: "create_tag" }, onclick: "document.getElementById('create_tag_hcb_code_id').value = #{button.to_json}" do %>
     <%= inline_icon "plus", size: 15 %>
       Create tag
   <% end %>
@@ -11,14 +11,12 @@
     <div class="flex flex-col gap-3 mb-2">
       <%= form.text_field :label, autofocus: true, placeholder: "Tag name", style: "max-width: 100%", autocomplete: "off", data: { turbo: true }, required: true %>
       <div class="flex gap-3">
-        <% 
-          Tag::COLORS.each do |color|
-        %>
-        <label class="tags__radio">
-          <%# Default color: Muted %>
-          <%= form.radio_button :color, color, checked: color == "muted" %>
-          <div class="radio__control tag-darker tag-<%= color %>"></div>
-        </label>
+        <% Tag::COLORS.each do |color| %>
+          <label class="tags__radio">
+            <%# Default color: Muted %>
+            <%= form.radio_button :color, color, checked: color == "muted" %>
+            <div class="radio__control tag-darker tag-<%= color %>"></div>
+          </label>
         <% end %>
       </div>
     </div>
