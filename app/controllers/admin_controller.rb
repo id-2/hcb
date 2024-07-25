@@ -1295,6 +1295,78 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
+  def merchants
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+    @q = params[:q].present? ? params[:q] : nil
+    @pending = params[:pending] == "1" ? true : nil
+
+    @event_id = params[:event_id].present? ? params[:event_id] : nil
+
+    known_merchant_ids = YellowPages::Merchant.merchants.keys.map { |id| "'#{id}'" }.join(",")
+    merchant_ids = ActiveRecord::Base.connection.execute(
+      <<-SQL
+        SELECT
+          (stripe_transaction->'merchant_data'->>'network_id') AS merchant_id,
+          COUNT(*) AS transaction_count,
+          array_agg(memo) AS memos
+        FROM
+          canonical_transactions
+        INNER JOIN
+          canonical_event_mappings
+          ON canonical_event_mappings.canonical_transaction_id = canonical_transactions.id
+        INNER JOIN
+          raw_stripe_transactions
+          ON transaction_source_type = 'RawStripeTransaction'
+          AND raw_stripe_transactions.id = transaction_source_id
+        WHERE
+          (stripe_transaction->'merchant_data'->>'network_id') NOT IN (#{known_merchant_ids})
+          AND canonical_event_mappings.event_id = 2924
+        GROUP BY
+          merchant_id
+        ORDER BY
+          transaction_count DESC
+      SQL
+    )
+
+
+
+    if @event_id
+      @event = Event.find(@event_id)
+
+      relation = @event.ach_transfers.includes(:event)
+    else
+      relation = AchTransfer.includes(:event)
+    end
+
+    if @q
+      if @q.to_f.nonzero?
+        @q = (@q.to_f * 100).to_i
+
+        relation = relation.where("amount = ? or amount = ?", @q, -@q)
+      else
+        case @q.delete(" ")
+        when ">0", ">=0"
+          relation = relation.where("amount >= 0")
+        when "<0", "<=0"
+          relation = relation.where("amount <= 0")
+        else
+          relation = relation.search_recipient(@q)
+        end
+      end
+    end
+
+    relation = relation.pending if @pending
+
+    @count = relation.count
+    @ach_transfers = relation.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
+
+    render layout: "admin"
+  end
+
   private
 
   def stream_data(content_type, filename, data, download = true)

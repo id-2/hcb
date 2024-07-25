@@ -1,0 +1,49 @@
+<% title "Merchants" %>
+
+<%= form_with local: true, url: merchant_admin_index_path, method: :get do |form| %>
+  <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: "Select an event", selected: @event_id }, { width: 250, style: "max-width: 250px" }) %>
+  <%= form.submit "Search" %>
+<% end %>
+
+<div class="flex items-center mb2">
+  <div class="flex-grow">
+    <%= page_entries_info @merchants, entry_name: "Merchants" %>
+  </div>
+  <%= paginate @merchants %>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Network ID</th>
+      <th>Memos</th>
+      <th>Count</th>
+      <th>Last tx</th>
+      <th>Category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @merchants.each do |merchant| %>
+      <tr>
+        <td><%= merchant.id %></td>
+        <td><%= merchant.created_at.strftime("%Y-%m-%d") %></td>
+        <td>
+        </td>
+        <td><%= render_money_amount(ach.amount) %></td>
+        <td>
+          <%= ach.aasm_state.upcase %>
+          <% if ach.pending_expired? %>
+            <span>⚠️ (Overdue)</span>
+          <% end %>
+        </td>
+        <td><%= ach.confirmation_number %></td>
+        <td>
+          <%= link_to "Process", ach_start_approval_admin_path(ach) if ach.pending? %>
+          <%= link_to "View", ach_start_approval_admin_path(ach) unless ach.pending? %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= paginate @ach_transfers %>
