@@ -2,6 +2,8 @@
 <% page_md %>
 <%= render "nav", selected: :cards %>
 <% @show_card_popovers = Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? %>
+<% @no_cards = @event.stripe_cards.count == 0 %>
+
 <% if current_user.try(:full_name).try(:blank?) %>
 
   <h1 class="heading">
@@ -57,7 +59,7 @@
 
     <% if @paginated_stripe_cards.blank? %>
       <% if organizer_signed_in? %>
-        <%= blankslate "You don't have any #{@status} cards yet." %>
+        <%= blankslate "You don't have any #{@status} cards yet.", "Once you order cards, they'll appear here" %>
       <% else %>
         <%= blankslate "This organization doesn't have any #{@status} cards" %>
       <% end %>
@@ -66,6 +68,13 @@
   <% end %>
 
   <%= paginate @paginated_stripe_cards %>
+  <% if @no_cards %>
+    <div class="grid grid-cols-2 blur">
+      <% 8.times do %>
+        <div class="bg-gray-200 rounded-xl min-h-60 w-full"></div>
+      <% end %>
+    </div>
+  <% end %>
 
   <% if organizer_signed_in? || @event.used_emburse? %>
     <div class="flex flex-col justify-center mt4">

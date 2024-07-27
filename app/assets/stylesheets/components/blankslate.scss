@@ -1,0 +1,16 @@
+.blankslate-screen {
+    min-height: calc(100vh - 100px)
+}
+
+.blankslate-card {
+    background-color: #fff;
+    backdrop-filter: blur(5px);
+}
+
+.blankslate-gradient {
+    background: linear-gradient(transparent, $snow);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}

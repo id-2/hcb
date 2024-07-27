@@ -64,9 +64,13 @@ module ApplicationHelper
                 **options
   end
 
-  def blankslate(text, options = {})
+  def blankslate(heading, subheading = nil, options = { screen: false, card: false })
     other_options = options.except(:class)
-    content_tag(:p, text, class: "center mt0 mb0 pt2 pb2 slate bold h3 mx-auto max-width-2 #{options[:class]}", **other_options)
+    content_tag :div, class: "rounded-lg flex p-5 justify-center z-10 flex-col items-center text-center blankslate-card #{options[:class]} #{options[:screen] ? "blankslate-screen" : "border max-w-sm w-full mx-auto"}", **other_options do
+      # image_tag("https://placehold.co/600x400/EEE/31343C", class: "w-full rounded-xl mb-2") +
+      content_tag(:div, heading, class: "h2 font-bold mt-2") +
+      content_tag(:div, subheading, class: "text-md text-muted mb-2")
+    end
   end
 
   def list_badge_for(count, item, glyph, options = { optional: false, required: false })

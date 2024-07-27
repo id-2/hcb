@@ -38,6 +38,9 @@
   </section>
 <% end %>
 
+<div class="<%= "relative" if @invoices.size == 0 %>">
+  <div class="<%= "blur pointer-events-none" if @invoices.size == 0 %>">
+
 <div class="statset mt3 mb2">
   <div class="stat tooltipped tooltipped--s pr3" aria-label="This excludes archived invoices">
     <span class="stat__label">Total invoiced</span>
@@ -74,7 +77,6 @@
   </div>
 </div>
 
-<% if @invoices.size > 0 %>
 <article class="table-container">
 <table>
   <thead>
@@ -88,6 +90,26 @@
   </thead>
 
   <tbody>
+    <% if @invoices.size == 0 %>
+     <% 13.times do %>
+        <tr>
+          <td>
+            <span class="ml0 badge bg-muted">Pending</span>
+          </td>
+          <td>
+            January 1, 2024
+          </td>
+          <td>
+            John Doe
+          </td>
+          <td class="text-right">
+            $1,000.00
+          </td>
+          <td>
+          </td>
+        </tr>
+      <% end %>
+    <% end %>
     <% @invoices.each do |i| %>
       <tr>
         <td>
@@ -118,6 +140,10 @@
   </tbody>
 </table>
 </article>
-<% else %>
-  <%= blankslate "No invoices yet" %>
+</div>
+
+<% if @invoices.size == 0 %>
+  <%= blankslate "No invoices yet", "Here, you can send money to other accounts. Tap \"Send an invoice\" above to get started. ", { card: true, class: "absolute mt-20 top-0 left-1/2 -translate-x-1/2" } %>
+  <div class="blankslate-gradient"></div>
 <% end %>
+</div>
