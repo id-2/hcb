@@ -94,7 +94,7 @@
         <% if organizer_signed_in? %>
           <%= @event.routing_number %>
         <% else %>
-          <%= "•" * @event.routing_number.length %>
+          <%= "•" * @event.routing_number.length if @event.routing_number %>
         <% end %>
       </span>
     </span>
@@ -111,7 +111,7 @@
         <% if organizer_signed_in? %>
           <%= @event.account_number %>
         <% else %>
-          <%= "•" * @event.account_number.length %>
+          <%= "•" * @event.account_number.length if @event.account_number%>
         <% end %>
       </span>
     </span>
