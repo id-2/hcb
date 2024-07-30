@@ -3,7 +3,7 @@
 # installs dependencies with Docker Compose and seeds the development database
 # reach out to Max Wofford (max@hackclub.com) if you have any questions or issues
 
-if [[ $* == *--pg12* ]]
+if [[ $* == *--pg15* ]]
 then
   export COMPOSE_FILE=docker-compose.yml:docker-compose.postgres-12.yml
 fi
