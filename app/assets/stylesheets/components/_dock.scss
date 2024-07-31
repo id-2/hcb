@@ -104,8 +104,44 @@
   }
 }
 
+details.dock {
+  & > summary.dock__item {
+    color: unset !important;
+    background-color: unset !important;
+    cursor: pointer;
+  }
+
+  & > a {
+    margin-left: 28px;
+  }
+
+  &[open] {
+    padding-bottom: 2rem;
+  }
+}
+
+summary > svg {
+  fill: map-get($palette, muted);
+  height: 28px;
+}
+summary:hover > .settings-icon {
+  transform: rotate(45deg);
+}
+
+details > summary > .drawer-chevron {
+  transform: rotate(90deg);
+}
+details[open] > summary > .drawer-chevron {
+  transform: rotate(180deg);
+}
+
+.drawer-chevron,
+.settings-icon {
+  transition: transform 0.2s;
+}
+
 .hide__pwa__prompt .pwa__prompt {
-  display: none!important
+  display: none !important;
 }
 
 .pwa__prompt__hide {
@@ -121,23 +157,22 @@
     display: block;
   }
   @media (min-width: 56em) {
-    display: none!important;
+    display: none !important;
   }
   flex: 1 0 100%;
   background: #ec3750;
   padding: 8px 16px;
   text-align: center;
   color: white;
-  margin-bottom: -16px
+  margin-bottom: -16px;
 }
-
 
 .pwa__prompt > b {
   font-weight: 600;
 }
 
 .pwa__prompt__icon {
-  transform: translateY(2.5px)
+  transform: translateY(2.5px);
 }
 
 .dock__item {
