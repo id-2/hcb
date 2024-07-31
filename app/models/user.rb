@@ -68,6 +68,7 @@ class User < ApplicationRecord
     :superadmin,
   ], scopes: false, default: :user
 
+  has_many :logins
   has_many :login_codes
   has_many :login_tokens
   has_many :user_sessions, dependent: :destroy
@@ -80,6 +81,8 @@ class User < ApplicationRecord
   has_many :api_tokens
   has_many :email_updates, class_name: "User::EmailUpdate", inverse_of: :user
   has_many :email_updates_created, class_name: "User::EmailUpdate", inverse_of: :updated_by
+
+  has_many :messages, class_name: "Ahoy::Message", as: :user
 
   has_many :events, through: :organizer_positions
 
@@ -323,6 +326,10 @@ class User < ApplicationRecord
 
   def last_login_at
     user_sessions.maximum(:created_at)
+  end
+
+  def using_2fa?
+    Flipper.enabled?(:two_factor_authentication_2024_05_22, self) && phone_number_verified
   end
 
   def email_charge_notifications_enabled?
