@@ -20,7 +20,6 @@
 #  receipt_report_option               :integer          default("none"), not null
 #  running_balance_enabled             :boolean          default(FALSE), not null
 #  seasonal_themes_enabled             :boolean          default(TRUE), not null
-#  session_duration_seconds            :integer          default(2592000), not null
 #  session_validity_preference_minutes :integer          default("6_hours")
 #  sessions_reported                   :boolean          default(FALSE), not null
 #  slug                                :string
@@ -71,11 +70,11 @@ class User < ApplicationRecord
 
   # Number of hours
   enum :session_validity_preference_minutes, {
-    "15_mins": 15,
-    "1_hour": 60,
-    "6_hours": 60 * 6,
-    "1_day": 60 * 24,
-    "3_days": 60 * 24 * 3
+    "15 minutes": 15,
+    "1 hour": 60,
+    "6 hours": 60 * 6,
+    "1 day": 60 * 24,
+    "3 days": 60 * 24 * 3
   }
 
   has_many :logins

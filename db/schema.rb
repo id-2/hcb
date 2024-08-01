@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_01_210007) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_01_213950) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "amcheck"
   enable_extension "citext"
@@ -2137,7 +2137,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_210007) do
     t.boolean "phone_number_verified", default: false
     t.boolean "use_sms_auth", default: false
     t.string "webauthn_id"
-    t.integer "session_duration_seconds", default: 2592000, null: false
     t.boolean "seasonal_themes_enabled", default: true, null: false
     t.datetime "locked_at", precision: nil
     t.boolean "running_balance_enabled", default: false, null: false

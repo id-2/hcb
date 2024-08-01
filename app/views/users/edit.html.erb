@@ -99,10 +99,6 @@
         <%= form.label :profile_picture, "Choose File", class: "field--fileupload__label" %>
         <%= form.file_field :profile_picture, accept: "image/png, image/jpeg", class: "field--fileupload__field" %>
       </div>
-      <div>
-        <%= form.label :session_duration_seconds, "Stay signed in for" %>
-        <%= form.select :session_duration_seconds, SessionsHelper::SESSION_DURATION_OPTIONS.to_a %>
-      </div>
       <% unless @onboarding %>
         <fieldset>
           <legend class="heading h2 pt2 pb1" id="receipt-reports">Receipts</legend>

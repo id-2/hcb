@@ -24,7 +24,7 @@ module SessionsHelper
   # DEPRECATED - begin to start deprecating and ultimately replace with sign_in_and_set_cookie
   def sign_in(user:, fingerprint_info: {}, impersonate: false, webauthn_credential: nil)
     session_token = SecureRandom.urlsafe_base64
-    expiration_at = Time.now + user.session_duration_seconds
+    expiration_at = Time.now + 2.weeks
     cookies.encrypted[:session_token] = { value: session_token, expires: expiration_at }
     user_session = user.user_sessions.build(
       session_token:,
