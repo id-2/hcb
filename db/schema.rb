@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_22_213027) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_01_213950) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -2110,7 +2110,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_213027) do
     t.boolean "phone_number_verified", default: false
     t.boolean "use_sms_auth", default: false
     t.string "webauthn_id"
-    t.integer "session_duration_seconds", default: 2592000, null: false
     t.boolean "seasonal_themes_enabled", default: true, null: false
     t.datetime "locked_at", precision: nil
     t.boolean "running_balance_enabled", default: false, null: false
@@ -2122,6 +2121,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_213027) do
     t.bigint "payout_method_id"
     t.integer "comment_notifications", default: 0, null: false
     t.integer "charge_notifications", default: 0, null: false
+    t.integer "session_validity_preference_minutes", default: 360
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
