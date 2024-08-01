@@ -398,7 +398,17 @@ $(document).on('turbo:load', function () {
   $('[data-behavior~=mention]').on('click', e => {
     BK.s('comment').val(`${BK.s('comment').val() + (BK.s('comment').val().length > 0 ? " " : "")}${e.target.dataset.mentionValue || e.target.innerText}`)
     BK.s('comment')[0].scrollIntoView();
-  })  
+  })
+
+  $('.input-group').on('click', (e) => {
+    // focus on the input when clicking on the input-group
+    e.currentTarget.querySelector('input').focus()
+  })
+
+  // click events trigger weird behavior
+  $('[data-behavior~=clear').on('mouseup', e => {
+    e.currentTarget.parentElement.querySelector('input').value=''
+  })
 
   const tiltElement = $('[data-behavior~=hover_tilt]')
   const enableTilt = () =>
