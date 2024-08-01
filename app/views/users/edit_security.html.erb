@@ -94,7 +94,7 @@
   <%= form_with(model: @user, local: true, class: "pb2", html: { onsubmit: "onSubmit()" }, data: { turbo_frame: "_top" }) do |form| %>
     <div class="field">
       <%= form.label :session_validity_preference_minutes, "Sign me out after" %>
-      <%= form.select :session_validity_preference_minutes, User.session_validity_preference_minutes %>
+      <%= form.select :session_validity_preference_minutes, [["Never", nil]] + User.session_validity_preference_minutes.to_a %>
     </div>
 
     <div class="submit">
