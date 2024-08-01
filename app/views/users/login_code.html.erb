@@ -16,8 +16,14 @@
     <p class="h5"><%= link_to "Seems like you're in development. Check your dev email outbox here!", letter_opener_web_path, target: :_blank %></p>
   <% end %>
    <%= form_tag exchange_login_code_users_path do %>
-    <%= label_tag :login_code, "Enter your login code", class: "left-align" %>
-    <%= telephone_field_tag :login_code, "", placeholder: "Login code", autofocus: true, autocomplete: "off", class: "left-align mb2", required: true %>
+    <%= label_tag :login_code_1, "Enter your login code", class: "left-align" %>
+    <div class="flex gap-1 font-mono transition-none" data-controller="login-code" data-login-code-target="wrapper">
+      <%= number_field_tag :login_code_1, "", placeholder: "", autofocus: true, autocomplete: "off", class: "text-center mb2", required: true %>
+
+      <% 5.times do |i| %>
+        <%= number_field_tag "login_code_#{i + 1}".to_sym, "", placeholder: "", autocomplete: "off", class: "text-center mb2", required: true %>
+      <% end %>
+    </div>
     <%= hidden_field_tag :email, @email %>
     <%= hidden_field_tag :user_id, @user_id %>
     <%= hidden_field_tag :fingerprint %>
