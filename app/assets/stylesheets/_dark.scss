@@ -26,7 +26,7 @@ html[data-dark='true'] {
     color: map-get($palette, white);
     border-color: $darkless;
 
-    &:focus {
+    &:focus-within {
       border-color: map-get($palette, info);
     }
   }
