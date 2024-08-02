@@ -410,6 +410,14 @@ $(document).on('turbo:load', function () {
     e.currentTarget.parentElement.querySelector('input').value=''
   })
 
+  document.body.addEventListener('keydown', e => {
+    const el = document.querySelector('[data-behavior~=search]');
+    if (el && e.key === '/') {
+      e.preventDefault()
+      el.focus()
+    }
+  })
+
   const tiltElement = $('[data-behavior~=hover_tilt]')
   const enableTilt = () =>
     tiltElement.tilt({

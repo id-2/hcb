@@ -37,7 +37,7 @@
   <%= form_with(model: nil, local: true, method: :get, class: "flex-1 w-full sm:w-auto") do |form| %>
     <div class="input input-group max-w-none" tabindex="0">
       <%= inline_icon "search" %>
-      <%= form.text_field :q, placeholder: "Search", value: params[:q] %>
+      <%= form.text_field :q, placeholder: "Type / to search...", data: { behavior: "search" }, value: params[:q] %>
       <% if params[:q] && params[:q] != "" %>
         <button data-behavior="clear" type="submit" class="pop muted w-7 h-7">
           <%= inline_icon "view-close", size: 24 %>
