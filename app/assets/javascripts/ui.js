@@ -413,6 +413,10 @@ $(document).on('turbo:load', function () {
   document.body.addEventListener('keydown', e => {
     const el = document.querySelector('[data-behavior~=search]');
     if (el && e.key === '/') {
+      // if a text input is focused, don't trigger the search
+      if (document.activeElement.tagName === 'INPUT') return;
+      // if a modal is open, don't trigger the search
+      if (document.querySelector('.jquery-modal.current.blocker')) return;
       e.preventDefault()
       el.focus()
     }
