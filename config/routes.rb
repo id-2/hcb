@@ -17,7 +17,9 @@ Rails.application.routes.draw do
   end
 
   concern :commentable do
-    resources :comments, shallow: true, except: [:show, :index]
+    resources :comments, shallow: true, except: [:show, :index] do
+      resources :reactions, only: [:update], controller: "comment/reactions", action: "react"
+    end
   end
 
   # API documentation
@@ -128,6 +130,7 @@ Rails.application.routes.draw do
       post "unimpersonate"
     end
     post "delete_profile_picture", to: "users#delete_profile_picture"
+    post "generate_totp"
     post "enable_totp"
     post "disable_totp"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
@@ -690,6 +693,7 @@ Rails.application.routes.draw do
     resources :card_grants, only: [:new, :create], path: "card-grants" do
       member do
         post "cancel"
+        post "topup"
       end
     end
 

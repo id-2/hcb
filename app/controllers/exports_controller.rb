@@ -60,7 +60,8 @@ class ExportsController < ApplicationController
             @withdrawn -= ct.amount
           end
         end
-        render pdf: "statement", page_height: "11in", page_width: "8.5in"
+
+        render pdf: "#{helpers.possessive(@event.name)} #{@start.strftime("%B %Y")} Statement", page_height: "11in", page_width: "8.5in"
       end
     end
   end
