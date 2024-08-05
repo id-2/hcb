@@ -375,4 +375,9 @@ module ApplicationHelper
       tag.li(&block)
     end
   end
+
+  def possessive(name)
+    name + (name.ends_with?("s") ? "'" : "'s")
+  end
+
 end

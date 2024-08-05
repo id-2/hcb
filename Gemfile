@@ -32,7 +32,7 @@ gem "country_select", "~> 8.0"
 
 gem "faraday" # web requests
 
-gem "increase", "~> 0.3.1"
+gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 29.0"
 gem "yellow_pages", github: "hackclub/yellow_pages", ref: "117d13e"
@@ -202,7 +202,7 @@ group :development do
   gem "bullet"
 end
 
-gem "jbuilder", "~> 2.11"
+gem "jbuilder", "~> 2.12"
 
 gem "ledgerjournal"
 gem "doorkeeper", "~> 5.6"
@@ -222,3 +222,5 @@ gem "audits1984"
 gem "rotp"
 
 gem "ruby-limiter"
+
+gem "ahoy_email", "~> 2.3"

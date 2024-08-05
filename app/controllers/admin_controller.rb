@@ -530,7 +530,7 @@ class AdminController < ApplicationController
 
     @pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(event_id: EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING).run
 
-    @unidentified_transactions = @clearinghouse_transactions.reject { |tx| (tx.local_hcb_code.reimbursement_payout_holding? || tx.local_hcb_code.reimbursement_payout_transfer?) && tx.hcb_code == "HCB-500-5084" } # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
+    @unidentified_transactions = @clearinghouse_transactions.reject { |tx| (tx.local_hcb_code.reimbursement_payout_holding? || tx.local_hcb_code.reimbursement_payout_transfer?) || tx.hcb_code == "HCB-500-5084" } # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
 
     @incomplete_payout_holdings = @clearinghouse_transactions.select { |tx|
       tx.local_hcb_code.reimbursement_payout_holding? && (
@@ -1291,6 +1291,32 @@ class AdminController < ApplicationController
 
     @count = relation.count
     @account_numbers = relation.page(@page).per(@per).order("events.id desc")
+
+    render layout: "admin"
+  end
+
+  def email
+    @message_id = params[:message_id]
+
+    respond_to do |format|
+      format.html { render inline: "<%== Ahoy::Message.find(@message_id).html_content %>" }
+    end
+  end
+
+  def emails
+    @page = params[:page] || 1
+    @per = params[:per] || 100
+    @q = params[:q].presence
+    @user_id = params[:user_id]
+
+    messages = Ahoy::Message.all
+    messages = messages.where(user: User.find(@user_id)) if @user_id
+
+    messages = messages.search_subject(@q) if @q
+
+    @count = messages.count
+
+    @messages = messages.page(@page).per(@per).order(sent_at: :desc)
 
     render layout: "admin"
   end

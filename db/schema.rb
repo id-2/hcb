@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_16_023501) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_05_214446) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -151,6 +151,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_023501) do
     t.index ["properties"], name: "index_ahoy_events_on_properties", opclass: :jsonb_path_ops, using: :gin
     t.index ["user_id"], name: "index_ahoy_events_on_user_id"
     t.index ["visit_id"], name: "index_ahoy_events_on_visit_id"
+  end
+
+  create_table "ahoy_messages", force: :cascade do |t|
+    t.string "user_type"
+    t.bigint "user_id"
+    t.string "to"
+    t.string "mailer"
+    t.text "subject"
+    t.text "content"
+    t.datetime "sent_at"
+    t.index ["to"], name: "index_ahoy_messages_on_to"
+    t.index ["user_type", "user_id"], name: "index_ahoy_messages_on_user"
   end
 
   create_table "ahoy_visits", force: :cascade do |t|
@@ -503,6 +515,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_023501) do
     t.datetime "updated_at", null: false
     t.integer "starting_balance"
     t.integer "closing_balance"
+  end
+
+  create_table "comment_reactions", force: :cascade do |t|
+    t.string "emoji", null: false
+    t.bigint "reactor_id", null: false
+    t.bigint "comment_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id"], name: "index_comment_reactions_on_comment_id"
+    t.index ["emoji"], name: "index_comment_reactions_on_emoji"
+    t.index ["reactor_id"], name: "index_comment_reactions_on_reactor_id"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -1248,7 +1271,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_023501) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "browser_token"
     t.index ["code"], name: "index_login_codes_on_code"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
@@ -1269,6 +1291,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_023501) do
     t.index ["token"], name: "index_login_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
+  end
+
+  create_table "logins", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "user_session_id"
+    t.string "aasm_state"
+    t.jsonb "authentication_factors"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "browser_token"
+    t.index ["user_id"], name: "index_logins_on_user_id"
+    t.index ["user_session_id"], name: "index_logins_on_user_session_id"
   end
 
   create_table "mailbox_addresses", force: :cascade do |t|
@@ -1473,6 +1507,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_023501) do
     t.string "bank_name_ciphertext"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "email"
     t.index ["event_id"], name: "index_payment_recipients_on_event_id"
     t.index ["name"], name: "index_payment_recipients_on_name"
   end
@@ -2155,6 +2190,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_023501) do
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"
   add_foreign_key "column_account_numbers", "events"
+  add_foreign_key "comment_reactions", "comments"
+  add_foreign_key "comment_reactions", "users", column: "reactor_id"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
   add_foreign_key "disbursements", "users", column: "fulfilled_by_id"

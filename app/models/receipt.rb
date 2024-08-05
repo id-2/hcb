@@ -61,14 +61,15 @@ class Receipt < ApplicationRecord
     end
   end
 
-  SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS = %w[quick_expense].freeze
+  SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS = %w[quick_expense email_receipt_bin email_hcb_code].freeze
 
   after_create_commit do
     # Queue async job to extract text from newly upload receipt
     # and to suggest pairings
     unless Receipt::SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS.include?(upload_method.to_s)
       # certain interfaces run suggestions synchronously
-      ReceiptJob::ExtractTextualContent.perform_later(self)
+      # ReceiptJob::ExtractTextualContent.perform_later(self)
+      # see https://github.com/hackclub/hcb/issues/7123
       ReceiptJob::SuggestPairings.perform_later(self)
     end
   end
