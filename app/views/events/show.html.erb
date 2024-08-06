@@ -197,20 +197,8 @@
     <%= render partial: "filter" %>
 
     <% if @pending_transactions.any? || @transactions.any? || show_mock_data? %>
-      <div class="table-container" data-tour-step="transactions">
+      <div class="table-container rounded-md" data-tour-step="transactions">
           <table>
-            <thead>
-              <tr>
-                <th></th>
-                <th>Date</th>
-                <th>Description</th>
-                <th class="right-align">Amount</th>
-                <% if @show_running_balance %>
-                  <th>Running Balance</th>
-                <% end %>
-                <th></th>
-              </tr>
-            </thead>
             <tbody data-behavior="transactions">
               <%= render "pending_fee_transaction" if @event.fronted_fee_balance_v2_cents > 0 %>
 
