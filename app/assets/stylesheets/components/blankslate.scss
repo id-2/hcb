@@ -11,6 +11,10 @@
     [data-dark="true"] & {
         background-color: $darker;
         border-color: $darkless;
+
+        & img {
+            filter: invert(1) contrast(.6);
+        }
     }
 }
 

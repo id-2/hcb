@@ -25,7 +25,7 @@ HTML
 <h1 class="heading">
   <span class="flex items-center flex-grow">
     Donations
-    <%= badge_for @donations.count, class: "bg-muted" %>
+    <%= badge_for @donations.count, class: "bg-muted" if !@is_empty %>
   </span>
   <% if organizer_signed_in? && !show_mock_data? && @all_donations.not_pending.any? %>
     <div class="tooltipped tooltipped--s" style="line-height: 0;" aria-label="Email all donors">
@@ -268,7 +268,7 @@ HTML
 </article>
 
 <% else %>
-  <%= blankslate "Let the community fund your dreams", "With HCB, you can recieve donations from anyone. Just share your donation page to get started!", "https://ouch-cdn2.icons8.com/RQTLNdAiQ_HRPNyhArKJtGAswO8n65oytsIYA58mADU/rs:fit:368:368/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDAz/Lzk4ODk2YTc0LWZj/NTctNGE5NC05MGQ0/LWIyMTIzYTYwZTA0/MC5zdmc.png", { screen: true } do %>
+  <%= blankslate "Let the community fund your dreams", "With HCB, you can recieve donations from anyone. Just share your donation page to get started!", { screen: true } do %>
    <% if @event.donation_page_enabled %>
       <div class="flex items-center gap-4">
         <%= link_to start_donation_donations_path(@event), target: "_blank", class: "btn" do %>
@@ -283,6 +283,25 @@ HTML
       data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? ? { turbo_frame: "_top", behavior: "modal_trigger", modal: "donation_settings" } : {},
       class: "btn" %>
     <% end %>
+    <div class="border-top mt-10 pt-5">
+      <h3 class="my-2">
+        Frequently asked questions
+      </h3>
+      <details>
+        <summary>Do donors have to be HCB Users?</summary>
+        <p>Here is the content!</p>
+      </details>
+      <details>
+        <summary>How much % does HCB take from donations?</summary>
+        <p>Here is the content!</p>
+      </details>
+      <details>
+        <summary>
+          What payment methods are supported?
+        </summary>
+        <p>Here is the content!</p>
+      </details>
+    </div>
   <% end %>
 <% end %>
 
