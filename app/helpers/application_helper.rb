@@ -64,14 +64,18 @@ module ApplicationHelper
                 **options
   end
 
-  def blankslate(heading, subheading = nil, options = { screen: false, card: false })
+  def blankslate(heading, subheading = nil, image = "", options = { screen: false, card: false }, &block)
     other_options = options.except(:class)
-    content_tag :div, class: "rounded-lg flex p-5 justify-center z-10 flex-col items-center text-center blankslate-card #{options[:class]} #{options[:screen] ? "blankslate-screen" : "border max-w-sm w-full mx-auto"}", **other_options do
-      # image_tag("https://placehold.co/600x400/EEE/31343C", class: "w-full rounded-xl mb-2") +
-      content_tag(:div, heading, class: "h2 font-bold mt-2") +
-      content_tag(:div, subheading, class: "text-md text-muted mb-2")
+    content_tag :div, class: "rounded-lg flex p-10 py-12 justify-center z-10 items-center gap-10 blankslate-card #{options[:class]} #{options[:screen] ? "blankslate-screen" : "border max-w-sm w-full mx-auto"}", **other_options do
+      image_tag(image, class: "w-52 dark:invert rounded-xl mb-2") +
+        content_tag(:div, class: "text-lg font-bold", **other_options) do
+          content_tag(:div, heading, class: "text-3xl font-bold my-2") +
+            content_tag(:div, subheading, class: "text-md text-muted mb-5") +
+            (block_given? ? capture(&block) : "")
+        end
     end
   end
+
 
   def list_badge_for(count, item, glyph, options = { optional: false, required: false })
     return nil if options[:optional] && count == 0
