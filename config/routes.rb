@@ -44,8 +44,8 @@ Rails.application.routes.draw do
 
   post "feedback", to: "static_pages#feedback"
 
-  get "apply", to: "events#new"
-  post "apply", to: "events#create"
+  get "apply", to: "events/applications#new"
+  post "apply", to: "events/applications#create"
 
   resources :receipts, only: [:create, :destroy] do
     collection do

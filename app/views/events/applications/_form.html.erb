@@ -19,38 +19,38 @@
         <fieldset>
             <legend class="text-xl mb-4">Your organisation</legend>
             <div class="field field--wide">
-                <%= form.label :organisation_name, "Organisation name" %>
-                <%= form.text_field :organisation_name, required: true %>
+                <%= form.label :event_name, "Organisation name" %>
+                <%= form.text_field :event_name, required: true %>
             </div>
 
             <div class="field field--wide">
-                <%= form.label :organisation_website, "Organization website" %>
-                <%= form.text_field :organisation_website, type: :url %>
+                <%= form.label :event_website, "Organization website" %>
+                <%= form.text_field :event_website, type: :url %>
                 <span class="h5 muted">If you don’t have one yet, you can leave this blank.</span>
             </div>
 
             <div class="field field--wide">
-                <%= form.label :organisation_country, "Primary country of operations" %>
-                <%= form.collection_select :organisation_country, Event.countries_for_select, :first, :last, { include_blank: "Select a country" }, required: true %>
+                <%= form.label :event_address_country_code, "Primary country of operations" %>
+                <%= form.collection_select :event_address_country_code, Event.countries_for_select, :first, :last, { include_blank: "Select a country" }, required: true %>
             </div>
 
             <div class="field field--wide">
-                <%= form.label :organisation_postal_code %>
-                <%= form.text_field :organisation_postal_code, placeholder: "05482" %>
+                <%= form.label :event_address_postal_code %>
+                <%= form.text_field :event_address_postal_code, placeholder: "05482" %>
                 <span class="h5 muted">If your organization runs online, please put your own postal code.</span>
             </div>
 
             <div class="field">
-                <%= form.label :organisation_transparency, "Transparency mode" %>
+                <%= form.label :event_transparency, "Transparency mode" %>
                 <fieldset class="field--wide field--options w-full max-w-none">
-                <%= form.radio_button :organisation_transparency, true, checked: true %>
-                <%= form.label :organisation_transparency, value: true, class: "w-full g1", style: "flex-direction: row" do %>
+                <%= form.radio_button :event_transparency, true, checked: true %>
+                <%= form.label :event_transparency, value: true, class: "w-full g1", style: "flex-direction: row" do %>
                     <%= inline_icon "explore" %>
                     <strong>Transparent</strong>
                 <% end %>
 
-                <%= form.radio_button :organisation_transparency, false %>
-                <%= form.label :organisation_transparency, value: false, class: "w-full g1", style: "flex-direction: row" do %>
+                <%= form.radio_button :event_transparency, false %>
+                <%= form.label :event_transparency, value: false, class: "w-full g1", style: "flex-direction: row" do %>
                     <%= inline_icon "private-fill" %>
                     <strong>Private</strong>
                 <% end %>
@@ -65,13 +65,13 @@
             </div>
 
             <div class="field field--wide">
-                <%= form.label :organisation_description, "Tell us about your organization" %>
-                <%= form.text_area :organisation_description, placeholder: "We're a high school hackathon!" %>
+                <%= form.label :event_description, "Tell us about your organization" %>
+                <%= form.text_area :event_description, placeholder: "We're a high school hackathon!" %>
             </div>
 
             <div class="field field--wide">
-                <%= form.label :referred_by, "Who referred you?" %>
-                <%= form.text_field :referred_by, placeholder: "Max" %>
+                <%= form.label :referrer, "Who referred you?" %>
+                <%= form.text_field :referrer, placeholder: "Max" %>
             </div>
 
             <div class="field field--wide">

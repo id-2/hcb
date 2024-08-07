@@ -44,7 +44,6 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (emburse_card_id => emburse_cards.id)
 #  fk_rails_...  (event_id => events.id)
 #
 class EmburseTransaction < ApplicationRecord
