@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_22_213027) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_06_190751) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1271,7 +1271,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_213027) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "browser_token"
     t.index ["code"], name: "index_login_codes_on_code"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
@@ -1508,6 +1507,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_213027) do
     t.string "bank_name_ciphertext"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "email"
     t.index ["event_id"], name: "index_payment_recipients_on_event_id"
     t.index ["name"], name: "index_payment_recipients_on_name"
   end
@@ -2106,6 +2106,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_213027) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "aasm_state"
     t.index ["user_id"], name: "index_user_totps_on_user_id"
   end
 
