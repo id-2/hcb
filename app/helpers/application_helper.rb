@@ -70,6 +70,8 @@ module ApplicationHelper
       # <img src="https://assets.hackclub.com/test.png" class="w-24 h-24" alt="Flag"> using content_tag
       if options[:image]
         content_tag :img, nil, src: options[:image], class: "w-32", alt: "Flag"
+      else
+        content_tag :div, class: "hidden" do end
       end +
         content_tag(:div, class: "text-lg font-bold", **other_options) do
           content_tag(:div, heading, class: "text-3xl font-bold my-2") +
