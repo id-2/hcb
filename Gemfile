@@ -19,7 +19,7 @@ gem "image_processing", "~> 1.2"
 gem "mini_magick"
 
 
-gem "jsbundling-rails", "~> 1.1"
+gem "jsbundling-rails", "~> 1.3"
 gem "terser", "~> 1.1" # JS compressor
 gem "jquery-rails"
 gem "react-rails"
@@ -45,7 +45,7 @@ gem "twilio-ruby" # SMS notifications
 
 gem "lob"
 
-gem "google-apis-admin_directory_v1", "~> 0.45.0" # GSuite
+gem "google-apis-admin_directory_v1", "~> 0.58.0" # GSuite
 
 gem "pg_search" # full-text search
 

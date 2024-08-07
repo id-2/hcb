@@ -55,16 +55,16 @@ class DisbursementsController < ApplicationController
   end
 
   def create
-    @source_event = Event.friendly.find(disbursement_params[:source_event_id])
-    @destination_event = Event.friendly.find(disbursement_params[:event_id])
+    @source_event = Event.find(disbursement_params[:source_event_id])
+    @destination_event = Event.find(disbursement_params[:event_id])
     @disbursement = Disbursement.new(destination_event: @destination_event, source_event: @source_event)
 
     authorize @disbursement
 
     disbursement = DisbursementService::Create.new(
       name: disbursement_params[:name],
-      destination_event_id: disbursement_params[:event_id],
-      source_event_id: disbursement_params[:source_event_id],
+      destination_event_id: @destination_event.id,
+      source_event_id: @source_event.id,
       amount: disbursement_params[:amount],
       requested_by_id: current_user.id,
       should_charge_fee: disbursement_params[:should_charge_fee] == "1",

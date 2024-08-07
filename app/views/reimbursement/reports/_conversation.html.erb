@@ -7,7 +7,9 @@
     <% comments = policy_scope(@report.comments) %>
     <% (versions + comments).sort_by(&:created_at).each do |item| %>
       <% if item.instance_of?(Comment) %>
-        <%= render "comments/item", comment: item, class: "conversation_item" %>
+        <div class="conversation_item">
+          <%= render "comments/item", comment: item %>
+        </div>
       <% else %>
         <% changes = {
              "submitted"               => ["send", "info", "submitted this report"],
@@ -16,7 +18,7 @@
              "reimbursement_approved"  => ["admin", "warning", "approved this report on behalf of the HCB team"],
              "draft"                   => ["docs", "muted", "converted this report to a draft"],
              "draft_created"           => ["plus", "success", "created this draft report"],
-             "reimbursed"              => ["docs", "purple", "initiated a reimbursement"],
+             "reimbursed"              => ["docs", "purple", "initiated a #{render_money @report.amount_cents} transfer to #{@report.user.name}"],
            } %>
         <% state_change = item.changeset["aasm_state"]&.second %>
         <% if state_change %>
