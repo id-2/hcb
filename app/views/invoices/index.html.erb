@@ -122,7 +122,7 @@
 </table>
 </article>
 <% else %>
-  <%= blankslate "It's quiet here...", "Invoices will appear here as you send them to other accounts. Tap \"Send an Invoice\" below to get started!", { screen: true } do %>
+  <%= blankslate "It's quiet here...", "Invoices will appear here as you send them to a sponsor. Tap \"Send an Invoice\" below to get started!", { screen: true } do %>
       <%= link_to new_event_invoice_path(event_id: @event.slug),
         class: "btn btn--icon",
         data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
