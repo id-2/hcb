@@ -114,6 +114,8 @@ class UserSession < ApplicationRecord
     self
   end
 
+  SESSION_DURATION = 2.weeks
+
   LAST_SEEN_AT_COOLDOWN = 5.minutes
   def touch_last_seen_at
     if last_seen_at
