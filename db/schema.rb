@@ -2122,7 +2122,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_210007) do
     t.bigint "payout_method_id"
     t.integer "comment_notifications", default: 0, null: false
     t.integer "charge_notifications", default: 0, null: false
-    t.integer "session_validity_preference", default: 360
+    t.integer "session_validity_preference", default: 4320, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

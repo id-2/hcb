@@ -20,7 +20,7 @@
 #  receipt_report_option       :integer          default("none"), not null
 #  running_balance_enabled     :boolean          default(FALSE), not null
 #  seasonal_themes_enabled     :boolean          default(TRUE), not null
-#  session_validity_preference :integer          default("6 hours")
+#  session_validity_preference :integer          default("3 days"), not null
 #  sessions_reported           :boolean          default(FALSE), not null
 #  slug                        :string
 #  use_sms_auth                :boolean          default(FALSE)
