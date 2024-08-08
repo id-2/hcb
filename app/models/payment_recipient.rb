@@ -4,26 +4,14 @@
 #
 # Table name: payment_recipients
 #
-#  id                              :bigint           not null, primary key
-#  account_number_ciphertext       :text
-#  address_city_ciphertext         :text
-#  address_country_code_ciphertext :text
-#  address_line1_ciphertext        :text
-#  address_line2_ciphertext        :text
-#  address_postal_code_ciphertext  :text
-#  bank_name_ciphertext            :string
-#  bic_number_ciphertext           :text
-#  email                           :string
-#  legal_id_ciphertext             :text
-#  legal_type_ciphertext           :text
-#  local_account_number_ciphertext :text
-#  local_bank_code_ciphertext      :text
-#  name                            :string
-#  phone_ciphertext                :text
-#  routing_number_ciphertext       :string
-#  created_at                      :datetime         not null
-#  updated_at                      :datetime         not null
-#  event_id                        :bigint           not null
+#  id                        :bigint           not null, primary key
+#  account_number_ciphertext :text
+#  bank_name_ciphertext      :string
+#  name                      :string
+#  routing_number_ciphertext :string
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  event_id                  :bigint           not null
 #
 # Indexes
 #
