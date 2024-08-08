@@ -65,6 +65,21 @@ class EventsController < ApplicationController
     @past_month = @event.canonical_transactions.order(created_at: :desc).where("canonical_transactions.created_at > NOW() - INTERVAL '1 month'").count > 15
     @merchants = BreakdownEngine::Merchants.new(@event, past_month: @past_month).run
     @categories = BreakdownEngine::Categories.new(@event, past_month: @past_month).run
+
+
+    heatmap_engine_response = BreakdownEngine::Heatmap.new(@event).run
+    @heatmap = heatmap_engine_response[:heatmap]
+    @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
+    @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]
+    @past_year_transactions_count = heatmap_engine_response[:transactions_count]
+
+    @merchants = BreakdownEngine::Merchants.new(@event).run
+
+    @categories = BreakdownEngine::Categories.new(@event).run
+
+    @users = BreakdownEngine::Users.new(@event).run
+
+    @tags = BreakdownEngine::Tags.new(@event).run
   end
 
   def transactions
@@ -222,24 +237,6 @@ class EventsController < ApplicationController
       @popover = flash[:popover]
       flash.delete(:popover)
     end
-  end
-
-  def breakdown
-    authorize @event
-
-    heatmap_engine_response = BreakdownEngine::Heatmap.new(@event).run
-    @heatmap = heatmap_engine_response[:heatmap]
-    @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
-    @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]
-    @past_year_transactions_count = heatmap_engine_response[:transactions_count]
-
-    @merchants = BreakdownEngine::Merchants.new(@event).run
-
-    @categories = BreakdownEngine::Categories.new(@event).run
-
-    @users = BreakdownEngine::Users.new(@event).run
-
-    @tags = BreakdownEngine::Tags.new(@event).run
   end
 
   def balance_by_date

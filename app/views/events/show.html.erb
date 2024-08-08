@@ -1,6 +1,59 @@
 <% title @event.name %>
 <% page_md %>
 <%= render "nav", selected: :home %>
+
+<% line_chart_config = {
+     elements: { point: { radius: 0 } },
+     scales: {
+       y: {
+         title: {
+           color: "gray",
+           font: {
+             size: 14,
+             weight: "900",
+           },
+         },
+       },
+       x: {
+         border: {
+           display: false
+         },
+         grid: {
+           display: false,
+         },
+         title: {
+           color: "gray",
+           font: {
+             size: 14,
+             weight: "900",
+           },
+         },
+       },
+     }
+   }
+
+   def pie_chart_config(legend_position)
+     {
+       elements: {
+         arc: {
+           borderWidth: 0
+         }
+       },
+       plugins: {
+         legend: {
+           position: legend_position,
+           align: legend_position == "bottom" ? "center" : "start",
+           labels: {
+             boxWidth: 10,
+             boxHeight: 10,
+             usePointStyle: "circle"
+           }
+         }
+       }
+     }
+   end %>
+
+   
 <% if @event&.is_public %>
   <% content_for :head do %>
     <% img = "https://hcb-og.hackclub.com/api/embeds/#{@event.slug}" %>
@@ -41,30 +94,32 @@
   <% end %>
 </h1>
 
-<div class="flex mb2 max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
-  <%= link_to "#", class: "list-badge quick-action ml-0", data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
-    <%= inline_icon "briefcase", size: 16 %>
-    Send an invoice
-  <% end %>
-  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
-    <%= inline_icon "payment-transfer", size: 16 %>
-    Transfer money
-  <% end %>
-  <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "create_reimbursement" } do %>
-    <%= inline_icon "attachment", size: 16 %>
-    Get reimbursed
-  <% end %>
-  <%= link_to event_check_deposits_path(@event), class: "list-badge quick-action" do %>
-    <%= inline_icon "cheque", size: 16 %>
-    Deposit a check
-  <% end %>
-  <% unless @cards.any? %>
-    <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "order_card" } do %>
-      <%= inline_icon "card", size: 16 %>
-      Order a card
+<% if organizer_signed_in? %>
+  <div class="flex mb2 max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
+    <%= link_to "#", class: "list-badge quick-action ml-0", data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
+      <%= inline_icon "briefcase", size: 16 %>
+      Send an invoice
     <% end %>
-  <% end %>
-</div>
+    <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
+      <%= inline_icon "payment-transfer", size: 16 %>
+      Transfer money
+    <% end %>
+    <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "create_reimbursement" } do %>
+      <%= inline_icon "attachment", size: 16 %>
+      Get reimbursed
+    <% end %>
+    <%= link_to event_check_deposits_path(@event), class: "list-badge quick-action" do %>
+      <%= inline_icon "cheque", size: 16 %>
+      Deposit a check
+    <% end %>
+    <% unless @cards.any? %>
+      <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "order_card" } do %>
+        <%= inline_icon "card", size: 16 %>
+        Order a card
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
 
 <%= render "events/public_message" %>
 
@@ -78,59 +133,85 @@
   <%= render partial: "events/home/transactions", event: @event %>
 </div>
 
-<%= render "pinned_transactions" %>
-
-<%= render partial: "events/home/account_numbers", event: @event %>
-
-<div class="my-4">
+<div class="flex gap-4 flex-col sm:flex-row my-4">
+  <%= render partial: "events/home/recent_activity", event: @event %>
   <%= render partial: "events/home/team", event: @event %>
 </div>
 
 <div class="flex gap-4 flex-col sm:flex-row">
-  <%= render partial: "events/home/recent_activity", event: @event %>
   <%= render partial: "events/home/cards", event: @event %>
+  <%= render partial: "events/home/account_numbers", event: @event %>
+</div>
+
+<%= render "pinned_transactions" %>
+
+<div class="breakdown-row mt-4">
+  <%= render partial: "events/home/top_merchants", event: @event %>
+  <%= render partial: "events/home/top_categories", event: @event %>
 </div>
 
 <div class="breakdown-row mt-4">
-  <% if @merchants.length > 0 %>
-  <div class="card card--breakdown shadow-none w-100" style="flex: 1">
-    <div class="flex flex-row justify-between mb2 mt2 items-center">
-      <h3 class="mt0 mb0">Top merchants</h3>
-      <% if @past_month %>
-        <h5 class="breakdown-eyebrow mt0 mb0">Past thirty days</h5>
-      <% else %>
-        <h5 class="breakdown-eyebrow mt0 mb0">All time</h5>
-      <% end %>
-    </div>
-    <%= react_component "breakdown/Merchants", { data: @merchants }, { camelize_props: false } %>
+  <div class="card card--breakdown shadow-none p-4 flex-1 flex justify-between">
+    <%= pie_chart @tags, library: pie_chart_config("right"), download: true %>
   </div>
-  <% else %>
-  <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
-    <h3 class="mt0 mb0">Top merchants</h3>
-      <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
-      As this team spends money, we'll categorize it here.
-    </p>
+  <div class="card card--breakdown shadow-none p-4 flex-1 flex justify-between">
+    <%= pie_chart @tags, library: pie_chart_config("right"), download: true %>
   </div>
-  <% end %>
+</div>
 
-  <% if @categories.length > 0 %>
-  <div class="card card--breakdown shadow-none w-100" style="flex: 1">
-    <div class="flex flex-row justify-between mb2 mt2 items-center">
-      <h3 class="mt0 mb0">Top categories</h3>
-      <% if @past_month %>
-        <h5 class="breakdown-eyebrow mt0 mb0">Past thirty days</h5>
-      <% else %>
-        <h5 class="breakdown-eyebrow mt0 mb0">All time</h5>
-      <% end %>
+<div class="breakdown-row mt-4">
+  <div class="card card--breakdown shadow-none p-4 flex-1 flex justify-between">
+    <div class="stat stat--small">
+      <span class="stat__label">Amount raised</span>
+      <span class="stat__value"><%= render_money_amount @event.total_raised %></span>
     </div>
-    <%= react_component "breakdown/Categories", { data: @categories }, { camelize_props: false } %>
+    <div class="stat stat--small">
+      <span class="stat__label">Amount spent</span>
+      <span class="stat__value"><%= render_money_amount @event.total_raised - @event.balance %></span>
+    </div>
   </div>
-  <% else %>
-  <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
-    <h3 class="mt0 mb0">Top categories</h3>
-      <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
-      As this team spends money, we'll categorize it here.
-    </p>
+</div>
+
+<div class="card card--breakdown shadow-none p-4 flex-1 flex flex-col">
+  <h4 class="breakdown-eyebrow mt-2 mb-3" style="font-size: 16px">
+    <%= @past_year_transactions_count %> <%= "transaction".pluralize(@past_year_transactions_count) %> in the past year
+  </h4>
+
+  <div class="grid-container mb2">
+    <% 7.times do |x| %>
+      <% 53.times do |y| %>
+        <% entry = @heatmap.to_a[y * 7 + x][1] %>
+        <% label = @heatmap.to_a[y * 7 + x][0] %>
+        <% pos_bg = "rgba(57, 211, 83, #{Math.log(entry[:positive]) / Math.log(@maximum_positive_change)})" %>
+        <% neg_bg = "rgba(248, 81, 73, #{Math.log(entry[:negative].abs) / Math.log(@maximum_negative_change.abs)})" %>
+        <% if entry[:positive] > entry[:negative].abs %>
+          <div class="grid-item tooltipped tooltipped--s border-muted dark:border-dark"
+              aria-label="<%= "#{label}: #{render_money(entry[:positive])}" %>"
+              style="background-color: <%= pos_bg %>">
+          </div>
+        <% elsif entry[:negative].abs > entry[:positive] %>
+          <div class="grid-item tooltipped tooltipped--s border-muted dark:border-dark"
+              aria-label="<%= "#{label}: #{render_money(entry[:negative])}" %>"
+              style="background-color: <%= neg_bg %>">
+          </div>
+        <% else %>
+          <div class="grid-item tooltipped tooltipped--s bg-snow dark:bg-darkless border-muted dark:border-dark"
+              aria-label="<%= label %>"></div>
+        <% end %>
+      <% end %>
+    <% end %>
   </div>
-  <% end %>
+
+  <div class="grid-container grid-container--preview mb3">
+    <% 5.times do |x| %>
+      <% pos_bg = "rgba(57, 211, 83, #{Math.log(x + 2) / Math.log(6)})" %>
+      <div class="grid-item border-muted dark:border-dark" style="background-color: <%= pos_bg %>"></div>
+    <% end %>
+    <span style="height: 0px !important; grid-column: 6 / 20; font-size: 16px; transform: translate(4px, -5px);">MORE INCOME</span>
+    <% 5.times do |x| %>
+      <% neg_bg = "rgba(248, 81, 73, #{Math.log(x + 2) / Math.log(6)})" %>
+      <div class="grid-item border-muted dark:border-dark" style="background-color: <%= neg_bg %>"></div>
+    <% end %>
+    <span style="height: 0px !important; grid-column: 25 / 40; font-size: 16px; transform: translate(4px, -5px);">MORE SPENDING</span>
+  </div>
 </div>
