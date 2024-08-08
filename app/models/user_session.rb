@@ -118,14 +118,6 @@ class UserSession < ApplicationRecord
 
   LAST_SEEN_AT_COOLDOWN = 5.minutes
   def touch_last_seen_at
-    if last_seen_at
-      diff_mins = (Time.now - last_seen_at) / 60
-      if diff_mins > User.session_validity_preference[user.session_validity_preference]
-        set_as_peacefully_expired
-        destroy
-      end
-    end
-
     return if last_seen_at&.after? LAST_SEEN_AT_COOLDOWN.ago # prevent spamming writes
 
     update_columns(last_seen_at: Time.now)
