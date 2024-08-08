@@ -3,7 +3,7 @@
 class SessionExpiryJob < ApplicationJob
   queue_as :low
   def perform
-    UserSession.joins(:user).where("user_sessions.last_seen_at + (users.session_validity_preference * interval '1 minute') < NOW()").each { |session|
+    UserSession.joins(:user).where("user_sessions.last_seen_at + (users.session_validity_preference * interval '1 minute') < NOW()").find_each { |session|
       session.set_as_peacefully_expired
       session.destroy
     }
