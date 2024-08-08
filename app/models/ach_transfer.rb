@@ -148,7 +148,7 @@ class AchTransfer < ApplicationRecord
   end
 
   before_validation { self.recipient_name = recipient_name.presence&.strip }
-  before_create :set_fields_from_payment_recipient, if: -> { payment_recipient.present? }
+  before_validation :set_fields_from_payment_recipient, if: -> { payment_recipient.present? }, on: :create
   before_create :create_payment_recipient, if: -> { payment_recipient_id.nil? }
 
   before_validation do
@@ -288,6 +288,8 @@ class AchTransfer < ApplicationRecord
       return now.change(hour: 15, minute: 0, second: 0) if now < now.change(hour: 13, min: 30, sec: 0)
     end
 
+    return 0.business_days.after(now).change(hour: 5, min: 30, sec: 0) unless now.workday?
+
     return 1.business_day.after(now).change(hour: 5, min: 30, sec: 0)
   end
 
@@ -300,16 +302,18 @@ class AchTransfer < ApplicationRecord
   end
 
   def set_fields_from_payment_recipient
-    self.account_number ||= payment_recipient&.account_number
-    self.routing_number ||= payment_recipient&.routing_number
-    self.bank_name      ||= payment_recipient&.bank_name
-    self.recipient_name ||= payment_recipient&.name
+    self.account_number  ||= payment_recipient&.account_number
+    self.routing_number  ||= payment_recipient&.routing_number
+    self.bank_name       ||= payment_recipient&.bank_name
+    self.recipient_name  ||= payment_recipient&.name
+    self.recipient_email ||= payment_recipient&.email
   end
 
   def create_payment_recipient
     create_payment_recipient!(
       event:,
       name: recipient_name,
+      email: recipient_email,
       account_number:,
       routing_number:,
       bank_name:,
@@ -319,6 +323,7 @@ class AchTransfer < ApplicationRecord
   def update_payment_recipient
     payment_recipient.update!(
       name: recipient_name,
+      email: recipient_email,
       account_number:,
       routing_number:,
       bank_name:,

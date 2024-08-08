@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -1543,18 +1545,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_06_204752) do
     t.string "bank_name_ciphertext"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.text "bic_number_ciphertext"
-    t.text "address_line1_ciphertext"
-    t.text "address_line2_ciphertext"
-    t.text "address_city_ciphertext"
-    t.text "address_postal_code_ciphertext"
-    t.text "address_country_code_ciphertext"
-    t.text "legal_id_ciphertext"
-    t.text "legal_type_ciphertext"
-    t.text "local_account_number_ciphertext"
-    t.text "local_bank_code_ciphertext"
-    t.text "phone_ciphertext"
-    t.string "email"
+    t.text "email"
     t.index ["event_id"], name: "index_payment_recipients_on_event_id"
     t.index ["name"], name: "index_payment_recipients_on_name"
   end
@@ -1752,6 +1743,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_06_204752) do
     t.string "extracted_merchant_url"
     t.string "extracted_merchant_zip_code"
     t.boolean "data_extracted", default: false, null: false
+    t.integer "textual_content_source", default: 0
     t.string "textual_content_bidx"
     t.integer "textual_content_source", default: 0
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
@@ -1962,6 +1954,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_06_204752) do
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
     t.boolean "lost_in_shipping", default: false
+    t.integer "stripe_card_personalization_design_id"
     t.boolean "initially_activated", default: false, null: false
     t.integer "stripe_card_personalization_design_id"
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"

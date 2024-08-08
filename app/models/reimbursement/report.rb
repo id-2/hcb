@@ -91,7 +91,7 @@ module Reimbursement
         after do
           if team_review_required?
             ReimbursementMailer.with(report: self).review_requested.deliver_later
-            create_activity(key: "reimbursement_report.review_requested", owner: user, recipient: (reviewer.presence || event), event_id: event.id)
+            create_activity(key: "reimbursement_report.review_requested", owner: user, recipient: reviewer.presence || event, event_id: event.id)
           else
             expenses.pending.each do |expense|
               expense.mark_approved!
@@ -133,7 +133,7 @@ module Reimbursement
       end
 
       event :mark_draft do
-        transitions from: [:submitted, :reimbursement_requested], to: :draft
+        transitions from: [:submitted, :reimbursement_requested, :rejected], to: :draft
       end
 
       event :mark_reimbursed do

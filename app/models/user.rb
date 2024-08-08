@@ -35,8 +35,6 @@
 #  index_users_on_slug   (slug) UNIQUE
 #
 class User < ApplicationRecord
-  self.ignored_columns = ["birthday"]
-
   include PublicIdentifiable
   set_public_id_prefix :usr
 
@@ -44,6 +42,8 @@ class User < ApplicationRecord
   extend FriendlyId
 
   include Turbo::Broadcastable
+
+  include ApplicationHelper
 
   has_paper_trail only: [:access_level, :email]
 
@@ -68,6 +68,7 @@ class User < ApplicationRecord
     :superadmin,
   ], scopes: false, default: :user
 
+  has_many :logins
   has_many :login_codes
   has_many :login_tokens
   has_many :user_sessions, dependent: :destroy
@@ -80,6 +81,8 @@ class User < ApplicationRecord
   has_many :api_tokens
   has_many :email_updates, class_name: "User::EmailUpdate", inverse_of: :user
   has_many :email_updates_created, class_name: "User::EmailUpdate", inverse_of: :updated_by
+
+  has_many :messages, class_name: "Ahoy::Message", as: :user
 
   has_many :events, through: :organizer_positions
 
@@ -111,7 +114,8 @@ class User < ApplicationRecord
   has_one_attached :profile_picture
 
   has_one :partner, inverse_of: :representative
-  has_one :totp, class_name: "User::Totp"
+  has_one :unverified_totp, -> { where(aasm_state: :unverified) }, class_name: "User::Totp", inverse_of: :user
+  has_one :totp, -> { where(aasm_state: :verified) }, class_name: "User::Totp", inverse_of: :user
 
   # a user does not actually belong to its payout method,
   # but this is a convenient way to set up the association.
@@ -220,7 +224,7 @@ class User < ApplicationRecord
   end
 
   def possessive_name
-    "#{name}'s"
+    possessive(name)
   end
 
   def initials
@@ -323,6 +327,10 @@ class User < ApplicationRecord
 
   def last_login_at
     user_sessions.maximum(:created_at)
+  end
+
+  def using_2fa?
+    Flipper.enabled?(:two_factor_authentication_2024_05_22, self) && phone_number_verified
   end
 
   def email_charge_notifications_enabled?

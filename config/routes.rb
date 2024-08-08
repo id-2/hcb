@@ -17,7 +17,9 @@ Rails.application.routes.draw do
   end
 
   concern :commentable do
-    resources :comments, shallow: true, except: [:show, :index]
+    resources :comments, shallow: true, except: [:show, :index] do
+      resources :reactions, only: [:update], controller: "comment/reactions", action: "react"
+    end
   end
 
   # API documentation
@@ -56,25 +58,28 @@ Rails.application.routes.draw do
 
   scope :my do
     get "/", to: redirect("/"), as: :my
+
     get "settings", to: "users#edit", as: :my_settings
     get "settings/address", to: "users#edit_address"
     get "settings/payouts", to: "users#edit_payout"
     get "settings/previews", to: "users#edit_featurepreviews"
     get "settings/security", to: "users#edit_security"
     get "settings/admin", to: "users#edit_admin"
-    get "inbox", to: "static_pages#my_inbox", as: :my_inbox
-    get "receipt_bin/suggested_pairings", to: "static_pages#suggested_pairings", as: :suggested_pairings
-    get "reimbursements", to: "static_pages#my_reimbursements", as: :my_reimbursements
-    get "activities", to: "static_pages#my_activities", as: :my_activities
-    get "draft_reimbursements_icon", to: "static_pages#my_draft_reimbursements_icon", as: :my_draft_reimbursements_icon
-    post "receipts/upload", to: "static_pages#receipt", as: :my_receipts_upload
-    get "missing_receipts", to: "static_pages#my_missing_receipts_list", as: :my_missing_receipts_list
-    get "missing_receipts_icon", to: "static_pages#my_missing_receipts_icon", as: :my_missing_receipts_icon
+
+    get "inbox", to: "my#inbox", as: :my_inbox
+    get "activities", to: "my#activities", as: :my_activities
+    get "reimbursements", to: "my#reimbursements", as: :my_reimbursements
+    get "reimbursements_icon", to: "my#reimbursements_icon", as: :my_reimbursements_icon
+
     get "receipts", to: redirect("/my/inbox")
+    post "receipts/upload", to: "static_pages#receipt", as: :my_receipts_upload
+    get "missing_receipts", to: "my#missing_receipts_list", as: :my_missing_receipts_list
+    get "missing_receipts_icon", to: "my#missing_receipts_icon", as: :my_missing_receipts_icon
+    get "receipt_bin/suggested_pairings", to: "static_pages#suggested_pairings", as: :suggested_pairings
 
     post "receipt_report", to: "users#receipt_report", as: :trigger_receipt_report
 
-    get "cards", to: "static_pages#my_cards", as: :my_cards
+    get "cards", to: "my#cards", as: :my_cards
     get "cards/shipping", to: "stripe_cards#shipping", as: :my_cards_shipping
   end
 
@@ -99,19 +104,8 @@ Rails.application.routes.draw do
 
   resources :users, only: [:edit, :update] do
     collection do
-      get "auth", to: "users#auth"
-      post "auth", to: "users#auth_submit"
-      get "auth/login_preference", to: "users#choose_login_preference", as: :choose_login_preference
-      post "auth/login_preference", to: "users#set_login_preference", as: :set_login_preference
-      post "webauthn", to: "users#webauthn_auth"
+      get "auth", to: "logins#new"
       get "webauthn/auth_options", to: "users#webauthn_options"
-      post "login_code", to: "users#login_code"
-      post "exchange_login_code", to: "users#exchange_login_code"
-
-      # TOTP
-      get "totp"
-      post "totp"
-      post "totp_auth"
 
       # SMS Auth
       post "start_sms_auth_verification", to: "users#start_sms_auth_verification"
@@ -142,6 +136,7 @@ Rails.application.routes.draw do
       post "unimpersonate"
     end
     post "delete_profile_picture", to: "users#delete_profile_picture"
+    post "generate_totp"
     post "enable_totp"
     post "disable_totp"
     patch "stripe_cardholder_profile", to: "stripe_cardholders#update_profile"
@@ -166,6 +161,26 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :logins, only: [:new, :create] do
+    collection do
+      get "login_preference", to: "logins#choose_login_preference", as: :choose_login_preference
+      post "complete" # for webauthn
+    end
+    member do
+      get "/", to: "logins#choose_login_preference", as: :choose_login_preference
+      post "login_preference", to: "logins#set_login_preference", as: :set_login_preference
+
+      # Request a login code
+      post "login_code"
+
+      # TOTP
+      get "totp"
+      post "totp"
+
+      post "complete"
+    end
+  end
+
   resources :admin, only: [] do
     collection do
       get "bank_accounts", to: "admin#bank_accounts"
@@ -185,6 +200,9 @@ Rails.application.routes.draw do
       get "pending_ledger", to: "admin#pending_ledger"
       get "ach", to: "admin#ach"
       get "reimbursements", to: "admin#reimbursements"
+      get "stripe_card_personalization_designs", to: "admin#stripe_card_personalization_designs"
+      get "stripe_card_personalization_design_new", to: "admin#stripe_card_personalization_design_new"
+      post "stripe_card_personalization_design_create", to: "admin#stripe_card_personalization_design_create"
       get "reimbursements_status", to: "admin#reimbursements_status"
       get "checks", to: "admin#checks"
       get "increase_checks", to: "admin#increase_checks"
@@ -207,6 +225,8 @@ Rails.application.routes.draw do
       get "column_statements", to: "admin#column_statements"
       get "hq_receipts", to: "admin#hq_receipts"
       get "account_numbers", to: "admin#account_numbers"
+      get "emails", to: "admin#emails"
+      get "email", to: "admin#email"
 
       resources :grants, only: [] do
         post "approve"
@@ -316,13 +336,22 @@ Rails.application.routes.draw do
 
   namespace :stripe_cards do
     resource :activation, only: [:new, :create], controller: :activation
+
+    resources :personalization_designs, only: [:show] do
+      member do
+        post "make_common"
+        post "make_private"
+      end
+    end
   end
   resources :stripe_cards, only: %i[edit update create index show] do
     member do
       post "freeze"
       post "defrost"
+      post "cancel"
     end
   end
+
   resources :emburse_cards, except: %i[new create]
 
   resources :checks, only: [:show]
@@ -378,7 +407,6 @@ Rails.application.routes.draw do
       get "attach_receipt"
       get "memo_frame"
       get "dispute"
-      get "breakdown"
       post "invoice_as_personal_transaction"
       post "pin"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
@@ -386,11 +414,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :canonical_pending_transactions, only: [:show, :edit] do
-    member do
-      post "set_custom_memo"
-    end
-  end
+  resources :canonical_pending_transactions, only: [:show, :edit, :update]
 
   resources :canonical_transactions, only: [:show, :edit] do
     member do
@@ -674,6 +698,7 @@ Rails.application.routes.draw do
     resources :card_grants, only: [:new, :create], path: "card-grants" do
       member do
         post "cancel"
+        post "topup"
       end
     end
 

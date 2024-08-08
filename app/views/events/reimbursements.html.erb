@@ -6,6 +6,7 @@
   <span class="flex-grow">Reimbursements</span>
   <%= pop_icon_to "settings",
       edit_event_path(@event, tab: "reimbursements"),
+      data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? ? { turbo_frame: "_top", behavior: "modal_trigger", modal: "reimbursement_settings" } : {},
       class: "tooltipped tooltipped--s", "aria-label": "Reimbursements settings" %>
   <% if @event.public_reimbursement_page_enabled? %>
     <%= pop_icon_to "external",
@@ -25,19 +26,19 @@
   <div class="stat">
     <span class="stat__label">Total</span>
     <span class="stat__value" style="text-wrap: nowrap">
-      <%= render_money_amount(@reports.to_calculate_total.sum(&:amount_cents)) %>
+      <%= render_money_amount(@event.reimbursement_reports.to_calculate_total.sum(&:amount_cents)) %>
     </span>
   </div>
   <div class="stat stat--small">
     <span class="stat__label">Reimbursed</span>
     <span class="stat__value">
-      <%= render_money_amount(@reports.reimbursed.sum(&:amount_cents)) %>
+      <%= render_money_amount(@event.reimbursement_reports.reimbursed.sum(&:amount_cents)) %>
     </span>
   </div>
   <div class="stat stat--small">
     <span class="stat__label">Pending</span>
     <span class="stat__value">
-      <%= render_money_amount(@reports.pending.reimbursed.sum(&:amount_cents)) %>
+      <%= render_money_amount(@event.reimbursement_reports.pending.reimbursed.sum(&:amount_cents)) %>
     </span>
   </div>
 </div>
@@ -68,8 +69,7 @@
         <th>Status</th>
         <th>Report</th>
         <th>From</th>
-        <th>Amount</th>
-        <th>Created</th>
+        <th class="right-align">Amount</th>
       </tr>
       </thead>
       <tbody>
@@ -84,23 +84,27 @@
                 <span class="ml0 badge bg-<%= report.status_color %>"><%= report.status_text %></span>
               <% end %>
             </td>
-            <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
+            <td style="max-width: 500px; overflow: hidden; text-overflow: ellipsis;">
               <%= link_to report.name, report %>
+              <span class="muted">(<%= report.created_at.strftime("%m/%d/%Y") %>)</span>
             </td>
             <td>
                <%= user_mention report.user %>
             </td>
-            <td>
+            <td class="right-align">
                <%= render_money report.amount_cents %>
-            </td>
-            <td>
-               <%= format_date report.created_at %>
             </td>
           </tr>
         <% end %>
       </tbody>
     </table>
   </article>
+
+  <%= paginate @reports %>
+
+  <p class="italic muted text-center">
+    <%= page_entries_info @reports, entry_name: "reports" %>.
+  </p>
 <% end %>
 
 <%= form_with(model: Reimbursement::Report, class: "display-none", method: :post, url: quick_expense_reimbursement_reports_path, data: { controller: "file-drop form", "file-drop-title-value": "Drop to start a report." }) do |form| %>
@@ -123,4 +127,13 @@
         "action"           => "change->form#submit"
       } %>
   </div>
+<% end %>
+
+<% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? %>
+  <section class="modal modal--scroll modal--popover modal--popover--sm bg-snow" data-behavior="modal" role="dialog" id="reimbursement_settings">
+    <%= modal_header("Settings", external_link: edit_event_path(@event, tab: "reimbursements")) %>
+    <%= async_frame_to edit_event_path(@event, tab: "reimbursements", params: { frame: true }), lazy: true, as: :div do %>
+      <strong>Loading...</strong>
+    <% end %>
+  </section>
 <% end %>

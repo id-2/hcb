@@ -26,10 +26,11 @@
       </div>
       <div class="card__banner card__darker comment--container">
         <% if comment.content.blank? %>
-          <span class="muted"><em>Comment left blank.</em></span>
+          <div class="muted mb1"><em>Comment left blank.</em></div>
         <% else %>
           <%== MarkdownService.instance.renderer(current_user:, record: comment).render comment.content %>
         <% end %>
+        <%= render partial: "comments/reactions", locals: { comment: } %>
       </div>
       <% if comment.has_attached_file? %>
         <div class="border-top card__banner">
@@ -54,7 +55,7 @@
     <%= modal_header "Edit History" %>
     <ul class="list-reset">
       <% comment.versions.where(event: "update").reverse.each do |version| %>
-        <% if version&.changeset&.[]("content_ciphertext")&.compact_blank.any? %>
+        <% if version&.changeset&.[]("content_ciphertext")&.compact_blank&.any? %>
           <li class="mb2">
             <%= version.whodunnit.nil? ? "Automatically " : user_mention(User.find(version.whodunnit)) %>
             updated <%= time_ago_in_words version.created_at %> ago

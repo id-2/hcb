@@ -160,8 +160,8 @@ module StaticPagesHelper
       arcade: {
         id: "app4kCWulfB02bV8Q",
         table: "tblNUDETwMdUlBCSM",
-        query: { filterByFormula: "Status='Awaiting Fulfillment'" },
-        destination: "https://airtable.com/app4kCWulfB02bV8Q/tblNUDETwMdUlBCSM/viwM8PNakitt9nm9C"
+        query: { filterByFormula: "AND(Status='Awaiting Fulfillment', OR({Verification Status (from YSWS Verification User)}='Eligible L1', {Verification Status (from YSWS Verification User)}='Eligible L2'))" },
+        destination: "https://airtable.com/app4kCWulfB02bV8Q/tblNUDETwMdUlBCSM/viwipTwk0hGHW10Py"
       },
       marketing_shipment_request: {
         id: "appK53aN0fz3sgJ4w",
@@ -200,7 +200,7 @@ module StaticPagesHelper
 
             needed_role_num = OrganizerPosition.roles[v]
 
-            OrganizerPosition.roles.each do |_role, role_num|
+            OrganizerPosition.roles.each_value do |role_num|
               if role_num >= needed_role_num
                 concat content_tag(:td, "✅")
               else

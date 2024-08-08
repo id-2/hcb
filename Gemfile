@@ -11,7 +11,7 @@ gem "rails", "~> 7.1.3"
 gem "puma", "~> 6.4" # app server
 
 gem "pg", ">= 0.18", "< 2.0" # database
-gem "redis", "~> 5.0" # for caching, jobs, etc.
+gem "redis", "~> 5.2" # for caching, jobs, etc.
 gem "sidekiq", "~> 7.1.3" # background jobs
 gem "sidekiq-cron", "~> 1.12" # run Sidekiq jobs at scheduled intervals
 
@@ -19,7 +19,7 @@ gem "image_processing", "~> 1.2"
 gem "mini_magick"
 
 
-gem "jsbundling-rails", "~> 1.1"
+gem "jsbundling-rails", "~> 1.3"
 gem "terser", "~> 1.1" # JS compressor
 gem "jquery-rails"
 gem "react-rails"
@@ -32,7 +32,7 @@ gem "country_select", "~> 8.0"
 
 gem "faraday" # web requests
 
-gem "increase", "~> 0.3.1"
+gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 29.0"
 gem "yellow_pages", github: "hackclub/yellow_pages", ref: "117d13e"
@@ -45,7 +45,7 @@ gem "twilio-ruby" # SMS notifications
 
 gem "lob"
 
-gem "google-apis-admin_directory_v1", "~> 0.45.0" # GSuite
+gem "google-apis-admin_directory_v1", "~> 0.58.0" # GSuite
 
 gem "pg_search" # full-text search
 
@@ -57,7 +57,7 @@ gem "aasm" # state machine
 gem "paper_trail", "~> 15.1.0" # track changes to models
 gem "acts_as_paranoid", "~> 0.9.0" # enables soft deletions
 
-gem "friendly_id", "~> 5.5.0" # slugs
+gem "friendly_id", "~> 5.5.1" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
 
 gem "active_storage_validations", "1.1.4" # file validations
@@ -123,7 +123,7 @@ gem "airbrake" # exception tracking
 gem "blazer" # business intelligence tool/dashboard
 
 gem "geo_pattern" # create procedurally generated patterns for Cards
-gem "comma", "~> 4.7" # CSV generation
+gem "comma", "~> 4.8" # CSV generation
 gem "faker" # Create mock data
 
 gem "chronic" # time/date parsing
@@ -184,7 +184,7 @@ group :development do
   gem "annotate" # comment models with database schema
 
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  gem "listen", "~> 3.8"
+  gem "listen", "~> 3.9"
   gem "web-console", ">= 3.3.0"
 
   gem "letter_opener_web" # preview emails
@@ -202,13 +202,15 @@ group :development do
   gem "bullet"
 end
 
-gem "jbuilder", "~> 2.11"
+gem "jbuilder", "~> 2.12"
 
 gem "ledgerjournal"
 gem "doorkeeper", "~> 5.6"
 
 gem "chartkick"
 gem "cssbundling-rails", "~> 1.4"
+
+gem "rtesseract"
 
 gem "sprockets-rails", "~> 3.4"
 
@@ -220,3 +222,5 @@ gem "audits1984"
 gem "rotp"
 
 gem "ruby-limiter"
+
+gem "ahoy_email", "~> 2.3"

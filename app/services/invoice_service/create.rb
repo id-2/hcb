@@ -75,8 +75,19 @@ module InvoiceService
         statement_descriptor: invoice.statement_descriptor || "HCB",
         # tax_percent: invoice.tax_percent,
         footer:,
-        metadata: { event_id: invoice.event.id }
+        metadata: { event_id: invoice.event.id },
+        payment_settings: {
+          payment_method_types:,
+        }.compact,
       }
+    end
+
+    def payment_method_types
+      if clean_item_amount >= Invoice::MAX_CARD_AMOUNT
+        ["ach_credit_transfer"]
+      else
+        # just use the default types
+      end
     end
 
     def footer
@@ -132,7 +143,7 @@ module InvoiceService
     end
 
     def event
-      @event ||= Event.friendly.find(@event_id)
+      @event ||= Event.find(@event_id)
     end
 
   end

@@ -10,9 +10,10 @@
   </h1>
 
   <p>Enter your time-based one time password from your authenticator app.</p>
-   <%= form_tag totp_auth_users_path do %>
+  <%= form_tag complete_login_path(@login) do %>
     <%= telephone_field_tag :code, "", placeholder: "OTP code", autofocus: true, autocomplete: "off", class: "center-align mb2", required: true %>
     <%= hidden_field_tag :email, @email %>
+    <%= hidden_field_tag :method, :totp %>
     <%= hidden_field_tag :fingerprint %>
     <%= hidden_field_tag :device_info %>
     <%= hidden_field_tag :os_info %>
@@ -21,6 +22,6 @@
     <%= submit_tag "Submit" %>
   <% end %>
 
-  <%= link_to "Sign in another way", choose_login_preference_users_path(return_to: @return_to), class: "block mt2" %>
+  <%= link_to "Sign in another way", choose_login_preference_logins_path(return_to: @return_to), class: "block mt2" %>
 </article>
 <%= javascript_include_tag "fingerprint.js" %>

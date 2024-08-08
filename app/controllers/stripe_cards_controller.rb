@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class StripeCardsController < ApplicationController
+  include SetEvent
+  before_action :set_event, only: [:new]
+
   def index
     @cards = StripeCard.all
     authorize @cards
@@ -24,6 +27,18 @@ class StripeCardsController < ApplicationController
 
     if @card.freeze!
       flash[:success] = "Card frozen"
+      redirect_back_or_to @card
+    else
+      render :show, status: :unprocessable_entity
+    end
+  end
+
+  def cancel
+    @card = StripeCard.find(params[:id])
+    authorize @card
+
+    if @card.cancel!
+      flash[:success] = "Card cancelled"
       redirect_back_or_to @card
     else
       render :show, status: :unprocessable_entity
@@ -73,13 +88,11 @@ class StripeCardsController < ApplicationController
   end
 
   def new
-    @event = Event.friendly.find(params[:event_id])
-
     authorize @event, :new_stripe_card?, policy_class: EventPolicy
   end
 
   def create
-    event = Event.friendly.find(params[:stripe_card][:event_id])
+    event = Event.find(params[:stripe_card][:event_id])
     authorize event, :create_stripe_card?, policy_class: EventPolicy
 
     sc = stripe_card_params
@@ -105,6 +118,7 @@ class StripeCardsController < ApplicationController
       stripe_shipping_address_line2: sc[:stripe_shipping_address_line2],
       stripe_shipping_address_postal_code: sc[:stripe_shipping_address_postal_code],
       stripe_shipping_address_country: sc[:stripe_shipping_address_country],
+      stripe_card_personalization_design_id: sc[:stripe_card_personalization_design_id] || StripeCard::PersonalizationDesign.common.first&.id
     ).run
 
     redirect_to new_card, flash: { success: "Card was successfully created." }
@@ -179,6 +193,7 @@ class StripeCardsController < ApplicationController
       :stripe_shipping_address_line2,
       :stripe_shipping_address_state,
       :stripe_shipping_address_country,
+      :stripe_card_personalization_design_id,
       :birthday
     )
   end

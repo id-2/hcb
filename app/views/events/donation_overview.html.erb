@@ -7,21 +7,13 @@
     Donations
     <%= badge_for @donations.count, class: "bg-muted" %>
   </span>
-  <% unless show_mock_data? %>
-    <% if organizer_signed_in? && @donations.not_pending.any? %>
+  <% if organizer_signed_in? && !show_mock_data? %>
+    <div class="tooltipped tooltipped--s" style="line-height: 0;" aria-label="<%= @all_donations.not_pending.any? ? "Email all donors" : "You can't email donors when you don't have any donations!" %>">
       <%= pop_icon_to "email",
-          "mailto:?bcc=#{@donations.not_pending.pluck(:email).uniq.compact.join(',')}",
-          target: "_blank",
-          class: "tooltipped tooltipped--s", "aria-label": "Email donors" %>
-      <action type="button" class="pop menu__toggle" data-behavior="menu_toggle" aria-expanded="false" tabindex="0">
-        <%= inline_icon "download" %>
-        <div class="menu__content h5" data-behavior="menu_content">
-          <%= link_to "Export donations (CSV)", export_donations_path(event: @event, format: :csv), target: :_blank %>
-          <%= link_to "Export donations (JSON)", export_donations_path(event: @event, format: :json), target: :_blank %>
-          <%= link_to "Export donors (CSV)", export_donors_donations_path(event: @event, format: :csv), target: :_blank %>
-        </div>
-      </action>
-    <% end %>
+        "mailto:?bcc=#{@all_donations.pluck(:email).uniq.compact.join(',')}",
+        target: "_blank",
+        disabled: @all_donations.not_pending.none? %>
+    </div>
   <% end %>
   <% if @event.donation_page_enabled %>
     <action type="button" class="pop menu__toggle" data-behavior="menu_toggle" aria-expanded="false" tabindex="0">
@@ -44,6 +36,7 @@
   <% end %>
   <%= pop_icon_to "settings",
       edit_event_path(@event, tab: "donations"),
+      data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? ? { turbo_frame: "_top", behavior: "modal_trigger", modal: "donation_settings" } : {},
       class: "tooltipped tooltipped--s", "aria-label": "Donations settings" %>
   <% if @event.donation_page_enabled %>
     <%= link_to start_donation_donations_path(@event), target: "_blank", class: "btn" do %>
@@ -167,7 +160,7 @@
                 <%= recurring_donation.name %>
               <% end %>
               <% if organizer_signed_in? %>
-                <span class="muted h5"><%= recurring_donation.email %></span>
+                <%= mail_to recurring_donation.email, class: "muted h5" %>
               <% end %>
             </td>
             <td><%= format_date recurring_donation.created_at %></td>
@@ -184,8 +177,25 @@
   </div>
 <% end %>
 
-<h2 class="heading mt4 pb1" style="margin-bottom: 16px;">
+<h2 class="heading mt4 pb1 w-full inline-flex justify-between" style="margin-bottom: 16px;">
   Past donations
+
+    <div data-controller="menu" data-menu-placement-value="bottom-end">
+      <button
+        type="button"
+        class="btn bg-info menu__toggle menu__toggle--arrowless overflow-visible z1"
+        data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
+        data-menu-target="toggle">
+          <%= inline_icon "download", size: 16 %>
+          Export
+      </button>
+      <div class="menu__content menu__content--2 h5" data-menu-target="content">
+        <%= link_to "Export donations (CSV)", export_donations_path(event: @event, format: :csv), target: :_blank %>
+        <%= link_to "Export donations (JSON)", export_donations_path(event: @event, format: :json), target: :_blank %>
+        <%= link_to "Export donors (CSV)", export_donors_donations_path(event: @event, format: :csv), target: :_blank %>
+      </div>
+    </div>
+
 </h2>
 
 <div class="flex items-center gap-4 flex-col-reverse sm:flex-row">
@@ -256,3 +266,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <%= javascript_include_tag "donation_qr_codes.js" %>
+
+<% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? %>
+  <section class="modal modal--scroll modal--popover modal--popover--sm bg-snow" data-behavior="modal" role="dialog" id="donation_settings">
+    <%= modal_header("Settings", external_link: edit_event_path(@event, tab: "donations")) %>
+    <%= async_frame_to edit_event_path(@event, tab: "donations", params: { frame: true }), lazy: true, as: :div do %>
+      <strong>Loading...</strong>
+    <% end %>
+  </section>
+<% end %>
