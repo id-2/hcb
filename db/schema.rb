@@ -1694,8 +1694,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_210007) do
     t.string "extracted_merchant_url"
     t.string "extracted_merchant_zip_code"
     t.boolean "data_extracted", default: false, null: false
-    t.string "textual_content_bidx"
     t.integer "textual_content_source", default: 0
+    t.string "textual_content_bidx"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["textual_content_bidx"], name: "index_receipts_on_textual_content_bidx"
     t.index ["user_id"], name: "index_receipts_on_user_id"
@@ -1904,8 +1904,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_210007) do
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
     t.boolean "lost_in_shipping", default: false
-    t.boolean "initially_activated", default: false, null: false
     t.integer "stripe_card_personalization_design_id"
+    t.boolean "initially_activated", default: false, null: false
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
     t.index ["stripe_cardholder_id"], name: "index_stripe_cards_on_stripe_cardholder_id"
@@ -2180,8 +2180,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_210007) do
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"
   add_foreign_key "column_account_numbers", "events"
-  add_foreign_key "comment_reactions", "comments"
-  add_foreign_key "comment_reactions", "users", column: "reactor_id"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
   add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
@@ -2194,6 +2192,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_210007) do
   add_foreign_key "donations", "donation_payouts", column: "payout_id"
   add_foreign_key "donations", "events"
   add_foreign_key "donations", "fee_reimbursements"
+  add_foreign_key "emburse_card_requests", "emburse_cards"
   add_foreign_key "emburse_card_requests", "events"
   add_foreign_key "emburse_card_requests", "users", column: "creator_id"
   add_foreign_key "emburse_card_requests", "users", column: "fulfilled_by_id"
