@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: event_applications
@@ -24,7 +26,6 @@
 #
 class Event
   class Application < ApplicationRecord
-
     enum :contact_option, {
       email: 0,
       slack: 1,
@@ -76,10 +77,11 @@ class Event
     private
 
     def slack_username_presence_if_contact_option_is_slack
-      if contact_option == 'slack' && slack_username.blank?
+      if contact_option == "slack" && slack_username.blank?
         errors.add(:slack_username, "can't be blank when contact option is Slack")
       end
     end
+
   end
 
 end
