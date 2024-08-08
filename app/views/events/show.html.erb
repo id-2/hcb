@@ -58,7 +58,7 @@
     <%= inline_icon "cheque", size: 16 %>
     Deposit a check
   <% end %>
-  <% unless @user_stripe_cards.any? %>
+  <% unless @cards.any? %>
     <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "order_card" } do %>
       <%= inline_icon "card", size: 16 %>
       Order a card

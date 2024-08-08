@@ -59,16 +59,12 @@ class EventsController < ApplicationController
     authorize @event
     @recent_transactions = @event.canonical_transactions.order(created_at: :desc).limit(3)
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
-    @organizers = BreakdownEngine::Users.new(@event).run.sort_by{ |o| -o[:value]}
-    all_stripe_cards = @event.stripe_cards.order(created_at: :desc)
-
-    @stripe_cards = all_stripe_cards.where.not(stripe_cardholder: current_user&.stripe_cardholder)
-    @user_stripe_cards = all_stripe_cards.where(stripe_cardholder: current_user&.stripe_cardholder)
+    @organizers = BreakdownEngine::Users.new(@event).run.sort_by{ |o| -o[:value] }
+    @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
 
     @past_month = @event.canonical_transactions.order(created_at: :desc).where("canonical_transactions.created_at > NOW() - INTERVAL '1 month'").count > 15
     @merchants = BreakdownEngine::Merchants.new(@event, past_month: @past_month).run
     @categories = BreakdownEngine::Categories.new(@event, past_month: @past_month).run
-    @cards = [@user_stripe_cards, @stripe_cards].flatten.first(10)
   end
 
   def transactions
