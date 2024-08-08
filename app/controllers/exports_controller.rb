@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 class ExportsController < ApplicationController
+  include SetEvent
+  before_action :set_event, only: [:transactions]
   skip_before_action :signed_in_user
   skip_after_action :verify_authorized, only: :collect_email
 
   def transactions
-    @event = Event.friendly.find(params[:event])
-
     authorize @event, :show?
 
     should_queue = @event.canonical_transactions.size > 300
@@ -60,7 +60,8 @@ class ExportsController < ApplicationController
             @withdrawn -= ct.amount
           end
         end
-        render pdf: "statement", page_height: "11in", page_width: "8.5in"
+
+        render pdf: "#{helpers.possessive(@event.name)} #{@start.strftime("%B %Y")} Statement", page_height: "11in", page_width: "8.5in"
       end
     end
   end

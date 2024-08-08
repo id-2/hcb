@@ -68,7 +68,8 @@ class Receipt < ApplicationRecord
     # and to suggest pairings
     unless Receipt::SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS.include?(upload_method.to_s)
       # certain interfaces run suggestions synchronously
-      ReceiptJob::ExtractTextualContent.perform_later(self)
+      # ReceiptJob::ExtractTextualContent.perform_later(self)
+      # see https://github.com/hackclub/hcb/issues/7123
       ReceiptJob::SuggestPairings.perform_later(self)
     end
   end
@@ -194,7 +195,7 @@ class Receipt < ApplicationRecord
 
   def tesseract_ocr_text
     file.blob.open do |tempfile|
-      words = ::RTesseract.new(tempfile.path).to_box
+      words = ::RTesseract.new(ImageProcessing::MiniMagick.source(tempfile.path).convert!("png").path).to_box
       words = words.select { |w| w[:confidence] > 85 }
       words = words.map { |w| w[:word] }
       text = words.join(" ")

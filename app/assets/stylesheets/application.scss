@@ -1,8 +1,17 @@
 @import 'variables';
 @import 'guidelines';
 
-$font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-  'Fira Sans', Oxygen, Ubuntu, 'Helvetica Neue', sans-serif;
+$font-family:
+  system-ui,
+  -apple-system,
+  BlinkMacSystemFont,
+  'Segoe UI',
+  Roboto,
+  'Fira Sans',
+  Oxygen,
+  Ubuntu,
+  'Helvetica Neue',
+  sans-serif;
 $mono: ui-monospace, 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
 
 :root {
@@ -132,7 +141,7 @@ h4 {
   font-size: 1.25rem;
 }
 
-p+p {
+p + p {
   margin-top: 0;
 }
 
@@ -244,6 +253,7 @@ summary {
 @import 'components/reimbursements/expenses';
 @import 'components/reimbursements/actions';
 @import 'components/event_settings';
+@import 'components/reactions';
 @import 'components/tags';
 @import 'components/filter_tabs';
 
@@ -349,10 +359,8 @@ summary {
   }
 }
 
-
 // Make mobile views nice. Full-bleed separator lines
 @media screen and (max-width: 32em) {
-
   table:not(.table-container > table),
   .table-container,
   .list,
@@ -377,11 +385,11 @@ summary {
     }
   }
 
-  .list>a>li,
-  .list>li,
+  .list > a > li,
+  .list > li,
   .heading,
-  .details>p,
-  .details>div,
+  .details > p,
+  .details > div,
   h1,
   h2,
   h3 {
@@ -397,7 +405,6 @@ summary {
 }
 
 @media print {
-
   .home,
   .dock,
   .heading .btn,
@@ -428,7 +435,10 @@ summary {
   }
 }
 
-[x-cloak], [hidden] { display: none !important; }
+[x-cloak],
+[hidden] {
+  display: none !important;
+}
 
 @import 'basscss';
 @import 'space';
