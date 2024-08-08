@@ -30,6 +30,8 @@ class Event
       slack: 1,
     }
 
+    validate :slack_username_presence_if_contact_option_is_slack
+
     def create_event!
       Event.create!(
         name: event_name,
@@ -69,6 +71,14 @@ class Event
         Accommodations: params[:accommodations],
         'HCB ID': event.id
       )
+    end
+
+    private
+
+    def slack_username_presence_if_contact_option_is_slack
+      if contact_option == 'slack' && slack_username.blank?
+        errors.add(:slack_username, "can't be blank when contact option is Slack")
+      end
     end
   end
 
