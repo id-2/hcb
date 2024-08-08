@@ -28,14 +28,16 @@
 <% else %>
   <div class="card card--breakdown shadow-none p-0 text-center flex-1 flex flex-col items-center justify-center" style="height: <%= [(@cards.length + 1.5) * 45, 320].max %>px">
     <h3 class="m-0 p-4 pb-0 max-w-xs">
-      No cards yet
+      <%= organizer_signed_in? ? "No cards yet" : "My cards" %>
     </h3>
     <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
-      Cards you've ordered will appear here
+      <%= organizer_signed_in? ? "Cards you've ordered will appear here" : "Sign in to see your cards" %>
     </p>
-    <%= link_to event_cards_new_path(event_id: @event.slug), class: "btn mt-2", data: { behavior: "modal_trigger", modal: "order_card" } do %>
-      <%= inline_icon "card-add" %>
-      Order a card
+    <% if organizer_signed_in? %>
+      <%= link_to event_cards_new_path(event_id: @event.slug), class: "btn mt-2", data: { behavior: "modal_trigger", modal: "order_card" } do %>
+        <%= inline_icon "card-add" %>
+        Order a card
+      <% end %>
     <% end %>
   </div>
 <% end %>
