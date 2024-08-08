@@ -4,35 +4,35 @@
 #
 # Table name: stripe_cards
 #
-#  id                                    :bigint           not null, primary key
-#  card_type                             :integer          default("virtual"), not null
-#  initially_activated                   :boolean          default(FALSE), not null
-#  is_platinum_april_fools_2023          :boolean
-#  last4                                 :text
-#  lost_in_shipping                      :boolean          default(FALSE)
-#  name                                  :string
-#  purchased_at                          :datetime
-#  spending_limit_amount                 :integer
-#  spending_limit_interval               :integer
-#  stripe_brand                          :text
-#  stripe_exp_month                      :integer
-#  stripe_exp_year                       :integer
-#  stripe_shipping_address_city          :text
-#  stripe_shipping_address_country       :text
-#  stripe_shipping_address_line1         :text
-#  stripe_shipping_address_line2         :text
-#  stripe_shipping_address_postal_code   :text
-#  stripe_shipping_address_state         :text
-#  stripe_shipping_name                  :text
-#  stripe_status                         :text
-#  created_at                            :datetime         not null
-#  updated_at                            :datetime         not null
-#  event_id                              :bigint           not null
-#  replacement_for_id                    :bigint
-#  stripe_card_personalization_design_id :integer
-#  stripe_cardholder_id                  :bigint           not null
-#  stripe_id                             :text
-#  subledger_id                          :bigint
+#  id                                  :bigint           not null, primary key
+#  activated                           :boolean          default(FALSE)
+#  card_type                           :integer          default("virtual"), not null
+#  initially_activated                 :boolean          default(FALSE), not null
+#  is_platinum_april_fools_2023        :boolean
+#  last4                               :text
+#  lost_in_shipping                    :boolean          default(FALSE)
+#  name                                :string
+#  purchased_at                        :datetime
+#  spending_limit_amount               :integer
+#  spending_limit_interval             :integer
+#  stripe_brand                        :text
+#  stripe_exp_month                    :integer
+#  stripe_exp_year                     :integer
+#  stripe_shipping_address_city        :text
+#  stripe_shipping_address_country     :text
+#  stripe_shipping_address_line1       :text
+#  stripe_shipping_address_line2       :text
+#  stripe_shipping_address_postal_code :text
+#  stripe_shipping_address_state       :text
+#  stripe_shipping_name                :text
+#  stripe_status                       :text
+#  created_at                          :datetime         not null
+#  updated_at                          :datetime         not null
+#  event_id                            :bigint           not null
+#  replacement_for_id                  :bigint
+#  stripe_cardholder_id                :bigint           not null
+#  stripe_id                           :text
+#  subledger_id                        :bigint
 #
 # Indexes
 #
