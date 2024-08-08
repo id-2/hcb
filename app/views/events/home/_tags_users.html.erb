@@ -1,0 +1,59 @@
+<% line_chart_config = {
+    elements: { point: { radius: 0 } },
+    scales: {
+      y: {
+        title: {
+          color: "gray",
+          font: {
+            size: 14,
+            weight: "900",
+          },
+        },
+      },
+      x: {
+        border: {
+          display: false
+        },
+        grid: {
+          display: false,
+        },
+        title: {
+          color: "gray",
+          font: {
+            size: 14,
+            weight: "900",
+          },
+        },
+      },
+    }
+  }
+
+  def pie_chart_config(legend_position)
+    {
+      elements: {
+        arc: {
+          borderWidth: 0
+        }
+      },
+      plugins: {
+        legend: {
+          position: legend_position,
+          align: legend_position == "bottom" ? "center" : "start",
+          labels: {
+            boxWidth: 10,
+            boxHeight: 10,
+            usePointStyle: "circle"
+          }
+        }
+      }
+    }
+  end %>
+
+<div class="breakdown-row mt-4">
+  <div class="card card--breakdown shadow-none p-4 flex-1 flex justify-between">
+    <%= pie_chart @tags, library: pie_chart_config("right"), download: true %>
+  </div>
+  <div class="card card--breakdown shadow-none p-4 flex-1 flex justify-between">
+    <%= pie_chart @tags, library: pie_chart_config("right"), download: true %>
+  </div>
+</div>
