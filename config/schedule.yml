@@ -142,3 +142,8 @@ transaction_report_job:
 headway_job:
   cron: "*/5 * * * *"
   class: "HeadwayJob"
+
+session_expiry_job:
+  cron: "* * * * *"
+  class: "SessionExpiryJob"
+
