@@ -7,7 +7,7 @@ class EventsController < ApplicationController
 
   include Rails::Pagination
   before_action :set_event, except: [:index, :new, :create, :by_airtable_id]
-  before_action except: [:index, :show, :new, :create] do
+  before_action except: [:show, :index] do
     render_back_to_tour @organizer_position, :welcome, event_path(@event)
   end
   skip_before_action :signed_in_user
