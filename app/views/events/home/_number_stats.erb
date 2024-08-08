@@ -1,0 +1,10 @@
+<div class="card card--breakdown shadow-none p-4 flex-1 flex gap-4">
+  <div class="stat stat--small">
+    <span class="stat__label">Amount raised</span>
+    <span class="stat__value"><%= render_money_amount @event.total_raised %></span>
+  </div>
+  <div class="stat stat--small">
+    <span class="stat__label">Amount spent</span>
+    <span class="stat__value"><%= render_money_amount @event.total_raised - @event.balance %></span>
+  </div>
+</div>

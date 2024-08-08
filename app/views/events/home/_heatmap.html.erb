@@ -1,16 +1,3 @@
-<div class="breakdown-row mt-4">
-  <div class="card card--breakdown shadow-none p-4 flex-1 flex justify-between">
-    <div class="stat stat--small">
-      <span class="stat__label">Amount raised</span>
-      <span class="stat__value"><%= render_money_amount @event.total_raised %></span>
-    </div>
-    <div class="stat stat--small">
-      <span class="stat__label">Amount spent</span>
-      <span class="stat__value"><%= render_money_amount @event.total_raised - @event.balance %></span>
-    </div>
-  </div>
-</div>
-
 <div class="card card--breakdown shadow-none p-4 flex-1 flex flex-col">
   <h4 class="breakdown-eyebrow mt-2 mb-3" style="font-size: 16px">
     <%= @past_year_transactions_count %> <%= "transaction".pluralize(@past_year_transactions_count) %> in the past year
