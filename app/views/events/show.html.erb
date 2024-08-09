@@ -202,10 +202,13 @@
 
     <%= render partial: "filter" %>
 
+    <!-- <h1><%= @allowed_params %></h1> -->
+
     <%= turbo_frame_tag "event_transactions_#{@event.public_id}",
         src: event_async_transactions_path({ event_id: @event }.merge(@allowed_params)),
         data: { turbo_permanent: true },
-        loading: :lazy do %>
+        loading: :lazy,
+        target: "_top" do %>
       <%= blankslate "Loading..." %>
       <% if @transactions || @pending_transactions || show_mock_data? %>
         <table>
@@ -219,5 +222,6 @@
         <%= blankslate "No transactions yet" %>
       <% end %>
     <% end %>
+    <%= paginate @transactions if (@transactions.any? || @pending_transactions.any?) %>
   <% end %>
 </main>

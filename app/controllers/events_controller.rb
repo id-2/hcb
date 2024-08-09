@@ -152,22 +152,10 @@ class EventsController < ApplicationController
       }
     }
 
-    if @transactions = Rails.cache.read(cache_key("transactions"))
-      TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
-      @pending_transactions = Rails.cache.read(cache_key("pending_transactions"))
-    else
-      @all_transactions = []
-      @transactions = []
-      @pending_transactions = []
-    end
+    @transactions = Rails.cache.read(cache_key("transactions")) || Kaminari.paginate_array([])
+    @pending_transactions = Rails.cache.read(cache_key("pending_transactions")) || Kaminari.paginate_array([])
 
-    if @type
-      filter = @type_filters[@type]
-      if filter
-        @all_transactions = @all_transactions.select(&filter["settled"])
-        @pending_transactions = @pending_transactions.select(&filter["pending"])
-      end
-    end
+    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run! if @transactions
 
     if current_user && !Flipper.enabled?(:native_changelog_2024_07_03, current_user)
       # @latest_changelog_post = ChangelogPost.latest
@@ -443,6 +431,8 @@ class EventsController < ApplicationController
   def async_transactions
     authorize @event
 
+    @forwarded_params = params
+
     # The search query name was historically `search`. It has since been renamed
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
@@ -473,23 +463,35 @@ class EventsController < ApplicationController
       end_date: @end_date
     ).run
 
+    if @type
+      filter = @type_filters[@type]
+      if filter
+        @all_transactions = @all_transactions.select(&filter["settled"])
+        @pending_transactions = @pending_transactions.select(&filter["pending"])
+      end
+    end
+
+    @pending_transactions = _show_pending_transactions
+    Rails.cache.write(cache_key("pending_transactions"), @pending_transactions, expires_in: 12.hours)
+
     @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
-    # if show_running_balance?
-    #   offset = page * per_page
 
-    #   initial_subtotal = if @all_transactions.count > offset
-    #                        TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
-    #                        # sum up transactions on pages after this one to get the initial subtotal
-    #                        @all_transactions.slice(offset...).map(&:amount).sum
-    #                      else
-    #                        # this is the last page, so start from 0
-    #                        0
-    #                      end
+    if show_running_balance?
+      offset = page * per_page
 
-    #   @transactions.reverse.reduce(initial_subtotal) do |running_total, transaction|
-    #     transaction.running_balance = running_total + transaction.amount
-    #   end
-    # end
+      initial_subtotal = if @all_transactions.count > offset
+                           TransactionGroupingEngine::Transaction::RunningBalanceAssociationPreloader.new(transactions: @all_transactions, event: @event).run!
+                           # sum up transactions on pages after this one to get the initial subtotal
+                           @all_transactions.slice(offset...).map(&:amount).sum
+                         else
+                           # this is the last page, so start from 0
+                           0
+                         end
+
+      @transactions.reverse.reduce(initial_subtotal) do |running_total, transaction|
+        transaction.running_balance = running_total + transaction.amount
+      end
+    end
 
     if helpers.show_mock_data?
       @transactions = MockTransactionEngineService::GenerateMockTransaction.new.run
@@ -497,11 +499,9 @@ class EventsController < ApplicationController
       @transactions = Kaminari.paginate_array(@transactions).page(params[:page]).per(params[:per] || 75)
       @mock_total = @transactions.sum(&:amount_cents)
     end
+
     Rails.cache.write(cache_key("transactions"), @transactions, expires_in: 12.hours)
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
-
-    @pending_transactions = _show_pending_transactions
-    Rails.cache.write(cache_key("pending_transactions"), @pending_transactions, expires_in: 12.hours)
 
     render :async_transactions, layout: false
   end

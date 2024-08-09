@@ -1,5 +1,5 @@
-
 <%= turbo_frame_tag "event_transactions_#{@event.public_id}" do %>
+  <!-- <h1><%= @forwarded_params %></h1> -->
   <div data-tour-step="transactions">
     <table>
       <tbody data-behavior="transactions">
@@ -9,5 +9,4 @@
       </tbody>
     </table>
   </div>
-  <%= paginate @transactions %>
 <% end %>
