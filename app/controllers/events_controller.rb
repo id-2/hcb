@@ -154,7 +154,7 @@ class EventsController < ApplicationController
 
     if @transactions = Rails.cache.read(cache_key("transactions"))
       TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
-      @pending_transactions =  Rails.cache.read(cache_key("pending_transactions"))
+      @pending_transactions = Rails.cache.read(cache_key("pending_transactions"))
     end
 
     if @type
@@ -165,8 +165,7 @@ class EventsController < ApplicationController
       end
     end
 
-    # if show_running_balance?
-    if false
+    if show_running_balance?
       offset = page * per_page
 
       initial_subtotal = if @all_transactions.count > offset
@@ -498,7 +497,7 @@ class EventsController < ApplicationController
     Rails.cache.write(cache_key("transactions"), @transactions, expires_in: 12.hours)
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
-    @pending_transactions =  _show_pending_transactions
+    @pending_transactions = _show_pending_transactions
     Rails.cache.write(cache_key("pending_transactions"), @pending_transactions, expires_in: 12.hours)
 
     render :async_transactions, layout: false
@@ -1066,7 +1065,7 @@ class EventsController < ApplicationController
     return [] if params[:page] && params[:page] != "1"
     return [] unless using_transaction_engine_v2? && using_pending_transaction_engine?
 
-    pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(
+    PendingTransactionEngine::PendingTransaction::All.new(
       event_id: @event.id,
       search: params[:q],
       tag_id: @tag&.id,
@@ -1077,7 +1076,7 @@ class EventsController < ApplicationController
       end_date: @end_date
     ).run
     # PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions:, event: @event).run!
-    pending_transactions
+
   end
 
   def show_running_balance?
