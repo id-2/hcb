@@ -57,7 +57,14 @@ class EventsController < ApplicationController
   # GET /events/1
   def show
     authorize @event
+
     @recent_transactions = @event.canonical_transactions.order(created_at: :desc).limit(3)
+
+    @keys = @event.transactions.to_json
+
+    @money_in = @event.canonical_transactions.order(created_at: :desc).where("amount_cents > 0").limit(3)
+    @money_out = @event.canonical_transactions.order(created_at: :desc).where("amount_cents < 0").limit(3)
+
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
     @organizers = BreakdownEngine::Users.new(@event).run.sort_by{ |o| -o[:value] }
     @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
@@ -68,6 +75,7 @@ class EventsController < ApplicationController
 
 
     heatmap_engine_response = BreakdownEngine::Heatmap.new(@event).run
+
     @heatmap = heatmap_engine_response[:heatmap]
     @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
     @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]

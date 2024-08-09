@@ -82,6 +82,10 @@
 </div>
 
 <div class="flex gap-4 flex-col sm:flex-row my-4">
+  <%= render partial: "events/home/money_movement", event: @event %>
+</div>
+
+<div class="flex gap-4 flex-col sm:flex-row my-4">
   <%= render partial: "events/home/recent_activity", event: @event %>
   <%= render partial: "events/home/team", event: @event %>
 </div>
@@ -93,8 +97,6 @@
     <%= render partial: "events/home/number_stats", event: @event %>
   </div>
 </div>
-
-<%# <%= render "pinned_transactions" %> 
 
 <div class="breakdown-row mt-4">
   <%= render partial: "events/home/top_merchants", event: @event %>
