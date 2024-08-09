@@ -2,10 +2,11 @@
 <% tagged_with = ct.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event } %>
 <% subscription = local_assigns[:subscription] || nil %>
 <tr
-  class="transaction <%= unless current_user && Flipper.enabled?(:transactions_background_2024_06_05, current_user)
+  class="transaction transaction--transition-in <%= unless current_user && Flipper.enabled?(:transactions_background_2024_06_05, current_user)
                            ct.amount.negative? ? "transaction--negative" : ct.amount.positive? ? "transaction--positive" : "transaction--zero"
                          end %> <%= ct.local_hcb_code.disbursement.special_appearance[:css_class] if !ct.amount.negative? && ct.local_hcb_code.disbursement&.special_appearance? %>"
   id="<%= ct.local_hcb_code.hashid %>"
+  style="animation-delay: <%= (ct_iteration.index.to_f + local_assigns[:pt_count]) / 50 %>s"
   <% if defined?(selectable) && selectable %>
     data-action="click->transactions#select"
     data-transactions-target="transaction"

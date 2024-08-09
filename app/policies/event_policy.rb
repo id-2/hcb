@@ -93,6 +93,10 @@ class EventPolicy < ApplicationPolicy
     is_public || admin_or_user?
   end
 
+  def async_transactions?
+    is_public || admin_or_user?
+  end
+
   def create_transfer?
     admin_or_manager? && !record.demo_mode?
   end

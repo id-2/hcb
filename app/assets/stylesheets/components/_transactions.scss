@@ -209,3 +209,26 @@ html[data-dark='true'] {
 .pending_transactions_tags:has(> div) {
   margin-top: 2px;
 }
+
+@keyframes scaleDown {
+  0% {
+    transform: scale(3);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    overflow-x: auto;
+  }
+}
+
+.transaction--transition-in {
+  animation: scaleDown 1s forwards;
+  transform: scale(1.25);
+  opacity: 0;
+  will-change: transform opacity;
+  overflow-x: none;
+}

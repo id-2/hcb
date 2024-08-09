@@ -655,6 +655,7 @@ Rails.application.routes.draw do
     get "transfers/new", to: "events#new_transfer"
 
     get "async_balance"
+    get "async_transactions"
     get "reimbursements_pending_review_icon"
 
     # (@eilla1) these pages are for the wip resources page and will be moved later

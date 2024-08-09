@@ -94,17 +94,6 @@ class EventsController < ApplicationController
       @hide_seasonal_decorations = true
     end
 
-    @all_transactions = TransactionGroupingEngine::Transaction::All.new(
-      event_id: @event.id,
-      search: params[:q],
-      tag_id: @tag&.id,
-      minimum_amount: @minimum_amount,
-      maximum_amount: @maximum_amount,
-      user: @user,
-      start_date: @start_date,
-      end_date: @end_date
-    ).run
-
     @type_filters = {
       "ach_transfer"           => {
         "settled" => ->(t) { t.local_hcb_code.ach_transfer? },
@@ -166,13 +155,8 @@ class EventsController < ApplicationController
       end
     end
 
-    page = (params[:page] || 1).to_i
-    per_page = (params[:per] || TRANSACTIONS_PER_PAGE).to_i
-
-    @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
-    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
-
-    if show_running_balance?
+    # if show_running_balance?
+    if false
       offset = page * per_page
 
       initial_subtotal = if @all_transactions.count > offset
@@ -465,6 +449,49 @@ class EventsController < ApplicationController
     authorize @event
 
     render :async_balance, layout: false
+  end
+
+  def async_transactions
+    authorize @event
+
+    puts "arsontoairsntaisrntiasrnotasrniteinasr"
+
+    # The search query name was historically `search`. It has since been renamed
+    # to `q`. This following line retains backwards compatibility.
+    params[:q] ||= params[:search]
+
+    if params[:tag] && Flipper.enabled?(:transaction_tags_2022_07_29, @event)
+      @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
+    end
+
+    @user = User.find(params[:user]) if params[:user]
+
+    @type = params[:type]
+    @start_date = params[:start].presence
+    @end_date = params[:end].presence
+    @minimum_amount = params[:minimum_amount].presence ? Money.from_amount(params[:minimum_amount].to_f) : nil
+    @maximum_amount = params[:maximum_amount].presence ? Money.from_amount(params[:maximum_amount].to_f) : nil
+
+    page = (params[:page] || 1).to_i
+    per_page = (params[:per] || TRANSACTIONS_PER_PAGE).to_i
+
+    @all_transactions = TransactionGroupingEngine::Transaction::All.new(
+      event_id: @event.id,
+      search: params[:q],
+      tag_id: @tag&.id,
+      minimum_amount: @minimum_amount,
+      maximum_amount: @maximum_amount,
+      user: @user,
+      start_date: @start_date,
+      end_date: @end_date
+    ).run
+
+    @pending_transactions = _show_pending_transactions
+
+    @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
+    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
+
+    render :async_transactions, layout: false
   end
 
   # (@msw) these pages are for the WIP resources page.

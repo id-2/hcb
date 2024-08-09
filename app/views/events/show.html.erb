@@ -96,7 +96,13 @@
         <span class="self-end" style="font-size: 10px;">+$<%= render_money_amount @event.fee_balance_v2_cents.abs %> fee credit</span>
       <% else %>
         <span class="stat__value" data-balance-graph-target="balance">
-          <%= render_money_amount(show_mock_data? ? @mock_total : @event.balance_available_v2_cents) %>
+            <% if show_mock_data? %>
+              <%= render_money_amount @mock_total %>
+            <% else %>
+              <%= turbo_frame_tag "event_balance_#{@event.public_id}", src: event_async_balance_path(@event), data: { turbo_permanent: true }, loading: :lazy do %>
+                💸
+              <% end %>
+            <% end %>
         </span>
       <% end %>
     </div>
@@ -197,30 +203,12 @@
     <%= render partial: "filter" %>
 
     <% if @pending_transactions.any? || @transactions.any? || show_mock_data? %>
-      <div class="table-container" data-tour-step="transactions">
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-                <th>Date</th>
-                <th>Description</th>
-                <th class="right-align">Amount</th>
-                <% if @show_running_balance %>
-                  <th>Running Balance</th>
-                <% end %>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody data-behavior="transactions">
-              <%= render "pending_fee_transaction" if @event.fronted_fee_balance_v2_cents > 0 %>
-
-              <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 } %>
-
-              <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 } %>
-          </tbody>
-          </table>
-      </div>
-      <%= paginate @transactions %>
+      <%= turbo_frame_tag "event_transactions_#{@event.public_id}",
+          src: event_async_transactions_path(@event),
+          data: { turbo_permanent: true },
+          loading: :lazy do %>
+        <%= blankslate "Loading..." %>
+      <% end %>
     <% else %>
       <%= blankslate "No transactions yet" %>
     <% end %>
