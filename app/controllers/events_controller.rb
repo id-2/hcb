@@ -454,8 +454,6 @@ class EventsController < ApplicationController
   def async_transactions
     authorize @event
 
-    puts "arsontoairsntaisrntiasrnotasrniteinasr"
-
     # The search query name was historically `search`. It has since been renamed
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
@@ -475,21 +473,34 @@ class EventsController < ApplicationController
     page = (params[:page] || 1).to_i
     per_page = (params[:per] || TRANSACTIONS_PER_PAGE).to_i
 
-    @all_transactions = TransactionGroupingEngine::Transaction::All.new(
-      event_id: @event.id,
-      search: params[:q],
-      tag_id: @tag&.id,
-      minimum_amount: @minimum_amount,
-      maximum_amount: @maximum_amount,
-      user: @user,
-      start_date: @start_date,
-      end_date: @end_date
-    ).run
+    start = Time.now
 
-    @pending_transactions = _show_pending_transactions
+    @all_transactions = Rails.cache.fetch([@event.id, "all_transactions", 1], expires_in: 10.minutes) do
+      TransactionGroupingEngine::Transaction::All.new(
+        event_id: @event.id,
+        search: params[:q],
+        tag_id: @tag&.id,
+        minimum_amount: @minimum_amount,
+        maximum_amount: @maximum_amount,
+        user: @user,
+        start_date: @start_date,
+        end_date: @end_date
+      ).run
+    end
 
-    @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
+    @transactions = Rails.cache.fetch([@event.id, "transactions", 1], expires_in: 10.minutes) do
+      @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
+      @transactions
+    end
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
+
+    @pending_transactions =  _show_pending_transactions.to_a # Rails.cache.fetch([@event.id, "pending_transactions", 1], expires_in: 10.minutes) do
+    #   _show_pending_transactions.to_a
+    # end
+
+    # finish = Time.now
+
+    # @all_txs_time = finish - start
 
     render :async_transactions, layout: false
   end
@@ -1053,7 +1064,7 @@ class EventsController < ApplicationController
       start_date: @start_date,
       end_date: @end_date
     ).run
-    PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions:, event: @event).run!
+    # PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions:, event: @event).run!
     pending_transactions
   end
 
