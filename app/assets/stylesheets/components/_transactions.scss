@@ -232,6 +232,14 @@ html[data-dark='true'] {
   overflow-x: auto;
 }
 
+table tr:only-child > td:first-child {
+  border-radius: 0.5rem 0 0 0.5rem !important;
+}
+
+table tr:only-child > td:last-child {
+  border-radius: 0 0.5rem 0.5rem 0 !important;
+}
+
 table tr.transaction:first-child > .td:first-child,
 table tr.transaction:first-child > .transaction__icon {
   border-radius: 0.5rem 0 0 0; /* Top left */
