@@ -212,7 +212,7 @@ html[data-dark='true'] {
 
 @keyframes scaleDown {
   0% {
-    transform: scale(1.5);
+    transform: scale(1.25);
     opacity: 0;
   }
   50% {
@@ -225,8 +225,8 @@ html[data-dark='true'] {
 }
 
 .transaction--transition-in {
-  animation: scaleDown 0.25s forwards;
-  transform: scale(1.5);
+  animation: scaleDown 0.2s forwards;
+  transform: scale(1.25);
   opacity: 0;
   will-change: transform opacity;
   overflow-x: auto;
@@ -237,7 +237,7 @@ table tr.transaction:first-child > .transaction__icon {
   border-radius: 0.5rem 0 0 0; /* Top left */
 }
 
-table tr.transaction:last-child > td:last-child {
+table tr.transaction:first-child > td:last-child {
   border-radius: 0 0.5rem 0 0; /* Top right */
 }
 
@@ -246,9 +246,8 @@ table tr.transaction:last-child > .transaction__icon {
   border-radius: 0 0 0 0.5rem; /* Bottom left */
 }
 
-table tr.transaction:first-child > td:last-child,
 table tr.transaction:last-child > td:last-child {
-  border-radius: 0 0.5rem 0 0;
+  border-radius: 0 0 0.5rem 0; /* Bottom right */
 }
 
 table tr.transaction:last-child {

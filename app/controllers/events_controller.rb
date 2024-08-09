@@ -79,6 +79,9 @@ class EventsController < ApplicationController
       @tag = Tag.find_by(event_id: @event.id, label: params[:tag])
     end
 
+    page = (params[:page] || 1).to_i
+    per_page = (params[:per] || TRANSACTIONS_PER_PAGE).to_i
+
     @user = User.find(params[:user]) if params[:user]
 
     @type = params[:type]
@@ -86,6 +89,8 @@ class EventsController < ApplicationController
     @end_date = params[:end].presence
     @minimum_amount = params[:minimum_amount].presence ? Money.from_amount(params[:minimum_amount].to_f) : nil
     @maximum_amount = params[:maximum_amount].presence ? Money.from_amount(params[:maximum_amount].to_f) : nil
+
+    @allowed_params = tx_params # Used to pass to async_transactions
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
@@ -146,6 +151,11 @@ class EventsController < ApplicationController
         "icon"    => "minus-fill"
       }
     }
+
+    if @transactions = Rails.cache.read(cache_key("transactions"))
+      TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
+      @pending_transactions =  Rails.cache.read(cache_key("pending_transactions"))
+    end
 
     if @type
       filter = @type_filters[@type]
@@ -473,34 +483,23 @@ class EventsController < ApplicationController
     page = (params[:page] || 1).to_i
     per_page = (params[:per] || TRANSACTIONS_PER_PAGE).to_i
 
-    start = Time.now
+    @all_transactions = TransactionGroupingEngine::Transaction::All.new(
+      event_id: @event.id,
+      search: params[:q],
+      tag_id: @tag&.id,
+      minimum_amount: @minimum_amount,
+      maximum_amount: @maximum_amount,
+      user: @user,
+      start_date: @start_date,
+      end_date: @end_date
+    ).run
 
-    @all_transactions = Rails.cache.fetch([@event.id, "all_transactions", 1], expires_in: 10.minutes) do
-      TransactionGroupingEngine::Transaction::All.new(
-        event_id: @event.id,
-        search: params[:q],
-        tag_id: @tag&.id,
-        minimum_amount: @minimum_amount,
-        maximum_amount: @maximum_amount,
-        user: @user,
-        start_date: @start_date,
-        end_date: @end_date
-      ).run
-    end
-
-    @transactions = Rails.cache.fetch([@event.id, "transactions", 1], expires_in: 10.minutes) do
-      @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
-      @transactions
-    end
+    @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
+    Rails.cache.write(cache_key("transactions"), @transactions, expires_in: 12.hours)
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
-    @pending_transactions =  _show_pending_transactions.to_a # Rails.cache.fetch([@event.id, "pending_transactions", 1], expires_in: 10.minutes) do
-    #   _show_pending_transactions.to_a
-    # end
-
-    # finish = Time.now
-
-    # @all_txs_time = finish - start
+    @pending_transactions =  _show_pending_transactions
+    Rails.cache.write(cache_key("pending_transactions"), @pending_transactions, expires_in: 12.hours)
 
     render :async_transactions, layout: false
   end
@@ -952,6 +951,19 @@ class EventsController < ApplicationController
 
   private
 
+  def tx_params
+    params.permit(
+      :search,
+      :tag_id,
+      :minimum_amount,
+      :maximum_amount,
+      :user,
+      :start_date,
+      :end_date,
+      :page,
+    )
+  end
+
   # Only allow a trusted parameter "white list" through.
   def event_params
     result_params = params.require(:event).permit(
@@ -1081,6 +1093,10 @@ class EventsController < ApplicationController
     if params[:show_mock_data].present?
       helpers.set_mock_data!(params[:show_mock_data] == "true")
     end
+  end
+
+  def cache_key(label)
+    [@event, label, tx_params]
   end
 
 end

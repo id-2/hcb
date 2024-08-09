@@ -1,12 +1,11 @@
-<% cache("hcb_code_cache_#{pt.hcb_code}_1") do %>
 <% instance = pt.__id__ %>
 <% tagged_with = pt.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event } %>
 <% subscription = local_assigns[:subscription] || nil %>
 <tr
-  class="transaction rounded overflow-clip transaction--transition-in muted <%= unless current_user && Flipper.enabled?(:transactions_background_2024_06_05, current_user)
+  class="transaction <%= "transaction--transition-in" if local_assigns[:transition_in] %> muted <%= unless current_user && Flipper.enabled?(:transactions_background_2024_06_05, current_user)
                                  pt.amount.negative? ? "transaction--negative" : pt.amount.positive? ? "transaction--positive" : "transaction--zero"
                                end %>"
-  style="animation-delay: <%= pt_iteration.index.to_f / 50 %>s"
+  style="animation-delay: <%= pt_iteration.index.to_f / 100 %>s"
   id="<%= pt.local_hcb_code.hashid %>"
   <% if defined?(selectable) && selectable %>
     data-action="click->transactions#select"
@@ -43,6 +42,8 @@
         <%= subscription[:average_date_difference].ceil %> days
       <% end %>
     <% else %>
+  <%= @transition_in %>
+
       <%= format_date pt.date %>
     <% end %>
   </td>
@@ -223,5 +224,4 @@
       </div>
     <% end %>
   </section>
-<% end %>
 <% end %>
