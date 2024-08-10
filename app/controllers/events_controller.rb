@@ -58,12 +58,9 @@ class EventsController < ApplicationController
   def show
     authorize @event
 
-    @recent_transactions = @event.canonical_transactions.order(created_at: :desc).limit(3)
-
-    @keys = @event.transactions.to_json
-
-    @money_in = @event.canonical_transactions.order(created_at: :desc).where("amount_cents > 0").limit(3)
-    @money_out = @event.canonical_transactions.order(created_at: :desc).where("amount_cents < 0").limit(3)
+    @recent_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.first(5)
+    @money_in = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents > 0 }.first(3)
+    @money_out = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents < 0 }.first(3)
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
     @organizers = BreakdownEngine::Users.new(@event).run.sort_by{ |o| -o[:value] }
