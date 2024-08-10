@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ReceiptBinMailbox < ApplicationMailbox
+class ReimbursementMailbox < ApplicationMailbox
   # mail --> Mail object, this actual email
   # inbound_email => ActionMailbox::InboundEmail record --> the active storage record
 
@@ -16,38 +16,39 @@ class ReceiptBinMailbox < ApplicationMailbox
 
     # All good, now let's create the receipts
 
-    result = ::ReceiptService::Create.new(
-      # `receiptable` is intentionally `nil` to send it to the Receipt Bin
+    report = @user.reimbursement_reports.create(inviter: @user)
+
+    expense = report.expenses.create!(amount_cents: 0)
+
+    receipts = ::ReceiptService::Create.new(
+      receiptable: expense,
       uploader: @user,
       attachments: @attachments,
-      upload_method: "email_receipt_bin"
+      upload_method: :email_reimbursement
     ).run!
 
-    return bounce_error if result.empty?
+    expense.update(memo: receipts.first.suggested_memo, value: receipts.first.extracted_total_amount_cents.to_f / 100) if receipts.first.suggested_memo
 
-    ReceiptBinMailer.with(
+    Reimbursement::MailboxMailer.with(
       mail: inbound_email,
       reply_to: mail.to.first,
-      receipts_count: result.size
+      report:,
+      receipts_count: receipts.size
     ).bounce_success.deliver_now
   end
 
   private
 
   def set_user
-    if mail.to.first.start_with?("receipts@")
-      @user = User.find_by(email: mail.from[0])
-    else
-      @user = MailboxAddress.activated.find_by(address: mail.to.first)&.user
-    end
+    @user = User.find_by(email: mail.from[0])
   end
 
   def bounce_missing_user
-    bounce_with ReceiptBinMailer.with(mail: inbound_email).bounce_missing_user
+    bounce_with Reimbursement::MailboxMailer.with(mail: inbound_email).bounce_missing_user
   end
 
   def bounce_error
-    bounce_with ReceiptBinMailer.with(
+    bounce_with Reimbursement::MailboxMailer.with(
       mail: inbound_email,
       reply_to: mail.to.first
     ).bounce_error
