@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_06_190751) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_09_163220) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -376,6 +376,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_06_190751) do
     t.bigint "grant_id"
     t.bigint "reimbursement_expense_payout_id"
     t.bigint "paypal_transfer_id"
+    t.bigint "reimbursement_payout_holding_id"
     t.index ["ach_payment_id"], name: "index_canonical_pending_transactions_on_ach_payment_id"
     t.index ["check_deposit_id"], name: "index_canonical_pending_transactions_on_check_deposit_id"
     t.index ["grant_id"], name: "index_canonical_pending_transactions_on_grant_id"
@@ -392,6 +393,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_06_190751) do
     t.index ["raw_pending_partner_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_partner_dntn_tx_id"
     t.index ["raw_pending_stripe_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_stripe_tx_id"
     t.index ["reimbursement_expense_payout_id"], name: "index_canonical_pending_txs_on_reimbursement_expense_payout_id"
+    t.index ["reimbursement_payout_holding_id"], name: "index_canonical_pending_txs_on_reimbursement_payout_holding_id"
     t.check_constraint "fronted IS NOT NULL", name: "canonical_pending_transactions_fronted_null"
   end
 
@@ -1785,7 +1787,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_06_190751) do
 
   create_table "reimbursement_reports", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "event_id", null: false
+    t.bigint "event_id"
     t.bigint "invited_by_id"
     t.text "invite_message"
     t.text "name"
