@@ -58,9 +58,22 @@ class EventsController < ApplicationController
   def show
     authorize @event
 
-    @recent_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.first(5)
-    @money_in = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents > 0 }.first(3)
-    @money_out = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents < 0 }.first(3)
+    @pending_transactions = _show_pending_transactions
+
+    @recent_transactions = [
+      *@pending_transactions.first(3),
+      *TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.first(3)
+    ].first(3)
+
+    @money_in = [
+      *TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents > 0 },
+      *@pending_transactions.select { |t| t.amount_cents > 0 }
+    ].first(3)
+
+    @money_out = [
+      *TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents < 0 },
+      *@pending_transactions.select { |t| t.amount_cents < 0 }
+    ].first(3)
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
     @organizers = BreakdownEngine::Users.new(@event).run.sort_by{ |o| -o[:value] }
