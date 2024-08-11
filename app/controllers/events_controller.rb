@@ -63,17 +63,17 @@ class EventsController < ApplicationController
     @recent_transactions = [
       *@pending_transactions.first(3),
       *TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.first(3)
-    ].first(3)
+    ].first(3).sort_by { |t| t.date.is_a?(String) ? Date.parse(t.date) : t.date }.reverse
 
     @money_in = [
       *TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents > 0 },
       *@pending_transactions.select { |t| t.amount_cents > 0 }
-    ].first(3)
+    ].first(3).sort_by { |t| t.date.is_a?(String) ? Date.parse(t.date) : t.date }.reverse
 
     @money_out = [
       *TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.select { |t| t.amount_cents < 0 },
       *@pending_transactions.select { |t| t.amount_cents < 0 }
-    ].first(3)
+    ].first(3).sort_by { |t| t.date.is_a?(String) ? Date.parse(t.date) : t.date }.reverse
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
     @organizers = BreakdownEngine::Users.new(@event).run.sort_by{ |o| -o[:value] }
