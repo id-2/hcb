@@ -154,7 +154,6 @@ class EventsController < ApplicationController
 
     @transactions = Rails.cache.read(cache_key("transactions")) || Kaminari.paginate_array([])
     @pending_transactions = Rails.cache.read(cache_key("pending_transactions")) || Kaminari.paginate_array([])
-
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run! if @transactions
 
     if current_user && !Flipper.enabled?(:native_changelog_2024_07_03, current_user)
