@@ -89,14 +89,31 @@ class EventsController < ApplicationController
     @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
     @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]
     @past_year_transactions_count = heatmap_engine_response[:transactions_count]
+  end
 
+  def top_merchants
+    authorize @event
     @merchants = BreakdownEngine::Merchants.new(@event).run
+    respond_to do |format|
+      format.html { render partial: "events/home/top_merchants", locals: { merchants: @merchants, event: @event } }
+    end
+  end
 
+  def top_categories
+    authorize @event
     @categories = BreakdownEngine::Categories.new(@event).run
+    respond_to do |format|
+      format.html { render partial: "events/home/top_categories", locals: { categories: @categories, event: @event } }
+    end
+  end
 
+  def tags_users
+    authorize @event
     @users = BreakdownEngine::Users.new(@event).run
-
     @tags = BreakdownEngine::Tags.new(@event).run
+    respond_to do |format|
+      format.html { render partial: "events/home/tags_users", locals: { users: @users, tags: @tags, event: @event } }
+    end
   end
 
   def transactions

@@ -213,6 +213,18 @@ class EventPolicy < ApplicationPolicy
     user&.admin? && record.demo_mode?
   end
 
+  def top_merchants?
+    is_public || admin_or_user?
+  end
+
+  def top_categories?
+    is_public || admin_or_user?
+  end
+
+  def tags_users?
+    is_public || admin_or_user?
+  end
+
   private
 
   def admin_or_user?
