@@ -222,6 +222,6 @@
         <% end %>
       <% end %>
     <% end %>
-    <%= paginate @transactions if (@transactions.any? || @pending_transactions.any?) %>
+    <%= paginate @transactions if @transactions.any? || @pending_transactions.any? %>
   <% end %>
 </main>
