@@ -87,7 +87,10 @@
 
 <div class="flex gap-4 flex-col sm:flex-row my-4">
   <%= render partial: "events/home/recent_activity", event: @event %>
-  <%= render partial: "events/home/team", event: @event %>
+  <div class="flex gap-4 flex-col" style="flex:1">
+    <%= render partial: "events/home/team", event: @event %>
+    <%= render partial: "events/home/number_stats", event: @event %>
+  </div>
 </div>
 
 <div class="flex gap-4 mb-4 flex-col">
@@ -101,7 +104,3 @@
 
 <%= render partial: "events/home/tags_users", event: @event %>
 <%= render partial: "events/home/heatmap", event: @event %>
-
-<div class="flex gap-4 flex-col sm:flex-row my-4">
-  <%= render partial: "events/home/number_stats", event: @event %>
-</div>

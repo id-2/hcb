@@ -75,7 +75,7 @@ class EventsController < ApplicationController
     @money_out = filter_and_sort.call(all_transactions) { |t| t.amount_cents < 0 }
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
-    @organizers = BreakdownEngine::Users.new(@event).run.sort_by{ |o| -o[:value] }
+    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
 
     @past_month = @event.canonical_transactions.order(created_at: :desc).where("canonical_transactions.created_at > NOW() - INTERVAL '1 month'").count > 15
