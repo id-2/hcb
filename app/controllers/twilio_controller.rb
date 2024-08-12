@@ -30,15 +30,15 @@ class TwilioController < ActionController::Base
       receiptable: @receiptable,
       uploader: @user,
       attachments: @attachments,
-      upload_method: "sms"
+      upload_method: reimbursement? ? "sms_reimbursement" : "sms"
     ).run!
 
     if reimbursement? && receipts.first.suggested_memo
-      @receiptable.update(memo: receipts.first.suggested_memo, amount_cents: receipts.first.extracted_total_amount_cents)
+      @receiptable.update(memo: receipts.first.suggested_memo, value: receipts.first.extracted_total_amount_cents.to_f / 100)
     end
 
     if reimbursement?
-      reply_with("Attached #{receipts.count} #{"receipt".pluralize(receipts.count)} to a new reimbursement report: (#{reimbursement_report_url(@report)})!")
+      reply_with("Attached #{receipts.count} #{"receipt".pluralize(receipts.count)} to a new reimbursement report: #{reimbursement_report_url(@report)}!")
     elsif @receiptable
       reply_with("Attached #{receipts.count} #{"receipt".pluralize(receipts.count)} to #{@receiptable.memo} (#{hcb_code_url(@receiptable)})!")
     else

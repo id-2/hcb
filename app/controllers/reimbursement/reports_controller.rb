@@ -243,7 +243,7 @@ module Reimbursement
 
       @report.destroy
 
-      if organizer_signed_in?
+      if organizer_signed_in? && @event
         redirect_to event_reimbursements_path(@event)
       else
         redirect_to my_reimbursements_path
@@ -267,7 +267,7 @@ module Reimbursement
     def update_reimbursement_report_params
       reimbursement_report_params = params.require(:reimbursement_report).permit(:report_name, :event_id, :maximum_amount, :reviewer_id).compact
       reimbursement_report_params.delete(:maximum_amount) unless current_user.admin? || @event.users.include?(current_user)
-      reimbursement_report_params.delete(:maximum_amount) unless @report.draft?
+      reimbursement_report_params.delete(:maximum_amount) unless @report.draft? || @report.submitted?
       reimbursement_report_params
     end
 

@@ -537,7 +537,7 @@ class AdminController < ApplicationController
         tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.nil? ||
         @clearinghouse_transactions.select { |ctx| ctx.hcb_code == tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.hcb_code }.none? ||
         tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.local_hcb_code.amount_cents.abs != tx.local_hcb_code.amount_cents.abs
-      ) && tx.hcb_code != "HCB-712-732" # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
+      ) && !tx.local_hcb_code.reimbursement_payout_holding.reversed? && tx.hcb_code != "HCB-712-732" # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
     }
 
     render layout: false
@@ -1310,7 +1310,7 @@ class AdminController < ApplicationController
     @user_id = params[:user_id]
 
     messages = Ahoy::Message.all
-    messages = messages.where(user: User.find(@user_id)) if @user_id
+    messages = messages.where(user: User.find(@user_id)) if @user_id.present?
 
     messages = messages.search_subject(@q) if @q
 
