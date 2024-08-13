@@ -13,16 +13,23 @@
   </span>
 
   <% if @active_control %>
-    <% new_allowance_button = link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "new" }, disabled: !policy(@provisional_allowance).new? do %>
+    <% new_allowance_decrease_button = link_to "#", class: "btn bg-error", data: { behavior: "modal_trigger", modal: "new" }, disabled: !policy(@provisional_allowance).new? do %>
+      <%= inline_icon "minus" %>
+      Decrease budget
+    <% end %>
+
+    <% new_allowance_increase_button = link_to "#", class: "btn bg-success", data: { behavior: "modal_trigger", modal: "new" }, disabled: !policy(@provisional_allowance).new? do %>
       <%= inline_icon "plus" %>
-      New
+      Increase budget
     <% end %>
 
     <% if policy(@provisional_allowance).new? %>
-      <%= new_allowance_button %>
+      <%= new_allowance_decrease_button %>
+      <%= new_allowance_increase_button %>
     <% else %>
       <div class="flex tooltipped tooltipped--w" aria-label="You can't create a new allowance">
-        <%= new_allowance_button %>
+        <%= new_allowance_decrease_button %>
+        <%= new_allowance_increase_button %>
       </div>
     <% end %>
   <% end %>
@@ -41,18 +48,6 @@
       <span class="stat__label">Balance</span>
       <span class="stat__value">
         <%= render_money_amount @active_control.balance_cents %>
-      </span>
-    </div>
-    <div class="stat stat--small">
-      <span class="stat__label">Total Allowances</span>
-      <span class="stat__value">
-        <%= render_money_amount @active_control.total_allowances_amount_cents %>
-      </span>
-    </div>
-    <div class="stat stat--small">
-      <span class="stat__label">Spent</span>
-      <span class="stat__value">
-        <%= render_money_amount @active_control.total_spent_cents %>
       </span>
     </div>
   </div>

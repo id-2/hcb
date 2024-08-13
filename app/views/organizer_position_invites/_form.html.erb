@@ -38,7 +38,7 @@
   <div x-show="role === 'member'" x-cloak x-transition.duration.500ms class="my-4">
     <%= form.label :enable_controls, class: "mb1 inline-flex flex-col" do %>
         Enable spending controls?
-        <span class="muted h6">You can always enable & configure spending controls after, too.</span>
+        <span class="muted h6">You can always enable & configure spending controls from the Team page later.</span>
     <% end %>
 
     <div class="field field--options">
@@ -54,8 +54,13 @@
     </div>
 
     <div x-show="spendingControls === 'true'" x-cloak x-transition.duration.500ms class="mb1">
-        <%= form.label :initial_control_allowance_amount, value: "Initial allowance amount" %>
-        <%= form.number_field :initial_control_allowance_amount, placeholder: "500.00", step: 0.01, min: 0.00, data: { controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
+        <%= form.label :initial_control_allowance_amount, class: "inline-flex gap-2 items-center" do %>
+          <span>Initial budget</span>
+          <span class="tooltipped tooltipped--e h-fit" aria-label="This is the initial amount <%= current_user.name %> can spend on their debit cards. You can always increase or decrease this later from the Team page.">
+            <%= inline_icon "info", class: "info", size: 24 %>
+          </span>
+        <% end %>
+        <%= form.number_field :initial_control_allowance_amount, placeholder: "$500.00", step: 0.01, min: 0.00, data: { controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
     </div>
   </div>
 <% end %>
