@@ -3,7 +3,7 @@
   <div class="p-4 pb-0">
     <h3 class="m-0">Team members</h3>
   </div>
-  <div class="flex gap-3 overflow-x-scroll w-100 py-2 px-4">
+  <div class="flex gap-3 overflow-x-auto overflow-y-visible w-100 py-2 px-4">
     <%= pop_icon_to "member-add", event_team_path(@event), class: "info", style: "width:70px;height:70px;color:#338eda!important", data: { "tour-step" => "invite" } %>
     <% @organizers.each do |position| %>
       <div class="avatar-grow line-height-0 tooltipped tooltipped--e" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">

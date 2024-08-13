@@ -225,6 +225,14 @@ class EventPolicy < ApplicationPolicy
     is_public || admin_or_user?
   end
 
+  def transaction_heatmap?
+    is_public || admin_or_user?
+  end
+
+  def my_cards?
+    is_public || admin_or_user?
+  end
+
   private
 
   def admin_or_user?

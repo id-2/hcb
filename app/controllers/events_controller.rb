@@ -77,18 +77,29 @@ class EventsController < ApplicationController
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
+  end
 
-    @past_month = @event.canonical_transactions.order(created_at: :desc).where("canonical_transactions.created_at > NOW() - INTERVAL '1 month'").count > 15
-    @merchants = BreakdownEngine::Merchants.new(@event, past_month: @past_month).run
-    @categories = BreakdownEngine::Categories.new(@event, past_month: @past_month).run
-
-
+  def transaction_heatmap
+    authorize @event
     heatmap_engine_response = BreakdownEngine::Heatmap.new(@event).run
 
     @heatmap = heatmap_engine_response[:heatmap]
     @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
     @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]
     @past_year_transactions_count = heatmap_engine_response[:transactions_count]
+
+    respond_to do |format|
+      format.html { render partial: "events/home/heatmap", locals: { heatmap: @heatmap, event: @event } }
+    end
+  end
+
+  def my_cards
+    authorize @event
+    @cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user.stripe_cardholder)
+
+    respond_to do |format|
+      format.html { render partial: "events/home/cards", locals: { cards: @cards, event: @event } }
+    end
   end
 
   def top_merchants
