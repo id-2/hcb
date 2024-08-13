@@ -232,6 +232,10 @@ class HcbCode < ApplicationRecord
     stripe_merchant&.[]("category_code") == "6011"
   end
 
+  def stripe_atm_fee
+    pt&.raw_pending_stripe_transaction&.stripe_transaction&.dig("amount_details")&.dig("atm_fee") || ct&.raw_stripe_transaction&.stripe_transaction&.dig("amount_details")&.dig("atm_fee")
+  end
+
   def stripe_auth_dashboard_url
     pt.try(:stripe_auth_dashboard_url) || ct.try(:stripe_auth_dashboard_url)
   end
@@ -530,6 +534,10 @@ class HcbCode < ApplicationRecord
 
   def suggested_memos
     receipts.pluck(:suggested_memo).compact
+  end
+
+  def author
+    stripe_cardholder&.user || ach_transfer&.creator || increase_check&.user || disbursement&.requested_by || reimbursement_expense_payout&.expense&.report&.user
   end
 
 end

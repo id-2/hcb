@@ -530,14 +530,14 @@ class AdminController < ApplicationController
 
     @pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(event_id: EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING).run
 
-    @unidentified_transactions = @clearinghouse_transactions.reject { |tx| (tx.local_hcb_code.reimbursement_payout_holding? || tx.local_hcb_code.reimbursement_payout_transfer?) || tx.hcb_code == "HCB-500-5084" } # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
+    @unidentified_transactions = @clearinghouse_transactions.reject { |tx| (tx.local_hcb_code.reimbursement_payout_holding? || tx.local_hcb_code.reimbursement_payout_transfer?) || tx.hcb_code == "HCB-500-5084" || tx.amount_cents == 0 } # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
 
     @incomplete_payout_holdings = @clearinghouse_transactions.select { |tx|
       tx.local_hcb_code.reimbursement_payout_holding? && (
         tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.nil? ||
         @clearinghouse_transactions.select { |ctx| ctx.hcb_code == tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.hcb_code }.none? ||
         tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.local_hcb_code.amount_cents.abs != tx.local_hcb_code.amount_cents.abs
-      ) && tx.hcb_code != "HCB-712-732" # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
+      ) && !tx.local_hcb_code.reimbursement_payout_holding.reversed? && tx.hcb_code != "HCB-712-732" # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
     }
 
     render layout: false
@@ -627,7 +627,7 @@ class AdminController < ApplicationController
   def disbursement_approve
     disbursement = Disbursement.find(params[:id])
 
-    disbursement.mark_approved!(current_user)
+    disbursement.approve_by_admin(current_user)
 
     redirect_to disbursement_process_admin_path(disbursement), flash: { success: "Success" }
   rescue => e
@@ -1310,7 +1310,7 @@ class AdminController < ApplicationController
     @user_id = params[:user_id]
 
     messages = Ahoy::Message.all
-    messages = messages.where(user: User.find(@user_id)) if @user_id
+    messages = messages.where(user: User.find(@user_id)) if @user_id.present?
 
     messages = messages.search_subject(@q) if @q
 

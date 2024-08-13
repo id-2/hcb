@@ -26,9 +26,19 @@
     <% else %>
       <p>
         <strong>Activation status</strong>
-        <span class="flex items-baseline">
+        <span class="flex items-baseline g-1">
           <%= status_badge stripe_card.status_badge_type %>
           <%= stripe_card.status_text.capitalize %>
+        </span>
+      </p>
+    <% end %>
+
+    <% if stripe_card.cash_withdrawal_enabled? %>
+      <p>
+        <strong>Cash withdrawals</strong>
+        <span class="flex items-baseline g-1">
+          <%= status_badge :success %>
+          Enabled
         </span>
       </p>
     <% end %>
@@ -75,6 +85,16 @@
         <% end %>
       </div>
     </div>
+
+    <% if stripe_card.cash_withdrawal_enabled? %>
+      <div class="fs-mask" data-controller="pin" data-pin-card-id-value="<%= stripe_card.id %>" data-pin-stripe-id-value="<%= stripe_card.stripe_id %>" data-pin-stripe-api-key-value="<%= StripeService.publishable_key %>">
+        <strong>PIN</strong>
+        <div class="flex justify-between font-mono items-center">
+          <span id="card-pin">••••</span>
+          <%= inline_icon @show_card_details ? "view-fill" : "view", class: "align-middle", "data-action": "click->pin#view" %>
+        </div>
+      </div>
+    <% end %>
 
     <div class="fs-mask">
       <strong>Expiration date</strong>

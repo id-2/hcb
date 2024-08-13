@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/hackclub/yellow_pages.git
-  revision: 117d13e5067c540e3ee2457a4aac070ca88f59c9
-  ref: 117d13e
+  revision: b8e78c3e54c46526119bf74e8403ffb05a558bed
+  ref: b8e78c3
   specs:
-    yellow_pages (0.1.0)
+    yellow_pages (0.3.0)
 
 GEM
   remote: https://rubygems.org/

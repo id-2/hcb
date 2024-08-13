@@ -346,6 +346,7 @@ Rails.application.routes.draw do
       post "freeze"
       post "defrost"
       post "cancel"
+      get "ephemeral_keys"
     end
   end
 
@@ -381,6 +382,7 @@ Rails.application.routes.draw do
   resources :disbursements, only: [:new, :create, :show, :edit, :update] do
     post "mark_fulfilled"
     post "reject"
+    post "cancel"
     get "confirmation", to: "disbursements#transfer_confirmation_letter"
   end
 
@@ -408,6 +410,10 @@ Rails.application.routes.draw do
       post "pin"
       post "toggle_tag/:tag_id", to: "hcb_codes#toggle_tag", as: :toggle_tag
       post "send_receipt_sms", to: "hcb_codes#send_receipt_sms", as: :send_sms_receipt
+
+      scope module: "hcb_code" do
+        get "subscriptions/transactions", to: "subscriptions#transactions"
+      end
     end
   end
 
