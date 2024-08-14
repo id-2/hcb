@@ -20,7 +20,7 @@ gem "mini_magick"
 
 
 gem "jsbundling-rails", "~> 1.3"
-gem "terser", "~> 1.1" # JS compressor
+gem "terser", "~> 1.2" # JS compressor
 gem "jquery-rails"
 gem "react-rails"
 gem "turbo-rails", "~> 2.0.5"
@@ -35,7 +35,7 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 29.0"
-gem "yellow_pages", github: "hackclub/yellow_pages", ref: "b8e78c3"
+gem "yellow_pages", github: "hackclub/yellow_pages", ref: "3014248"
 
 gem "aws-sdk-s3", require: false
 
@@ -212,7 +212,7 @@ gem "cssbundling-rails", "~> 1.4"
 
 gem "rtesseract"
 
-gem "sprockets-rails", "~> 3.4"
+gem "sprockets-rails", "~> 3.5"
 
 gem "public_activity"
 
