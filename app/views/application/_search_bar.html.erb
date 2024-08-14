@@ -1,0 +1,12 @@
+<%# locals: (form:, query_param: :q) %>
+<% search_value = params[query_param] %>
+
+<div class="input input-group max-w-none" tabindex="0">
+  <%= inline_icon "search" %>
+  <%= form.text_field query_param, placeholder: "Type / to search...", data: { behavior: "search" }, value: search_value %>
+  <% if search_value.present? %>
+    <button data-behavior="clear" type="submit" class="pop muted w-7 h-7">
+      <%= inline_icon "view-close", size: 24 %>
+    </button>
+  <% end %>
+</div>
