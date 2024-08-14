@@ -1,9 +1,4 @@
 <% content_for(:nav) do %>
-  <h1 class="flex items-center xs-hide border-none h1 mt0 mb0 pt2">
-    <%= avatar_for current_user, 36, { class: "mr1" } %>
-    <%= current_user.initial_name %>
-  </h1>
-
   <div>
     <button
       class="btn h-10 bg-none bg-smoke shadow-none w-100 justify-start mt1 px-3 hover:shadow-none display-none-not-important md:flex"
@@ -18,6 +13,15 @@
       </span>
     </button>
   </div>
+
+  <%= link_to my_settings_path, class: "no-underline border rounded-lg px-4 py-2 flex items-center gap-3 mt-2" do %>
+    <%= avatar_for current_user, 32 %>
+    <div class="flex flex-col">
+      <span class="font-bold"><%= current_user.initial_name %></span>
+      <span class="text-xs"><%= current_user.email %></span>
+    </div>
+    <%= inline_icon "settings", size: 24, class: "muted ml-auto" %>
+  <% end %>
 
   <nav class="dock font-medium mt1">
     <%= dock_item "Home",
@@ -42,11 +46,6 @@
       icon: "attachment",
       async_badge: my_reimbursements_icon_path,
       selected: local_assigns[:selected] == :reimbursements %>
-    <%= dock_item "Settings",
-      my_settings_path,
-      tooltip: "Edit account settings",
-      icon: "settings",
-      selected: local_assigns[:selected] == :settings %>
     <% if @first_visit %>
       <div class="pwa__prompt" style="position: relative">
         <div class="pwa__prompt__hide" onclick="hidePWAPrompt()">

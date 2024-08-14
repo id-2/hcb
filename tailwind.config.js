@@ -46,6 +46,7 @@ module.exports = {
       normal: 400,
       medium: 500,
       bold: 600,
+      black: 800
     },
     extend: {
       backgroundImage: {
