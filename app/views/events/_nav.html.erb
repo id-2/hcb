@@ -97,7 +97,7 @@
           Settings
           <%= inline_icon "up-caret", class: "drawer-chevron" %>
       </summary>
-      <%= dock_item "Organisation details",
+      <%= dock_item "Organization details",
          edit_event_path(@event, tab: "details"),
         tooltip: "Manage your team",
         selected: @settings_tab == "details" || (@settings_tab.nil? && local_assigns[:selected] == :settings),
