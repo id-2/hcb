@@ -60,7 +60,7 @@ class EventsController < ApplicationController
 
     @pending_transactions = _show_pending_transactions
     @canonical_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
-    all_transactions = [*@canonical_transactions, *@pending_transactions]
+    all_transactions = [*@pending_transactions, *@canonical_transactions]
 
     filter_and_sort = lambda do |transactions, &filter|
       transactions
@@ -70,7 +70,7 @@ class EventsController < ApplicationController
         .first(3)
     end
 
-    @recent_transactions = filter_and_sort.call(all_transactions) { true }
+    @recent_transactions = all_transactions.first(3)
     @money_in = filter_and_sort.call(all_transactions) { |t| t.amount_cents > 0 }
     @money_out = filter_and_sort.call(all_transactions) { |t| t.amount_cents < 0 }
 
