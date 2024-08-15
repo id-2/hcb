@@ -9,9 +9,7 @@
         <%= avatar_for position.user, 60, { style: "margin-left: -20px" } %>
       </div>
     <% end %>
-    <% 
-      if @organizers.length > 8
-    %>
+    <% if @organizers.length > 8 %>
       <div style="transform:none;width:60px;height:60px;margin-left:-20px;z-index:1" class="bg-muted flex items-center justify-center rounded-full avatar-grow">
         +<%= @organizers.length - 8 %>
       </div>
