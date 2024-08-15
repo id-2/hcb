@@ -35,7 +35,7 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 29.0"
-gem "yellow_pages", github: "hackclub/yellow_pages", ref: "b8e78c3"
+gem "yellow_pages", github: "hackclub/yellow_pages", ref: "54f4726"
 
 gem "aws-sdk-s3", require: false
 
@@ -224,3 +224,5 @@ gem "rotp"
 gem "ruby-limiter"
 
 gem "ahoy_email", "~> 2.3"
+
+gem "email_reply_parser"
