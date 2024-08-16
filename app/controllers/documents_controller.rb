@@ -3,8 +3,8 @@
 class DocumentsController < ApplicationController
   include SetEvent
 
-  before_action :set_event, only: [:index, :new, :fiscal_sponsorship_letter], if: -> { params[:id] || params[:event_id] }
-  before_action :set_document, except: [:common_index, :index, :new, :create, :fiscal_sponsorship_letter]
+  before_action :set_event, only: [:index, :new, :fiscal_sponsorship_letter, :verification_letter], if: -> { params[:id] || params[:event_id] }
+  before_action :set_document, except: [:common_index, :index, :new, :create, :fiscal_sponsorship_letter, :verification_letter]
   skip_after_action :verify_authorized, only: [:index]
 
   def common_index
@@ -104,6 +104,21 @@ class DocumentsController < ApplicationController
 
       format.png do
         send_data ::DocumentService::PreviewFiscalSponsorshipLetter.new(event: @event).run, filename: "fiscal_sponsorship_letter.png"
+      end
+    end
+  end
+
+  def verification_letter
+    authorize @event, policy_class: DocumentPolicy
+
+    puts Rails.application.credentials.openai.api_key
+    respond_to do |format|
+      format.pdf do
+        render pdf: "verification_letter", page_height: "11in", page_width: "8.5in"
+      end
+
+      format.png do
+        # send_data ::DocumentService::PreviewFiscalSponsorshipLetter.new(event: @event).run, filename: "fiscal_sponsorship_letter.png"
       end
     end
   end
