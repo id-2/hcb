@@ -112,6 +112,9 @@ class DocumentsController < ApplicationController
     authorize @event, policy_class: DocumentPolicy
 
     respond_to do |format|
+      format.html do
+        render :verification_letter, layout: false
+      end
       format.pdf do
         render pdf: "verification_letter", page_height: "11in", page_width: "8.5in"
       end
