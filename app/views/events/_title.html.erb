@@ -1,23 +1,11 @@
 <div data-controller="menu" class="pt2">
-  <%= link_to @event, class: "text-decoration-none text-xl gap-4 text-inherit event-title -m-2 px-2 mb-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200 flex items-center", style: "font-weight: 800", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
+  <%= link_to @event, class: "#{"pointer-events-none" if !signed_in?} text-decoration-none text-2xl gap-4 text-inherit event-title -m-2 mt-2 px-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200 flex items-center tracking-tight", style: "color: var(--primary)!important; font-weight: 800", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
     <%= @event.name %>
     <%= inline_icon "expand-more", size: 24 if show_org_switcher? %>
   <% end %>
   <% if show_org_switcher? %>
     <div class="menu__content menu__content--switcher sm:w-[275px]" data-menu-target="content">
-      <p class="muted font-black text-sm mb-0 uppercase m-1">Account</p>
-      <a data-behavior="toggle_theme" class="gap-2">
-        <%= inline_icon "moon", size: 24 %>
-        <%= inline_icon "moon-fill", size: 24, style: "display: none;" %>
-        <span>Toggle theme</span>
-      </a>
-
-      <%= link_to logout_users_path, class: "gap-2", method: :delete do %>
-        <%= inline_icon "door-leave", size: 24 %>
-        <span>Sign out</span>
-      <% end %>
-
-      <p class="muted font-black text-sm mb-0 uppercase m-1 mt-2">Organziations</p>
+      <p class="muted font-black text-sm mb-0 uppercase m-1">Organziations</p>
       <% current_user.events.not_hidden.with_attached_logo.map do |event| %>
         <%= link_to event, title: event.name, class: "gap-2" do %>
           <% if event.logo.attached? %>
@@ -33,6 +21,18 @@
           </span> 
           %>
         <% end %>
+      <% end %>
+
+      <p class="muted font-black text-sm mb-0 uppercase m-1 mt-2">Account</p>
+      <a data-behavior="toggle_theme" class="gap-2">
+        <%= inline_icon "moon", size: 24 %>
+        <%= inline_icon "moon-fill", size: 24, style: "display: none;" %>
+        <span>Toggle theme</span>
+      </a>
+
+      <%= link_to logout_users_path, class: "gap-2", method: :delete do %>
+        <%= inline_icon "door-leave", size: 24 %>
+        <span>Sign out</span>
       <% end %>
     </div>
   <% end %>
