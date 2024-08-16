@@ -111,7 +111,6 @@ class DocumentsController < ApplicationController
   def verification_letter
     authorize @event, policy_class: DocumentPolicy
 
-    puts Rails.application.credentials.openai.api_key
     respond_to do |format|
       format.pdf do
         render pdf: "verification_letter", page_height: "11in", page_width: "8.5in"
