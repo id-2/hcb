@@ -10,6 +10,8 @@ module UserService
     end
 
     def run
+      return if @user.onboarding?
+
       body = {
         email: @user.email,
         firstName: @user.first_name(legal: true),
@@ -20,7 +22,7 @@ module UserService
         hcbLastLoginAt: format_unix(@user.last_login_at),
       }.compact_blank
 
-      body[:userGroup] = "Hack Clubber" if @user.teenager?
+      body[:userGroup] = @user.teenager? ? "Hack Clubber" : "HCB Adult"
       body[:subscribed] = true if @new_user || @contact_details.nil?
       body[:source] = "HCB" if @contact_details.nil?
 

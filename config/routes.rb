@@ -44,8 +44,6 @@ Rails.application.routes.draw do
   get "bookkeeping", to: "admin#bookkeeping"
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
 
-  post "feedback", to: "static_pages#feedback"
-
   resources :receipts, only: [:create, :destroy] do
     collection do
       post "link"
@@ -224,6 +222,7 @@ Rails.application.routes.draw do
       get "account_numbers", to: "admin#account_numbers"
       get "emails", to: "admin#emails"
       get "email", to: "admin#email"
+      get "merchant_memo_check", to: "admin#merchant_memo_check"
 
       resources :grants, only: [] do
         post "approve"
