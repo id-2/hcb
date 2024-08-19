@@ -38,7 +38,7 @@
         <strong class="h3 block mt1 line-height-2">Verification Letter</strong>
         <%= user_mention @event.point_of_contact %>
       </li>
-    <% end %>
+    <% end if @event.account_number %>
   <% end %>
 </ul>
 

@@ -47,7 +47,7 @@ class DocumentPolicy < ApplicationPolicy
   end
 
   def verification_letter?
-    !(record&.unapproved? || record&.pending?) && !record.demo_mode? && (record.users.include?(user) || user.admin?)
+    !(record&.unapproved? || record&.pending?) && !record.demo_mode? && (record.users.include?(user) || user.admin?) && record.account_number.present?
   end
 
   def toggle_archive?
