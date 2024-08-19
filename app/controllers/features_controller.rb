@@ -3,14 +3,10 @@
 class FeaturesController < ApplicationController
   FEATURES = { # the keys are current feature flags, the values are emojis that show when-enabled.
     receipt_bin_2023_04_07: %w[🧾 🗑️ 💰],
-    sms_receipt_notifications_2022_11_23: %w[📱 🧾 🔔 💬],
     hcb_code_popovers_2023_06_16: nil,
     transactions_background_2024_06_05: %w[🌈 🔴 🟢],
-    rename_on_homepage_2023_12_06: %w[🖊️ ⚡ ⌨️],
-    command_bar_2024_02_05: %w[🔍 🔎 ✨ 💸],
     transaction_tags_2022_07_29: %w[🏷️],
     user_permissions_2024_03_09: %w[📛 🧑‍💼 🪪 🎉],
-    recently_on_hcb_2024_05_23: %w[👀 🤑 🙈],
     spending_controls_2024_06_03: %w[✅ ❌ 💷],
     ai_memos_2024_06_20: %w[✨ 🔮 🪄],
     cash_withdrawals_2024_08_07: %w[💵 💴 💶 💷],

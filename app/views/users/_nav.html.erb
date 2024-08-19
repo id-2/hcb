@@ -61,7 +61,7 @@
     <% end %>
   </nav>
 
-  <% if Flipper.enabled?(:recently_on_hcb_2024_05_23, current_user) && @activities %>
+  <% if @activities %>
     <h4 class="w-100 mb0 text-left mt3 border-bottom pb1 activity">
       <span class="flex items-center w-100">
           <span class="flex-grow">Recent Activity</span>
@@ -70,9 +70,8 @@
           <% end %>
       </span>
     </h4>
+    <%= render partial: "my/activities" %>
   <% end %>
-
-  <%= render partial: "my/activities" if Flipper.enabled?(:recently_on_hcb_2024_05_23, current_user) && @activities %>
 
   <% if current_user.events.not_demo_mode.funded.exists? && Flipper.enabled?(:bank_wrapped, current_user) %>
     <div id="bank-wrapped-dialog" style="display: none;">

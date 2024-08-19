@@ -46,7 +46,7 @@
           <%= turbo_frame_tag "#{pt.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis; flex-grow: 1" do %>
             <span title="<%= transaction_memo(pt) %>" style="flex-grow: 1;">
               <%= pt.local_hcb_code.card_grant? && !organizer_signed_in? ? link_to(transaction_memo(pt), spending_card_grant_path(pt.local_hcb_code.disbursement.card_grant), data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "card_grant_details_#{instance}" }) : content_tag(:span) do %>
-                <% if Flipper.enabled?(:rename_on_homepage_2023_12_06, current_user) && !defined?(disable_rename) %>
+                <% unless defined?(disable_rename) %>
                   <%= render "hcb_codes/memo", hcb_code: pt.local_hcb_code, location: "ledger" %>
                 <% else %>
                   <%= transaction_memo(pt) %>
