@@ -101,16 +101,10 @@
                   Help us improve HCB by sending usage data. You can turn this off in your settings anytime.
                 </p>
               </div>
-              <div class="field field--options field--options sm:w-60">
-                <%= form.radio_button :sessions_reported, false %>
-                <%= form.label :sessions_reported, value: false do %>
-                  <%= inline_icon "thumbsdown", size: 28 %>
-                  <strong>No thanks</strong>
-                <% end %>
-                <%= form.radio_button :sessions_reported, true %>
-                <%= form.label :sessions_reported, value: true do %>
-                  <%= inline_icon "support", size: 28 %>
-                  <strong>Sure thing!</strong>
+              <div class="field--checkbox--switch ml-auto" style="flex-shrink:0">
+                <%= form.label :sessions_reported do %>
+                  <%= form.check_box :sessions_reported, switch: true %>
+                  <span class="slider"></span>
                 <% end %>
               </div>
             </fieldset>
@@ -136,7 +130,7 @@
       <% end %>
     </turbo-frame>
   </div>
-  <div class="hidden sm:flex flex-1 p-16 bg-primary text-white flex items-center justify-center text-center">
+  <div class="hidden sm:flex flex-1 p-16 bg-smoke flex items-center justify-center text-center">
     <div class="max-w-xl">
       <%= inline_icon "welcome", size: 100 %>
       <h1 class="h1 border-none text-5xl" style="margin-bottom: -10px">Welcome to HCB</h1>
