@@ -31,6 +31,18 @@
     </span>
   <% end %>
 
+
+<%# Demo mode callout thing %>
+<% if organizer_signed_in? && @event.demo_mode %>
+  <div class="card border b--info pb0 mt3" style="text-wrap: pretty;" id="playground-callout">
+    <p class="mt0">
+      <strong>Welcome to Playground Mode</strong>
+      <br>
+      While in Playground mode, explore the dashboard with mock data, and invite your team.
+    </p>
+  </div>
+<% end %>
+
   <% if @event.increase_account_id != IncreaseService::AccountIds::FS_MAIN %>
     <% admin_tool("p0 badge", "span") do %>
       <%= link_to "https://dashboard.increase.com/accounts/#{@event.increase_account_id}" do %>
