@@ -95,7 +95,7 @@ class EventsController < ApplicationController
 
   def my_cards
     authorize @event
-    @cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user.stripe_cardholder)
+    @cards = current_user ? @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user.stripe_cardholder) : []
 
     respond_to do |format|
       format.html { render partial: "events/home/cards", locals: { cards: @cards, event: @event } }
