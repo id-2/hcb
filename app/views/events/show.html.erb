@@ -43,13 +43,15 @@
   <% end %>
 </h1>
 
-<div class="card border b--info pb0 my-3" style="text-wrap: pretty;" id="playground-callout">
-  <p class="mt0">
-    <strong>Welcome to Playground Mode</strong>
-    <br>
-    While in Playground mode, explore the dashboard with mock data, and invite your team.
-  </p>
-</div>
+<% if organizer_signed_in? && @event.demo_mode %>
+  <div class="card border b--info pb0 my-3" style="text-wrap: pretty;" id="playground-callout">
+    <p class="mt0">
+      <strong>Welcome to Playground Mode</strong>
+      <br>
+      While in Playground mode, explore the dashboard with mock data, and invite your team.
+    </p>
+  </div>
+<% end %>
 
 <% if organizer_signed_in? %>
   <div class="flex mb2 max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
