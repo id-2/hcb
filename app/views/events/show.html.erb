@@ -91,7 +91,7 @@
 
 <div class="flex gap-4 flex-col sm:flex-row my-4" style="max-width:100%">
   <%= render partial: "events/home/recent_activity", event: @event %>
-  <div class="flex gap-4 flex-col" style="flex: 1;max-width:50%">
+  <div class="flex gap-4 flex-col sm:max-w-[50%]" style="flex: 1">
     <%= render partial: "events/home/team", event: @event %>
     <%= render partial: "events/home/number_stats", event: @event %>
   </div>
