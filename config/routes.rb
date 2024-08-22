@@ -270,6 +270,7 @@ Rails.application.routes.draw do
     resources :ledger_audits, only: [:index, :show]
     resources :check_deposits, only: [:index, :show] do
       post "submit", on: :member
+      post "reject", on: :member
     end
   end
 
@@ -658,11 +659,7 @@ Rails.application.routes.draw do
     get "async_balance"
     get "reimbursements_pending_review_icon"
 
-    # (@eilla1) these pages are for the wip resources page and will be moved later
-    get "connect_gofundme"
-    get "sell_merch"
-
-    get "documentation"
+    get "documentation", to: redirect("/%{event_id}/documents", status: 302)
     get "transfers"
     get "statements"
     get "promotions"
