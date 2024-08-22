@@ -60,17 +60,18 @@
         <div class="flex flex-col items-center justify-center">
           <div class="text-center">
             <h3 class="text-2xl font-bold mb-0">
-              <%= !Flipper.enabled?(:transaction_tags_2022_07_29, @event) ? "Tags aren't enabled for this event" : "No tags yet!" %>
+              <%= !Flipper.enabled?(:transaction_tags_2022_07_29, @event) ? "Tags aren't enabled for this event" : "It's quiet here..." %>
             </h3>
             <p class="text-gray-500 my-1">
-              <%= !Flipper.enabled?(:transaction_tags_2022_07_29, @event) ? "With tags, you can neatly categorize your transactions." : "Create tags to categorize your transactions" %>
+              <%= !Flipper.enabled?(:transaction_tags_2022_07_29, @event) ? "With tags, you can neatly categorize your transactions." : "Either you don't have any tags, or you haven't categorized any transactions yet." %>
             </p>
 
             <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && !@event&.demo_mode? %>
               <%= render partial: "hcb_codes/create_tag", locals: { button: true, large: true } %>
             <% end %>
             <% if !Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
-              <%= link_to "Take me to the settings!", edit_event_path(@event, anchor: "tags"), class: "btn btn-primary mt-4" %>
+              <%# _blank cuz of werird turbo frame bugs %>
+              <%= link_to "Take me to the settings!", edit_event_path(@event, anchor: "features"), target: "_blank", class: "btn btn-primary mt-4" %>
             <% end %>
           </div>
         </div>

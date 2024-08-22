@@ -641,7 +641,6 @@ Rails.application.routes.draw do
     get :top_categories
     get :tags_users
     get :transaction_heatmap
-    get :my_cards
 
     get "edit", to: redirect("/%{event_id}/settings")
     get "breakdown"

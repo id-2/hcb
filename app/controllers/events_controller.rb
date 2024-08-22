@@ -74,7 +74,7 @@ class EventsController < ApplicationController
     @money_in = filter_and_sort.call(all_transactions) { |t| t.amount_cents > 0 }
     @money_out = filter_and_sort.call(all_transactions) { |t| t.amount_cents < 0 }
 
-    @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25)
+    @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).first(5)
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
   end
@@ -90,15 +90,6 @@ class EventsController < ApplicationController
 
     respond_to do |format|
       format.html { render partial: "events/home/heatmap", locals: { heatmap: @heatmap, event: @event } }
-    end
-  end
-
-  def my_cards
-    authorize @event
-    @cards = current_user ? @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user.stripe_cardholder) : []
-
-    respond_to do |format|
-      format.html { render partial: "events/home/cards", locals: { cards: @cards, event: @event } }
     end
   end
 

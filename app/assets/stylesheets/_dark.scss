@@ -111,6 +111,7 @@ html[data-dark='true'] {
   .card,
   .menu__content,
   .modal {
+    --card-bg: #252429;
     background-color: $darkless;
   }
   .modal--scroll.bg-snow {
