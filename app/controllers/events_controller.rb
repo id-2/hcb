@@ -58,8 +58,8 @@ class EventsController < ApplicationController
   def show
     authorize @event
 
-    @pending_transactions = _show_pending_transactions
-    @canonical_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
+    @pending_transactions = _show_pending_transactions.first(5)
+    @canonical_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.first(5)
     all_transactions = [*@pending_transactions, *@canonical_transactions]
 
     filter_and_sort = lambda do |transactions, &filter|
@@ -67,10 +67,10 @@ class EventsController < ApplicationController
         .select(&filter)
         .sort_by { |t| t.date.is_a?(String) ? Date.parse(t.date) : t.date }
         .reverse
-        .first(3)
+        .first(5)
     end
 
-    @recent_transactions = all_transactions.first(3)
+    @recent_transactions = all_transactions.first(5)
     @money_in = filter_and_sort.call(all_transactions) { |t| t.amount_cents > 0 }
     @money_out = filter_and_sort.call(all_transactions) { |t| t.amount_cents < 0 }
 
