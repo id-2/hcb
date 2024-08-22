@@ -3,7 +3,7 @@
   <div class="p-4 pb-0">
     <h3 class="m-0">Team members</h3>
   </div>
-  <div class="flex gap-3 w-full w-100 pt-2 px-4 avatar-row" style="padding-left: 35px;pointer-events:none">
+  <div class="flex gap-3 w-full w-100 pt-2 px-4 avatar-row" style="padding-left: 35px">
     <% @organizers.first(8).each do |position| %>
       <div style="transform:none" class="avatar-grow line-height-0 tooltipped tooltipped--e" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">
         <%= avatar_for position.user, 60, { style: "margin-left: -20px" } %>
