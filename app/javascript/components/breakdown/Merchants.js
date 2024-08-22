@@ -19,19 +19,14 @@ export const USDollar = new Intl.NumberFormat('en-US', {
 })
 
 const colors = [
-  '#ec3750', // red
-  '#ff8c37', // orange
-  '#f1c40f', // yellow
-  '#33d6a6', // green
-  '#5bc0de', // cyan
-  '#338eda', // blue
-  '#a633d6', // purple
+  "#000000", "#111111", "#222222", "#333333", "#444444", "#555555", "#666666", "#777777", "#888888", "#999999",
+  "#aaaaaa", "#bbbbbb", "#cccccc", "#dddddd", "#eeeeee", "#f0f0f0", "#f1f1f1", "#f2f2f2", "#f3f3f3", "#f4f4f4",
 ]
 
 const shuffle = array => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[array[i], array[j]] = [array[j], array[i]]
+      ;[array[i], array[j]] = [array[j], array[i]]
   }
   return array
 }

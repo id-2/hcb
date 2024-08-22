@@ -76,7 +76,11 @@
           </div>
         </div>
       <% else %>
-        <%= pie_chart @tags, library: pie_chart_config("right"), download: true %>
+        <%= pie_chart @tags, library: pie_chart_config("right"), download: true, colors: [
+          # 20 contrasting shades of gray
+          "#000000", "#111111", "#222222", "#333333", "#444444", "#555555", "#666666", "#777777", "#888888", "#999999", 
+          "#aaaaaa", "#bbbbbb", "#cccccc", "#dddddd", "#eeeeee", "#f0f0f0", "#f1f1f1", "#f2f2f2", "#f3f3f3", "#f4f4f4",
+        ]  %>
       <% end %>
     </div>
     <div class="card card--breakdown shadow-none p-4 min-h-96 flex-1 flex items-center justify-center" style="height: <%= "384px" if @empty_tags %>">
