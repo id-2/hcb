@@ -2,6 +2,10 @@
   overflow-x: auto;
 }
 
+.transaction {
+  border-bottom: .5px solid rgba(0,0,0,.063)
+}
+
 @media (min-width: 72em) {
   .table-container {
     max-width: calc(100vw - 20rem);
@@ -69,7 +73,6 @@ html[data-dark='true'] {
 }
 
 .transaction__memo {
-  max-width: 400px;
 
   > div {
     display: flex;
@@ -79,6 +82,7 @@ html[data-dark='true'] {
   span:not(.badge):not(.list-badge):first-of-type {
     max-width: 100%;
     overflow: hidden;
+    text-wrap: nowrap;
     text-overflow: ellipsis;
 
     @media screen and (max-width: 32em) {
