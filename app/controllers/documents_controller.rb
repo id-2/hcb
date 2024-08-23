@@ -117,7 +117,7 @@ class DocumentsController < ApplicationController
       end
 
       format.png do
-        send_data ::DocumentService::VerificationLetter.new(event: @event).run, filename: "verification_letter.png"
+        send_data ::DocumentService::PreviewVerificationLetter.new(event: @event).run, filename: "verification_letter.png"
       end
     end
   end
