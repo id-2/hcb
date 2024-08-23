@@ -19,50 +19,51 @@
 
 .app {
   max-width: none;
-  overflow: clip;
-  height: 100svb;
-  padding: 0.5rem;
 
   @media (min-width: 56em) {
     display: grid;
     grid-template-columns: 13rem 1fr;
-    gap: 1rem;
+    grid-gap: 1rem;
   }
 
   @media (min-width: 72em) {
     grid-template-columns: 16rem 1fr;
+    grid-gap: 2rem;
   }
 
   @media (min-width: 84em) {
-    grid-template-columns: 18rem 1fr;
+    max-width: 84rem;
   }
 }
 .app__sidebar {
   display: flex;
   flex-direction: column;
-  padding-top: 0.5rem;
-  padding-left: 0.5rem;
+  max-height: 100vh;
+  padding-top: 2rem;
   z-index: 2;
-  top: 0;
-  position: sticky;
-  position: -webkit-sticky;
+
+  // @media (min-width: 56em) {
+  //   position: sticky;
+  //   position: -webkit-sticky;
+  //   top: 0;
+  // }
 }
 
 .app__content {
-  scrollbar-gutter: auto;
-  overflow-y: auto;
-  padding: 1rem 1rem 2rem;
+  padding-bottom: 2rem;
   z-index: 1;
 
   h1:first-child {
-    margin-top: 0rem;
-    text-box-trim: both;
+    margin-top: 2rem;
+    text-box-trim: start;
     text-box-edge: cap alphabetic;
   }
+}
 
-  > .container {
-    padding-inline: 0 !important;
-  }
+.app__sidebar,
+.app__content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .grid {
