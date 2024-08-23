@@ -1,7 +1,4 @@
 <% fs_date = @event.activated_at || @event.created_at %>
-<% 
-  @name = @current_user.full_name || @current_user.name
-%>
 <head>
   <title><%= @event.name %> Verification Letter</title>
   <style>
@@ -63,25 +60,31 @@
     <p style="font-size: 12.5pt;">To Whom It May Concern,</p>
     <div style="line-height: 1.5;">
       <p>
-        This letter serves to confirm that <strong><%= @name %></strong> maintains a personal checking account in good standing with <strong>Column N.A.</strong>,
-        a Member of the FDIC. This account is held through <strong>The Hack Foundation</strong>, doing business as <strong>Hack Club</strong>,
-        which serves as the nonprofit fiscal sponsor for <strong><%= @event.name %></strong>.
+        This letter serves to confirm that <strong><%= @event.name %></strong>
+        maintains a fund through the <strong>The Hack Foundation</strong> in
+        good standing with <strong>Column N.A.</strong>,
+        a Member of the FDIC. This account is held by <strong>The Hack
+        Foundation</strong>, doing business as <strong>Hack Club</strong>,
+        which serves as the nonprofit fiscal sponsor for
+        <strong><%= @event.name %></strong>.
       </p>
       <table style="border: 1px solid #eee;border-radius: 15px;width:100%;padding:20px">
         <tr>
-          <td>
-            <strong>Date account opened</strong>
+          <td style="min-width: 200px;">
+            <strong>Date opened</strong>
           </td>
           <td>
-            <%= @event.created_at.strftime("%B %d, %Y") %>
+            <%= fs_date.strftime("%B %d, %Y") %>
           </td>
         </tr>
-        <tr>
-          <td>
-            <strong>Account Signatory</strong>
-          </td>
-          <td><%= @name %></td>
-        </tr>
+        <% if @contract_signers.any? %>
+          <tr>
+            <td>
+              <strong><%= "Member".pluralize(@contract_signers.size) %></strong>
+            </td>
+            <td><%= @contract_signers.map(&:full_name).to_sentence %></td>
+          </tr>
+        <% end %>
         <tr>
           <td>
             <strong>Account Number</strong>

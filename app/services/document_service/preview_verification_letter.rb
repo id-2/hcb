@@ -2,8 +2,9 @@
 
 module DocumentService
   class PreviewVerificationLetter
-    def initialize(event:)
+    def initialize(event:, contract_signers:)
       @event = event
+      @contract_signers = contract_signers
     end
 
     def run
@@ -13,7 +14,10 @@ module DocumentService
     private
 
     def pdf_string
-      @pdf_string ||= ActionController::Base.new.tap { |c| c.instance_variable_set(:@event, @event) }.render_to_string pdf: "verification_letter", template: "documents/verification_letter", encoding: "UTF-8", formats: :pdf
+      @pdf_string ||= ActionController::Base.new.tap do |c|
+        c.instance_variable_set(:@event, @event)
+        c.instance_variable_set(:@contract_signers, @contract_signers)
+      end.render_to_string pdf: "verification_letter", template: "documents/verification_letter", encoding: "UTF-8", formats: :pdf
     end
 
     def input
