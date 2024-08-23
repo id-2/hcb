@@ -19,10 +19,7 @@ input[type='submit'],
   position: relative;
   text-align: center;
   text-decoration: none;
-  transform: scale(1);
-  transition:
-    transform 0.125s ease-in-out,
-    box-shadow 0.25s ease-in-out;
+  transition: box-shadow 0.2s ease;
   user-select: none;
 
   &:hover,
