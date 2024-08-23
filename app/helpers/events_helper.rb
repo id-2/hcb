@@ -5,8 +5,9 @@ require "cgi"
 module EventsHelper
   def dock_item(name, url = nil, icon:, tooltip: nil, async_badge: nil, disabled: false, selected: false, **options)
     link_to (disabled ? "javascript:" : url), options.merge(
-      class: "dock__item #{"dock__item--selected" if selected} #{"tooltipped tooltipped--e" if tooltip} #{"disabled" if disabled}",
-      'aria-label': tooltip
+      class: "dock__item #{"tooltipped tooltipped--e" if tooltip} #{"disabled" if disabled}",
+      'aria-label': tooltip,
+      'aria-current': selected ? 'page' : 'false',
     ) do
       (content_tag :div, class: "line-height-0 relative" do
         if async_badge
@@ -15,7 +16,7 @@ module EventsHelper
         else
           inline_icon(icon, size: 24)
         end
-      end) + content_tag(:span, name.html_safe, class: "line-height-3")
+      end) + name.html_safe
     end
   end
 

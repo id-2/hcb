@@ -321,38 +321,61 @@ legend {
     max-width: 36rem;
   }
 
-  strong {
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-  }
-
   input {
     display: none;
   }
 
-  label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    text-align: center;
-    line-height: 1.25;
-    color: map-get($palette, info);
-    background-color: rgba(map-get($palette, accent), 0.25);
-  }
-
-  input:disabled + label {
-    opacity: 0.5;
-    cursor: default;
-  }
 
   input:checked + label {
     box-shadow:
       0 0 0 1px white,
       0 0 0 3px map-get($palette, info);
   }
+}
+
+.btn--form-option,
+.field--options label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  line-height: 1.25;
+  color: map-get($palette, info);
+  background-color: rgba(map-get($palette, accent), 0.125);
+
+  &:hover,
+  &:focus {
+    color: map-get($palette, info);
+  }
+
+  html[data-dark='true'] & {
+    color: map-get($palette, white);
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+.field--options input:disabled + label {
+  opacity: 0.5;
+  cursor: default;
+}
+.btn--form-option--disabled {
+  background-color: rgba(map-get($palette, accent), 0.12);
+  color: rgba(map-get($palette, info), 0.7);
+
+  html[data-dark='true'] & {
+    color: rgba(map-get($palette, white), 0.7);
+  }
+
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
 }
 
 textarea.card {

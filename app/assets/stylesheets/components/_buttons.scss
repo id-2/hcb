@@ -28,7 +28,7 @@ input[type='submit'],
     box-shadow: var(--shadow-medium);
   }
 
-  &:not([class*='bg-']) {
+  &:not([class*='bg-']):not([type="submit"]) {
     box-shadow: var(--shadow-border);
 
     &:hover,
@@ -116,41 +116,6 @@ input[type='submit'],
     @include gradient(error);
     color: $white;
   }
-}
-
-.btn--form-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  text-align: center;
-  line-height: 1.25;
-  color: map-get($palette, info);
-  background-color: rgba(map-get($palette, accent), 0.25);
-
-  &:hover,
-  &:focus {
-    color: map-get($palette, info);
-  }
-
-  html[data-dark='true'] & {
-    color: map-get($palette, white);
-  }
-}
-
-.btn--form-option--disabled {
-  background-color: rgba(map-get($palette, accent), 0.12);
-  color: rgba(map-get($palette, info), 0.7);
-
-  html[data-dark='true'] & {
-    color: rgba(map-get($palette, white), 0.7);
-  }
-
-  cursor: default;
-  pointer-events: none;
-  user-select: none;
 }
 
 .btn-small {

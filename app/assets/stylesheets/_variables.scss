@@ -2,6 +2,7 @@ $black: #1f2d3d;
 $slate: #3c4858;
 $muted: #8492a6;
 $smoke: #e0e6ed;
+$snow-dark: #E5E9F2;
 $snow: #f9fafc;
 $white: #fff;
 
@@ -25,6 +26,7 @@ $palette: (
   success: $green,
   //  'success-dark': $green-dark,
   error: desaturate(darken($red, 25%), 15%),
+  selection: $snow-dark,
   ai: $purple,
   warning: $orange,
   pending: $yellow,
@@ -41,10 +43,10 @@ $palette: (
 
 @mixin gradient($color) {
   background-color: map-get($palette, $color);
-  background-image: radial-gradient(
-    ellipse farthest-corner at top left,
-    lighten(saturate(map-get($palette, $color), 15%), 15%),
-    saturate(map-get($palette, $color), 15%)
+  background-image: linear-gradient(
+    to bottom,
+    lighten(saturate(map-get($palette, $color), 5%), 10%),
+    map-get($palette, $color)
   );
 }
 

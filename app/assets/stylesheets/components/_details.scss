@@ -16,7 +16,7 @@
 
   strong {
     font-weight: 400;
-    color: map-get($palette, slate);
+    color: map-get($palette, muted);
   }
 
   @media (min-width: 32em) {
