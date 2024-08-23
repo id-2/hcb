@@ -33,7 +33,7 @@
     </div>
   <% end %>
 
-  <%= render "hcb_codes/icon", tx:, authorless: local_assigns[:authorless], selects: defined?(selectable) && selectable && tx.local_hcb_code.hashid %>
+  <%= render "hcb_codes/icon", tx:, authorless: local_assigns[:authorless], selects: defined?(selectable) && selectable && tx.local_hcb_code.hashid, flex: true %>
 
   <div class="shrink-none" style="width: 164px;">
     <% if subscription %>
