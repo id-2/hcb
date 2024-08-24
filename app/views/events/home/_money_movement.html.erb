@@ -1,13 +1,19 @@
 <div class="card card--breakdown shadow-none p-4 flex flex-col gap-4 flex-1">
   <div class="flex items-center">
-    <h3 class="my-0">Money movement</h3>
+    <h3 class="my-0 mb-1">Money movement</h3>
     <%# <button class="btn ml-auto shadow-none btn-small bg-muted">
       Past 30 days
     </button> %>
   </div>
   <div class="flex flex-col gap-4 sm:gap-0 sm:flex-row">
-    <div class="flex-1 -ml-4 -mr-4 sm:mr-4 sm:w-[50%] sm:h-[175px]">
-      <span class="breakdown-eyebrow pl-4">Money in</span>
+    <div class="flex-1 -ml-4 -mr-4 sm:mr-4 sm:w-[50%] min-h-[90px] sm:max-h-[170px] flex flex-col">
+      <span class="breakdown-eyebrow pl-4 mb-0">Money in</span>
+
+      <% if @money_in.empty? %>
+        <div class="text-gray-500 text-center bg-zinc-100 dark:bg-zinc-700 rounded-xl mx-4 flex-1 flex items-center text-center justify-center">
+          You haven't received any money yet.
+        </div>
+      <% end %>
 
       <% @money_in.each do |transaction| %>
         
@@ -35,8 +41,13 @@
 
       <% end %>
     </div>
-    <div class="flex-1 -ml-4 -mr-4 sm:w-[50%] sm:h-[175px]">
-      <span class="breakdown-eyebrow pl-4">Money out</span>
+    <div class="flex-1 -ml-4 -mr-4 sm:w-[50%] min-h-[90px] sm:max-h-[170px] flex flex-col">
+      <span class="breakdown-eyebrow pl-4 mb-0">Money out</span>
+       <% if @money_in.empty? %>
+        <div class="text-gray-500 text-center bg-zinc-100 dark:bg-zinc-700 rounded-xl mx-4 flex-1 flex items-center text-center justify-center">
+          You haven't spent any money yet.
+        </div>
+      <% end %>
       <% @money_out.each do |transaction| %>
 
         <% cache transaction do %>
