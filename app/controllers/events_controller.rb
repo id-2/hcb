@@ -71,8 +71,8 @@ class EventsController < ApplicationController
     end
 
     @recent_transactions = all_transactions.first(5)
-    @money_in = filter_and_sort.call(all_transactions) { |t| t.amount_cents > 0 }
-    @money_out = filter_and_sort.call(all_transactions) { |t| t.amount_cents < 0 }
+    @money_in = filter_and_sort.call(all_transactions) { |t| t.amount_cents > 0 }.first(3)
+    @money_out = filter_and_sort.call(all_transactions) { |t| t.amount_cents < 0 }.first(3)
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).first(5)
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
