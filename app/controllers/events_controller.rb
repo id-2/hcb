@@ -62,17 +62,9 @@ class EventsController < ApplicationController
     @canonical_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run.first(5)
     all_transactions = [*@pending_transactions, *@canonical_transactions]
 
-    filter_and_sort = lambda do |transactions, &filter|
-      transactions
-        .select(&filter)
-        .sort_by { |t| t.date.is_a?(String) ? Date.parse(t.date) : t.date }
-        .reverse
-        .first(5)
-    end
-
     @recent_transactions = all_transactions.first(5)
-    @money_in = filter_and_sort.call(all_transactions) { |t| t.amount_cents > 0 }.first(3)
-    @money_out = filter_and_sort.call(all_transactions) { |t| t.amount_cents < 0 }.first(3)
+    @money_in = all_transactions.reject { |t| t.amount_cents < 0 }.first(3)
+    @money_out = all_transactions.reject { |t| t.amount_cents > 0 }.first(3)
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).first(5)
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)

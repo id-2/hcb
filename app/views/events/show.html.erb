@@ -31,7 +31,6 @@
     </span>
   <% end %>
 
-
   <% if @event.increase_account_id != IncreaseService::AccountIds::FS_MAIN %>
     <% admin_tool("p0 badge", "span") do %>
       <%= link_to "https://dashboard.increase.com/accounts/#{@event.increase_account_id}" do %>
