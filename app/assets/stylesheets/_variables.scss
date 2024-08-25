@@ -2,7 +2,7 @@ $black: #1f2d3d;
 $slate: #3c4858;
 $muted: #8492a6;
 $smoke: #e0e6ed;
-$snow-dark: #E5E9F2;
+$snow-dark: #EFF2F7;
 $snow: #f9fafc;
 $white: #fff;
 
@@ -26,7 +26,7 @@ $palette: (
   success: $green,
   //  'success-dark': $green-dark,
   error: desaturate(darken($red, 25%), 15%),
-  selection: rgba(saturate($blue, 25%), 0.08),
+  selection: $snow-dark,
   ai: $purple,
   warning: $orange,
   pending: $yellow,

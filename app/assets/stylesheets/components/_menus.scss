@@ -162,6 +162,7 @@
   font-weight: 500;
   line-height: 1.5;
   padding: 0.75rem 0.5rem;
+  gap: 0.5rem;
   color: map-get($palette, black);
   position: relative;
   text-decoration: none;
@@ -186,8 +187,8 @@
     background-color: map-get($palette, selection);
   }
 
-  svg:not(:last-child) {
-    margin-right: 6px;
+  svg {
+    fill: map-get($palette, slate);
   }
 
   + .menu__action {
