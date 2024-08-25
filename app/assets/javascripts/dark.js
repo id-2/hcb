@@ -18,7 +18,7 @@ try {
       darkModeConfig === 'dark' ||
       (darkModeConfig === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches)
     ) {
-      document.querySelector('html').setAttribute('data-dark', darkMode)
+      document.querySelector('html').setAttribute('data-dark', darkModeConfig)
       document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#17171d')
     }
   })()

@@ -81,8 +81,7 @@ if (window.matchMedia) {
     .matchMedia('(prefers-color-scheme: dark)')
     .addEventListener('change', e => {
       // This will only be called on changes (not during initial page load)
-      const prefersDarkMode = e.matches
-      BK.setDark(prefersDarkMode)
+        BK.setDark(localStorage.getItem('theme'))
     })
 }
 
