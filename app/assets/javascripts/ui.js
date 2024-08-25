@@ -31,7 +31,7 @@ $(document).ready(function () {
     BK.isDark()
   ) {
     BK.s('toggle_theme').find('svg').toggle()
-    return BK.styleDark(true)
+    return BK.styleDark(localStorage.getItem("theme") || "system")
   }
 })
 
@@ -171,6 +171,17 @@ $(document).keydown(function (e) {
 })
 
 $(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
+
+
+$("#theme-select").val(
+  localStorage.getItem("theme")
+)
+
+$('#theme-select').on('change', function (e) {
+  const theme = e.target.value;
+  BK.setDark(theme)
+})
+
 
 function loadAsyncFrames() {
   $.each(BK.s('async_frame'), (i, frame) => {

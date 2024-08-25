@@ -13,6 +13,17 @@
 <turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
   <%= render "settings_nav", active: "general" unless @onboarding %>
   <section>
+    <h2>App Preferences</h2>
+    <%# Dark/light/system theme select %>
+    <div class="field">
+      <label for="theme-select">Theme</label>
+      <select id="theme-select" class="select">
+        <option value="system">System</option>
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+    </div>
+
     <h2>Account details</h2>
     <% if @onboarding %>
       <p>Complete your profile to get started.</p>

@@ -11,27 +11,13 @@ try {
       return
     }
 
-    const darkModeConfig = localStorage.getItem('dark')
-    let darkMode = darkModeConfig == 'true'
+    // type: 'dark' | 'light' | 'system' | null
+    const darkModeConfig = localStorage.getItem('theme') || "system";
 
-    if (darkModeConfig === null) {
-      // HCB has not stored a dark mode preference. Fallback to the browser's
-      // `prefers-color-scheme` preference.
-      if (
-        window.matchMedia &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches
-      ) {
-        // According to the browser, the user prefers dark mode
-        darkMode = true
-      }
-
-      // Asyncrhonously store the dark mode preference
-      ; (async () => {
-        localStorage.setItem('dark', darkMode)
-      })()
-    }
-
-    if (darkMode) {
+    if (
+      darkModeConfig === 'dark' ||
+      (darkModeConfig === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches)
+    ) {
       document.querySelector('html').setAttribute('data-dark', darkMode)
       document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#17171d')
     }

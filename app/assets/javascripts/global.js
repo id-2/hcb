@@ -21,15 +21,18 @@ BK.select = (selector, filter) =>
 BK.isDark = () => {
   try {
     return (
-      localStorage.getItem('dark') === 'true' ||
-      document.getElementsByTagName('html')[0].getAttribute('data-dark') ===
+      localStorage.getItem('theme') === 'dark' ||
+      (localStorage.getItem('theme') === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches) ||
+    document.getElementsByTagName('html')[0].getAttribute('data-dark') ===
       'true'
     )
   } catch {
     return false
   }
 }
-BK.styleDark = theme => {
+BK.styleDark = _theme => {
+  const theme = _theme === "system" ? window.matchMedia?.('(prefers-color-scheme: dark)')?.matches : _theme === "dark";
+
   // Temporarily disable transitions on elements for smooth theme transition
   // See https://paco.me/writing/disable-theme-transitions
   const css = document.createElement('style')
@@ -59,10 +62,9 @@ BK.toggleDark = () => {
   window.dispatchEvent(new CustomEvent('theme-toggle', { detail: theme }))
   return BK.setDark(theme)
 }
-BK.setDark = dark => {
-  theme = !!dark
+BK.setDark = theme => {
   BK.styleDark(theme)
-  localStorage.setItem('dark', theme)
+  localStorage.setItem('theme', theme)
   return theme
 }
 

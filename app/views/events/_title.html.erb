@@ -6,34 +6,22 @@
   <% if show_org_switcher? %>
     <div class="menu__content menu__content--switcher sm:w-[275px]" data-menu-target="content">
       <p class="muted font-black text-sm mb-0 uppercase m-1">Organziations</p>
-      <% current_user.events.not_hidden.with_attached_logo.map do |event| %>
+      <% current_user.events.not_hidden.with_attached_logo.map do |event| %>i
         <%= link_to event, title: event.name, class: "gap-2" do %>
           <% if event.logo.attached? %>
             <%= image_tag event.logo, height: 24, width: 24, class: "rounded" %>
           <% else %>
-            <div style="height: 24px; width: 24px;" class="bg-gray-200 rounded shrink-none"></div>
+            <div style="height: 24px; width: 24px;" class="bg-neutral-500/30 rounded shrink-none"></div>
           <% end %>
           <span class="truncate"><%= event.name %></span>
-          <%# <span class="muted h6 ml-auto">
-            < %= turbo_frame_tag "event_balance_#{event.public_id}", src: event_async_balance_path(event, symbol: true), loading: :lazy do % >
-              -
-            < % end % >
-          </span> 
-          %>
         <% end %>
       <% end %>
 
-      <p class="muted font-black text-sm mb-0 uppercase m-1 mt-2">Account</p>
       <a data-behavior="toggle_theme" class="gap-2">
         <%= inline_icon "moon", size: 24 %>
         <%= inline_icon "moon-fill", size: 24, style: "display: none;" %>
         <span>Toggle theme</span>
       </a>
-
-      <%= link_to logout_users_path, class: "gap-2", method: :delete do %>
-        <%= inline_icon "door-leave", size: 24 %>
-        <span>Sign out</span>
-      <% end %>
     </div>
   <% end %>
 </div>
