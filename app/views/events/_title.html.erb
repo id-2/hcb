@@ -1,7 +1,7 @@
 <div data-controller="menu" class="pt2">
-  <%= link_to @event, class: "#{"pointer-events-none" if !signed_in?} text-decoration-none text-2xl gap-4 text-inherit event-title -m-2 mt-2 px-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200 flex items-center tracking-tight", style: "color: var(--primary)!important; font-weight: 800", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
+  <%= link_to @event, class: "#{"pointer-events-none" if !signed_in?} text-decoration-none text-2xl gap-4 text-inherit event-title -m-2 mt-2 px-2 rounded-lg transition-colors active:bg-gray-200 flex items-center tracking-tight", style: "color: var(--primary)!important; font-weight: 800", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
     <%= @event.name %>
-    <%= inline_icon "expand-more", size: 24 if show_org_switcher? %>
+    <%= inline_icon "down-caret", class: "event-title-dropdown-icon" if show_org_switcher? %>
   <% end %>
   <% if show_org_switcher? %>
     <div class="menu__content menu__content--switcher sm:w-[275px]" data-menu-target="content">
