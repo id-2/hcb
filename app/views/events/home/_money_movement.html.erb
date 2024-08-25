@@ -17,13 +17,16 @@
 
       <% @money_in.each do |transaction| %>
 
-        <% cache transaction do %>
         <a href="<%= transaction.local_hcb_code.url %>" class="homepage-transaction <%= Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && (@event || transaction.local_hcb_code.event).present? ? "cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors dark:hover:bg-neutral-700 dark:active:bg-neutral-600" : "" %>" data-behavior="modal_trigger" data-modal="money_movement_tx_details_<%= transaction.local_hcb_code.__id__ %>">
           <div style="min-width:0;flex:1">
             <span class="truncate block"><%= transaction_memo(transaction) %></span>
             <div class="text-sm text-gray-500">
-              <% if transaction.is_a?(CanonicalPendingTransaction) %>Pending &bull; <% end %>
-              <%= time_ago_in_words(transaction.date) %> ago<% if transaction.try(:raw_stripe_transaction) || transaction.try(:raw_pending_stripe_transaction_id) %>, <%= transaction.stripe_cardholder.user.name %><% end %>
+              <% if transaction.is_a?(CanonicalPendingTransaction) %>Pending &bull;
+              <% end %>
+              <%= time_ago_in_words(transaction.date) %> ago
+              <% if transaction.try(:raw_stripe_transaction) || transaction.try(:raw_pending_stripe_transaction_id) %>
+                , <%= transaction.stripe_cardholder.user.name %>
+              <% end %>
             </div>
           </div>
           <span class="badge <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
@@ -38,25 +41,26 @@
           </section>
         <% end %>
       <% end %>
-
-      <% end %>
     </div>
     <div class="flex-1 -ml-4 -mr-4 sm:w-[50%] min-h-[90px] sm:max-h-[170px] flex flex-col">
       <span class="breakdown-eyebrow pl-4 mb-0">Money out</span>
-       <% if @money_in.empty? %>
+      <% if @money_in.empty? %>
         <div class="text-gray-500 text-center bg-zinc-100 dark:bg-zinc-700 rounded-xl mx-4 flex-1 flex items-center text-center justify-center">
           You haven't spent any money yet.
         </div>
       <% end %>
       <% @money_out.each do |transaction| %>
 
-        <% cache transaction do %>
         <a href="<%= transaction.local_hcb_code.url %>" class="homepage-transaction <%= Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && (@event || transaction.local_hcb_code.event).present? ? "cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors dark:hover:bg-neutral-700 dark:active:bg-neutral-600" : "" %>" data-behavior="modal_trigger" data-modal="money_movement_tx_details_<%= transaction.local_hcb_code.__id__ %>">
           <div style="min-width:0;flex:1">
             <span class="truncate block"><%= transaction_memo(transaction) %></span>
             <div class="text-sm text-gray-500">
-              <% if transaction.is_a?(CanonicalPendingTransaction) %>Pending &bull; <% end %>
-              <%= time_ago_in_words(transaction.date) %> ago<% if transaction.try(:raw_stripe_transaction) || transaction.try(:raw_pending_stripe_transaction_id) %>, <%= transaction.stripe_cardholder.user.name %><% end %>
+              <% if transaction.is_a?(CanonicalPendingTransaction) %>Pending &bull;
+              <% end %>
+              <%= time_ago_in_words(transaction.date) %> ago
+              <% if transaction.try(:raw_stripe_transaction) || transaction.try(:raw_pending_stripe_transaction_id) %>
+                , <%= transaction.stripe_cardholder.user.name %>
+              <% end %>
             </div>
           </div>
           <span class="badge <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
@@ -70,8 +74,6 @@
             <% end %>
           </section>
         <% end %>
-      <% end %>
-
       <% end %>
     </div>
   </div>
