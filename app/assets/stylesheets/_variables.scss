@@ -26,7 +26,7 @@ $palette: (
   success: $green,
   //  'success-dark': $green-dark,
   error: desaturate(darken($red, 25%), 15%),
-  selection: $snow-dark,
+  selection: rgba(saturate($blue, 25%), 0.08),
   ai: $purple,
   warning: $orange,
   pending: $yellow,

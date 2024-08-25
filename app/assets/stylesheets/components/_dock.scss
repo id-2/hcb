@@ -192,7 +192,7 @@
 
     &:hover,
     &:focus {
-      background-color: map-get($palette, smoke);
+      background-color: map-get($palette, white);
 
       .dock__item--badge {
         box-shadow: 0 0 0 2px mix(map-get($palette, primary), $snow, 25%);
