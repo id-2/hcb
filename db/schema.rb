@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_14_133007) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_19_163511) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -420,6 +420,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_133007) do
     t.string "merchant_lock"
     t.string "category_lock"
     t.string "invite_message"
+    t.integer "expiration_preference", default: 365, null: false
     t.index ["event_id"], name: "index_card_grant_settings_on_event_id"
   end
 
@@ -689,6 +690,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_133007) do
     t.inet "ip_address"
     t.datetime "in_transit_at"
     t.boolean "anonymous", default: false, null: false
+    t.boolean "tax_deductible", default: true, null: false
     t.boolean "fee_covered", default: false, null: false
     t.index ["event_id"], name: "index_donations_on_event_id"
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
@@ -805,6 +807,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_133007) do
     t.datetime "updated_at", null: false
     t.boolean "cover_donation_fees", default: false
     t.index ["event_id"], name: "index_event_configurations_on_event_id"
+  end
+
+  create_table "event_plans", force: :cascade do |t|
+    t.string "plan_type"
+    t.string "aasm_state"
+    t.bigint "event_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_event_plans_on_event_id"
   end
 
   create_table "event_tags", force: :cascade do |t|
@@ -1735,6 +1746,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_133007) do
     t.boolean "migrated_from_legacy_stripe_account", default: false
     t.text "message"
     t.boolean "anonymous", default: false, null: false
+    t.boolean "tax_deductible", default: true, null: false
     t.boolean "fee_covered", default: false, null: false
     t.index ["event_id"], name: "index_recurring_donations_on_event_id"
     t.index ["stripe_subscription_id"], name: "index_recurring_donations_on_stripe_subscription_id", unique: true
@@ -2222,6 +2234,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_133007) do
   add_foreign_key "emburse_transfers", "users", column: "creator_id"
   add_foreign_key "emburse_transfers", "users", column: "fulfilled_by_id"
   add_foreign_key "event_configurations", "events"
+  add_foreign_key "event_plans", "events"
   add_foreign_key "events", "partners"
   add_foreign_key "events", "users", column: "point_of_contact_id"
   add_foreign_key "fee_relationships", "events"

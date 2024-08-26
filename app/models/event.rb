@@ -243,6 +243,10 @@ class Event < ApplicationRecord
 
   belongs_to :point_of_contact, class_name: "User", optional: true
 
+  # we keep a papertrail of historic plans
+  has_many :plans, class_name: "Event::Plan", inverse_of: :event
+  has_one :plan, -> { where(aasm_state: :active) }, class_name: "Event::Plan", inverse_of: :event, required: true
+
   has_one :config, class_name: "Event::Configuration"
   accepts_nested_attributes_for :config
 
@@ -364,7 +368,12 @@ class Event < ApplicationRecord
     self.activated_at = Time.now
   end
 
+  before_validation do
+    build_plan(plan_type: Event::Plan::Standard) if plan.nil?
+  end
+
   before_validation(if: :outernet_guild?, on: :create) { self.donation_page_enabled = false }
+
   validate do
     if outernet_guild? && donation_page_enabled?
       errors.add(:donation_page_enabled, "donation page can't be enabled for Outernet guilds")
@@ -588,7 +597,7 @@ class Event < ApplicationRecord
 
     feed_fronted_balance = sum_fronted_amount(feed_fronted_pts)
 
-    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee).ceil
+    fee_balance_v2_cents + (feed_fronted_balance * revenue_fee).ceil
   end
 
   # This intentionally does not include fees on fronted transactions to make sure they aren't actually charged
@@ -601,13 +610,15 @@ class Event < ApplicationRecord
   def plan_name
     if demo_mode?
       "playground mode"
+    elsif plan.present?
+      plan.label
     elsif unapproved?
       "pending approval"
     elsif hack_club_hq?
       "Hack Club affiliated project"
     elsif salary?
       "salary account"
-    elsif sponsorship_fee == 0
+    elsif revenue_fee == 0
       "full fiscal sponsorship (fee waived)"
     else
       "full fiscal sponsorship"
@@ -697,6 +708,19 @@ class Event < ApplicationRecord
 
   def dormant?
     !engaged?
+  end
+
+  def sponsorship_fee
+    Airbrake.notify("Deprecated Event#sponsorship_fee used.")
+    revenue_fee
+  end
+
+  def plan
+    super&.becomes(super.plan_type&.constantize)
+  end
+
+  def revenue_fee
+    plan&.revenue_fee || self[:sponsorship_fee]
   end
 
   def generate_stripe_card_designs
