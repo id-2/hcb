@@ -14,7 +14,7 @@ class FeaturesController < ApplicationController
     spending_controls_2024_06_03: %w[✅ ❌ 💷],
     ai_memos_2024_06_20: %w[✨ 🔮 🪄],
     cash_withdrawals_2024_08_07: %w[💵 💴 💶 💷],
-    org_switcher_2024_01_31: %w[🔄 🏢 🔄],
+    org_switcher_2024_01_31: %w[🔄 🏢 ⬇️],
   }.freeze
 
   def enable_feature

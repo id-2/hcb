@@ -13,108 +13,108 @@
   </div>
   <nav class="dock dock--desktop mt2 font-medium">
     <%= dock_item "Transactions",
-      event_path(id: @event.slug),
-      tooltip: "View your transactions",
-      icon: "transactions",
-      selected: local_assigns[:selected] == :transactions %>
+                  event_path(id: @event.slug),
+                  tooltip: "View your transactions",
+                  icon: "transactions",
+                  selected: local_assigns[:selected] == :transactions %>
     <%= dock_item "Breakdown",
-      event_breakdown_path(event_id: @event.slug),
-      tooltip: "Breakdown",
-      icon: "grid",
-      selected: local_assigns[:selected] == :breakdown if policy(@event).breakdown? %>
+                  event_breakdown_path(event_id: @event.slug),
+                  tooltip: "Breakdown",
+                  icon: "grid",
+                  selected: local_assigns[:selected] == :breakdown if policy(@event).breakdown? %>
     <% if policy(@event).activation_flow? %>
       <% admin_tool("m0 p0 overflow-visible w-fit") do %>
         <%= dock_item "Activate",
-          event_activation_flow_path(event_id: @event.slug),
-          tooltip: "Activate This Organization",
-          icon: "checkmark",
-          selected: local_assigns[:selected] == :activation_flow %>
-        <% end %>
+                      event_activation_flow_path(event_id: @event.slug),
+                      tooltip: "Activate This Organization",
+                      icon: "checkmark",
+                      selected: local_assigns[:selected] == :activation_flow %>
+      <% end %>
     <% end %>
     <h4 class="mb0 h5 muted">Receive</h4>
     <hr>
     <%= dock_item "Donations",
-      @event&.partner&.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
-        event_donation_overview_path(event_id: @event.slug),
-      tooltip: "Receive donations online",
-      icon: "support",
-      data: { tour_step: "donations" },
-      selected: local_assigns[:selected] == :donations if @event.approved? %>
+                  @event&.partner&.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
+                    event_donation_overview_path(event_id: @event.slug),
+                  tooltip: "Receive donations online",
+                  icon: "support",
+                  data: { tour_step: "donations" },
+                  selected: local_assigns[:selected] == :donations if @event.approved? %>
     <%= dock_item "Invoices",
-      event_invoices_path(event_id: @event.slug),
-      tooltip: "Collect sponsor payments",
-      icon: "briefcase",
-      selected: local_assigns[:selected] == :invoices if @event.approved? %>
+                  event_invoices_path(event_id: @event.slug),
+                  tooltip: "Collect sponsor payments",
+                  icon: "briefcase",
+                  selected: local_assigns[:selected] == :invoices if @event.approved? %>
     <%= dock_item "Account numbers",
-      account_number_event_path(@event),
-      tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
-      icon: "bank-account",
-      selected: local_assigns[:selected] == :account_number if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %>
+                  account_number_event_path(@event),
+                  tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
+                  icon: "bank-account",
+                  selected: local_assigns[:selected] == :account_number if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %>
     <%= dock_item "Check deposits",
-      event_check_deposits_path(@event),
-      tooltip: "Deposit checks",
-      icon: "cheque",
-      selected: local_assigns[:selected] == :deposit_check if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
+                  event_check_deposits_path(@event),
+                  tooltip: "Deposit checks",
+                  icon: "cheque",
+                  selected: local_assigns[:selected] == :deposit_check if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
     <h4 class="mb0 h4 font-medium muted">Spend</h4>
     <hr>
     <%= dock_item "Cards",
-      event_cards_overview_path(event_id: @event.slug),
-      tooltip: "Manage team debit cards",
-      icon: "card",
-      data: { tour_step: "cards" },
-      selected: local_assigns[:selected] == :cards if @event.approved? %>
+                  event_cards_overview_path(event_id: @event.slug),
+                  tooltip: "Manage team debit cards",
+                  icon: "card",
+                  data: { tour_step: "cards" },
+                  selected: local_assigns[:selected] == :cards if @event.approved? %>
     <%= dock_item "Transfers",
-      event_transfers_path(event_id: @event.slug),
-      tooltip: "Send & transfer money",
-      icon: "payment-transfer",
-      selected: local_assigns[:selected] == :transfers %>
+                  event_transfers_path(event_id: @event.slug),
+                  tooltip: "Send & transfer money",
+                  icon: "payment-transfer",
+                  selected: local_assigns[:selected] == :transfers %>
     <%= dock_item "Reimbursements",
-      event_reimbursements_path(event_id: @event.slug),
-      async_badge: event_reimbursements_pending_review_icon_path(@event),
-      tooltip: "Reimburse team members & volunteers",
-      icon: "attachment",
-      selected: local_assigns[:selected] == :reimbursements if policy(@event).reimbursements? %>
+                  event_reimbursements_path(event_id: @event.slug),
+                  async_badge: event_reimbursements_pending_review_icon_path(@event),
+                  tooltip: "Reimburse team members & volunteers",
+                  icon: "attachment",
+                  selected: local_assigns[:selected] == :reimbursements if policy(@event).reimbursements? %>
     <%= dock_item "Grants",
-      event_grants_path(@event),
-      tooltip: "Send & manage grants",
-      icon: "idea",
-      selected: local_assigns[:selected] == :grants if Flipper.enabled?(:grants_2023_06_21, @event) %>
+                  event_grants_path(@event),
+                  tooltip: "Send & manage grants",
+                  icon: "idea",
+                  selected: local_assigns[:selected] == :grants if Flipper.enabled?(:grants_2023_06_21, @event) %>
     <hr>
     <%= dock_item "Team",
-      event_team_path(event_id: @event.slug),
-      tooltip: "Manage your team",
-      icon: "leader",
-      selected: local_assigns[:selected] == :team %>
+                  event_team_path(event_id: @event.slug),
+                  tooltip: "Manage your team",
+                  icon: "leader",
+                  selected: local_assigns[:selected] == :team %>
     <%= dock_item "Perks",
-      event_promotions_path(event_id: @event.slug),
-      tooltip: (!policy(@event).promotions? ? "Your account isn't eligble for receive promos & discounts" : "Receive promos & discounts"),
-      icon: "shirt",
-      data: { tour_step: "perks" },
-      disabled: !policy(@event).promotions?,
-      selected: local_assigns[:selected] == :promotions if @event.approved? %>
+                  event_promotions_path(event_id: @event.slug),
+                  tooltip: (!policy(@event).promotions? ? "Your account isn't eligble for receive promos & discounts" : "Receive promos & discounts"),
+                  icon: "shirt",
+                  data: { tour_step: "perks" },
+                  disabled: !policy(@event).promotions?,
+                  selected: local_assigns[:selected] == :promotions if @event.approved? %>
     <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
-      event_g_suite_overview_path(event_id: @event.slug),
-      tooltip: (!policy(@event).g_suite_overview? ? "Your organization isn't eligble for Google Workspace." : @event.g_suites.any? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
-      icon: "google",
-      disabled: !policy(@event).g_suite_overview?,
-      selected: local_assigns[:selected] == :google_workspace if organizer_signed_in? %>
+                  event_g_suite_overview_path(event_id: @event.slug),
+                  tooltip: (!policy(@event).g_suite_overview? ? "Your organization isn't eligble for Google Workspace." : @event.g_suites.any? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
+                  icon: "google",
+                  disabled: !policy(@event).g_suite_overview?,
+                  selected: local_assigns[:selected] == :google_workspace if organizer_signed_in? %>
     <%= dock_item "Documents",
-      event_documentation_path(event_id: @event.slug),
-      tooltip: "View legal documents, financial statements, and FAQ",
-      icon: "docs",
-      selected: local_assigns[:selected] == :documentation %>
+                  event_documentation_path(event_id: @event.slug),
+                  tooltip: "View legal documents, financial statements, and FAQ",
+                  icon: "docs",
+                  selected: local_assigns[:selected] == :documentation %>
     <%= dock_item "Settings",
-      edit_event_path(@event),
-      tooltip: "Edit organization settings",
-      icon: "settings",
-      disabled: !policy(@event).edit?,
-      selected: local_assigns[:selected] == :settings if organizer_signed_in? %>
+                  edit_event_path(@event),
+                  tooltip: "Edit organization settings",
+                  icon: "settings",
+                  disabled: !policy(@event).edit?,
+                  selected: local_assigns[:selected] == :settings if organizer_signed_in? %>
   </nav>
   <nav class="dock dock--mobile">
     <%= dock_item "Transactions",
-      event_path(id: @event.slug),
-      icon: "transactions",
-      selected: local_assigns[:selected] == :transactions %>
+                  event_path(id: @event.slug),
+                  icon: "transactions",
+                  selected: local_assigns[:selected] == :transactions %>
     <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:donations, :invoices, :account_number, :deposit_check] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="receive">
       <div class="line-height-0 relative"><%= inline_icon "support", size: 32, class: "primary" %></div>
       <span class="line-height-3">Receive</span>

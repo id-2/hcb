@@ -6,7 +6,7 @@
   <% if show_org_switcher? %>
     <div class="menu__content menu__content--switcher sm:w-[275px]" data-menu-target="content">
       <p class="muted font-black text-sm mb-0 uppercase m-1">Organziations</p>
-      <% current_user.events.not_hidden.with_attached_logo.map do |event| %>i
+      <% current_user.events.not_hidden.with_attached_logo.map do |event| %>
         <%= link_to event, title: event.name, class: "gap-2" do %>
           <% if event.logo.attached? %>
             <%= image_tag event.logo, height: 24, width: 24, class: "rounded" %>
@@ -16,12 +16,6 @@
           <span class="truncate"><%= event.name %></span>
         <% end %>
       <% end %>
-
-      <a data-behavior="toggle_theme" class="gap-2">
-        <%= inline_icon "moon", size: 24 %>
-        <%= inline_icon "moon-fill", size: 24, style: "display: none;" %>
-        <span>Toggle theme</span>
-      </a>
     </div>
   <% end %>
 </div>
