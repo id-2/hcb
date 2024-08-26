@@ -5,17 +5,15 @@
 
   <p class="text-center text-xs">
     <% if commit_hash.present? %>
+      Build <em><%= commit_name %></em>
       <% if commit_duration.present? %>
-        Build <em aria-label="<%= commit_hash %>" class="tooltipped tooltipped--n tooltipped--lg"><%= commit_name %></em>
         from <%= commit_duration %> ago.
-      <% else %>
-        Build <em aria-label="<%= commit_hash %>" class="tooltipped tooltipped--n tooltipped--lg"><%= commit_name %></em>.
       <% end %>
     <% end %>
     <% unless Rails.env.production? %>
       <% @sql_count = QueryCount::Counter.counter %>
       <% @sql_cached_count = QueryCount::Counter.counter_cache %>
-      Loaded using <%= @sql_count %> unique SQL <%= "query".pluralize @sql_count %> (+ <%= @sql_cached_count %> cached). Running on Rails <%= Rails::VERSION::STRING %>.
+      Loaded using <%= @sql_count %> unique SQL <%= "query".pluralize @sql_count %> (+ <%= @sql_cached_count %> cached). Running on Rails <%= Rails::VERSION::STRING %> with Ruby <%= RUBY_VERSION %>.
     <% end %>
   </p>
 </footer>

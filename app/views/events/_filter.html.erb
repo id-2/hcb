@@ -2,7 +2,15 @@
 
 <div class="filterbar flex flex-row justify-between items-center width-100" style="gap: 16px">
   <%= form_with(model: nil, local: true, method: :get, class: "flex-auto md-mr2") do |form| %>
-    <%= form.text_field :q, placeholder: "Search", style: "width auto; max-width: none;", value: params[:q] %>
+    <div class="input input-group max-w-none" tabindex="0">
+      <%= inline_icon "search" %>
+      <%= form.text_field :q, placeholder: "Type / to search...", data: { behavior: "search" }, value: params[:q] %>
+      <% if params[:q] && params[:q] != "" %>
+        <button data-behavior="clear" type="submit" class="pop muted w-7 h-7">
+          <%= inline_icon "view-close", size: 24 %>
+        </button>
+      <% end %>
+    </div>
     <% if @tag %>
       <%= form.hidden_field :tag, value: @tag.label %>
     <% end %>
@@ -55,7 +63,7 @@
       <span class="xs-hide sm-hide md-hide flex items-center">
         <span class="nowrap">Filtered by</span>
         <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1">
-          <%= @type.humanize.titleize.gsub("Ach", "ACH") %>
+          <%= @type.humanize.gsub("Ach", "ACH") %>
         </span>
       </span>
       <% elsif @start_date || @end_date %>
@@ -128,7 +136,7 @@
         <% ["ach_transfer", "mailed_check", "account_transfer", "card_charge", "check_deposit", "donation", "invoice", "refund", "fiscal_sponsorship_fee", "reimbursement"].each do |type| %>
           <div class="flex items-center">
               <%= link_to({ type:, q: params[:q] }.compact, class: "flex-auto menu__action #{"menu__action--active" if @type == type}") do %>
-                <%= type.humanize.titleize.gsub("Ach", "ACH") %>
+                <%= type.humanize.gsub("Ach", "ACH") %>
               <% end %>
           </div>
         <% end %>

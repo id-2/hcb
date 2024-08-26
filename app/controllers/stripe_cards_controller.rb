@@ -37,12 +37,12 @@ class StripeCardsController < ApplicationController
     @card = StripeCard.find(params[:id])
     authorize @card
 
-    if @card.cancel!
-      flash[:success] = "Card cancelled"
-      redirect_back_or_to @card
-    else
-      render :show, status: :unprocessable_entity
-    end
+    @card.cancel!
+    flash[:success] = "Card cancelled"
+    redirect_back_or_to @card
+  rescue => e
+    flash[:error] = e.message
+    render :show, status: :unprocessable_entity
   end
 
   def defrost
@@ -80,6 +80,7 @@ class StripeCardsController < ApplicationController
 
     if params[:frame] == "true"
       @frame = true
+      @force_no_popover = true
       render :show, layout: false
     else
       @frame = false
