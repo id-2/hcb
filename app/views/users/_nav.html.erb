@@ -14,15 +14,6 @@
     </button>
   </div>
 
-  <%= link_to my_settings_path, class: "no-underline border rounded-lg px-4 py-2 flex items-center gap-3 mt-2" do %>
-    <%= avatar_for current_user, 32 %>
-    <div class="flex flex-col">ruby 3.2.4p170
-      <span class="font-bold"><%= current_user.initial_name %></span>
-      <span class="text-xs"><%= current_user.email %></span>
-    </div>
-    <%= inline_icon "settings", size: 24, class: "muted ml-auto" %>
-  <% end %>
-
   <nav class="dock font-medium mt1">
     <%= dock_item "Home",
                   root_path,
