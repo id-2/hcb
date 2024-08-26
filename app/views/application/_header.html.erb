@@ -1,13 +1,5 @@
 <header class="header <%= "mt3" unless content_for?(:nav) %>">
   <div class="header-left line-height-0 flex items-center justify-end">
-    <button
-      data-behavior="toggle_theme"
-      class="muted pointer no-select tooltipped tooltipped--s <%= "hidden" if @event %>"
-      aria-label="Toggle dark mode"
-      tabindex="0">
-      <%= inline_icon "moon", size: home_action_size %>
-      <%= inline_icon "moon-fill", size: home_action_size, style: "display: none;" %>
-    </button>
     <% if signed_in? %>
       <a
         href="https://changelog.hcb.hackclub.com"

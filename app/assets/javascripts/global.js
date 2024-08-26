@@ -4,6 +4,37 @@
 const BK = {
   blocked: false,
 }
+
+window.setCookie = (name,value,days) => {
+  let expires = "";
+  if (days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days*24*60*60*1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+
+window.getCookie = (name) => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0;i < ca.length;i++) {
+    let c = ca[i];
+    while (c.charAt(0)==' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+window.eraseCookie = (name) => {
+  document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// A FOUC is unavoidable, so we set another cookie called `system_preference`. It'll still glitch on first load, but it'll be fixed on the next page load.
+$(document).ready(() => {
+  setCookie('system_preference', window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light')
+})
+
 // BK.s('some_behavior') is a shortcut for selecting elements by data-behavior
 BK.s = (selector, filter = '') =>
   $(`[data-behavior~=${selector}]`).filter(
@@ -20,11 +51,10 @@ BK.select = (selector, filter) =>
 // document.getElementsByTagName('html')[0].getAttribute('data-dark') === 'true'
 BK.isDark = () => {
   try {
+    const isExplicitlyDark = getCookie("theme") === 'dark' || (getCookie("theme") === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches) ;
     return (
-      localStorage.getItem('theme') === 'dark' ||
-      (localStorage.getItem('theme') === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches) ||
-    document.getElementsByTagName('html')[0].getAttribute('data-dark') ===
-      'true'
+      isExplicitlyDark ||
+      document.getElementsByTagName('html')[0].getAttribute('data-dark') === 'true'
     )
   } catch {
     return false
@@ -64,7 +94,7 @@ BK.toggleDark = () => {
 }
 BK.setDark = theme => {
   BK.styleDark(theme)
-  localStorage.setItem('theme', theme)
+  setCookie('theme', theme)
   return theme
 }
 
@@ -81,7 +111,7 @@ if (window.matchMedia) {
     .matchMedia('(prefers-color-scheme: dark)')
     .addEventListener('change', e => {
       // This will only be called on changes (not during initial page load)
-        BK.setDark(localStorage.getItem('theme'))
+        BK.setDark(getCookie("theme"))
     })
 }
 

@@ -173,9 +173,7 @@ $(document).keydown(function (e) {
 $(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
 
-$("#theme-select").val(
-  localStorage.getItem("theme")
-)
+$("#theme-select").val(getCookie("theme") || "system")
 
 $('#theme-select').on('change', function (e) {
   const theme = e.target.value;

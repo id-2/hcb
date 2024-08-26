@@ -5,7 +5,7 @@
   role="button"
   data-behavior="toggle_theme"
   class="muted absolute top-0 right-0 m2 pointer no-select tooltipped tooltipped--w"
-  aria-label="Toggle dark mode" tabindex="0">
+  aria-label="toggle dark modeToggle dark mode" tabindex="0">
   <%= inline_icon "moon", size: home_action_size %>
   <%= inline_icon "moon-fill", size: home_action_size, style: "display: none;" %>
 </action>
@@ -54,8 +54,8 @@
   <%# @background is defined in the donations controller's check_background_param method %>
   <%# it's used for organisations to set a custom background colour when embedding the form %>
   <style>
-    body {
-      background-color: #<%= @background %>!important;
-    }
+      body {
+          background-color: #<%= @background %> !important;
+      }
   </style>
 <% end %>

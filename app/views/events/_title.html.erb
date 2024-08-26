@@ -1,11 +1,11 @@
 <div data-controller="menu" class="pt2">
-  <%= link_to @event, class: "#{"pointer-events-none" if !signed_in?} text-decoration-none text-3xl gap-4 text-inherit event-title -m-2 my-2 px-2 rounded-lg transition-colors flex items-center tracking-tight", style: "color: var(--primary)!important; font-weight: 800", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
+  <%= link_to @event, class: "#{"pointer-events-none" unless signed_in?} text-decoration-none text-2xl gap-4 text-inherit event-title -m-2 my-2 px-2 rounded-lg transition-colors flex items-center tracking-tight", style: "color: var(--primary)!important; font-weight: 600", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
     <%= @event.name %>
     <%= inline_icon "down-caret", class: "event-title-dropdown-icon" if show_org_switcher? %>
   <% end %>
   <% if show_org_switcher? %>
     <div class="menu__content menu__content--switcher sm:w-[275px]" data-menu-target="content">
-      <p class="muted font-black text-sm mb-0 uppercase m-1">Organziations</p>
+      <p class="muted font-black text-sm mb-0 uppercase m-1">Organizations</p>
       <% current_user.events.not_hidden.with_attached_logo.map do |event| %>
         <%= link_to event, title: event.name, class: "gap-2" do %>
           <% if event.logo.attached? %>
