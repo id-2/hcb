@@ -172,15 +172,6 @@ $(document).keydown(function (e) {
 
 $(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
-
-$("#theme-select").val(getCookie("theme") || "system")
-
-$('#theme-select').on('change', function (e) {
-  const theme = e.target.value;
-  BK.setDark(theme)
-})
-
-
 function loadAsyncFrames() {
   $.each(BK.s('async_frame'), (i, frame) => {
     const loadFrame = () => {

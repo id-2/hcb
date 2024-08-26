@@ -83,7 +83,6 @@ BK.styleDark = _theme => {
   document
     .querySelector('meta[name=theme-color]')
     ?.setAttribute('content', theme ? '#17171d' : '#f9fafc')
-  BK.s('toggle_theme').find('svg').toggle()
   // Calling getComputedStyle forces the browser to redraw
   document.head.removeChild(css)
 }

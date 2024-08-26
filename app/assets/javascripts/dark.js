@@ -12,7 +12,7 @@ try {
     const isThemeExplicitlySet = !['dark', 'light'].includes(document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1]);
 
     if (!isThemeExplicitlySet && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.querySelector('html').setAttribute('data-dark', darkModeConfig)
+      document.querySelector('html').setAttribute('data-dark', isThemeExplicitlySet ? "true" : "false")
       document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#17171d')
     }
   })()
