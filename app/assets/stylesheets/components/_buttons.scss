@@ -28,7 +28,7 @@ input[type='submit'],
     box-shadow: var(--shadow-md);
   }
 
-  &:not([class*='bg-']):not([type="submit"]) {
+  &:not([class*='bg-']):not([type='submit']) {
     box-shadow: var(--shadow-border);
 
     &:hover,
@@ -121,7 +121,7 @@ input[type='submit'],
 }
 
 .btn.bg-info,
-input[type="submit"] {
+input[type='submit'] {
   @include gradient(info);
   color: $white;
 }

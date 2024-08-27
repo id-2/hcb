@@ -40,7 +40,7 @@ $palette: (
   smoke: $smoke,
   snow: $snow,
   white: $white,
-  dark: $dark
+  dark: $dark,
 );
 
 @mixin gradient($color) {
@@ -56,8 +56,7 @@ $palette: (
   --shadow-border: 0 0 0 0.5px rgba(0, 0, 0, 0.125);
   --shadow-sm: 0 2px 2px rgba(0, 0, 0, 0.04);
   --shadow-border-sm: var(--shadow-border), var(--shadow-sm);
-  --shadow-md: 0 2px 2px rgba(0, 0, 0, 0.04),
-    0 8px 8px -8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 2px rgba(0, 0, 0, 0.04), 0 8px 8px -8px rgba(0, 0, 0, 0.04);
   --shadow-border-md: var(--shadow-border), var(--shadow-md);
   --shadow-lg: 0 2px 2px rgba(0, 0, 0, 0.04),
     0 8px 16px -4px rgba(0, 0, 0, 0.04);

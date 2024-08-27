@@ -159,8 +159,7 @@ html[data-dark='true'] {
   .modal,
   .card,
   .menu__content {
-    box-shadow:
-      -2px -4px 8px rgba(0, 0, 0, 0.125),
+    box-shadow: -2px -4px 8px rgba(0, 0, 0, 0.125),
       4px 8px 16px rgba(0, 0, 0, 0.25);
   }
 
@@ -223,7 +222,7 @@ html[data-dark='true'] {
   .dock__item.disabled {
     color: map-get($palette, muted);
   }
-  .dock__item[aria-current="page"] {
+  .dock__item[aria-current='page'] {
     background-color: $darkless;
   }
 

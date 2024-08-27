@@ -7,7 +7,7 @@ module EventsHelper
     link_to (disabled ? "javascript:" : url), options.merge(
       class: "dock__item #{"tooltipped tooltipped--e" if tooltip} #{"disabled" if disabled}",
       'aria-label': tooltip,
-      'aria-current': selected ? 'page' : 'false',
+      'aria-current': selected ? "page" : "false",
     ) do
       (content_tag :div, class: "line-height-0 relative" do
         if async_badge

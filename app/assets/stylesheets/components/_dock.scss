@@ -159,9 +159,7 @@
     cursor: pointer;
     line-height: 1.75;
     outline: 0;
-    transition:
-      color 0.125s ease-in-out,
-      background-color 0.125s ease-in-out;
+    transition: color 0.125s ease-in-out, background-color 0.125s ease-in-out;
     color: $black;
     line-height: 1.25;
     padding: 0.25rem 1rem 0.25rem 0.5rem;
@@ -181,7 +179,7 @@
       }
     }
 
-    &[aria-current="page"] {
+    &[aria-current='page'] {
       background-color: map-get($palette, white);
       box-shadow: var(--shadow-border-sm);
 
