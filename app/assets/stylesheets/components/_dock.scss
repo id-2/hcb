@@ -188,7 +188,7 @@
 
     &[aria-current="page"] {
       background-color: map-get($palette, white);
-      box-shadow: var(--shadow-border-small);
+      box-shadow: var(--shadow-border-sm);
 
       svg {
         fill: map-get($palette, primary);

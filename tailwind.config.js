@@ -58,14 +58,14 @@ module.exports = {
     },
     boxShadow: {
       none: 'none',
-      DEFAULT: 'var(--shadow-medium)',
+      DEFAULT: 'var(--shadow-md)',
       border: 'var(--shadow-border)',
-      sm: 'var(--shadow-small)',
-      'border-sm': 'var(--shadow-border-small)',
-      md: 'var(--shadow-medium)',
-      'border-md': 'var(--shadow-border-medium)',
-      lg: 'var(--shadow-large)',
-      'border-lg': 'var(--shadow-border-large)',
+      sm: 'var(--shadow-sm)',
+      'border-sm': 'var(--shadow-border-sm)',
+      md: 'var(--shadow-md)',
+      'border-md': 'var(--shadow-border-md)',
+      lg: 'var(--shadow-lg)',
+      'border-lg': 'var(--shadow-border-lg)',
     },
     extend: {
       backgroundImage: {
