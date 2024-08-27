@@ -119,7 +119,7 @@ fieldset legend.h2 {
 h1 {
   font-size: 2.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid map-get($palette, smoke);
+  border-bottom: 1px solid map-get($palette, border);
   border-bottom-width: 0.5px;
   margin-bottom: 1rem;
 }
@@ -182,7 +182,8 @@ th {
 hr {
   margin: 2rem 0;
   border: 0;
-  border-bottom: 1px solid map-get($palette, smoke);
+  border-bottom: 1px solid map-get($palette, border);
+  border-bottom-width: 0.5px;
 }
 
 svg {

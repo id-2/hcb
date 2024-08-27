@@ -30,7 +30,7 @@
 .border-right,
 .border-bottom,
 .border-left {
-  border-color: map-get($palette, smoke);
+  border-color: map-get($palette, border);
 }
 
 .px0 {

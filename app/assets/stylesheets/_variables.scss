@@ -1,6 +1,7 @@
 $black: #1f2d3d;
 $slate: #3c4858;
 $muted: #8492a6;
+$smoke-dark: #c0ccda;
 $smoke: #e0e6ed;
 $snow-dark: #eff2f7;
 $snow: #f9fafc;
@@ -27,6 +28,7 @@ $palette: (
   //  'success-dark': $green-dark,
   error: desaturate(darken($red, 25%), 15%),
   selection: $snow-dark,
+  border: $smoke-dark,
   ai: $purple,
   warning: $orange,
   pending: $yellow,

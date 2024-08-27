@@ -19,7 +19,7 @@ input[type='submit'],
   position: relative;
   text-align: center;
   text-decoration: none;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.125s ease;
   user-select: none;
 
   &:hover,
@@ -110,8 +110,13 @@ input[type='submit'],
 
   &.bg-error,
   &.btn--destroy {
-    @include gradient(error);
-    color: $white;
+    transition: box-shadow 0.125s ease, background-color 0.125s ease;
+    background-color: map-get($palette, white);
+    color: map-get($palette, error) !important;
+
+    &:hover {
+      background-color: rgba(map-get($palette, primary), 0.125);
+    }
   }
 }
 

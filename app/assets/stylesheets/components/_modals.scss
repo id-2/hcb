@@ -139,7 +139,7 @@
   }
 
   &.bg-snow header {
-    border-bottom: 1px solid rgba(48, 48, 48, 0.125);
+    border-bottom: 0.5px solid rgba(48, 48, 48, 0.125);
   }
 
   &:not(.modal--popover) > footer,
@@ -165,7 +165,7 @@
   }
 
   &.bg-snow footer {
-    border-top: 1px solid rgba(48, 48, 48, 0.125);
+    border-top: 0.5px solid rgba(48, 48, 48, 0.125);
   }
 }
 

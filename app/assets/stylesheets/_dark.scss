@@ -9,6 +9,9 @@ html[data-dark='true'] {
     background-color: $dark;
     color: map-get($palette, smoke);
     color-scheme: dark;
+    --shadow-border: 0 0 0 0.5px rgba(255, 255, 255, 0.375);
+    --shadow-sm: 0 2px 2px rgba(0, 0, 0, 0.04);
+    --shadow-border-sm: var(--shadow-border), var(--shadow-sm);
   }
 
   input[type='date'],
@@ -22,12 +25,19 @@ html[data-dark='true'] {
   select,
   .input,
   textarea {
-    background-color: $darkless;
     color: map-get($palette, white);
-    border-color: $darkless;
+    border-color: rgba(255, 255, 255, 0.375);
+    border-width: 0.5px;
 
     &:focus-within {
       border-color: map-get($palette, info);
+    }
+
+    ::placeholder {
+      color: map-get($palette, muted);
+    }
+    ::-moz-placeholder {
+      color: map-get($palette, muted);
     }
   }
 
@@ -189,14 +199,17 @@ html[data-dark='true'] {
 
   .black,
   .btn,
-  .dock__item span,
+  .dock__item,
   label,
   a > .card {
     color: map-get($palette, smoke);
   }
 
-  .dock__item.disabled span {
+  .dock__item.disabled {
     color: map-get($palette, muted);
+  }
+  .dock__item[aria-current="page"] {
+    background-color: $darkless;
   }
 
   pre,
@@ -255,8 +268,11 @@ html[data-dark='true'] {
     background-image: url('https://cloud-hlea0o5k2-hack-club-bot.vercel.app/0sunset_card__4_.png');
   }
 
-  input[type='submit'],
   .btn {
+    background-color: $darkless;
+  }
+  input[type='submit'],
+  .btn.bg-info {
     background-color: rgba(map-get($palette, info), 0.75);
   }
   .btn.bg-primary {
@@ -295,7 +311,7 @@ html[data-dark='true'] {
     color: map-get($palette, purple);
   }
   .badge.bg-error {
-    color: map-get($palette, error);
+    color: map-get($palette, primary);
   }
   .badge.archived {
     background-color: rgba(map-get($palette, pending), 0.625);
@@ -306,9 +322,17 @@ html[data-dark='true'] {
     background-color: rgba(0, 0, 0, 0.125);
   }
 
+  .dock__item:hover {
+    background-color: $darkless;
+  }
+  .filterbar__item:hover {
+    background-color: $darkless;
+    color: map-get($palette, muted);
+  }
   .filterbar__item:active,
   .filterbar__item[aria-selected='true'] {
-    background-color: rgba(map-get($palette, info), 0.125);
+    background-color: $darkless;
+    color: map-get($palette, smoke);
   }
   .badge.bg-info,
   .flash.info,
