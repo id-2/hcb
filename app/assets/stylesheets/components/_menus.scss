@@ -37,6 +37,7 @@
   cursor: initial;
   min-width: 14rem;
   position: absolute;
+  font-size: 0.875rem;
   top: 100%;
   background-color: map-get($palette, white);
   border-radius: var(--radius-lg);

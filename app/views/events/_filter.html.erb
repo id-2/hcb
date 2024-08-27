@@ -2,7 +2,7 @@
 
 <div class="flex flex-row justify-between items-center gap-4 width-100">
   <%= form_with(model: nil, local: true, method: :get, class: "flex-auto") do |form| %>
-    <div class="input input-group max-w-none" tabindex="0">
+    <div class="input input-group input--sm max-w-none" tabindex="0">
       <%= inline_icon "search", size: 24 %>
       <%= form.text_field :q, placeholder: "Type / to search...", data: { behavior: "search" }, value: params[:q] %>
       <% if params[:q] && params[:q] != "" %>
@@ -16,7 +16,7 @@
     <% end %>
   <% end %>
   <% admin_tool(@show_running_balance ? "" : "display-none") do %>
-    <div data-controller="menu" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-end">
+    <div data-controller="menu" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-end" class="line-height-0">
       <button
         type="button"
         class="btn btn-small menu__toggle menu__toggle--arrowless overflow-visible"

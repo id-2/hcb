@@ -16,7 +16,7 @@ textarea {
   color: inherit;
   display: block;
   font-size: 1rem;
-  min-height: 32px;
+  min-height: 36px;
   margin-left: 0;
   outline: 0;
   padding: 0.25rem 0.5rem;
@@ -35,14 +35,22 @@ textarea {
     color: map-get($palette, slate);
   }
 
-  ::placeholder {
-    color: map-get($palette, muted);
+  &::placeholder {
+    color: map-get($palette, border);
   }
+  &::-moz-placeholder {
+    color: map-get($palette, border);
+  }
+}
+.input--sm,
+.input-group.input--sm input {
+  // 1px is added by border
+  min-height: 31px;
 }
 
 .input-group {
   display: flex;
-  gap: 0.2rem;
+  gap: 0.25rem;
   align-items: center;
   padding-top: 0;
   padding-bottom: 0;
