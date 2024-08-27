@@ -50,7 +50,9 @@ input[type='submit'],
     width: 24px;
     height: 24px;
     opacity: 0.875;
+  }
 
+  > svg {
     &:first-child {
       margin-left: -4px;
       margin-right: 6px;
@@ -79,11 +81,6 @@ input[type='submit'],
 
   &.bg-muted {
     @include gradient(muted);
-    color: $white;
-  }
-
-  &.bg-info {
-    @include gradient(info);
     color: $white;
   }
 
@@ -116,6 +113,12 @@ input[type='submit'],
     @include gradient(error);
     color: $white;
   }
+}
+
+.btn.bg-info,
+input[type="submit"] {
+  @include gradient(info);
+  color: $white;
 }
 
 .btn-small {

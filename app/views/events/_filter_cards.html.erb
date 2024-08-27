@@ -24,8 +24,8 @@
         <div class="menu__divider"></div>
         <% @all_unique_cardholders.each do |cardholder| %>
           <%= link_to "?user=#{cardholder.user_id}#{"&status=#{@status}" if @status}", class: "flex-auto menu__action !border-t-0 #{"menu__action--active" if @user_id.to_i == cardholder.user.id}" do %>
-            <div class="avatar-grow line-height-0 mr1">
-              <%= avatar_for cardholder.user, 18 %>
+            <div class="avatar-grow line-height-0">
+              <%= avatar_for cardholder.user, 20 %>
             </div>
             <%= cardholder.user.name %>
           <% end %>

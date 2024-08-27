@@ -53,8 +53,8 @@
         <span class="xs-hide sm-hide md-hide flex items-center">
           <span class="nowrap">Filtered by</span>
           <span style="background-color: rgba(0, 0, 0, 0.3); color: #f9fafc" class="nowrap badge regular ml1">
-            <div class="avatar-grow line-height-0 mr1">
-              <%= avatar_for @user, 18 %>
+            <div class="avatar-grow line-height-0">
+              <%= avatar_for @user, 20 %>
             </div>
             <%= @user.name %>
           </span>
@@ -124,8 +124,8 @@
         <% @organizers.each do |position| %>
           <div class="flex items-center">
               <%= link_to({ user: position.user.id, q: params[:q] }.compact, class: "flex-auto flex items-center menu__action #{"menu__action--active" if @user&.id == position.user.id}") do %>
-                <div class="avatar-grow line-height-0 mr1">
-                  <%= avatar_for position.user, 18 %>
+                <div class="avatar-grow line-height-0">
+                  <%= avatar_for position.user, 20 %>
                 </div>
                 <%= position.user.name %>
               <% end %>
@@ -148,7 +148,7 @@
           <p class="bold mb0 mt0">Transactions before...</p>
           <%= form.date_field :end, class: "border mb1", value: @end_date %>
           <div class="flex justify-start">
-            <%= form.submit "Filter Transactions" %>
+            <%= form.submit "Filter transactions" %>
           </div>
         <% end %>
       </div>
@@ -168,7 +168,7 @@
           </div>
 
           <div class="flex justify-start">
-            <%= form.submit "Filter Transactions" %>
+            <%= form.submit "Filter transactions" %>
           </div>
         <% end %>
       </div>

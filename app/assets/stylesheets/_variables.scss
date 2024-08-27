@@ -2,7 +2,7 @@ $black: #1f2d3d;
 $slate: #3c4858;
 $muted: #8492a6;
 $smoke: #e0e6ed;
-$snow-dark: #EFF2F7;
+$snow-dark: #eff2f7;
 $snow: #f9fafc;
 $white: #fff;
 
@@ -38,30 +38,36 @@ $palette: (
   smoke: $smoke,
   snow: $snow,
   white: $white,
-  dark: $dark,
+  dark: $dark
 );
 
 @mixin gradient($color) {
   background-color: map-get($palette, $color);
   background-image: linear-gradient(
     to bottom,
-    lighten(saturate(map-get($palette, $color), 5%), 10%),
+    lighten(saturate(map-get($palette, $color), 5%), 5%),
     map-get($palette, $color)
   );
 }
 
 :root {
-  --shadow-border: 0 0 0 0.5px rgba(0,0,0,.125);
-  --shadow-small: 0 2px 2px rgba(0,0,0,.04);
+  --shadow-border: 0 0 0 0.5px rgba(0, 0, 0, 0.125);
+  --shadow-small: 0 2px 2px rgba(0, 0, 0, 0.04);
   --shadow-border-small: var(--shadow-border), var(--shadow-small);
-  --shadow-medium: 0 2px 2px rgba(0,0,0,.04), 0 8px 8px -8px rgba(0,0,0,.04);
+  --shadow-medium: 0 2px 2px rgba(0, 0, 0, 0.04),
+    0 8px 8px -8px rgba(0, 0, 0, 0.04);
   --shadow-border-medium: var(--shadow-border), var(--shadow-medium);
-  --shadow-large: 0 2px 2px rgba(0,0,0,.04), 0 8px 16px -4px rgba(0,0,0,.04);
+  --shadow-large: 0 2px 2px rgba(0, 0, 0, 0.04),
+    0 8px 16px -4px rgba(0, 0, 0, 0.04);
   --shadow-border-large: var(--shadow-border), var(--shadow-large);
-  --shadow-tooltip: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 4px 8px rgba(0,0,0,.04);
-  --shadow-menu: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 4px 8px -4px rgba(0,0,0,.04), 0 16px 24px -8px rgba(0,0,0,.06);
-  --shadow-modal: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 8px 16px -4px rgba(0,0,0,.04), 0 24px 32px -8px rgba(0,0,0,.06);
-  --shadow-fullscreen: var(--shadow-border), 0 1px 1px rgba(0,0,0,.02), 0 8px 16px -4px rgba(0,0,0,.04), 0 24px 32px -8px rgba(0,0,0,.06);
+  --shadow-tooltip: var(--shadow-border), 0 1px 1px rgba(0, 0, 0, 0.02),
+    0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-menu: var(--shadow-border), 0 1px 1px rgba(0, 0, 0, 0.02),
+    0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
+  --shadow-modal: var(--shadow-border), 0 1px 1px rgba(0, 0, 0, 0.02),
+    0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06);
+  --shadow-fullscreen: var(--shadow-border), 0 1px 1px rgba(0, 0, 0, 0.02),
+    0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06);
 
   --radius-sm: 4px;
   --radius-md: 6px;
