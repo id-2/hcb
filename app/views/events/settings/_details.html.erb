@@ -1,7 +1,7 @@
 <%= form_with(model: event, local: true, class: "mb3") do |form| %>
   <%= form_errors event, "organization" %>
 
-  <div class="card flex flex-col items-start gap-2 p0">
+  <div class="card flex flex-col items-start gap-2 p0 pb2 mb3">
     <div class="event_settings__banner">
       <% if @event.background_image.attached? %>
         <%= image_tag @event.background_image, height: 200, class: "banner__image" %>
@@ -65,8 +65,8 @@
           <%= form.text_area :description, placeholder: "A short description of your organization’s goals.", disabled: !policy(@event).update? %>
         </div>
       </div>
-      <div class="md:flex items-center">
-        <div class="float-left flex gap-3 items-center flex-1 max-w-2xl mr-auto">
+      <div class="md:flex items-end">
+        <div class="float-left flex gap-3 items-start flex-1 max-w-xl mr-auto">
           <%= inline_icon "info", size: 24, class: "muted" %>
           <p class="h5 muted m0">
             Your logo is displayed on the
@@ -96,7 +96,7 @@
         <% end %>
       </div>
     </div>
-    <ul class="mt0 pl2 mb2">
+    <ul class="mt0 pl4 mb2 slate">
       <li>Unauthenticated users will be able to access a <strong>read-only</strong> version of your account.</li>
       <li>None of HCB’s pages will change for signed in team members.</li>
       <li>We’ll do our best to redact contact info, but we can’t guarantee it doesn't show up in these
@@ -140,7 +140,7 @@
       <%= inline_icon "important", size: 32, class: "mr1" %>
       <p class="bold mt0 mb0">If you change your URL, beware:</p>
     </div>
-    <ul class="mt1 mb2">
+    <ul class="mt1 mb2 slate">
       <li>
         We’ll automatically redirect most pages to your organization’s new URL, including:
         <ul>
