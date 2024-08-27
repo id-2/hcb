@@ -6,7 +6,7 @@
   .tooltipped {
     &:after {
       background-color: rgba(map-get($palette, black), 0.875);
-      border-radius: 0.5rem;
+      border-radius: var(--radius-md);
       box-shadow: var(--shadow-tooltip);
       color: map-get($palette, white);
       content: attr(aria-label);
