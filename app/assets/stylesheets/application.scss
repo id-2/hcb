@@ -172,9 +172,11 @@ td {
 }
 
 th {
-  font-weight: 600;
+  color: map-get($palette, muted);
+  font-size: 0.875rem;
+  font-weight: 500;
   text-align: left;
-  padding-bottom: 0.125rem;
+  padding-block: 0.25rem;
 }
 
 hr {
