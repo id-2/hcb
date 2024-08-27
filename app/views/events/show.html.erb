@@ -37,7 +37,8 @@
   </div>
 <% end %>
 
-<h1 class="items-center hidden md:flex">
+<h1 class="heading justify-between">
+  <div class="flex items-center flex-wrap">
   Financials
   <% if admin_signed_in? %>
     <% admin_tool("p0 badge", "span") do %>
@@ -64,6 +65,26 @@
         <%= @event&.partner&.slug&.capitalize || "Not partnered" %>
       </span>
     <% end %>
+  <% end %>
+  </div>
+
+  <% if @event.canonical_transactions.any? %>
+    <div data-controller="menu" data-menu-placement-value="bottom-end">
+      <button
+        type="button"
+        class="btn btn-small menu__toggle menu__toggle--arrowless overflow-visible"
+        data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
+        data-menu-target="toggle">
+          <%= inline_icon "download", size: 16 %>
+          Export
+      </button>
+      <div class="menu__content menu__content--2" data-menu-target="content">
+        <%= link_to "All transactions (CSV)", transactions_exports_path(event: @event, format: :csv), target: :_blank %>
+        <%= link_to "All transactions (JSON)", transactions_exports_path(event: @event, format: :json), target: :_blank %>
+        <%= link_to "All transactions (Ledger)", transactions_exports_path(event: @event, format: :ledger), target: :_blank %>
+        <%= link_to "Monthly statements", event_statements_path(@event) %>
+      </div>
+    </div>
   <% end %>
 </h1>
 
@@ -127,7 +148,7 @@
 <%= render "events/public_message" %>
 
 <main data-controller="transactions">
-  <h2 class="heading pb-0 border-b-0">
+  <h2 class="heading mt3">
     <span style="flex-grow: 1">Transactions</span>
     <% if organizer_signed_in? && Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 %>
       <div
@@ -151,24 +172,6 @@
               </button>
             </div>
           <% end %>
-        </div>
-      </div>
-    <% end %>
-    <% if @event.canonical_transactions.any? %>
-      <div data-controller="menu" data-menu-placement-value="bottom-end">
-        <button
-          type="button"
-          class="btn bg-info menu__toggle menu__toggle--arrowless overflow-visible z1"
-          data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
-          data-menu-target="toggle">
-            <%= inline_icon "download", size: 16 %>
-            Export
-        </button>
-        <div class="menu__content menu__content--2 h5" data-menu-target="content">
-          <%= link_to "All transactions (CSV)", transactions_exports_path(event: @event, format: :csv), target: :_blank %>
-          <%= link_to "All transactions (JSON)", transactions_exports_path(event: @event, format: :json), target: :_blank %>
-          <%= link_to "All transactions (Ledger)", transactions_exports_path(event: @event, format: :ledger), target: :_blank %>
-          <%= link_to "Monthly statements", event_statements_path(@event) %>
         </div>
       </div>
     <% end %>

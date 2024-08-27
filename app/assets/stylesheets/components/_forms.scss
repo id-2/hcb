@@ -10,13 +10,13 @@ input[type='url'],
 select,
 textarea {
   -webkit-appearance: none;
-  background-color: map-get($palette, snow);
+  background-color: transparent;
   border-radius: 6px;
   border: 1px solid map-get($palette, smoke);
   color: inherit;
   display: block;
   font-size: 1rem;
-  min-height: 34px;
+  min-height: 32px;
   margin-left: 0;
   outline: 0;
   padding: 0.25rem 0.5rem;
@@ -33,6 +33,10 @@ textarea {
   &[disabled] {
     cursor: no-drop;
     color: map-get($palette, slate);
+  }
+
+  ::placeholder {
+    color: map-get($palette, muted);
   }
 }
 
@@ -260,6 +264,10 @@ input[type='checkbox'] {
   &:active input:checked + .slider:before {
     transform: translateX(20px);
   }
+}
+
+.field input[type="date"] {
+  height: 32px;
 }
 
 .field--radiobox {

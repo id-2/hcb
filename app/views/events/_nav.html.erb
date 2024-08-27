@@ -31,8 +31,7 @@
           selected: local_assigns[:selected] == :activation_flow %>
         <% end %>
     <% end %>
-    <h4 class="mb0 h5 font-medium muted">Receive</h4>
-    <hr>
+    <h4 class="mb1 h5 font-medium muted">Receive</h4>
     <%= dock_item "Donations",
       @event&.partner&.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
         event_donation_overview_path(event_id: @event.slug),
@@ -55,8 +54,7 @@
       tooltip: "Deposit checks",
       icon: "cheque",
       selected: local_assigns[:selected] == :deposit_check if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
-    <h4 class="mb0 h5 font-medium muted">Spend</h4>
-    <hr>
+    <h4 class="mb1 h5 font-medium muted">Spend</h4>
     <%= dock_item "Cards",
       event_cards_overview_path(event_id: @event.slug),
       tooltip: "Manage team debit cards",
@@ -79,7 +77,7 @@
       tooltip: "Send & manage grants",
       icon: "idea",
       selected: local_assigns[:selected] == :grants if Flipper.enabled?(:grants_2023_06_21, @event) %>
-    <hr>
+    <hr class="mt-4 mb-4">
     <%= dock_item "Team",
       event_team_path(event_id: @event.slug),
       tooltip: "Manage your team",
@@ -92,7 +90,7 @@
       data: { tour_step: "perks" },
       disabled: !policy(@event).promotions?,
       selected: local_assigns[:selected] == :promotions if @event.approved? %>
-    <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
+    <%= dock_item "Google Workspace",
       event_g_suite_overview_path(event_id: @event.slug),
       tooltip: (!policy(@event).g_suite_overview? ? "Your organization isn't eligble for Google Workspace." : @event.g_suites.any? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
       icon: "google",

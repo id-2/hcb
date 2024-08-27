@@ -100,12 +100,12 @@ input[type='submit'],
 
   &.bg-success {
     @include gradient(success);
-    color: darken(map-get($palette, success), 33.3%) !important;
+    color: darken(map-get($palette, success), 40%) !important;
   }
 
   &.bg-accent {
     @include gradient(accent);
-    color: darken(map-get($palette, accent), 33.3%) !important;
+    color: darken(map-get($palette, accent), 40%) !important;
   }
 
   &.bg-error,
