@@ -105,7 +105,7 @@
 
 <%= form_with(model: nil, local: true, method: :get) do |form| %>
   <div class="filterbar flex items-center width-100">
-    <%= form.text_field :q, placeholder: "Search…", class: "flex-auto md-mr2", style: "width auto; max-width: none;", value: params[:q] %>
+    <%= form.text_field :q, placeholder: "Search…", class: "flex-auto", style: "width auto; max-width: none;", value: params[:q] %>
   </div>
 <% end %>
 

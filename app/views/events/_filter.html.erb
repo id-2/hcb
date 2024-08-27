@@ -1,6 +1,6 @@
 <% filter_applied = @user || @type || @start_date || @end_date || @minimum_amount || @maximum_amount %>
 
-<div class="filterbar flex flex-row justify-between items-center gap-4 width-100">
+<div class="flex flex-row justify-between items-center gap-4 width-100">
   <%= form_with(model: nil, local: true, method: :get, class: "flex-auto") do |form| %>
     <div class="input input-group max-w-none" tabindex="0">
       <%= inline_icon "search", size: 24 %>

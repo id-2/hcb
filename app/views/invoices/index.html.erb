@@ -69,7 +69,7 @@
       <% end %>
     </div>
   <% end %>
-  <div>
+  <div class="filterbar">
     <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["paid", "unpaid", "overdue", "archived", "voided"].include?(params[:filter]), role: "tab" %>
     <%= link_to "Paid", "?filter=paid", class: "filterbar__item", "aria-selected": params[:filter] == "paid", role: "tab" %>
     <%= link_to "Unpaid", "?filter=unpaid", class: "filterbar__item", "aria-selected": params[:filter] == "unpaid", role: "tab" %>

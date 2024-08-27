@@ -1,15 +1,11 @@
 .pagination {
-}
-
-.pagination,
-.filterbar {
   padding: 0.75rem 0;
   align-self: center;
 }
 
-.filterbar__filters {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.filterbar {
+  box-shadow: var(--shadow-border);
+  border-radius: var(--radius-md);
 
   @media (max-width: 32em) {
     margin-left: -1rem;
@@ -26,7 +22,7 @@
   flex-shrink: 0;
   font-family: inherit;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.75;
   padding: 0.25rem 0.75rem;
   position: relative;
@@ -46,5 +42,6 @@
     color: map-get($palette, slate);
     background-color: map-get($palette, white);
     box-shadow: var(--shadow-border-sm);
+    z-index: 1;
   }
 }
