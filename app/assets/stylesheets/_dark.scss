@@ -12,6 +12,7 @@ html[data-dark='true'] {
     --shadow-border: 0 0 0 0.5px rgba(255, 255, 255, 0.375);
     --shadow-sm: 0 2px 2px rgba(0, 0, 0, 0.04);
     --shadow-border-sm: var(--shadow-border), var(--shadow-sm);
+    --shadow-border-md: var(--shadow-border), var(--shadow-md);
   }
 
   input[type='date'],
@@ -56,7 +57,11 @@ html[data-dark='true'] {
   .details-horiz > div:not(:last-of-type),
   .details-horiz > .details-horiz__col,
   tr {
-    border-color: map-get($palette, slate);
+    border-color: rgba(255, 255, 255, 0.375);
+  }
+  tr.transaction--positive,
+  tr.transaction--negative {
+    border-color: rgba(255, 255, 255, 0.125);
   }
   .menu__toggle[aria-expanded='true']:after {
     border-bottom-color: $darkless;
@@ -80,6 +85,16 @@ html[data-dark='true'] {
   .menu__content > a,
   .menu__action {
     color: map-get($palette, smoke);
+  }
+  .menu__content > a,
+  .menu__action {
+    & svg {
+      fill: map-get($palette, muted);
+    }
+
+    &:hover {
+      background-color: $dark;
+    }
   }
   tr a,
   .secondary,
