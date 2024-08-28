@@ -45,8 +45,7 @@ module.exports = {
     fontWeight: {
       normal: 400,
       medium: 500,
-      bold: 600,
-      black: 800
+      bold: 600
     },
     extend: {
       backgroundImage: {
