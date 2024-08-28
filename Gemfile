@@ -55,7 +55,7 @@ gem "blind_index" # needed to query and/or guarantee uniqueness for encrypted fi
 gem "aasm" # state machine
 
 gem "paper_trail", "~> 15.1.0" # track changes to models
-gem "acts_as_paranoid", "~> 0.9.0" # enables soft deletions
+gem "acts_as_paranoid", "~> 0.10.2" # enables soft deletions
 
 gem "friendly_id", "~> 5.5.1" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
@@ -189,7 +189,7 @@ group :development do
 
   gem "letter_opener_web" # preview emails
 
-  gem "wkhtmltopdf-binary", "0.12.6.6" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
+  gem "wkhtmltopdf-binary", "0.12.6.8" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
 
   # Ruby language server
   gem "solargraph", require: false

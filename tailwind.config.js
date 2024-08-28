@@ -75,6 +75,7 @@ module.exports = {
           'linear-gradient(to right, rgba(250, 247, 133, 0.66), rgba(250, 247, 133, 0.1))',
       },
       colors: {
+        primary: '#ec3750',
         slate: '#3c4858',
         smoke: '#e0e6ed',
         muted: '#8492a6',

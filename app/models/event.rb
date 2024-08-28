@@ -340,6 +340,7 @@ class Event < ApplicationRecord
   has_one_attached :donation_header_image
   has_one_attached :background_image
   has_one_attached :logo
+  has_one_attached :stripe_card_logo
 
   include HasMetrics
 
@@ -382,7 +383,7 @@ class Event < ApplicationRecord
   # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
   after_validation :move_friendly_id_error_to_slug
 
-  after_commit :generate_stripe_card_designs, if: -> { name_previously_changed? && !Rails.env.test? }
+  after_commit :generate_stripe_card_designs, if: -> { stripe_card_logo&.blob&.saved_changes? && stripe_card_logo.attached? && !Rails.env.test? }
 
   comma do
     id
@@ -723,17 +724,18 @@ class Event < ApplicationRecord
   end
 
   def generate_stripe_card_designs
+    raise ArgumentError.new("This method requires a stripe_card_logo to be attached.") unless stripe_card_logo.attached?
+
     ActiveRecord::Base.transaction do
       stripe_card_personalization_designs.update(stale: true)
-
-      URI.open("https://hcb-cc.hackclub.dev/api/embeds/bank?name=#{URI.encode_uri_component(name)}") do |file|
-        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :black, event: self).run
-
-        file.rewind
-
-        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
-      end
+      file = attachment_changes["stripe_card_logo"]&.attachable || StringIO.new(stripe_card_logo.blob.open { |f| f.read })
+      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :black, event: self).run
+      file.rewind
+      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
     end
+  rescue Stripe::InvalidRequestError
+    StripeCardMailer.with(event: self, reason: "malformatted_image").design_rejected.deliver_later
+    stripe_card_logo.delete
   end
 
   def airtable_record
