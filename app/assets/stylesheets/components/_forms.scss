@@ -37,10 +37,10 @@ textarea {
   }
 
   &::placeholder {
-    color: map-get($palette, border);
+    color: map-get($palette, divider);
   }
   &::-moz-placeholder {
-    color: map-get($palette, border);
+    color: map-get($palette, divider);
   }
 }
 .input--sm,

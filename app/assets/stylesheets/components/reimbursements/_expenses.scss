@@ -8,7 +8,7 @@
   .click_to_mention {
     padding: 2px 4px;
     border-radius: var(--radius-sm);
-    border: 1px solid map-get($palette, border);
+    border: 1px solid map-get($palette, divider);
     border-width: 0.5px;
     color: $black;
   }

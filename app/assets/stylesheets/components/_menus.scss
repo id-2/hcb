@@ -112,7 +112,7 @@
 
   hr {
     border: 0;
-    border-bottom: 0.5px solid map-get($palette, border);
+    border-bottom: 0.5px solid map-get($palette, divider);
     margin: 0.5rem 0;
   }
 
@@ -193,7 +193,7 @@
   }
 
   + .menu__action {
-    border-top: 0.5px solid map-get($palette, border);
+    border-top: 0.5px solid map-get($palette, divider);
   }
 }
 

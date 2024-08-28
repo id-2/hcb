@@ -169,7 +169,6 @@ a.card {
 
 .card--breakdown {
   @extend .card;
-  @extend .border;
   padding: 20px;
   padding-top: 0px;
   padding-bottom: 24px;
