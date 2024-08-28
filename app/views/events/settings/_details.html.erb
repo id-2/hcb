@@ -130,6 +130,27 @@
     <%= form.submit "Update", class: ("disabled" unless policy(@event).update?) %>
   </div>
 
+  <% if Flipper.enabled?(:card_logos_2024_08_27, @event) %>
+    <h3 class="mb1" id="cards_heading">Card issuing</h3>
+    <div class="card mb3">
+      <div class="field">
+        <%= form.label :stripe_card_logo, "Card logo" %>
+        <p class="h5 muted mt0 mb2">
+          Displayed in the top right of each of your organization's cards. A logo needs to be a binary image containing a black logo on a white background.
+          The file must be a PNG, with dimensions of up to 1000px by 200px and a file size no greater than 512kb.
+        </p>
+        <% if @event.stripe_card_logo.attached? %>
+          <%= image_tag @event.stripe_card_logo, width: 48 %>
+        <% end %>
+        <div class="field--fileupload mt2">
+          <%= form.label :stripe_card_logo, "Choose File", class: "field--fileupload__label" %>
+          <%= form.file_field :stripe_card_logo, accept: "image/*,image/heic", class: "field--fileupload__field" %>
+        </div>
+      </div>
+      <%= form.submit "Update", class: ("disabled" unless policy(@event).update?) %>
+    </div>
+  <% end %>
+
   <h3 class="mb1">Danger zone</h3>
   <div class="card border b--warning mb3"
     data-controller="external-validation"

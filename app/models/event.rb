@@ -340,6 +340,7 @@ class Event < ApplicationRecord
   has_one_attached :donation_header_image
   has_one_attached :background_image
   has_one_attached :logo
+  has_one_attached :stripe_card_logo
 
   include HasMetrics
 
@@ -350,7 +351,7 @@ class Event < ApplicationRecord
 
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
-  validates :name, :sponsorship_fee, :organization_identifier, presence: true
+  validates :name, :organization_identifier, presence: true
   validates :slug, presence: true, format: { without: /\s/ }
   validates :slug, format: { without: /\A\d+\z/ }
   validates_uniqueness_of_without_deleted :slug
@@ -359,7 +360,6 @@ class Event < ApplicationRecord
 
   validates :website, format: URI::DEFAULT_PARSER.make_regexp(%w[http https]), if: -> { website.present? }
 
-  validates :sponsorship_fee, numericality: { in: 0..0.5, message: "must be between 0 and 0.5" }
   validates :postal_code, zipcode: { country_code_attribute: :country, message: "is not valid" }, allow_blank: true
 
   before_create { self.increase_account_id ||= IncreaseService::AccountIds::FS_MAIN }
@@ -383,12 +383,12 @@ class Event < ApplicationRecord
   # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
   after_validation :move_friendly_id_error_to_slug
 
-  after_commit :generate_stripe_card_designs, if: -> { name_previously_changed? && !Rails.env.test? }
+  after_commit :generate_stripe_card_designs, if: -> { stripe_card_logo&.blob&.saved_changes? && stripe_card_logo.attached? && !Rails.env.test? }
 
   comma do
     id
     name
-    sponsorship_fee
+    revenue_fee
     slug "url" do |slug| "https://hcb.hackclub.com/#{slug}" end
     country
     is_public "transparent"
@@ -726,15 +726,14 @@ class Event < ApplicationRecord
   def generate_stripe_card_designs
     ActiveRecord::Base.transaction do
       stripe_card_personalization_designs.update(stale: true)
-
-      URI.open("https://hcb-cc.hackclub.dev/api/embeds/bank?name=#{URI.encode_uri_component(name)}") do |file|
-        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :black, event: self).run
-
-        file.rewind
-
-        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
-      end
+      file = attachment_changes["stripe_card_logo"]&.attachable || StringIO.new(stripe_card_logo.blob.open { |f| f.read })
+      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :black, event: self).run
+      file.rewind
+      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
     end
+  rescue Stripe::InvalidRequestError
+    StripeCardMailer.with(event: self, reason: "malformatted_image").design_rejected.deliver_later
+    stripe_card_logo.delete
   end
 
   def airtable_record
