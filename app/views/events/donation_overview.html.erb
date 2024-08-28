@@ -36,7 +36,7 @@
   <% end %>
   <%= pop_icon_to "settings",
       edit_event_path(@event, tab: "donations"),
-      data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? ? { turbo_frame: "_top", behavior: "modal_trigger", modal: "donation_settings" } : {},
+      data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "donation_settings" },
       class: "tooltipped tooltipped--s", "aria-label": "Donations settings" %>
   <% if @event.donation_page_enabled %>
     <%= link_to start_donation_donations_path(@event), target: "_blank", class: "btn" do %>
@@ -116,7 +116,7 @@
   </section>
 
   <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="prefilled_link">
-    <%= modal_header "Prefilled amount" %>
+    <%= modal_header "Prefilled link" %>
     <%= react_component "donation_overview/PreviewLink", path: start_donation_donations_url(@event) %>
   </section>
 <% else %>
@@ -128,7 +128,7 @@
     <span class="stat__label">Total</span>
     <span class="stat__value"><%= render_money_amount @stats[:deposited] %></span>
   </div>
-  <div class="stat stat--small ml3">
+  <div class="stat stat--small">
     <span class="stat__label">Per month</span>
     <span class="stat__value"><%= render_money_amount @recurring_donations_monthly_sum %></span>
   </div>
@@ -177,7 +177,7 @@
   </div>
 <% end %>
 
-<h2 class="heading mt4 pb1 w-full inline-flex justify-between" style="margin-bottom: 16px;">
+<h2 class="heading mt3 pb1 w-full inline-flex justify-between" style="margin-bottom: 16px;">
   Past donations
 
     <div data-controller="menu" data-menu-placement-value="bottom-end">
@@ -273,11 +273,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <%= javascript_include_tag "donation_qr_codes.js" %>
 
-<% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? %>
-  <section class="modal modal--scroll modal--popover modal--popover--sm bg-snow" data-behavior="modal" role="dialog" id="donation_settings">
-    <%= modal_header("Settings", external_link: edit_event_path(@event, tab: "donations")) %>
-    <%= async_frame_to edit_event_path(@event, tab: "donations", params: { frame: true }), lazy: true, as: :div do %>
-      <strong>Loading...</strong>
-    <% end %>
-  </section>
-<% end %>
+<section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="donation_settings">
+  <%= modal_header("Settings", external_link: edit_event_path(@event, tab: "donations")) %>
+  <%= async_frame_to edit_event_path(@event, tab: "donations", params: { frame: true }), lazy: true, as: :div do %>
+    <strong>Loading...</strong>
+  <% end %>
+</section>

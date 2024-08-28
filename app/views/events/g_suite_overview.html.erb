@@ -54,7 +54,7 @@
       <% end %>
       <details <%= @g_suite.verified? ? nil : "open" %> class="my-4">
         <summary>
-          <h2 class="inline-block pb0 border-none mt0">Setup Instructions</h2>
+          <h2 class="inline-block pb0 border-none mt0">Setup instructions</h2>
         </summary>
         <article class="card overflow-visible md-pl3 mt-2">
           <style>
@@ -130,15 +130,21 @@
                   <td>1</td>
                   <td><%= copy_to_clipboard("v=spf1 include:_spf.google.com ~all", tooltip_direction: "w") %></td>
                 </tr>
-                <% unless @g_suite.dkim_key.blank? %>
-                  <tr class="shade-neutral">
+                <% if @g_suite.dkim_key.present? %>
+                  <tr class="shade-neutral <%= "muted strikethrough" if @result[7] %>">
+                    <% if @g_suite.verification_error? %>
+                      <td><input type="checkbox" disabled <%= "checked" if @result[7] %>></td>
+                    <% end %>
                     <td>google._domainkey.<%= @g_suite.domain %></td>
                     <td>3600</td>
                     <td>TXT</td>
                     <td>1</td>
                     <td><%= copy_to_clipboard(@g_suite.dkim_key, tooltip_direction: "w") %></td>
                   </tr>
-                  <tr class="shade-neutral">
+                  <tr class="<%= "muted strikethrough" if @result[8] %>">
+                    <% if @g_suite.verification_error? %>
+                      <td><input type="checkbox" disabled <%= "checked" if @result[8] %>></td>
+                    <% end %>
                     <td>_DMARC.<%= @g_suite.domain %></td>
                     <td>3600</td>
                     <td>TXT</td>
@@ -238,7 +244,7 @@
                 <% end %>
               <% end %>
               <% if @g_suite.configuring? || @g_suite.verification_error? %>
-                <%= link_to @g_suite.verification_error? ? "Retry Verification" : "Verify", event_g_suite_verify_path(event_id: @event.id), method: :put, class: "btn" %>
+                <%= link_to @g_suite.verification_error? ? "Retry Verification" : "Verify", event_g_suite_verify_path(@event), method: :put, class: "btn" %>
               <% end %>
               <% if @g_suite.verifying? %>
                 <span class="h4 ml0 pending badge">Verifying…</span>
@@ -289,7 +295,7 @@
       If you <strong>already own</strong> a domain you would like to use, you can connect it to Google Workspace below.
     </p>
     <hr>
-    <%= form_with(local: true, url: event_g_suite_create_path(event_id: @event.id), method: :post) do %>
+    <%= form_with(local: true, url: event_g_suite_create_path(@event), method: :post) do %>
       <%= hidden_field_tag :event_id, @event.id %>
       <%= hidden_field_tag :creator_id, current_user.id %>
       <div class="field">

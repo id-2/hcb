@@ -672,7 +672,7 @@ GEM
     retriable (3.1.2)
     reverse_markdown (2.1.1)
       nokogiri
-    rexml (3.3.4)
+    rexml (3.3.6)
       strscan
     rinku (2.0.6)
     rotp (6.3.0)
@@ -979,7 +979,7 @@ DEPENDENCIES
   yellow_pages!
 
 RUBY VERSION
-   ruby 3.2.4p170
+   ruby 3.3.4p94
 
 BUNDLED WITH
-   2.5.9
+   2.5.17

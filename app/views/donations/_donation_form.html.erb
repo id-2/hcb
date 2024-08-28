@@ -39,7 +39,7 @@
         amount: null,
         get additionalAmountToCoverFee() {
             if (this.amount && !isNaN(this.amount)) {
-                return (Math.ceil(((this.amount / (1 - <%= @event.sponsorship_fee %>)) - this.amount) * 100) / 100).toFixed(2);
+                return (Math.ceil(((this.amount / (1 - <%= @event.revenue_fee %>)) - this.amount) * 100) / 100).toFixed(2);
             }
             return '0.00';
         }
@@ -68,14 +68,14 @@
       </div>
 
       <div class="field field--checkbox mb0">
-        <%= form.check_box :goods, style: "margin-left: 0;" %>
-        <%= form.label :goods, "I'm receiving goods for this donation.", style: "display: inline; flex-grow: 1;", checked: false %>
-        <a class="tooltipped tooltipped--w link--ignore flex" aria-label='Per IRS guidelines, for a contribution to be tax-deductible <%= "in the US" unless @event.country_US? %>, you agree that no goods or services will be provided in return for this gift.' tabindex="0">
+        <%= form.check_box :goods, style: "margin-left: 0;", checked: !@donation.tax_deductible %>
+        <%= form.label :goods, "I'm receiving goods for this donation.", style: "display: inline; flex-grow: 1;", checked: !@donation.tax_deductible %>
+        <a class="tooltipped tooltipped--w link--ignore flex" aria-label='Per IRS guidelines, for a contribution to be tax-deductible<%= " in the US" unless @event.country_US? %>, you agree that no goods or services will be provided in return for this gift.' tabindex="0">
           <%= inline_icon "info", width: 24 %>
         </a>
       </div>
 
-      <% if @event.config.cover_donation_fees && @event.sponsorship_fee > 0 %>
+      <% if @event.config.cover_donation_fees && @event.revenue_fee > 0 %>
         <div class="field field--checkbox mb0">
           <%= form.check_box :fee_covered, style: "margin-left: 0;" %>
           <%= form.label :fee_covered, style: "display: inline; flex-grow: 1;" do %>

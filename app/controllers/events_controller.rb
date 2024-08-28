@@ -200,11 +200,6 @@ class EventsController < ApplicationController
       @mock_total = @transactions.sum(&:amount_cents)
     end
 
-    if current_user && !Flipper.enabled?(:native_changelog_2024_07_03, current_user)
-      @latest_changelog_post = ChangelogPost.latest
-      Flipper.enable(:native_changelog_2024_07_03, current_user)
-    end
-
     if current_user && !Flipper.enabled?(:the_bin_popup_2024_05_17, current_user) && @event.robotics_team? && !@first_time
       Flipper.enable_actor(:the_bin_popup_2024_05_17, current_user)
       @the_bin = true
@@ -300,10 +295,11 @@ class EventsController < ApplicationController
   # GET /events/1/edit
   def edit
     @settings_tab = params[:tab]
+    @frame = params[:frame]
     authorize @event
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25) if @settings_tab == "audit_log"
 
-    render :edit, layout: !params[:frame]
+    render :edit, layout: !@frame
   end
 
   # PATCH/PUT /events/1
@@ -331,6 +327,13 @@ class EventsController < ApplicationController
       fixed_user_event_params[:hidden_at] = nil
     end
     fixed_user_event_params.delete(:hidden)
+
+    if fixed_event_params[:plan_type] && fixed_event_params[:plan_type] != @event.plan&.plan_type
+      @event.plan&.mark_inactive! # deactivate old plan
+      @event.create_plan!(plan_type: fixed_event_params[:plan_type]) # start a new plan
+    end
+
+    fixed_event_params.delete(:plan_type)
 
     if @event.update(current_user.admin? ? fixed_event_params : fixed_user_event_params)
       flash[:success] = "Organization successfully updated."
@@ -497,7 +500,9 @@ class EventsController < ApplicationController
     # result[4] = mx3
     # result[5] = mx4
     # result[6] = mx5
-    @result = [false, false, false, false, false, false, false]
+    # result[7] = DKIM
+    # result[8] = DMARC
+    @result = [false, false, false, false, false, false, false, false, false]
 
     if @g_suite&.verification_error?
       Resolv::DNS.open do |dns|
@@ -508,6 +513,20 @@ class EventsController < ApplicationController
           end
           if record.data.include?("v=spf1") && record.data.include?("include:_spf.google.com")
             @result[1] = true
+          end
+        end
+        if @g_suite.dkim_key.present?
+          records = dns.getresources("google._domainkey.#{@g_suite.domain}", Resolv::DNS::Resource::IN::TXT)
+          records.each do |record|
+            if record.data.include?(@g_suite.dkim_key)
+              @result[7] = true
+            end
+          end
+          records = dns.getresources("_DMARC.#{@g_suite.domain}", Resolv::DNS::Resource::IN::TXT)
+          records.each do |record|
+            if record.data.include?("v=DMARC1;")
+              @result[8] = true
+            end
           end
         end
       end
@@ -922,7 +941,9 @@ class EventsController < ApplicationController
       :logo,
       :website,
       :background_image,
+      :stripe_card_logo,
       :stripe_card_shipping_type,
+      :plan_type,
       card_grant_setting_attributes: [
         :merchant_lock,
         :category_lock,
@@ -968,6 +989,7 @@ class EventsController < ApplicationController
       :logo,
       :website,
       :background_image,
+      :stripe_card_logo,
       card_grant_setting_attributes: [
         :merchant_lock,
         :category_lock,
