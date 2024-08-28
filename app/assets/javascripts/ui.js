@@ -24,17 +24,6 @@ const loadModals = element => {
   });
 }
 
-// restore previous theme setting
-$(document).ready(function () {
-  if (
-    document.querySelector('html').getAttribute('data-ignore-theme') == null &&
-    BK.isDark()
-  ) {
-    BK.s('toggle_theme').find('svg').toggle()
-    return BK.styleDark(localStorage.getItem("theme") || "system")
-  }
-})
-
 $(document).on('click', '[data-behavior~=flash]', function () {
   $(this).fadeOut('medium')
 })
@@ -169,8 +158,6 @@ $(document).keydown(function (e) {
     return BK.toggleMenu($(BK.openMenuSelector))
   }
 })
-
-$(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
 function loadAsyncFrames() {
   $.each(BK.s('async_frame'), (i, frame) => {
