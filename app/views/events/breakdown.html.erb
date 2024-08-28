@@ -88,7 +88,7 @@
   </div>
 </div>
 
-<h4 class="breakdown-eyebrow mt3" style="font-size: 16px">
+<h4 class="stat__label mt3 mb2">
   <%= @past_year_transactions_count %> <%= "transaction".pluralize(@past_year_transactions_count) %> in the past year
 </h4>
 
@@ -133,27 +133,27 @@
 
 <% if @tags.any? %>
   <div class="breakdown-row">
-    <div class="card--breakdown" style="flex: 1">
-      <h3>By Tag</h3>
+    <div class="card" style="flex: 1">
+      <h3 class="mt0">By tag</h3>
       <%= pie_chart @tags, library: pie_chart_config("right"), download: true %>
     </div>
   </div>
 <% end %>
 
 <div class="breakdown-row">
-  <div class="card--breakdown" style="flex: 1">
-    <h3>By User</h3>
+  <div class="card" style="flex: 1">
+    <h3 class="mt0">By team member</h3>
     <%= react_component "breakdown/Users", { data: @users }, { camelize_props: false } %>
   </div>
 </div>
 
 <div class="breakdown-row">
-  <div class="card--breakdown" style="flex: 1">
-    <h3>Top Merchants</h3>
+  <div class="card" style="flex: 1">
+    <h3 class="mt0">Top merchants</h3>
     <%= react_component "breakdown/Merchants", { data: @merchants }, { camelize_props: false } %>
   </div>
-  <div class="card--breakdown" style="flex: 1">
-    <h3 class="mb2">Top Categories</h3>
+  <div class="card" style="flex: 1">
+    <h3 class="mt0 mb2">Top categories</h3>
     <%= react_component "breakdown/Categories", { data: @categories }, { camelize_props: false } %>
   </div>
 </div>
