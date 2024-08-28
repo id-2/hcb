@@ -1,14 +1,9 @@
 <% @has_header_image = @event.donation_header_image.attached? %>
 <% content_for(:container_style) { @has_header_image ? "padding-top: 68px" : "padding-top: 16px" } %>
 
-<action
-  role="button"
-  data-behavior="toggle_theme"
-  class="muted absolute top-0 right-0 m2 pointer no-select tooltipped tooltipped--w"
-  aria-label="toggle dark modeToggle dark mode" tabindex="0">
-  <%= inline_icon "moon", size: home_action_size %>
-  <%= inline_icon "moon-fill", size: home_action_size, style: "display: none;" %>
-</action>
+<div class="absolute top-0 right-0 m2">
+  <%= render partial: "application/dark_mode_toggle", locals: { donation_page: true } %>
+</div>
 
 <% if organizer_signed_in? %>
   <div class="flex items-center m2 absolute top-0 left-0">

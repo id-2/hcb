@@ -93,7 +93,7 @@ BK.toggleDark = () => {
 }
 BK.setDark = theme => {
   BK.styleDark(theme)
-  setCookie('theme', theme)
+  setCookie('theme', theme, 99)
   return theme
 }
 

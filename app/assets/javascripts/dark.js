@@ -9,11 +9,12 @@ try {
       return
     }
 
-    const isThemeExplicitlySet = !['dark', 'light'].includes(document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1]);
+    const isThemeExplicitlySet = ['dark', 'light'].includes(document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1]);
+    const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    if (!isThemeExplicitlySet && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.querySelector('html').setAttribute('data-dark', isThemeExplicitlySet ? "true" : "false")
-      document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#17171d')
+    if (!isThemeExplicitlySet) {
+      document.querySelector('html').setAttribute('data-dark', isSystemDark)
+      document.querySelector('meta[name=theme-color]')?.setAttribute('content', isSystemDark ? "#17171d": '#f9fafc')
     }
   })()
 } catch (e) {

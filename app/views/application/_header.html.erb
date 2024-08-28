@@ -1,26 +1,7 @@
 <header class="header <%= "mt3" unless content_for?(:nav) %>">
   <div class="header-left line-height-0 flex items-center justify-end">
     <% if !@event %>
-      <div data-controller="menu" data-menu-placement-value="bottom-center">
-        <button data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown" data-menu-target="toggle" class="muted" type="button" aria-label="Appearance" data-action="class#toggle focus#focus">
-          <%= inline_icon "moon", size: home_action_size %>
-        </button>
-
-        <div data-menu-target="content" class="menu__content menu__content--compact menu__content--2 min-w-32 w-32" data-controller="dark-mode-toggle">
-          <a data-dark-mode-toggle-target="toggle" data-value="system">
-            System
-            <%= inline_icon "check", class: "hidden", size: 24 %>
-          </a>
-          <a data-dark-mode-toggle-target="toggle" data-value="dark">
-            Dark
-            <%= inline_icon "check", class: "hidden", size: 24 %>
-          </a>
-          <a data-dark-mode-toggle-target="toggle" data-value="light">
-            Light
-            <%= inline_icon "check", class: "hidden", size: 24 %>
-          </a>
-        </div>
-      </div>
+      <%= render partial: "application/dark_mode_toggle" %>
     <% end %>
     <% if signed_in? %>
       <a
