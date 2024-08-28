@@ -1,6 +1,6 @@
 <% content_for(:nav) do %>
-  <h1 class="flex items-center xs-hide border-none h1 mt0 mb0 pt2">
-    <%= avatar_for current_user, 36, { class: "mr1" } %>
+  <h1 class="flex items-center gap-3 xs-hide border-none h2 mt0 mb0">
+    <%= avatar_for current_user, 36 %>
     <%= current_user.initial_name %>
   </h1>
 
@@ -19,7 +19,7 @@
     </button>
   </div>
 
-  <nav class="dock font-medium mt1">
+  <nav class="dock font-medium mt2">
     <%= dock_item "Home",
       root_path,
       tooltip: "See all your organizations",

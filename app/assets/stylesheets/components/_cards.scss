@@ -27,7 +27,7 @@
   :not(.draggable-source--is-dragging) > &.card--hover:hover,
   &.card--hover:focus {
     transform: translateY(-3px);
-    box-shadow: var(--shadow-border-large);
+    box-shadow: var(--shadow-border-lg);
   }
 
   &.card--hover:active {
