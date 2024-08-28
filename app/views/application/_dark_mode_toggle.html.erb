@@ -1,11 +1,8 @@
-@is_donation_page = defined?(donation_page);
-  @is_admin = defined?(admin);
-%>
-<div data-controller="menu" data-menu-placement-value="<%= @is_donation_page || @is_admin ? "bottom-end" : "bottom-center" %>">
+<div data-controller="menu" data-menu-placement-value="<%= defined?(top) ? "bottom-end" : "bottom-center" %>">
   <button
     data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
     data-menu-target="toggle"
-    class="muted <%= "bg-transparent border-0 p-0" if @is_donation_page || @is_admin %>"
+    class="muted <%= "bg-transparent border-0 p-0" if defined?(top) %>"
     type="button"
     aria-label="Appearance"
     data-action="class#toggle focus#focus">

@@ -1,5 +1,5 @@
 <div data-controller="menu" class="pt2">
-  <%= link_to @event, class: "#{"pointer-events-none" unless signed_in?} text-decoration-none text-2xl gap-4 text-inherit event-title -m-2 my-2 px-2 rounded-lg transition-colors flex items-center tracking-tight", style: "color: var(--primary)!important; font-weight: 600", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
+  <%= link_to @event, class: "#{"pointer-events-none" unless signed_in?} text-decoration-none gap-4 text-inherit event-title -m-2 my-2 px-2 rounded-lg transition-colors flex items-center tracking-tight", style: "font-size:2em;color: var(--primary)!important; font-weight: 600", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
     <%= @event.name %>
     <%= inline_icon "down-caret", class: "event-title-dropdown-icon" if show_org_switcher? %>
   <% end %>
