@@ -12,7 +12,7 @@
           id: "ai_memos",
           classes: ["feature-ai-memos"],
           feature_flag: :ai_memos_2024_06_20,
-          name: "AI Receipt Analysis",
+          name: "AI receipt analysis",
           description: "HCB can now analyze uploaded receipts to provide glancable details and transaction memo suggestions using OpenAI. After opting-in, you'll be able to see information such as the amount, date, and merchant in the receipt details pane, and HCB will suggest memos for transactions with receipts.",
           footer: "When paired with <a href='#receipt-bin'>Receipt Bin</a>, HCB can also suggest which transaction a receipt belongs to."
         } %>
@@ -52,7 +52,7 @@
     <%= render partial: "features/preview", locals: {
           id: "minimalistic-ledger",
           feature_flag: :transactions_background_2024_06_05,
-          name: "Minimalistic Ledger",
+          name: "Minimal ledger",
           description: "This feature flag makes the ledger more minimalistic by removing the colored backgrounds from transactions."
         } if Flipper.enabled?(:transactions_background_2024_06_05, current_user) %>
 
