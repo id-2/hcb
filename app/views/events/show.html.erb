@@ -67,13 +67,12 @@
   <% end %>
 </h1>
 
-<div class="flex items-center details-horiz details-horiz--lg" style="gap: 8px; pointer-events: none;">
+<header class="grid gap-4 md:grid-cols-3">
   <div
-    class="flex"
-    style="flex-direction: row; gap: 8px; position: relative;"
+    class="flex flex-col card relative pointer-events-none"
      data-controller="balance-graph"
      data-balance-graph-available-value="<%= @event.balance_available_v2_cents %>">
-    <div class="stat statset__wide" data-tour-step="balance" data-balance-graph-target="stat">
+    <div class="stat <%= "stat--small" if @event.fee_balance_v2_cents > 1_000_000 %>" data-tour-step="balance" data-balance-graph-target="stat">
       <span class="stat__label" data-balance-graph-target="label">Account balance</span>
       <% if @event.fee_balance_v2_cents < 0 # this event has a fee credit (owes negative fees) %>
         <span class="stat__value" data-balance-graph-target="balance"><%= render_money_amount @event.balance_v2_cents %></span>
@@ -85,7 +84,7 @@
       <% end %>
     </div>
 
-    <div data-nosnippet style="position: absolute; top: 0px; left: 0px; visibility: hidden;" aria-hidden="true" class="stat statset__wide" data-tour-step="balance" data-balance-graph-target="size">
+    <div data-nosnippet style="position: absolute; top: 0px; left: 0px; visibility: hidden;" aria-hidden="true" class="stat statset__wide" data-tour-step="balance" data-balance-graph-target="size" aria-hidden>
       <span class="stat__label">Account balance</span>
       <% if @event.fee_balance_v2_cents < 0 # this event has a fee credit (owes negative fees) %>
         <span class="stat__value" data-balance-graph-target="sizing"><%= render_money_amount @event.balance_v2_cents %></span>
@@ -97,32 +96,54 @@
       <% end %>
     </div>
 
-    <svg data-balance-graph-target="graph" id="balance-chart" class="sparkline sparkline--filled" height="66" stroke-width="2"></svg>
+    <svg data-balance-graph-target="graph" id="balance-chart" class="sparkline sparkline--filled" height="96" stroke-width="2"></svg>
   </div>
 
-  <div style="pointer-events: all; z-index: 10;">
-    <div class="flex items-center">
+  <div class="statset grid-rows-2 grid-cols-1 items-start card">
+    <div class="stat stat--small">
+      <span class="stat__label">Amount raised</span>
+      <span class="stat__value"><%= render_money_amount @event.total_raised %></span>
+    </div>
+    <div class="stat stat--small">
+      <span class="stat__label">Amount spent</span>
+      <span class="stat__value"><%= render_money_amount @event.total_raised - @event.balance %></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <%= link_to "Team", event_team_path(@event), class: "stat__label black no-underline" %>
+    <div class="flex items-center flex-wrap gap-2 mt-2">
       <% if @organizers.any? %>
-        <div class="flex items-center">
-          <% @organizers.limit(5).each do |position| %>
-            <div class="avatar-grow line-height-0 tooltipped tooltipped--s mr1" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">
-              <%= avatar_for position.user, 36 %>
+        <% if @organizers.size <= 6 %>
+          <% @organizers.each do |position| %>
+            <div class="flex items-center gap-2 mr1 h5">
+              <div class="avatar-grow line-height-0">
+                <%= avatar_for position.user, 24 %>
+              </div>
+              <%= position.user == current_user ? "You" : position.user.name %>
             </div>
           <% end %>
-        </div>
-        <% if @event.organizer_positions.count > 5 %>
-          <%= link_to event_team_path(@event), class: "pop" do %>
-            +<%= @event.organizer_positions.count - 5 %>
+          <%= link_to event_team_path(@event), class: "pop success p0 w-[24px] h-[24px] tooltipped tooltipped--n", "aria-label": "Invite teammate", data: { "tour-step" => "invite" } do %>
+            <%= inline_icon "plus-scaled", size: 16 %>
+          <% end %>
+        <% else %>
+          <% @organizers.limit(5).each do |position| %>
+            <div class="avatar-grow line-height-0 tooltipped tooltipped--s" aria-label="<%= position.user == current_user ? current_user_flavor_text.sample : position.user.name %>">
+              <%= avatar_for position.user, 36 %>
+            </div>
+            <%= link_to event_team_path(@event), class: "pop" do %>
+              +<%= @event.organizer_positions.count - 5 %>
+            <% end %>
+            <%= pop_icon_to "member-add", event_team_path(@event) %>
           <% end %>
         <% end %>
-        <%= pop_icon_to "member-add", event_team_path(@event), class: "ml1", data: { "tour-step" => "invite" } %>
       <% else %>
         <p class="slate bold h3 mr2">No organizers invited yet</p>
         <%= pop_icon_to "member-add", event_team_path(@event) %>
       <% end %>
     </div>
   </div>
-</div>
+</header>
 
 <%= render "events/public_message" %>
 
