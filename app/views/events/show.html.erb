@@ -72,7 +72,7 @@
     class="flex flex-col card relative pointer-events-none"
      data-controller="balance-graph"
      data-balance-graph-available-value="<%= @event.balance_available_v2_cents %>">
-    <div class="stat <%= "stat--small" if @event.fee_balance_v2_cents > 1_000_000 %>" data-tour-step="balance" data-balance-graph-target="stat">
+    <div class="stat stat--small" data-tour-step="balance" data-balance-graph-target="stat">
       <span class="stat__label" data-balance-graph-target="label">Account balance</span>
       <% if @event.fee_balance_v2_cents < 0 # this event has a fee credit (owes negative fees) %>
         <span class="stat__value" data-balance-graph-target="balance"><%= render_money_amount @event.balance_v2_cents %></span>
