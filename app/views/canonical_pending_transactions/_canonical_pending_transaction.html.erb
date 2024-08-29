@@ -6,7 +6,6 @@
                                end %>"
   id="<%= pt.local_hcb_code.hashid %>"
   <% if defined?(selectable) && selectable %>
-    data-action="click->transactions#select"
     data-transactions-target="transaction"
   <% end %>
   <% if local_assigns[:receipt_upload_button] %>
@@ -30,7 +29,7 @@
       <%= inline_icon "checkmark" %>
     </td>
   <% end %>
-  <%= render "hcb_codes/icon", tx: pt, authorless: local_assigns[:authorless] %>
+  <%= render "hcb_codes/icon", tx: pt, authorless: local_assigns[:authorless], selects: defined?(selectable) && selectable && pt.local_hcb_code.hashid %>
   <td>
     <%= format_date pt.created_at %>
   </td>
@@ -96,18 +95,16 @@
   <% end %>
 
   <% if local_assigns[:show_author_column] %>
-    <% Rails.cache.fetch("#{pt.hcb_code}_author_icon", expires_in: 12.hours) do %>
-      <% author = pt.local_hcb_code.author %>
-      <td class="<%= "tooltipped tooltipped--w" if author&.name %>" aria-label="<%= author&.name %>">
-        <div class="flex items-center justify-center">
-          <% if author.present? %>
-            <%= avatar_for author, 24, { class: "align-middle author" } %>
-          <% elsif pt.local_hcb_code.fallback_avatar %>
-            <%= image_tag(pt.local_hcb_code.fallback_avatar, loading: "lazy", width: 24, height: 24, class: "rounded-full shrink-none") %>
-          <% end %>
-        </div>
-      </td>
-    <% end %>
+    <% author = pt.local_hcb_code.author %>
+    <td class="<%= "tooltipped tooltipped--w" if author&.name %>" aria-label="<%= author&.name %>">
+      <div class="flex items-center justify-center">
+        <% if author.present? %>
+          <%= avatar_for author, 24, { class: "align-middle author" } %>
+        <% elsif pt.local_hcb_code.fallback_avatar %>
+          <%= image_tag(pt.local_hcb_code.fallback_avatar, loading: "lazy", width: 24, height: 24, class: "rounded-full shrink-none") %>
+        <% end %>
+      </div>
+    </td>
   <% end %>
 
   <% if local_assigns[:receipt_upload_button] %>
@@ -124,7 +121,7 @@
           <%= form.hidden_field :upload_method, value: "receipts_page", data: { "file-drop-target" => "uploadMethod" } %>
           <div class="<%= "btn-group btn-group--no-wrap" if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>">
             <%= form.label "file_#{pt.local_hcb_code.hashid}", class: "btn", style: "font-size: 0.875rem; font-weight: 600; padding: 0.25rem 1rem;" do %>
-              <%= inline_icon "share" %>
+              <%= inline_icon "cloud-upload" %>
               Upload receipt
             <% end %>
 

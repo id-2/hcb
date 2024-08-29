@@ -66,7 +66,7 @@ module ApplicationHelper
 
   def blankslate(text, options = {})
     other_options = options.except(:class)
-    content_tag(:p, text, class: "center mt0 mb0 pt2 pb2 slate bold h3 mx-auto max-width-2 #{options[:class]}", **other_options)
+    content_tag(:p, text, class: "center mt0 mb0 pt4 pb4 slate bold h3 mx-auto rounded border #{options[:class]}", **other_options)
   end
 
   def list_badge_for(count, item, glyph, options = { optional: false, required: false })
@@ -223,11 +223,11 @@ module ApplicationHelper
   end
 
   def help_email
-    mail_to "hcb@hackclub.com"
+    mail_to "hcb@hackclub.com", class: "nowrap"
   end
 
   def help_phone
-    phone_to "+18442372290", "+1 (844) 237 2290"
+    phone_to "+18442372290", "+1 (844) 237 2290", class: "nowrap"
   end
 
   def format_date(date)

@@ -16,6 +16,7 @@ class UsersController < ApplicationController
                                                :receipt_report,
                                                :edit_featurepreviews,
                                                :edit_security,
+                                               :edit_notifications,
                                                :edit_admin,
                                                :toggle_sms_auth,
                                                :complete_sms_auth_verification,
@@ -156,6 +157,11 @@ class UsersController < ApplicationController
     authorize @user
   end
 
+  def edit_notifications
+    @user = params[:id] ? User.friendly.find(params[:id]) : current_user
+    authorize @user
+  end
+
   def generate_totp
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
     authorize @user
@@ -173,7 +179,8 @@ class UsersController < ApplicationController
       @totp.mark_verified!
       redirect_back_or_to security_user_path(@user), flash: { success: "Your time-based OTP has been successfully configured." }
     else
-      redirect_back_or_to security_user_path(@user), flash: { success: "One time password was invalid / code has expired, please try again." }
+      @invalid = true
+      render :generate_totp
     end
   end
 

@@ -160,6 +160,10 @@ class EventsController < ApplicationController
       end_date: @end_date
     ).run
 
+    if (@minimum_amount || @maximum_amount) && !organizer_signed_in?
+      @all_transactions.reject!(&:likely_account_verification_related?)
+    end
+
     @type_filters = {
       "ach_transfer"           => {
         "settled" => ->(t) { t.local_hcb_code.ach_transfer? },
@@ -251,11 +255,6 @@ class EventsController < ApplicationController
       @mock_total = @transactions.sum(&:amount_cents)
     end
 
-    if current_user && !Flipper.enabled?(:native_changelog_2024_07_03, current_user)
-      @latest_changelog_post = ChangelogPost.latest
-      Flipper.enable(:native_changelog_2024_07_03, current_user)
-    end
-
     if current_user && !Flipper.enabled?(:the_bin_popup_2024_05_17, current_user) && @event.robotics_team? && !@first_time
       Flipper.enable_actor(:the_bin_popup_2024_05_17, current_user)
       @the_bin = true
@@ -333,10 +332,11 @@ class EventsController < ApplicationController
   # GET /events/1/edit
   def edit
     @settings_tab = params[:tab]
+    @frame = params[:frame]
     authorize @event
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25) if @settings_tab == "audit_log"
 
-    render :edit, layout: !params[:frame]
+    render :edit, layout: !@frame
   end
 
   # PATCH/PUT /events/1
@@ -364,6 +364,13 @@ class EventsController < ApplicationController
       fixed_user_event_params[:hidden_at] = nil
     end
     fixed_user_event_params.delete(:hidden)
+
+    if fixed_event_params[:plan_type] && fixed_event_params[:plan_type] != @event.plan&.plan_type
+      @event.plan&.mark_inactive! # deactivate old plan
+      @event.create_plan!(plan_type: fixed_event_params[:plan_type]) # start a new plan
+    end
+
+    fixed_event_params.delete(:plan_type)
 
     if @event.update(current_user.admin? ? fixed_event_params : fixed_user_event_params)
       flash[:success] = "Organization successfully updated."
@@ -504,24 +511,6 @@ class EventsController < ApplicationController
     render :async_balance, layout: false
   end
 
-  # (@msw) these pages are for the WIP resources page.
-  def connect_gofundme
-    @event_name = @event.name
-    @document_title = "Connect a GoFundMe Campaign"
-    @document_subtitle = "Receive payouts from GoFundMe directly into HCB"
-    @document_image = "https://cloud-jl944nr65-hack-club-bot.vercel.app/004e072bbe1.png"
-    authorize @event
-  end
-
-  # (@msw) these pages are for the WIP resources page.
-  def sell_merch
-    event_name = @event.name
-    @document_title = "Sell Merch with Redbubble"
-    @document_subtitle = "Connect your online merch shop to HCB"
-    @document_image = "https://cloud-fodxc88eu-hack-club-bot.vercel.app/0placeholder.png"
-    authorize @event
-  end
-
   def account_number
     @transactions = if @event.column_account_number.present?
                       CanonicalTransaction.where(transaction_source_type: "RawColumnTransaction", transaction_source_id: RawColumnTransaction.where("column_transaction->>'account_number_id' = '#{@event.column_account_number.column_id}'").pluck(:id)).order(created_at: :desc)
@@ -548,7 +537,9 @@ class EventsController < ApplicationController
     # result[4] = mx3
     # result[5] = mx4
     # result[6] = mx5
-    @result = [false, false, false, false, false, false, false]
+    # result[7] = DKIM
+    # result[8] = DMARC
+    @result = [false, false, false, false, false, false, false, false, false]
 
     if @g_suite&.verification_error?
       Resolv::DNS.open do |dns|
@@ -559,6 +550,20 @@ class EventsController < ApplicationController
           end
           if record.data.include?("v=spf1") && record.data.include?("include:_spf.google.com")
             @result[1] = true
+          end
+        end
+        if @g_suite.dkim_key.present?
+          records = dns.getresources("google._domainkey.#{@g_suite.domain}", Resolv::DNS::Resource::IN::TXT)
+          records.each do |record|
+            if record.data.include?(@g_suite.dkim_key)
+              @result[7] = true
+            end
+          end
+          records = dns.getresources("_DMARC.#{@g_suite.domain}", Resolv::DNS::Resource::IN::TXT)
+          records.each do |record|
+            if record.data.include?("v=DMARC1;")
+              @result[8] = true
+            end
           end
         end
       end
@@ -973,11 +978,14 @@ class EventsController < ApplicationController
       :logo,
       :website,
       :background_image,
+      :stripe_card_logo,
       :stripe_card_shipping_type,
+      :plan_type,
       card_grant_setting_attributes: [
         :merchant_lock,
         :category_lock,
-        :invite_message
+        :invite_message,
+        :expiration_preference
       ],
       config_attributes: [
         :id,
@@ -1018,10 +1026,12 @@ class EventsController < ApplicationController
       :logo,
       :website,
       :background_image,
+      :stripe_card_logo,
       card_grant_setting_attributes: [
         :merchant_lock,
         :category_lock,
-        :invite_message
+        :invite_message,
+        :expiration_preference
       ],
       config_attributes: [
         :id,

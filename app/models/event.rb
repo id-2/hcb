@@ -243,6 +243,10 @@ class Event < ApplicationRecord
 
   belongs_to :point_of_contact, class_name: "User", optional: true
 
+  # we keep a papertrail of historic plans
+  has_many :plans, class_name: "Event::Plan", inverse_of: :event
+  has_one :plan, -> { where(aasm_state: :active) }, class_name: "Event::Plan", inverse_of: :event, required: true
+
   has_one :config, class_name: "Event::Configuration"
   accepts_nested_attributes_for :config
 
@@ -336,6 +340,7 @@ class Event < ApplicationRecord
   has_one_attached :donation_header_image
   has_one_attached :background_image
   has_one_attached :logo
+  has_one_attached :stripe_card_logo
 
   include HasMetrics
 
@@ -346,7 +351,7 @@ class Event < ApplicationRecord
 
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
-  validates :name, :sponsorship_fee, :organization_identifier, presence: true
+  validates :name, :organization_identifier, presence: true
   validates :slug, presence: true, format: { without: /\s/ }
   validates :slug, format: { without: /\A\d+\z/ }
   validates_uniqueness_of_without_deleted :slug
@@ -355,7 +360,6 @@ class Event < ApplicationRecord
 
   validates :website, format: URI::DEFAULT_PARSER.make_regexp(%w[http https]), if: -> { website.present? }
 
-  validates :sponsorship_fee, numericality: { in: 0..0.5, message: "must be between 0 and 0.5" }
   validates :postal_code, zipcode: { country_code_attribute: :country, message: "is not valid" }, allow_blank: true
 
   before_create { self.increase_account_id ||= IncreaseService::AccountIds::FS_MAIN }
@@ -364,7 +368,12 @@ class Event < ApplicationRecord
     self.activated_at = Time.now
   end
 
+  before_validation do
+    build_plan(plan_type: Event::Plan::Standard) if plan.nil?
+  end
+
   before_validation(if: :outernet_guild?, on: :create) { self.donation_page_enabled = false }
+
   validate do
     if outernet_guild? && donation_page_enabled?
       errors.add(:donation_page_enabled, "donation page can't be enabled for Outernet guilds")
@@ -374,12 +383,12 @@ class Event < ApplicationRecord
   # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
   after_validation :move_friendly_id_error_to_slug
 
-  after_commit :generate_stripe_card_designs, if: -> { name_previously_changed? && !Rails.env.test? }
+  after_commit :generate_stripe_card_designs, if: -> { stripe_card_logo&.blob&.saved_changes? && stripe_card_logo.attached? && !Rails.env.test? }
 
   comma do
     id
     name
-    sponsorship_fee
+    revenue_fee
     slug "url" do |slug| "https://hcb.hackclub.com/#{slug}" end
     country
     is_public "transparent"
@@ -588,7 +597,7 @@ class Event < ApplicationRecord
 
     feed_fronted_balance = sum_fronted_amount(feed_fronted_pts)
 
-    fee_balance_v2_cents + (feed_fronted_balance * sponsorship_fee).ceil
+    fee_balance_v2_cents + (feed_fronted_balance * revenue_fee).ceil
   end
 
   # This intentionally does not include fees on fronted transactions to make sure they aren't actually charged
@@ -601,13 +610,15 @@ class Event < ApplicationRecord
   def plan_name
     if demo_mode?
       "playground mode"
+    elsif plan.present?
+      plan.label
     elsif unapproved?
       "pending approval"
     elsif hack_club_hq?
       "Hack Club affiliated project"
     elsif salary?
       "salary account"
-    elsif sponsorship_fee == 0
+    elsif revenue_fee == 0
       "full fiscal sponsorship (fee waived)"
     else
       "full fiscal sponsorship"
@@ -699,18 +710,30 @@ class Event < ApplicationRecord
     !engaged?
   end
 
+  def sponsorship_fee
+    Airbrake.notify("Deprecated Event#sponsorship_fee used.")
+    revenue_fee
+  end
+
+  def plan
+    super&.becomes(super.plan_type&.constantize)
+  end
+
+  def revenue_fee
+    plan&.revenue_fee || self[:sponsorship_fee]
+  end
+
   def generate_stripe_card_designs
     ActiveRecord::Base.transaction do
       stripe_card_personalization_designs.update(stale: true)
-
-      URI.open("https://hcb-cc.hackclub.dev/api/embeds/bank?name=#{URI.encode_uri_component(name)}") do |file|
-        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :black, event: self).run
-
-        file.rewind
-
-        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
-      end
+      file = attachment_changes["stripe_card_logo"]&.attachable || StringIO.new(stripe_card_logo.blob.open { |f| f.read })
+      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :black, event: self).run
+      file.rewind
+      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
     end
+  rescue Stripe::InvalidRequestError
+    StripeCardMailer.with(event: self, reason: "malformatted_image").design_rejected.deliver_later
+    stripe_card_logo.delete
   end
 
   def airtable_record

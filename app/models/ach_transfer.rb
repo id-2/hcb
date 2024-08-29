@@ -101,6 +101,10 @@ class AchTransfer < ApplicationRecord
 
   scope :scheduled_for_today, -> { scheduled.where(scheduled_on: ..Date.today) }
 
+  after_initialize do
+    same_day = true
+  end
+
   aasm whiny_persistence: true do
     state :pending, initial: true
     state :scheduled
@@ -197,6 +201,13 @@ class AchTransfer < ApplicationRecord
     self.column_id = column_ach_transfer["id"]
 
     save!
+  end
+
+  # reason must be listed on https://column.com/docs/api/#ach-transfer/reverse
+  def reverse!(reason)
+    raise ArgumentError, "must have been sent" unless column_id
+
+    ColumnService.post "/transfers/ach/#{column_id}/reverse", reason:
   end
 
   def pending_expired?
