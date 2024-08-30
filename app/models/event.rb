@@ -344,6 +344,8 @@ class Event < ApplicationRecord
 
   include HasMetrics
 
+  include HasTasks
+
   validate :point_of_contact_is_admin
 
   include ::UserService::CanOpenDemoMode
@@ -733,9 +735,9 @@ class Event < ApplicationRecord
       file.rewind
       ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
     end
-  rescue Stripe::InvalidRequestError
-    StripeCardMailer.with(event: self, reason: "malformatted_image").design_rejected.deliver_later
+  rescue Stripe::InvalidRequestError => e
     stripe_card_logo.delete
+    raise Errors::InvalidStripeCardLogoError, e.message
   end
 
   def airtable_record

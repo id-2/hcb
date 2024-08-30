@@ -102,7 +102,7 @@ class AchTransfer < ApplicationRecord
   scope :scheduled_for_today, -> { scheduled.where(scheduled_on: ..Date.today) }
 
   after_initialize do
-    same_day = true
+    self.same_day = true
   end
 
   aasm whiny_persistence: true do

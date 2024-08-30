@@ -64,6 +64,7 @@ Rails.application.routes.draw do
 
     get "inbox", to: "my#inbox", as: :my_inbox
     get "activities", to: "my#activities", as: :my_activities
+    get "tasks", to: "my#tasks", as: :my_tasks
     get "reimbursements", to: "my#reimbursements", as: :my_reimbursements
     get "reimbursements_icon", to: "my#reimbursements_icon", as: :my_reimbursements_icon
 
@@ -682,6 +683,7 @@ Rails.application.routes.draw do
     resources :g_suites, only: [:new, :create, :edit, :update]
     resources :documents, only: [:index]
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
+    get "verification_letter", to: "documents#verification_letter"
     resources :invoices, only: [:new, :create, :index]
     resources :tags, only: [:create, :destroy]
     resources :event_tags, only: [:create, :destroy]
