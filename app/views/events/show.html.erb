@@ -147,6 +147,72 @@
 
 <%= render "events/public_message" %>
 
+
+<div class="flex justify-start gap-4 mt2">
+  <button
+    data-behavior="menu_toggle"
+    aria-expanded="false" tabindex="0"
+    class="btn btn-small menu__toggle overflow-visible z1">
+    <%= inline_icon "payment-transfer" %>
+    Transfer money
+    <%= inline_icon "down-caret", size: 12 %>
+    <div class="menu__content menu__content--compact" data-behavior="menu_content">
+      <%= link_to new_event_ach_transfer_path(@event), data: { turbo_frame: "_top" } do %>
+        <%= inline_icon "payment-transfer" %>
+        ACH transfer
+      <% end %>
+
+      <%= link_to new_event_increase_check_path(@event), data: { turbo_frame: "_top" } do %>
+        <%= inline_icon "email" %>
+        Mailed check
+      <% end %>
+
+      <%= link_to (paypal_transfers_airtable_form_url(embed: false, event: @event, user: @current_user) if policy(@event).create_transfer?), class: "#{"btn--form-option--disabled" unless policy(@event).create_transfer?}", data: { turbo_frame: "_top" } do %>
+        <%= inline_icon "paypal" %>
+        PayPal
+        <% if @event.demo_mode? %>
+          <small>Not available in Playground Mode</small>
+        <% elsif !policy(@event).create_transfer? %>
+          <small>Only available for managers.</small>
+        <% end %>
+      <% end %>
+
+      <%= link_to new_disbursement_path(source_event_id: @event), data: { turbo_frame: "_top" } do %>
+        <%= inline_icon "bank-account" %>
+        Inter-HCB transfer
+      <% end %>
+
+      <% if Flipper.enabled?(:card_grants_2023_05_25, @event) %>
+        <%= link_to new_event_card_grant_path(@event), data: { turbo: true } do %>
+          <%= inline_icon "card" %>
+          Grant <span class="warning regular">(beta)</span>
+        <% end %>
+      <% end %>
+    </div>
+  </button>
+
+  <%= link_to  event_check_deposits_path(@event),
+      class: "tooltipped btn btn-small",
+      "aria-label": "Deposit checks" do %>
+        <%= inline_icon "cheque" %>
+        Deposit check
+    <% end if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
+
+  <%= link_to account_number_event_path(@event),
+    class: "tooltipped btn btn-small",
+    "aria-label": "Receive payouts from GoFundMe, Shopify, Venmo, and more" do %>
+    <%= inline_icon "account-numbers" %>
+    Bank account number
+  <% end if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %>
+
+  <%= link_to event_reimbursements_path(event_id: @event.slug),
+    class: "tooltipped btn btn-small",
+    "aria-label": "Start a reimbursement report for yourself" do %>
+    <%= inline_icon "attachment" %>
+    Get reimbursed
+  <% end if signed_in? %>
+</div>
+
 <main data-controller="transactions">
   <h2 class="heading mt3">
     <span style="flex-grow: 1">Transactions</span>
