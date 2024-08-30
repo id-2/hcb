@@ -12,12 +12,12 @@
     <% end %>
   </div>
   <nav class="dock dock--desktop mt2 font-medium">
-    <%= dock_item "Transactions",
+    <%= dock_item "Financials",
       event_path(id: @event.slug),
       tooltip: "View your transactions",
       icon: "bank-account",
       selected: local_assigns[:selected] == :transactions %>
-    <%= dock_item "Breakdown",
+    <%# dock_item "Breakdown",
       event_breakdown_path(event_id: @event.slug),
       tooltip: "Breakdown",
       icon: "grid",
@@ -26,38 +26,26 @@
       <% admin_tool("m0 p0 overflow-visible w-fit") do %>
         <%= dock_item "Activate",
           event_activation_flow_path(event_id: @event.slug),
-          tooltip: "Activate This Organization",
+          tooltip: "Activate this organization",
           icon: "checkmark",
           selected: local_assigns[:selected] == :activation_flow %>
         <% end %>
     <% end %>
-    <h4 class="mb1 h5 font-medium muted">Receive</h4>
     <%= dock_item "Donations",
       @event&.partner&.external? ? event_partner_donation_overview_path(event_id: @event.slug) :
         event_donation_overview_path(event_id: @event.slug),
-      tooltip: "Receive donations online",
+      tooltip: "Receive online donations",
       icon: "support",
       data: { tour_step: "donations" },
       selected: local_assigns[:selected] == :donations if @event.approved? %>
     <%= dock_item "Invoices",
       event_invoices_path(event_id: @event.slug),
-      tooltip: "Collect sponsor payments",
-      icon: "briefcase",
+      tooltip: "Request payments from sponsors",
+      icon: "send",
       selected: local_assigns[:selected] == :invoices if @event.approved? %>
-    <%= dock_item "Account numbers",
-      account_number_event_path(@event),
-      tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
-      icon: "bank-account",
-      selected: local_assigns[:selected] == :account_number if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %>
-    <%= dock_item "Check deposits",
-      event_check_deposits_path(@event),
-      tooltip: "Deposit checks",
-      icon: "cheque",
-      selected: local_assigns[:selected] == :deposit_check if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
-    <h4 class="mb1 h5 font-medium muted">Spend</h4>
     <%= dock_item "Cards",
       event_cards_overview_path(event_id: @event.slug),
-      tooltip: "Manage team debit cards",
+      tooltip: "Manage debit cards",
       icon: "card",
       data: { tour_step: "cards" },
       selected: local_assigns[:selected] == :cards if @event.approved? %>
@@ -81,12 +69,12 @@
     <%= dock_item "Team",
       event_team_path(event_id: @event.slug),
       tooltip: "Manage your team",
-      icon: "leader",
+      icon: "people-2",
       selected: local_assigns[:selected] == :team %>
     <%= dock_item "Perks",
       event_promotions_path(event_id: @event.slug),
       tooltip: (!policy(@event).promotions? ? "Your account isn't eligble for receive promos & discounts" : "Receive promos & discounts"),
-      icon: "shirt",
+      icon: "perks",
       data: { tour_step: "perks" },
       disabled: !policy(@event).promotions?,
       selected: local_assigns[:selected] == :promotions if @event.approved? %>

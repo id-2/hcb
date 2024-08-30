@@ -145,33 +145,16 @@
   </div>
 </div>
 
-<div class="flex">
-  <%= link_to  event_check_deposits_path(@event),
-      class: "tooltipped btn btn-small",
-      tooltip: "Deposit checks" do %>
-    <%= inline_icon "cheque" %>
-    Deposit check
-  <% end if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
-
-  <%= link_to account_number_event_path(@event),
-    class: "tooltipped btn btn-small",
-    tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more" do %>
-    <%= inline_icon "account-numbers" %>
-    Bank account number
-  <% end if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %
-</div>
-
 <%= render "events/public_message" %>
 
-
-<div class="flex justify-start gap-4 mt2">
+<div class="flex justify-start gap-4 mt3">
   <button
     data-behavior="menu_toggle"
     aria-expanded="false" tabindex="0"
     class="btn btn-small menu__toggle overflow-visible z1">
     <%= inline_icon "payment-transfer" %>
     Transfer money
-    <%= inline_icon "down-caret", size: 12 %>
+    <%# inline_icon "down-caret", size: 12 %>
     <div class="menu__content menu__content--compact" data-behavior="menu_content">
       <%= link_to new_event_ach_transfer_path(@event), data: { turbo_frame: "_top" } do %>
         <%= inline_icon "payment-transfer" %>
@@ -195,7 +178,7 @@
 
       <%= link_to new_disbursement_path(source_event_id: @event), data: { turbo_frame: "_top" } do %>
         <%= inline_icon "bank-account" %>
-        Inter-HCB transfer
+        Inter-HCB account transfer
       <% end %>
 
       <% if Flipper.enabled?(:card_grants_2023_05_25, @event) %>
@@ -207,19 +190,19 @@
     </div>
   </button>
 
-  <%= link_to  event_check_deposits_path(@event),
-      class: "tooltipped btn btn-small",
-      "aria-label": "Deposit checks" do %>
-        <%= inline_icon "cheque" %>
-        Deposit check
-    <% end if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
+  <%= link_to event_check_deposits_path(@event), class: "btn btn-small" do %>
+    <%= inline_icon "cheque" %>
+    Deposit check
+  <% end if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
 
-  <%= link_to account_number_event_path(@event),
-    class: "tooltipped btn btn-small",
-    "aria-label": "Receive payouts from GoFundMe, Shopify, Venmo, and more" do %>
-    <%= inline_icon "account-numbers" %>
-    Bank account number
-  <% end if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %>
+  <% if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %>
+    <button data-behavior="modal_trigger" data-modal="account_numbers"
+    class="btn btn-small"
+      aria-label="Receive payouts from GoFundMe, Shopify, Venmo, and more">
+      <%= inline_icon "account-numbers" %>
+      Account numbers
+    </button>
+  <% end %>
 
   <%= link_to event_reimbursements_path(event_id: @event.slug),
     class: "tooltipped btn btn-small",
@@ -230,7 +213,7 @@
 </div>
 
 <main data-controller="transactions">
-  <h2 class="heading mt3">
+  <h2 class="heading mt2">
     <span style="flex-grow: 1">Transactions</span>
     <% if organizer_signed_in? && Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 %>
       <div
@@ -244,7 +227,7 @@
           class="btn btn-small bg-info menu__toggle menu__toggle--arrowless overflow-visible z1"
           data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
           <%= inline_icon "sticker", size: 16 %>
-          <span class="nowrap">Toggle Tags</span>
+          <span class="nowrap">Toggle tags</span>
         </button>
         <div class="menu__content menu__content--2 menu__content--compact menu__content--left h6" data-menu-target="content">
           <% @event.tags.each do |tag| %>
@@ -295,3 +278,5 @@
     <% end %>
   <% end %>
 </main>
+
+<%= render "account_numbers" %>

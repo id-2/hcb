@@ -136,53 +136,52 @@
     <% end %>
 
     <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="ach_form">
-      <%= modal_header "Bank account details" %>
-      <p class="h4 muted">
-        Connect your HCB account to GoFundMe, Shopify, Venmo, and more.
+      <header>
+        <%= modal_close %>
+        <h2 class="heading mt0 pb0 border-none">
+          Bank account numbers
+          <% if @event.column_account_number&.deposit_only? %>
+            <div class="badge bg-info ml0 self-end tooltipped tooltipped--s" aria-label="This account number can only receive funds. You can’t use it to send money.">
+              <%= inline_icon "info", size: 20, style: "margin-left: 0; margin-right: 0.25rem" %> Receive-only
+            </div>
+          <% else %>
+            <div class="badge bg-success ml0 self-end tooltipped tooltipped--s" aria-label="This account number can be used to deposit and withdraw from your account.">
+              <%= inline_icon "info", size: 20, style: "margin-left: 0; margin-right: 0.25rem" %> Receive + send
+            </div>
+          <% end %>
+        </h2>
+        <p class="h4 muted mt1 mb1">
+          Connect your HCB account to GoFundMe, Shopify, Venmo, and more.
+        </p>
+      </header>
+
+      <section class="details-horiz mt-6 overflow-visible">
+        <p>
+          <strong class="">Account number</strong>
+          <span class="h2 font-mono"><%= copy_to_clipboard @event.column_account_number&.account_number, tooltip_direction: :s %></span>
+        </p>
+        <p>
+          <strong class="tooltipped tooltipped--n" aria-label="Used to receive ACH transfers and wires within the US">Routing number<sup class="muted help"> ?</sup></strong>
+          <span class="h2 font-mono"><%= copy_to_clipboard @event.column_account_number&.routing_number, tooltip_direction: :s %></span>
+        </p>
+      </section>
+
+      <p class="h5 muted text-balance flex gap-2 mt1 mb2">
+        <%= inline_icon "info", size: 24 %>
+        You may need to tap "Verify bank manually" or similar when linking your account to apps like Venmo.
       </p>
 
-      <div class="flex gap-3 items-center mb-4">
-        <div class="badge bg-info ml0 pl-2 w-fit inline-flex gap-1 items-center">
-          <%= inline_icon "info", size: 18 %>
-          Receive<%= @event.column_account_number&.deposit_only? ? "-only" : " + send" %>
-        </div>
 
-        <% admin_tool "flex-col justify-center w-fit" do %>
-          <%= button_to @event.column_account_number&.deposit_only? ? "Enable debits" : "Make deposit-only",
-                        event_column_account_number_path(@event),
-                        method: :patch,
-                        params: { column_account_number: { deposit_only: !@event.column_account_number&.deposit_only } },
-                        class: "btn bg-muted text-sm py-1 px-3",
-                        data: { turbo_confirm: "Are you sure you want to change this? Debits are usually disabled for account security." } %>
-        <% end %>
-      </div>
+      <% admin_tool do %>
+        <%= button_to @event.column_account_number&.deposit_only? ? "Enable debits" : "Make deposit-only",
+                      event_column_account_number_path(@event),
+                      method: :patch,
+                      params: { column_account_number: { deposit_only: !@event.column_account_number&.deposit_only } },
+                      class: "btn bg-muted text-sm py-1 px-3",
+                      data: { turbo_confirm: "Are you sure you want to change this? Debits are usually disabled for account security." } %>
+      <% end %>
 
-      <div class="details-horiz mb-2 md:mb-4">
-        <div data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="<%= @event.account_number if organizer_signed_in? %>">
-          <span class="muted">Account </span>
-          <span class="h2 font-mono pointer tooltipped tooltipped--n fs-mask" aria-label="<%= organizer_signed_in? ? "Click to copy" : "Sign in to view" %>" data-action="click->clipboard#copy">
-            <% if organizer_signed_in? %>
-              <%= @event.account_number %>
-            <% else %>
-              <%= "•" * @event.account_number.length %>
-            <% end %>
-          </span>
-        </div>
-        <div data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="<%= @event.routing_number if organizer_signed_in? %>">
-          <span class="muted">Routing</span>
-          <span class="h2 font-mono pointer tooltipped tooltipped--n fs-mask" aria-label="<%= organizer_signed_in? ? "Click to copy" : "Sign in to view" %>" data-action="click->clipboard#copy">
-            <% if organizer_signed_in? %>
-              <%= @event.routing_number %>
-            <% else %>
-              <%= "•" * @event.routing_number.length %>
-            <% end %>
-          </span>
-        </div>
-      </div>
-=
-      <p class="m0 muted">You may need to tap "Verify bank manually" or similar when linking your account to apps like Venmo.</p>
-
-      <section class="details border-top pt2">
+      <section class="details border-top pt2 mt2">
         <p>
           <strong>SWIFT BIC code<sup class="muted tooltipped tooltipped--n help" aria-label="Used to receive international wire transfers from outside the US"> ?</sup></strong>
           <span><%= copy_to_clipboard @event.column_account_number&.bic_code, tooltip_direction: :e %></span>
@@ -203,7 +202,7 @@
           <strong>Bank address</strong>
           <span>1110 Gorgas Avenue, Suite A4-700<br>San Francisco, CA 94129</span>
         </p>
-      </div>
+      </section>
     </section>
   <% end %>
 <% end %>
