@@ -28,6 +28,11 @@ $(document).on('click', '[data-behavior~=flash]', function () {
   $(this).fadeOut('medium')
 })
 
+$(document).on('turbo:load', function () {
+  const isWindows = navigator.platform.toUpperCase().indexOf('WIN') >= 0;
+  document.getElementById("command_bar_trigger").setAttribute("aria-label", `Jump to (${isWindows ? "Ctrl" : "⌘"} + K)`)
+})
+
 loadModals(document);
 (() => {
   let autoModals = $('[data-modal-auto-open~=true]')
