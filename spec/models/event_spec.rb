@@ -58,8 +58,6 @@ RSpec.describe Event, type: :model do
     it "handles fee payments with an unknown hcb code" do
       # There are a few fee payments in prod that DON'T have an HCB-700 code.
 
-      event = create(:event, sponsorship_fee: 0.07)
-
       expect {
         cem = create(
           :canonical_event_mapping,
