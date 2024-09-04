@@ -37,16 +37,6 @@
       tooltip: "Collect sponsor payments",
       icon: "briefcase",
       selected: local_assigns[:selected] == :invoices if @event.approved? && @event.plan.invoices_enabled? %>
-    <%= dock_item "Account numbers",
-      account_number_event_path(@event),
-      tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
-      icon: "bank-account",
-      selected: local_assigns[:selected] == :account_number if policy(@event).account_number? %>
-    <%= dock_item "Check deposits",
-      event_check_deposits_path(@event),
-      tooltip: "Deposit checks",
-      icon: "cheque",
-      selected: local_assigns[:selected] == :deposit_check if policy(@event.check_deposits.build).index? %>
     <%= dock_item "Cards",
       event_cards_overview_path(event_id: @event.slug),
       tooltip: "Manage debit cards",
@@ -73,12 +63,12 @@
     <%= dock_item "Team",
       event_team_path(event_id: @event.slug),
       tooltip: "Manage your team",
-      icon: "people-2",
+      icon: "leader",
       selected: local_assigns[:selected] == :team %>
     <%= dock_item "Perks",
       event_promotions_path(event_id: @event.slug),
       tooltip: (!policy(@event).promotions? ? "Your account isn't eligble for receive promos & discounts" : "Receive promos & discounts"),
-      icon: "perks",
+      icon: "shirt",
       data: { tour_step: "perks" },
       disabled: !policy(@event).promotions?,
       selected: local_assigns[:selected] == :promotions if @event.approved? %>
@@ -115,8 +105,6 @@
           <div class="menu__divider"></div>
           <%= link_to "Donations", event_donation_overview_path(@event) if policy(@event).donation_overview? %>
           <%= link_to "Invoices", event_invoices_path(@event) if @event.approved? && @event.plan.invoices_enabled? %>
-          <%= link_to "Account numbers", account_number_event_path(@event) if policy(@event).account_number? %>
-          <%= link_to "Check deposits", event_check_deposits_path(@event) if policy(@event.check_deposits.build).index? %>
         </div>
       </button>
     <% end %>

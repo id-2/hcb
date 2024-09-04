@@ -88,7 +88,7 @@
   <% end %>
 </h1>
 
-<div class="flex items-center details-horiz details-horiz--lg" style="gap: 8px; pointer-events: none;">
+<div class="flex details-horiz details-horiz--lg gap-3" style="pointer-events: none;">
   <div
     class="flex"
     style="flex-direction: row; gap: 8px; position: relative;"
@@ -147,7 +147,7 @@
 
 <%= render "events/public_message" %>
 
-<div class="flex justify-start gap-4 mt2">
+<div class="flex flex-wrap justify-start gap-2 md:gap-3 mt2">
   <div data-controller="menu" data-menu-placement-value="bottom-start">
     <button
       data-behavior="menu_toggle"
@@ -232,7 +232,7 @@
         class="display-none">
         <button
           type="button"
-          class="btn btn-small bg-info menu__toggle menu__toggle--arrowless overflow-visible z1"
+          class="btn btn-small bg-info menu__toggle menu__toggle--arrowless overflow-visible"
           data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
           <%= inline_icon "sticker", size: 16 %>
           <span class="nowrap">Toggle tags</span>
