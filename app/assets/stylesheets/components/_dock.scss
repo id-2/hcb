@@ -158,7 +158,6 @@
     border-radius: var(--radius-lg);
     cursor: pointer;
     line-height: 1.75;
-    outline: 0;
     transition:
       color 0.125s ease-in-out,
       background-color 0.125s ease-in-out;
@@ -166,8 +165,7 @@
     line-height: 1.25;
     padding: 0.25rem 1rem 0.25rem 0.5rem;
 
-    &:hover,
-    &:focus {
+    &:hover {
       background-color: map-get($palette, white);
 
       .dock__item--badge {
