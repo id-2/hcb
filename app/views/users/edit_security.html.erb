@@ -24,8 +24,8 @@
             <%= link_to "Turn on SMS login codes.", toggle_sms_auth_users_path, data: { turbo: true, turbo_method: "post" } %>
           <% end %>
         <% else %>
-          <p>Your login codes are sent to <span class="bold"><%= @user.email %></span>.</p>
-          <p>
+          <p class="mt0">Your login codes are sent to <span class="bold"><%= @user.email %></span>.</p>
+          <p class="mb0">
             To send login codes to your phone, first
             <action data-behavior="modal_trigger" data-modal="verify_phone">
               <a>

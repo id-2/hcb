@@ -351,7 +351,9 @@ legend {
   }
 
   input:checked + label {
-    box-shadow: 0 0 0 1px white, 0 0 0 3px map-get($palette, info);
+    box-shadow:
+      0 0 0 1px white,
+      0 0 0 3px map-get($palette, info);
   }
 }
 
@@ -407,7 +409,9 @@ textarea.card {
   transition: 0.2s ease box-shadow;
 
   &:focus {
-    box-shadow: var(--shadow-border-md), inset 0 0 0 1px map-get($palette, info);
+    box-shadow:
+      var(--shadow-border-md),
+      inset 0 0 0 1px map-get($palette, info);
   }
 }
 

@@ -110,12 +110,14 @@ input[type='submit'],
 
   &.bg-error,
   &.btn--destroy {
-    transition: box-shadow 0.125s ease, background-color 0.125s ease;
-    background-color: map-get($palette, white);
+    transition:
+      box-shadow 0.125s ease,
+      background-color 0.125s ease;
+    background-color: map-get($palette, white) !important;
     color: map-get($palette, error) !important;
 
     &:hover {
-      background-color: rgba(map-get($palette, primary), 0.125);
+      background-color: rgba(map-get($palette, primary), 0.125) !important;
     }
   }
 }

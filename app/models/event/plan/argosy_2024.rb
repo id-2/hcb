@@ -21,17 +21,13 @@
 #
 class Event
   class Plan
-    class CardsOnly < Standard
+    class Argosy2024 < SpendOnly
       def label
-        "card-only"
-      end
-
-      def description
-        "Only has access to cards for spending and can't raise money, often used for one-off events like Outernet or Winter Hardware Wonderland."
+        "2024 Argosy grantee spend-only"
       end
 
       def features
-        %w[cards]
+        super - %w[promotions google_workspace documentation]
       end
 
     end

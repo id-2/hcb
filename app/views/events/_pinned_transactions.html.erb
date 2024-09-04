@@ -1,6 +1,6 @@
 <% @show_popovers = Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? %>
 <% if @event.pinned_hcb_codes.any? %>
-  <div class="flex gap-4 mt-4 pinned__container">
+  <div class="flex gap-4 my-4 pinned__container">
     <% @event.pinned_hcb_codes.each do |pin| %>
      <% if @show_popovers %>
         <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= pin.__id__ %>">
