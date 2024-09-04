@@ -478,17 +478,6 @@ class EventsController < ApplicationController
     render :async_balance, layout: false
   end
 
-  def account_number
-    @transactions = if @event.column_account_number.present?
-                      CanonicalTransaction.where(transaction_source_type: "RawColumnTransaction", transaction_source_id: RawColumnTransaction.where("column_transaction->>'account_number_id' = '#{@event.column_account_number.column_id}'").pluck(:id)).order(created_at: :desc)
-                    else
-                      CanonicalTransaction.none
-                    end
-    page = (params[:page] || 1).to_i
-    @transactions = @transactions.page(page).per(params[:per] || 25)
-    authorize @event
-  end
-
   def g_suite_overview
     authorize @event
 
