@@ -379,6 +379,10 @@ html[data-dark='true'] {
   }
 
   /* Styles the auto-generated phone no. country code drop down on user edit page */
+  .iti {
+    width: 100%;
+  }
+
   .iti__country {
     background-color: $darkless;
 

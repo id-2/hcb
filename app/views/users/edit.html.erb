@@ -10,8 +10,16 @@
     }
   </style>
   <div class="sm:flex sm:w-screen sm:h-screen dark:bg-neutral-900">
-  <div class="sm:flex-1 p-6 pt-10 sm:p-16 sm:overflow-y-scroll sm:max-h-screen max-w-screen">
-    <img src="/logo-512.png" width="64" />
+  <div class="sm:flex-1 max-w-[1200px] p-6 pt-10 sm:p-16 sm:overflow-y-auto sm:max-h-screen max-w-screen">
+    <div class="flex items-center justify-between">
+      <img src="/logo-512.png" width="64" />
+      <%= button_to logout_users_path,
+                    method: :delete,
+                    class: "pop bg-transparent muted tooltipped tooltipped--s",
+                    'aria-label': "Sign out" do %>
+        <%= inline_icon "door-leave", size: home_action_size %>
+      <% end %>
+    </div>
     <h1 class="border-0 mt-4 mb-2">Create your account</h1>
     <turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
       <section>
@@ -27,21 +35,21 @@
           <div class="sm:flex gap-2">
             <div class="field flex-1">
                 <%= form.label :full_name %>
-                <%= form.text_field :full_name, required: true, placeholder: "Fiona Hackworth III", pattern: '^\S+.+' %>
+                <%= form.text_field :full_name, required: true, placeholder: "Fiona Hackworth III", style: "max-width:100%", pattern: '^\S+.+' %>
                 <% @user.errors.full_messages_for(:full_name).each do |message| %>
                   <div class="primary"><%= message %></div>
                 <% end %>
               </div>
               <div class="field flex-1">
                 <%= form.label :preferred_name %>
-                <%= form.text_field :preferred_name, placeholder: @user.full_name.presence || "FiFi Hacks", maxlength: 30 %>
+                <%= form.text_field :preferred_name, style: "max-width:100%", placeholder: @user.full_name.presence || "FiFi Hacks", maxlength: 30 %>
               </div>
             </div>
 
             <div class="sm:flex items-center gap-2">
-              <div class="field flex-1 opacity-75">
+              <div class="field flex-1">
                 <%= form.label :email %>
-                <%= form.email_field :email, disabled: !Flipper.enabled?(:email_updates_2024_05_24, current_user) %>
+                <%= form.email_field :email, style: "opacity:0.6;max-width:100%", disabled: !Flipper.enabled?(:email_updates_2024_05_24, current_user) %>
                 <% if @user.email_updates.active.any? %>
                   <p style="max-width: 420px;">
                     <small>
@@ -51,10 +59,10 @@
                   </p>
                 <% end %>
               </div>
-              <div class="field">
+              <div class="field flex-1">
                 <%= form.label :phone_number, "Mobile phone number" %>
                 <%= form.hidden_field :phone_number, required: true, placeholder: "555-555-5555", id: "phone_number" %>
-                <input type="tel" id="phone_raw" value="<%= @user.phone_number || nil %>" required="required">
+                <input type="tel" id="phone_raw" style="max-width:100%;" value="<%= @user.phone_number || nil %>" required="required">
                 <% if @user.phone_number_in_database.present? && !@user.phone_number_verified? %>
                   <p class="h5 mt1 m0 warning flex items-center">
                     <%= inline_icon "important-fill", class: "warning mr1" %> <span>Your phone number is unverified. <%= link_to "Click here", "#", class: "info", data: { behavior: "modal_trigger", modal: "verify_phone" } %> to verify it.</span>
