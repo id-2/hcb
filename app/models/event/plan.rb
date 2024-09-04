@@ -38,13 +38,17 @@ class Event
       plan_type == Event::Plan::Standard.name
     end
 
+    def was_backfilled?
+      created_at < Date.new(2024, 8, 24)
+    end
+
     def revenue_fee_label
       ActionController::Base.helpers.number_to_percentage(revenue_fee * 100, precision: 1)
     end
 
     def self.available_features
       # this must contain every HCB feature that we want enable / disable with plans.
-      %w[cards invoices donations account_number check_deposits transfers promotions google_workspace documentation settings reimbursements]
+      %w[cards invoices donations account_number check_deposits transfers promotions google_workspace documentation reimbursements]
     end
 
     self.available_features.each do |feature|
