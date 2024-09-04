@@ -10,7 +10,6 @@
       box-shadow: var(--shadow-tooltip);
       color: map-get($palette, white);
       content: attr(aria-label);
-      font-family: $mono;
       font-size: 0.875rem;
       font-weight: 500;
       height: min-content;
