@@ -88,6 +88,7 @@ class Event < ApplicationRecord
 
   validates_email_format_of :donation_reply_to_email, allow_nil: true, allow_blank: true
   validates :donation_thank_you_message, length: { maximum: 500 }
+  validates :short_name, length: { maximum: 16 }, allow_blank: true
 
   include AASM
   include PgSearch::Model
@@ -175,7 +176,7 @@ class Event < ApplicationRecord
     where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees.to_a.map { |a| a["event_id"] })
   end
 
-  self.ignored_columns = %w[start end]
+  self.ignored_columns = %w[start end sponsorship_fee]
 
   scope :demo_mode, -> { where(demo_mode: true) }
   scope :not_demo_mode, -> { where(demo_mode: false) }
@@ -372,14 +373,6 @@ class Event < ApplicationRecord
 
   before_validation do
     build_plan(plan_type: Event::Plan::Standard) if plan.nil?
-  end
-
-  before_validation(if: :outernet_guild?, on: :create) { self.donation_page_enabled = false }
-
-  validate do
-    if outernet_guild? && donation_page_enabled?
-      errors.add(:donation_page_enabled, "donation page can't be enabled for Outernet guilds")
-    end
   end
 
   # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
@@ -722,7 +715,7 @@ class Event < ApplicationRecord
   end
 
   def revenue_fee
-    plan&.revenue_fee || self[:sponsorship_fee]
+    plan&.revenue_fee || (Airbrake.notify("#{id} is missing a plan!") && 0.07)
   end
 
   def generate_stripe_card_designs
@@ -750,6 +743,16 @@ class Event < ApplicationRecord
 
   def config
     super || create_config
+  end
+
+  def donation_page_available?
+    donation_page_enabled && plan.donations_enabled?
+  end
+
+  def short_name(length: 16)
+    return name if length >= name.length
+
+    self[:short_name] || name[0...length]
   end
 
   private
