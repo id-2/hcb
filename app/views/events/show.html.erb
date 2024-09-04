@@ -196,20 +196,25 @@
   <% end if Flipper.enabled?(:check_deposits_2023_04_17, @event) && organizer_signed_in? %>
 
   <% if Flipper.enabled?(:incoming_ach_payments_2023_02_17, @event) && policy(@event).account_number? && organizer_signed_in? %>
-    <button data-behavior="modal_trigger" data-modal="account_numbers"
-    class="btn btn-small"
+    <button
+      data-behavior="modal_trigger" data-modal="account_numbers"
+      class="btn btn-small"
       aria-label="Receive payouts from GoFundMe, Shopify, Venmo, and more">
       <%= inline_icon "account-numbers" %>
       Account numbers
     </button>
   <% end %>
 
-  <%= link_to event_reimbursements_path(event_id: @event.slug),
-    class: "tooltipped btn btn-small",
-    "aria-label": "Start a reimbursement report for yourself" do %>
-    <%= inline_icon "attachment" %>
-    Get reimbursed
-  <% end if signed_in? %>
+  <% if signed_in? %>
+    <button
+      data-behavior="modal_trigger" data-modal="create"
+      class="btn btn-small"
+      aria-label="Start a reimbursement report for yourself">
+      <%= inline_icon "attachment" %>
+      Get reimbursed
+    </button>
+    <%= render partial: "reimbursement/reports/create_form" %>
+  <% end %>
 </div>
 
 <main data-controller="transactions">
