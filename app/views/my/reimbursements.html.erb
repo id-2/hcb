@@ -66,7 +66,7 @@
 </section>
 
 <% if @reports_to_review.any? %>
-  <h3 class="mb1">Review requested on</h3>
+  <h2 class="mb1">Review requested on</h2>
   <article class="table-container">
     <table>
       <thead>
@@ -99,7 +99,7 @@
   </article>
 <% end %>
 
-<h3 class="mb2">Reports created</h3>
+<h2 class="mb2">Reports created</h2>
 
 <% if @my_reports.blank? %>
   <%= blankslate "You haven’t started any reimbursement reports yet" %>
