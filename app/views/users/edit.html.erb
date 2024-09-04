@@ -41,24 +41,12 @@
                 <% end %>
               </div>
               <div class="field flex-1">
-                <%= form.label :preferred_name %>
+                <%= form.label :preferred_name, "Preferred name (optional)" %>
                 <%= form.text_field :preferred_name, style: "max-width:100%", placeholder: @user.full_name.presence || "FiFi Hacks", maxlength: 30 %>
               </div>
             </div>
 
             <div class="sm:flex items-center gap-2">
-              <div class="field flex-1">
-                <%= form.label :email %>
-                <%= form.email_field :email, style: "opacity:0.6;max-width:100%", disabled: !Flipper.enabled?(:email_updates_2024_05_24, current_user) %>
-                <% if @user.email_updates.active.any? %>
-                  <p style="max-width: 420px;">
-                    <small>
-                      You've requested to update your email to <%= mail_to @user.email_updates.active.first.replacement %>.
-                      To continue, click on the verification and authorization links in both your new and old email inboxes respectively.
-                    </small>
-                  </p>
-                <% end %>
-              </div>
               <div class="field flex-1">
                 <%= form.label :phone_number, "Mobile phone number" %>
                 <%= form.hidden_field :phone_number, required: true, placeholder: "555-555-5555", id: "phone_number" %>
@@ -102,21 +90,6 @@
               <%= form.label :profile_picture, "Choose File", class: "field--fileupload__label" %>
               <%= form.file_field :profile_picture, accept: "image/png, image/jpeg", class: "field--fileupload__field" %>
             </div>
-            <fieldset class="sm:flex items-center gap-4 pr-4">
-              <div class="flex-1">
-                <legend class="pt2">Share usage data with us</legend>
-                <p class="h5 muted mt1 mb2">
-                  Help us improve HCB by sending usage data. You can turn this off in your settings anytime.
-                </p>
-              </div>
-              <div class="field--checkbox--switch ml-auto" style="flex-shrink:0">
-                <%= form.label :sessions_reported do %>
-                  <%= form.check_box :sessions_reported, switch: true %>
-                  <span class="slider"></span>
-                <% end %>
-              </div>
-            </fieldset>
-      
             <div class="actions flex">
               <button type="submit" class="btn bg-primary w-full gap-2">
                 Start using HCB!
