@@ -4,14 +4,7 @@
     <%= render partial: "hcb_codes/create_tag", locals: { button: false } %>
   <% end %>
 
-  <div>
-    <% admin_tool("m0 p0 badge mb2", "span") do %>
-      <span class="m0 badge bg-muted pointer" data-controller="clipboard" data-clipboard-text-value="<%= @event.name %>" data-action="click->clipboard#copy">
-        copy event name
-      </span>
-    <% end %>
-  </div>
-  <nav class="dock dock--desktop mt2 font-medium">
+  <nav class="dock dock--desktop mt1 font-medium">
     <%= dock_item "Transactions",
       event_path(id: @event.slug),
       tooltip: "View your transactions",
