@@ -34,7 +34,6 @@
     <%= dock_item "Invoices",
       event_invoices_path(event_id: @event.slug),
       tooltip: "Request payments from sponsors",
-      tooltip: "Collect sponsor payments",
       icon: "briefcase",
       selected: local_assigns[:selected] == :invoices if @event.approved? && @event.plan.invoices_enabled? %>
     <%= dock_item "Cards",

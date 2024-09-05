@@ -34,7 +34,6 @@
     You may need to tap "Verify bank manually" or similar when linking your account to apps like Venmo.
   </p>
 
-
   <% admin_tool do %>
     <%= button_to @event.column_account_number&.deposit_only? ? "Enable debits" : "Make deposit-only",
                   event_column_account_number_path(@event),

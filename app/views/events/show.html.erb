@@ -169,7 +169,7 @@
         Mailed check
       <% end %>
 
-      <%= link_to (paypal_transfers_airtable_form_url(embed: false, event: @event, user: @current_user) if policy(@event).create_transfer?), class: "#{"btn--form-option--disabled" unless policy(@event).create_transfer?}", data: { turbo_frame: "_top" } do %>
+      <%= link_to (paypal_transfers_airtable_form_url(embed: false, event: @event, user: @current_user) if policy(@event).create_transfer?), class: policy(@event).create_transfer? ? "" : "btn--form-option--disabled", data: { turbo_frame: "_top" } do %>
         <%= inline_icon "paypal" %>
         PayPal
         <% if @event.demo_mode? %>
