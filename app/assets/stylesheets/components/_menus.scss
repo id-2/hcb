@@ -2,34 +2,7 @@
   cursor: pointer;
   position: relative;
   font-family: $font-family;
-
-  &[aria-expanded='true'] {
-    outline: none;
-
-    &:not(.menu__toggle--arrowless):after {
-      bottom: -1px;
-      left: 50%;
-      transform: translateX(-50%);
-      border: solid transparent;
-      content: '';
-      position: absolute;
-      pointer-events: none;
-      z-index: 5;
-
-      @media (max-width: 32em) {
-        display: none;
-      }
-    }
-
-    &:not(.menu__toggle--arrowless):after {
-      border-bottom-color: map-get($palette, white);
-      border-width: 10px;
-    }
-
-    &.tooltipped:after {
-      content: initial;
-    }
-  }
+  outline: none;
 }
 
 .menu__content {
@@ -190,11 +163,9 @@
   }
 
   svg {
-    fill: map-get($palette, slate);
-  }
-
-  + .menu__action {
-    border-top: 0.5px solid map-get($palette, divider);
+    fill: map-get($palette, muted);
+    width: 24px;
+    height: 24px;
   }
 }
 
