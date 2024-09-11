@@ -72,7 +72,7 @@ class User < ApplicationRecord
     "1 day": 60 * 24,
     "3 days": 60 * 24 * 3,
     "1 week": 60 * 24 * 7,
-    "2 weeks":  60 * 24 * 7 * 2,
+    "2 weeks":  60 * 24 * 14,
   }, prefix: true
 
   has_many :logins
