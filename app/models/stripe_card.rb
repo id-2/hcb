@@ -151,7 +151,7 @@ class StripeCard < ApplicationRecord
   end
 
   def total_spent
-    StatsD.measure("StripeCard.total_spent.duration") do
+    StatsD.measure("StripeCard.total_spent") do
       # pending authorizations + settled transactions
       RawPendingStripeTransaction
         .pending
@@ -183,7 +183,7 @@ class StripeCard < ApplicationRecord
   end
 
   def freeze!
-    StatsD.measure("StripeCard.freeze.duration") do
+    StatsD.measure("StripeCard.freeze") do
       StripeService::Issuing::Card.update(self.stripe_id, status: :inactive)
       sync_from_stripe!
       save!
@@ -191,7 +191,7 @@ class StripeCard < ApplicationRecord
   end
 
   def defrost!
-    StatsD.measure("StripeCard.defrost.duration") do
+    StatsD.measure("StripeCard.defrost") do
       StripeService::Issuing::Card.update(self.stripe_id, status: :active)
       sync_from_stripe!
       save!
@@ -199,7 +199,7 @@ class StripeCard < ApplicationRecord
   end
 
   def cancel!
-    StatsD.measure("StripeCard.cancel.duration") do
+    StatsD.measure("StripeCard.cancel") do
       StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
       sync_from_stripe!
       save!
@@ -211,7 +211,7 @@ class StripeCard < ApplicationRecord
   end
 
   def last_frozen_by
-    StatsD.measure("StripeCard.last_frozen_by.duration") do
+    StatsD.measure("StripeCard.last_frozen_by") do
       user_id = versions.where_object_changes_to(stripe_status: "inactive").last&.whodunnit
       return nil unless user_id
 
@@ -265,8 +265,8 @@ class StripeCard < ApplicationRecord
   end
 
   def sync_from_stripe!
-    StatsD.increment("StripeCard.sync_from_stripe.count")
-    StatsD.measure("StripeCard.sync_from_stripe.duration") do
+    StatsD.increment("StripeCard.syncs_from_stripe")
+    StatsD.measure("StripeCard.sync_from_stripe") do
       if stripe_obj[:deleted]
         self.stripe_status = "deleted"
         return self
@@ -353,13 +353,13 @@ class StripeCard < ApplicationRecord
   end
 
   def canonical_transactions
-    StatsD.measure("StripeCard.canonical_transactions.duration") do
+    StatsD.measure("StripeCard.canonical_transactions") do
       @canonical_transactions ||= CanonicalTransaction.stripe_transaction.where("raw_stripe_transactions.stripe_transaction->>'card' = ?", stripe_id)
     end
   end
 
   def hcb_codes
-    StatsD.measure("StripeCard.hcb_codes.duration") do
+    StatsD.measure("StripeCard.hcb_codes") do
       all_hcb_codes = canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes
       if Flipper.enabled?(:transaction_tags_2022_07_29, self.event)
         @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes).includes(:tags)
@@ -388,7 +388,7 @@ class StripeCard < ApplicationRecord
   end
 
   def balance_available
-    StatsD.measure("StripeCard.balance_available.duration") do
+    StatsD.measure("StripeCard.balance_available") do
       if subledger.present?
         subledger.balance_cents
       elsif active_spending_control

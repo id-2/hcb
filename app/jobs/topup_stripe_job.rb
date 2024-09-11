@@ -81,7 +81,7 @@ class TopupStripeJob < ApplicationJob
 
     puts "Just created a topup for #{limited_topup_amount}"
 
-    StatsD.increment("stripe_issuing_topup", limited_topup_amount)
+    StatsD.increment("Stripe.issuing_topups", limited_topup_amount)
   end
 
 end

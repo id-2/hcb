@@ -96,6 +96,8 @@ class Donation < ApplicationRecord
       transitions from: :pending, to: :in_transit
       after do
         create_activity(key: "donation.paid", owner: nil)
+        StatsD.increment("Donation.paid")
+        StatsD.histogram("Donation.amount_cents", amount)
       end
     end
 
@@ -110,11 +112,6 @@ class Donation < ApplicationRecord
     event :mark_failed do
       transitions from: [:pending, :in_transit], to: :failed
     end
-  end
-
-  after_create do
-    StatsD.increment("Donation.count")
-    StatsD.histogram("Donation.amount_cents", amount)
   end
 
   def pending_expired?
