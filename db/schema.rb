@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -10,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_01_193319) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -149,6 +151,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.index ["properties"], name: "index_ahoy_events_on_properties", opclass: :jsonb_path_ops, using: :gin
     t.index ["user_id"], name: "index_ahoy_events_on_user_id"
     t.index ["visit_id"], name: "index_ahoy_events_on_visit_id"
+  end
+
+  create_table "ahoy_messages", force: :cascade do |t|
+    t.string "user_type"
+    t.bigint "user_id"
+    t.string "to"
+    t.string "mailer"
+    t.text "subject"
+    t.text "content"
+    t.datetime "sent_at"
+    t.index ["to"], name: "index_ahoy_messages_on_to"
+    t.index ["user_type", "user_id"], name: "index_ahoy_messages_on_user"
   end
 
   create_table "ahoy_visits", force: :cascade do |t|
@@ -364,6 +378,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.bigint "grant_id"
     t.bigint "reimbursement_expense_payout_id"
     t.bigint "paypal_transfer_id"
+    t.bigint "reimbursement_payout_holding_id"
     t.index ["ach_payment_id"], name: "index_canonical_pending_transactions_on_ach_payment_id"
     t.index ["check_deposit_id"], name: "index_canonical_pending_transactions_on_check_deposit_id"
     t.index ["grant_id"], name: "index_canonical_pending_transactions_on_grant_id"
@@ -380,6 +395,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.index ["raw_pending_partner_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_partner_dntn_tx_id"
     t.index ["raw_pending_stripe_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_stripe_tx_id"
     t.index ["reimbursement_expense_payout_id"], name: "index_canonical_pending_txs_on_reimbursement_expense_payout_id"
+    t.index ["reimbursement_payout_holding_id"], name: "index_canonical_pending_txs_on_reimbursement_payout_holding_id"
     t.check_constraint "fronted IS NOT NULL", name: "canonical_pending_transactions_fronted_null"
   end
 
@@ -404,6 +420,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.string "merchant_lock"
     t.string "category_lock"
     t.string "invite_message"
+    t.integer "expiration_preference", default: 365, null: false
     t.index ["event_id"], name: "index_card_grant_settings_on_event_id"
   end
 
@@ -427,6 +444,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.index ["stripe_card_id"], name: "index_card_grants_on_stripe_card_id"
     t.index ["subledger_id"], name: "index_card_grants_on_subledger_id"
     t.index ["user_id"], name: "index_card_grants_on_user_id"
+  end
+
+  create_table "changelog_posts", force: :cascade do |t|
+    t.string "title"
+    t.integer "headway_id"
+    t.string "markdown"
+    t.datetime "published_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "check_deposits", force: :cascade do |t|
@@ -492,6 +518,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.datetime "updated_at", null: false
     t.integer "starting_balance"
     t.integer "closing_balance"
+  end
+
+  create_table "comment_reactions", force: :cascade do |t|
+    t.string "emoji", null: false
+    t.bigint "reactor_id", null: false
+    t.bigint "comment_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id"], name: "index_comment_reactions_on_comment_id"
+    t.index ["emoji"], name: "index_comment_reactions_on_emoji"
+    t.index ["reactor_id"], name: "index_comment_reactions_on_reactor_id"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -561,6 +598,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.datetime "deposited_at", precision: nil
     t.bigint "destination_subledger_id"
     t.bigint "source_subledger_id"
+    t.date "scheduled_on"
     t.boolean "should_charge_fee", default: false
     t.index ["destination_subledger_id"], name: "index_disbursements_on_destination_subledger_id"
     t.index ["event_id"], name: "index_disbursements_on_event_id"
@@ -652,6 +690,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.inet "ip_address"
     t.datetime "in_transit_at"
     t.boolean "anonymous", default: false, null: false
+    t.boolean "tax_deductible", default: true, null: false
     t.boolean "fee_covered", default: false, null: false
     t.index ["event_id"], name: "index_donations_on_event_id"
     t.index ["fee_reimbursement_id"], name: "index_donations_on_fee_reimbursement_id"
@@ -761,6 +800,24 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.index ["fulfilled_by_id"], name: "index_emburse_transfers_on_fulfilled_by_id"
   end
 
+  create_table "event_configurations", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.boolean "anonymous_donations", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "cover_donation_fees", default: false
+    t.index ["event_id"], name: "index_event_configurations_on_event_id"
+  end
+
+  create_table "event_plans", force: :cascade do |t|
+    t.string "plan_type"
+    t.string "aasm_state"
+    t.bigint "event_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_event_plans_on_event_id"
+  end
+
   create_table "event_tags", force: :cascade do |t|
     t.string "name", null: false
     t.string "description"
@@ -828,6 +885,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.text "public_reimbursement_page_message"
     t.string "postal_code"
     t.boolean "reimbursements_require_organizer_peer_review", default: false, null: false
+    t.string "short_name"
     t.index ["club_airtable_id"], name: "index_events_on_club_airtable_id", unique: true
     t.index ["partner_id", "organization_identifier"], name: "index_events_on_partner_id_and_organization_identifier", unique: true
     t.index ["partner_id"], name: "index_events_on_partner_id"
@@ -1000,6 +1058,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_hcb_code_pins_on_event_id"
     t.index ["hcb_code_id"], name: "index_hcb_code_pins_on_hcb_code_id"
+  end
+
+  create_table "hcb_code_tag_suggestions", force: :cascade do |t|
+    t.bigint "hcb_code_id", null: false
+    t.bigint "tag_id", null: false
+    t.string "aasm_state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hcb_code_id"], name: "index_hcb_code_tag_suggestions_on_hcb_code_id"
+    t.index ["tag_id"], name: "index_hcb_code_tag_suggestions_on_tag_id"
   end
 
   create_table "hcb_codes", force: :cascade do |t|
@@ -1229,7 +1297,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.datetime "used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "browser_token"
     t.index ["code"], name: "index_login_codes_on_code"
     t.index ["user_id"], name: "index_login_codes_on_user_id"
   end
@@ -1250,6 +1317,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.index ["token"], name: "index_login_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_login_tokens_on_user_id"
     t.index ["user_session_id"], name: "index_login_tokens_on_user_session_id"
+  end
+
+  create_table "logins", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "user_session_id"
+    t.string "aasm_state"
+    t.jsonb "authentication_factors"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "browser_token"
+    t.index ["user_id"], name: "index_logins_on_user_id"
+    t.index ["user_session_id"], name: "index_logins_on_user_session_id"
   end
 
   create_table "mailbox_addresses", force: :cascade do |t|
@@ -1334,6 +1413,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.boolean "initial", default: false
     t.boolean "is_signee", default: false
     t.integer "role", default: 100, null: false
+    t.integer "initial_control_allowance_amount_cents"
     t.index ["event_id"], name: "index_organizer_position_invites_on_event_id"
     t.index ["organizer_position_id"], name: "index_organizer_position_invites_on_organizer_position_id"
     t.index ["sender_id"], name: "index_organizer_position_invites_on_sender_id"
@@ -1453,6 +1533,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.string "bank_name_ciphertext"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "email"
     t.index ["event_id"], name: "index_payment_recipients_on_event_id"
     t.index ["name"], name: "index_payment_recipients_on_name"
   end
@@ -1650,6 +1731,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.string "extracted_merchant_url"
     t.string "extracted_merchant_zip_code"
     t.boolean "data_extracted", default: false, null: false
+    t.integer "textual_content_source", default: 0
     t.string "textual_content_bidx"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["textual_content_bidx"], name: "index_receipts_on_textual_content_bidx"
@@ -1675,6 +1757,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.boolean "migrated_from_legacy_stripe_account", default: false
     t.text "message"
     t.boolean "anonymous", default: false, null: false
+    t.boolean "tax_deductible", default: true, null: false
     t.boolean "fee_covered", default: false, null: false
     t.index ["event_id"], name: "index_recurring_donations_on_event_id"
     t.index ["stripe_subscription_id"], name: "index_recurring_donations_on_stripe_subscription_id", unique: true
@@ -1731,7 +1814,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
 
   create_table "reimbursement_reports", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "event_id", null: false
+    t.bigint "event_id"
     t.bigint "invited_by_id"
     t.text "invite_message"
     t.text "name"
@@ -1798,6 +1881,21 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.index ["stripe_card_id"], name: "index_stripe_authorizations_on_stripe_card_id"
   end
 
+  create_table "stripe_card_personalization_designs", force: :cascade do |t|
+    t.string "stripe_id"
+    t.string "stripe_status"
+    t.string "stripe_name"
+    t.jsonb "stripe_carrier_text"
+    t.string "stripe_card_logo"
+    t.string "stripe_physical_bundle_id"
+    t.bigint "event_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "stale", default: false, null: false
+    t.boolean "common", default: false, null: false
+    t.index ["event_id"], name: "index_stripe_card_personalization_designs_on_event_id"
+  end
+
   create_table "stripe_cardholders", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.text "stripe_id"
@@ -1839,12 +1937,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.datetime "purchased_at", precision: nil
     t.integer "spending_limit_interval"
     t.integer "spending_limit_amount"
-    t.boolean "activated", default: false
     t.bigint "replacement_for_id"
     t.string "name"
     t.boolean "is_platinum_april_fools_2023"
     t.bigint "subledger_id"
     t.boolean "lost_in_shipping", default: false
+    t.integer "stripe_card_personalization_design_id"
     t.boolean "initially_activated", default: false, null: false
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
@@ -1881,6 +1979,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.datetime "updated_at", null: false
     t.bigint "event_id", null: false
     t.index ["event_id"], name: "index_tags_on_event_id"
+  end
+
+  create_table "tasks", force: :cascade do |t|
+    t.string "type", null: false
+    t.boolean "complete", default: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "assignee_type", null: false
+    t.bigint "assignee_id", null: false
+    t.string "taskable_type", null: false
+    t.bigint "taskable_id", null: false
+    t.index ["assignee_type", "assignee_id"], name: "index_tasks_on_assignee"
+    t.index ["taskable_type", "taskable_id"], name: "index_tasks_on_taskable"
   end
 
   create_table "tours", force: :cascade do |t|
@@ -2035,6 +2147,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "aasm_state"
     t.index ["user_id"], name: "index_user_totps_on_user_id"
   end
 
@@ -2119,6 +2232,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"
   add_foreign_key "column_account_numbers", "events"
+  add_foreign_key "comment_reactions", "comments"
+  add_foreign_key "comment_reactions", "users", column: "reactor_id"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
   add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
@@ -2143,6 +2258,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
   add_foreign_key "emburse_transfers", "events"
   add_foreign_key "emburse_transfers", "users", column: "creator_id"
   add_foreign_key "emburse_transfers", "users", column: "fulfilled_by_id"
+  add_foreign_key "event_configurations", "events"
+  add_foreign_key "event_plans", "events"
   add_foreign_key "events", "partners"
   add_foreign_key "events", "users", column: "point_of_contact_id"
   add_foreign_key "fee_relationships", "events"
@@ -2160,6 +2277,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
   add_foreign_key "hcb_code_personal_transactions", "users", column: "reporter_id"
   add_foreign_key "hcb_code_pins", "events"
   add_foreign_key "hcb_code_pins", "hcb_codes"
+  add_foreign_key "hcb_code_tag_suggestions", "hcb_codes"
+  add_foreign_key "hcb_code_tag_suggestions", "tags"
   add_foreign_key "increase_account_numbers", "events"
   add_foreign_key "increase_checks", "events"
   add_foreign_key "increase_checks", "users"
@@ -2208,6 +2327,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_27_144439) do
   add_foreign_key "sponsors", "events"
   add_foreign_key "stripe_ach_payment_sources", "events"
   add_foreign_key "stripe_authorizations", "stripe_cards"
+  add_foreign_key "stripe_card_personalization_designs", "events"
   add_foreign_key "stripe_cardholders", "users"
   add_foreign_key "stripe_cards", "events"
   add_foreign_key "stripe_cards", "stripe_cardholders"

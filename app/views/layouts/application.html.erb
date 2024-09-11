@@ -106,7 +106,7 @@
           <% end %>
           <%= link_to({ show_mock_data: !show_mock_data? }, class: "btn btn-small w-fit shrink-none nowrap") do %>
             <%= inline_icon "view" %>
-            <%= show_mock_data? ? "Hide" : "Show" %> Mock Data
+            <%= show_mock_data? ? "Hide" : "Show" %> mock data
           <% end %>
         </div>
       </div>
@@ -147,7 +147,10 @@
             </div>
           </div>
         <% end %>
+
+        <%= render "application/native_changelog" if @latest_changelog_post %>
         <%= render "application/the_bin" if @the_bin %>
+
         <aside class="app__sidebar">
           <%= render "application/header" %>
           <%= render "application/flash" %>
@@ -156,7 +159,7 @@
         <article class="container app__content <%= content_for :container_class %>" style="<%= content_for :container_style %>">
           <%= yield(:container) %>
           <%= yield %>
-          <%= render "application/footer" unless (@no_app_shell || @hide_footer) %>
+          <%= render "application/footer" unless @no_app_shell || @hide_footer %>
         </article>
       </main>
     <% else %>
@@ -164,11 +167,11 @@
       <main class="container <%= content_for :container_class %>" style="<%= content_for :container_style %>">
         <%= render "application/flash" %>
         <%= yield %>
-        <%= render "application/footer" unless (@no_app_shell || @hide_footer) %>
+        <%= render "application/footer" unless @no_app_shell || @hide_footer %>
       </main>
     <% end %>
 
-    <%= render "application/feedback_form" if !@no_app_shell && current_user&.events&.not_demo_mode&.any? %>
+    <%= render "application/support_button" unless @no_app_shell %>
 
     <% if Rails.env.production? %>
       <%= render "application/fullstory" if current_user&.sessions_reported %>

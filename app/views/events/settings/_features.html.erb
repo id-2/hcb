@@ -20,21 +20,3 @@
       disable_warning: active_spending_control_count > 0 ? "⚠️ #{active_spending_control_count} users have spending controls in place ⚠️\n\nAre you sure you want to disable this feature?" : nil
 
     } %>
-
-<%= render partial: "features/preview", locals: {
-      id: "anonymous-donations",
-      classes: ["feature-anonymous-donations"],
-      feature_flag: :anonymous_donations_2024_01_29,
-      name: "Anonymous Donations",
-      description: "Allow donors to appear anonymously in Transparency Mode!",
-      event: @event
-    } %>
-
-<%= render partial: "features/preview", locals: {
-      id: "cover-fees",
-      classes: ["feature-cover-fees"],
-      feature_flag: :cover_my_fee_2024_06_25,
-      name: "Cover fees on donations",
-      description: "Allow donors to cover HCB's fee on their donation directly",
-      event: @event
-    } if @event.sponsorship_fee > 0 %>

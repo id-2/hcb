@@ -101,6 +101,10 @@ class AchTransfer < ApplicationRecord
 
   scope :scheduled_for_today, -> { scheduled.where(scheduled_on: ..Date.today) }
 
+  after_initialize do
+    self.same_day = true
+  end
+
   aasm whiny_persistence: true do
     state :pending, initial: true
     state :scheduled
@@ -148,11 +152,11 @@ class AchTransfer < ApplicationRecord
   end
 
   before_validation { self.recipient_name = recipient_name.presence&.strip }
-  before_create :set_fields_from_payment_recipient, if: -> { payment_recipient.present? }
+  before_validation :set_fields_from_payment_recipient, if: -> { payment_recipient.present? }, on: :create
   before_create :create_payment_recipient, if: -> { payment_recipient_id.nil? }
 
   before_validation do
-    company_name = event.name[0...16] if company_name.blank?
+    company_name = event.short_name if company_name.blank?
   end
 
   after_create :update_payment_recipient
@@ -197,6 +201,13 @@ class AchTransfer < ApplicationRecord
     self.column_id = column_ach_transfer["id"]
 
     save!
+  end
+
+  # reason must be listed on https://column.com/docs/api/#ach-transfer/reverse
+  def reverse!(reason)
+    raise ArgumentError, "must have been sent" unless column_id
+
+    ColumnService.post "/transfers/ach/#{column_id}/reverse", reason:
   end
 
   def pending_expired?
@@ -288,6 +299,8 @@ class AchTransfer < ApplicationRecord
       return now.change(hour: 15, minute: 0, second: 0) if now < now.change(hour: 13, min: 30, sec: 0)
     end
 
+    return 0.business_days.after(now).change(hour: 5, min: 30, sec: 0) unless now.workday?
+
     return 1.business_day.after(now).change(hour: 5, min: 30, sec: 0)
   end
 
@@ -300,16 +313,18 @@ class AchTransfer < ApplicationRecord
   end
 
   def set_fields_from_payment_recipient
-    self.account_number ||= payment_recipient&.account_number
-    self.routing_number ||= payment_recipient&.routing_number
-    self.bank_name      ||= payment_recipient&.bank_name
-    self.recipient_name ||= payment_recipient&.name
+    self.account_number  ||= payment_recipient&.account_number
+    self.routing_number  ||= payment_recipient&.routing_number
+    self.bank_name       ||= payment_recipient&.bank_name
+    self.recipient_name  ||= payment_recipient&.name
+    self.recipient_email ||= payment_recipient&.email
   end
 
   def create_payment_recipient
     create_payment_recipient!(
       event:,
       name: recipient_name,
+      email: recipient_email,
       account_number:,
       routing_number:,
       bank_name:,
@@ -319,6 +334,7 @@ class AchTransfer < ApplicationRecord
   def update_payment_recipient
     payment_recipient.update!(
       name: recipient_name,
+      email: recipient_email,
       account_number:,
       routing_number:,
       bank_name:,

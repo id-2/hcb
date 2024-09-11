@@ -23,10 +23,13 @@ class Tag < ApplicationRecord
 
   belongs_to :event
   has_many :hcb_code_tags
+  has_many :hcb_code_tag_suggestions, dependent: :destroy
   has_many :hcb_codes, through: :hcb_code_tags
 
   validates :label, presence: true, uniqueness: { scope: :event_id, case_sensitive: false }
-  validates_format_of :color, with: /\A#(?:\h{3}){1,2}\z/, allow_nil: true, message: "must be a color hex code"
+
+  COLORS = %w[muted red orange yellow green cyan blue purple].freeze
+  validates :color, inclusion: { in: COLORS }
 
   include PgSearch::Model
   pg_search_scope :search_label, against: :label
@@ -40,5 +43,9 @@ class Tag < ApplicationRecord
       message
     end
   end
+
+  after_create_commit {
+    SuggestTagsJob.perform_later(event_id: event.id)
+  }
 
 end

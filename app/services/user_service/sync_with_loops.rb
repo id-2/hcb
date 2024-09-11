@@ -10,6 +10,8 @@ module UserService
     end
 
     def run
+      return if @user.onboarding?
+
       body = {
         email: @user.email,
         firstName: @user.first_name(legal: true),
@@ -18,9 +20,13 @@ module UserService
         birthday: format_unix(@user.birthday),
         hcbLastSeenAt: format_unix(@user.last_seen_at),
         hcbLastLoginAt: format_unix(@user.last_login_at),
+        mailingLists: {
+          # https://loops.so/docs/contacts/mailing-lists#api
+          Rails.application.credentials.loops[:mailing_list_id] => true
+        }
       }.compact_blank
 
-      body[:userGroup] = "Hack Clubber" if @user.teenager?
+      body[:userGroup] = @user.teenager? ? "Hack Clubber" : "HCB Adult"
       body[:subscribed] = true if @new_user || @contact_details.nil?
       body[:source] = "HCB" if @contact_details.nil?
 
@@ -52,7 +58,7 @@ module UserService
 
       resp = conn.send(:get) do |req|
         req.url("api/v1/contacts/find")
-        req.headers["Authorization"] = "Bearer #{Rails.application.credentials.loops_key}"
+        req.headers["Authorization"] = "Bearer #{Rails.application.credentials.loops[:key]}"
         req.params[:email] = @user.email
       end
 
@@ -69,7 +75,7 @@ module UserService
         req.url("api/v1/contacts/update")
         req.body = body.to_json
         req.headers["Content-Type"] = "application/json"
-        req.headers["Authorization"] = "Bearer #{Rails.application.credentials.loops_key}"
+        req.headers["Authorization"] = "Bearer #{Rails.application.credentials.loops[:key]}"
       end
 
     end
@@ -81,7 +87,7 @@ module UserService
     def loops_has_address?
       # To consider a contact as having an address, it must have a line 1, city, and country present.
       # Some international addresses don't have the concept for states or zip codes.
-      @contact_details["addressLine1"].present? &&
+      @contact_details&.[]("addressLine1").present? &&
         @contact_details["addressCity"].present? &&
         @contact_details["addressCountry"].present?
     end

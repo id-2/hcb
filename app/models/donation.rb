@@ -23,6 +23,7 @@
 #  payout_creation_queued_for           :datetime
 #  status                               :string
 #  stripe_client_secret                 :string
+#  tax_deductible                       :boolean          default(TRUE), not null
 #  url_hash                             :string
 #  user_agent                           :text
 #  created_at                           :datetime         not null
@@ -124,7 +125,7 @@ class Donation < ApplicationRecord
     self.status = payment_intent.status
     self.stripe_client_secret = payment_intent.client_secret
 
-    if status == "succeeded"
+    if status == "succeeded" && payment_intent.latest_charge.balance_transaction
       balance_transaction = payment_intent.latest_charge.balance_transaction
       funds_available_at = Time.at(balance_transaction.available_on)
 
