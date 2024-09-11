@@ -296,11 +296,6 @@ class StripeCard < ApplicationRecord
           self.lost_in_shipping = true
           StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
 
-      if stripe_obj[:shipping]
-        if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?
-          self.lost_in_shipping = true
-          StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
-
           # force a refresh of the cache; otherwise, the card will be marked as
           # lost in shipping again since stripe_obj is cached
           @stripe_obj = nil
