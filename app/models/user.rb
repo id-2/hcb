@@ -20,6 +20,7 @@
 #  receipt_report_option       :integer          default("none"), not null
 #  running_balance_enabled     :boolean          default(FALSE), not null
 #  seasonal_themes_enabled     :boolean          default(TRUE), not null
+#  session_duration_seconds    :integer          default(2592000), not null
 #  session_validity_preference :integer          default("3 days"), not null
 #  sessions_reported           :boolean          default(FALSE), not null
 #  slug                        :string
@@ -73,8 +74,10 @@ class User < ApplicationRecord
     "1 hour": 60,
     "6 hours": 60 * 6,
     "1 day": 60 * 24,
-    "3 days": 60 * 24 * 3
-  }
+    "3 days": 60 * 24 * 3,
+    "1 week": 60 * 24 * 7,
+    "2 weeks":  60 * 24 * 7 * 2,
+  }, prefix: true
 
   has_many :logins
   has_many :login_codes
