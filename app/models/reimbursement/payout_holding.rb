@@ -36,6 +36,18 @@ module Reimbursement
     after_create :set_and_create_hcb_code
     belongs_to :local_hcb_code, foreign_key: "hcb_code", primary_key: "hcb_code", class_name: "HcbCode", inverse_of: :reimbursement_payout_holding, optional: true
     has_many :canonical_transactions, through: :local_hcb_code
+    has_one :canonical_pending_transaction, foreign_key: "reimbursement_payout_holding_id", inverse_of: :reimbursement_payout_holding
+
+    after_create do
+      CanonicalPendingTransaction.create!(
+        reimbursement_payout_holding: self,
+        event: Event.find(EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING),
+        amount_cents:,
+        memo: hcb_code,
+        date: created_at,
+        fronted: true
+      )
+    end
 
     aasm do
       state :pending, initial: true
@@ -80,6 +92,8 @@ module Reimbursement
       ActiveRecord::Base.transaction do
 
         mark_reversed!
+
+        canonical_pending_transaction.decline!
 
         # these are reversed because this is reverse!
         sender_bank_account_id = ColumnService::Accounts.id_of(book_transfer_receiving_account)

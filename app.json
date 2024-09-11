@@ -46,6 +46,13 @@
       "options": {
         "version": "7"
       }
+    },
+    {
+      "plan": "heroku-redis",
+      "options": {
+        "version": "7"
+      },
+      "as": "REDIS_CACHE"
     }
   ],
   "buildpacks": [

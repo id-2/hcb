@@ -15,9 +15,9 @@ class StaticPagesController < ApplicationController
       @organizer_positions = @service.organizer_positions.not_hidden
       @invites = @service.invites
 
-      if admin_signed_in? && Flipper.enabled?(:recently_on_hcb_2024_05_23, current_user)
+      if admin_signed_in? && cookies[:admin_activities] == "everyone"
         @activities = PublicActivity::Activity.all.order(created_at: :desc).page(params[:page]).per(25)
-      elsif Flipper.enabled?(:recently_on_hcb_2024_05_23, current_user)
+      else
         @activities = PublicActivity::Activity.for_user(current_user).order(created_at: :desc).page(params[:page]).per(25)
       end
 
@@ -172,31 +172,6 @@ class StaticPagesController < ApplicationController
     render json: {
       event_id: nil
     }
-  end
-
-  def feedback
-    message = params[:message]
-    share_email = (params[:share_email] || "1") == "1"
-    url = share_email ? "#{request.base_url}#{params[:page_path]}" : ""
-
-    routing = Rails.application.routes.recognize_path(params[:page_path])
-    location = "#{routing[:controller]}##{routing[:action]} #{routing[:id] if routing[:id] && share_email}".strip
-
-    feedback = {
-      "Share your idea(s)" => message,
-      "URL"                => url,
-      "Location"           => location,
-    }
-
-    if share_email
-      feedback["Name"] = current_user.name
-      feedback["Email"] = current_user.email
-      feedback["Organization"] = current_user.events.first&.name
-    end
-
-    Feedback.create(feedback)
-
-    head :no_content
   end
 
 end

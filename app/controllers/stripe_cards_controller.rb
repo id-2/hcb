@@ -37,12 +37,12 @@ class StripeCardsController < ApplicationController
     @card = StripeCard.find(params[:id])
     authorize @card
 
-    if @card.cancel!
-      flash[:success] = "Card cancelled"
-      redirect_back_or_to @card
-    else
-      render :show, status: :unprocessable_entity
-    end
+    @card.cancel!
+    flash[:success] = "Card cancelled"
+    redirect_back_or_to @card
+  rescue => e
+    flash[:error] = e.message
+    render :show, status: :unprocessable_entity
   end
 
   def defrost
@@ -80,6 +80,7 @@ class StripeCardsController < ApplicationController
 
     if params[:frame] == "true"
       @frame = true
+      @force_no_popover = true
       render :show, layout: false
     else
       @frame = false
@@ -144,6 +145,18 @@ class StripeCardsController < ApplicationController
     end
 
     redirect_to stripe_card_url(card)
+  end
+
+  def ephemeral_keys
+    card = StripeCard.find(params[:id])
+
+    authorize card
+
+    ephemeral_key = card.ephemeral_key(nonce: params[:nonce])
+
+    ahoy.track "Card details shown", stripe_card_id: card.id
+
+    render json: { ephemeralKeySecret: ephemeral_key.secret, stripe_id: card.stripe_id }
   end
 
   private

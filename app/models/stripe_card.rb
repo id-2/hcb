@@ -200,6 +200,7 @@ class StripeCard < ApplicationRecord
     StripeService::Issuing::Card.update(self.stripe_id, status: :canceled)
     sync_from_stripe!
     save!
+    card_grant.cancel! if card_grant&.active?
   end
 
   def frozen?
@@ -391,6 +392,10 @@ class StripeCard < ApplicationRecord
 
   def cash_withdrawal_enabled?
     Flipper.enabled?(:cash_withdrawals_2024_08_07, self)
+  end
+
+  def ephemeral_key(nonce:)
+    Stripe::EphemeralKey.create({ nonce:, issuing_card: stripe_id }, { stripe_version: "2020-03-02" })
   end
 
   private

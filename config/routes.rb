@@ -44,8 +44,6 @@ Rails.application.routes.draw do
   get "bookkeeping", to: "admin#bookkeeping"
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
 
-  post "feedback", to: "static_pages#feedback"
-
   resources :receipts, only: [:create, :destroy] do
     collection do
       post "link"
@@ -61,10 +59,13 @@ Rails.application.routes.draw do
     get "settings/payouts", to: "users#edit_payout"
     get "settings/previews", to: "users#edit_featurepreviews"
     get "settings/security", to: "users#edit_security"
+    get "settings/notifications", to: "users#edit_notifications"
     get "settings/admin", to: "users#edit_admin"
 
     get "inbox", to: "my#inbox", as: :my_inbox
     get "activities", to: "my#activities", as: :my_activities
+    post "toggle_admin_activities", to: "my#toggle_admin_activities", as: :toggle_admin_activities
+    get "tasks", to: "my#tasks", as: :my_tasks
     get "reimbursements", to: "my#reimbursements", as: :my_reimbursements
     get "reimbursements_icon", to: "my#reimbursements_icon", as: :my_reimbursements_icon
 
@@ -127,6 +128,7 @@ Rails.application.routes.draw do
       get "payouts", to: "users#edit_payout"
       get "previews", to: "users#edit_featurepreviews"
       get "security", to: "users#edit_security"
+      get "notifications", to: "users#edit_notifications"
       get "admin", to: "users#edit_admin"
 
       post "impersonate"
@@ -224,6 +226,7 @@ Rails.application.routes.draw do
       get "account_numbers", to: "admin#account_numbers"
       get "emails", to: "admin#emails"
       get "email", to: "admin#email"
+      get "merchant_memo_check", to: "admin#merchant_memo_check"
 
       resources :grants, only: [] do
         post "approve"
@@ -271,6 +274,7 @@ Rails.application.routes.draw do
     resources :ledger_audits, only: [:index, :show]
     resources :check_deposits, only: [:index, :show] do
       post "submit", on: :member
+      post "reject", on: :member
     end
   end
 
@@ -346,6 +350,7 @@ Rails.application.routes.draw do
       post "freeze"
       post "defrost"
       post "cancel"
+      get "ephemeral_keys"
     end
   end
 
@@ -381,6 +386,7 @@ Rails.application.routes.draw do
   resources :disbursements, only: [:new, :create, :show, :edit, :update] do
     post "mark_fulfilled"
     post "reject"
+    post "cancel"
     get "confirmation", to: "disbursements#transfer_confirmation_letter"
   end
 
@@ -411,6 +417,15 @@ Rails.application.routes.draw do
 
       scope module: "hcb_code" do
         get "subscriptions/transactions", to: "subscriptions#transactions"
+      end
+    end
+  end
+
+  scope module: "hcb_code" do
+    namespace :tag do
+      resources :suggestions, only: [] do
+        post "accept"
+        post "reject"
       end
     end
   end
@@ -657,11 +672,7 @@ Rails.application.routes.draw do
     get "async_balance"
     get "reimbursements_pending_review_icon"
 
-    # (@eilla1) these pages are for the wip resources page and will be moved later
-    get "connect_gofundme"
-    get "sell_merch"
-
-    get "documentation"
+    get "documentation", to: redirect("/%{event_id}/documents", status: 302)
     get "transfers"
     get "statements"
     get "promotions"
@@ -671,7 +682,6 @@ Rails.application.routes.draw do
     get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overviews
     get "activation_flow", to: "events#activation_flow", as: :activation_flow
     post "activate", to: "events#activate", as: :activate
-    post "demo_mode_request_meeting"
     post "finish_signee_backfill"
     resources :disbursements, only: [:new, :create]
     resources :increase_checks, only: [:new, :create], path: "checks"
@@ -683,6 +693,7 @@ Rails.application.routes.draw do
     resources :g_suites, only: [:new, :create, :edit, :update]
     resources :documents, only: [:index]
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
+    get "verification_letter", to: "documents#verification_letter"
     resources :invoices, only: [:new, :create, :index]
     resources :tags, only: [:create, :destroy]
     resources :event_tags, only: [:create, :destroy]

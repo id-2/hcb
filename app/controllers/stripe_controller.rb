@@ -294,8 +294,43 @@ class StripeController < ActionController::Base
     design.sync_from_stripe!
   end
 
+  def handle_issuing_personalization_design_rejected(event)
+    design = StripeCard::PersonalizationDesign.find_by(stripe_id: event.data.object.id)
+    return unless design
+
+    design.sync_from_stripe!
+
+    if design.event&.stripe_card_logo&.attached? # if the logo is no longer attached it's already been rejected.
+      StripeCardMailer.with(event: design.event, reason: event.data.object["rejection_reasons"]["card_logo"].first).design_rejected.deliver_later
+      design.event.stripe_card_personalization_designs.update(stale: true)
+      design.event.stripe_card_logo.delete
+    end
+  end
+
   alias_method :handle_issuing_personalization_design_activated, :handle_issuing_personalization_design_updated
-  alias_method :handle_issuing_personalization_design_rejected, :handle_issuing_personalization_design_updated
   alias_method :handle_issuing_personalization_design_deactivated, :handle_issuing_personalization_design_updated
+
+  def handle_issuing_dispute_funds_reinstated
+    dispute = event.data.object
+    transaction = Stripe::Issuing::Transaction.retrieve(dispute["transaction"])
+    hcb_code = RawPendingStripeTransaction.find_by!(stripe_transaction_id: transaction["authorization"]).canonical_pending_transaction.local_hcb_code
+    if dispute["status"] == "won" && dispute["currency"] == "USD"
+      StripeService::Payout.create(
+        amount: dispute["amount"],
+        currency: dispute["currency"],
+        statement_descriptor: "HCB-#{hcb_code.short_code}",
+        source_balance: "issuing",
+        metadata: {
+          dispute_id: dispute["id"],
+          authorization_id: transaction["authorization"],
+          hcb_code: hcb_code.hcb_code
+        }
+      )
+    elsif dispute["status"] != "won"
+      Airbrake.notify("Dispute with funds reinstated but without a win: #{dispute["id"]}")
+    elsif dispute["status"] != "USD"
+      Airbrake.notify("Dispute with funds reinstated but non-USD currency. Must be manually handled.")
+    end
+  end
 
 end

@@ -110,7 +110,7 @@ h1,
 h2,
 h3,
 h4,
-fieldset legend {
+fieldset legend.h2 {
   font-weight: 600;
   line-height: 1.125;
   letter-spacing: -0.02em;
@@ -126,9 +126,6 @@ h1 {
 
 h2 {
   font-size: 1.75rem;
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid map-get($palette, smoke);
-  border-bottom-width: 0.5px;
   margin-bottom: 0.5rem;
 }
 
@@ -168,6 +165,7 @@ td {
   padding: 0.5rem;
   white-space: nowrap;
   -webkit-text-size-adjust: 100%;
+  font-variant-numeric: tabular-nums;
 
   &:first-child {
     padding-left: 1rem;
@@ -239,7 +237,7 @@ summary {
 @import 'components/loading';
 @import 'components/partner_signup';
 @import 'components/file_dropzone';
-@import 'components/feedback_form';
+@import 'components/support_button';
 @import 'components/welcome';
 @import 'components/tabs';
 @import 'components/team';
@@ -471,4 +469,12 @@ summary {
       0 1px 2px rgba(0, 0, 0, 0.25),
       0 2px 4px rgba(0, 0, 0, 0.125);
   }
+}
+
+.suggested_tag {
+  font-style: italic;
+}
+
+.suggested_tag::after {
+  transform: translateY(0px) translateX(-4px);
 }

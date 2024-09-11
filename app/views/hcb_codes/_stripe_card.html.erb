@@ -1,4 +1,6 @@
-<% title "#{render_money(@hcb_code.amount_cents.abs)} #{@hcb_code.stripe_refund? ? "refund" : @hcb_code.stripe_cash_withdrawal? ? "withdrawal" : "charge"} for #{@hcb_code.memo}" %>
+<% renderable_amount_cents = @hcb_code.stripe_atm_fee ? @hcb_code.amount_cents.abs - @hcb_code.stripe_atm_fee : @hcb_code.amount_cents.abs %>
+
+<% title "#{render_money(renderable_amount_cents)} #{@hcb_code.stripe_refund? ? "refund" : @hcb_code.stripe_cash_withdrawal? ? "withdrawal" : "charge"} for #{@hcb_code.memo}" %>
 <% instance = @hcb_code.hashid %>
 
 <% admin_tool("mt1") do %>
@@ -22,7 +24,7 @@
       <%= turbo_frame_tag @hcb_code, class: "flex items-center" do %>
         <%= pop_icon_to "edit",
             edit_hcb_code_path(@hcb_code),
-            class: "mr2 align-middle", "aria-label": "Rename transaction",
+            class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
             data: { turbo: true } %>
 
         <span class="align-middle"
@@ -32,7 +34,7 @@
               data-navigation-frame-param="<%= dom_id(@hcb_code) %>">
           <% if @hcb_code.stripe_cash_withdrawal? && @hcb_code.custom_memo.nil? %>
             <span>
-              <%= number_to_currency(@hcb_code.amount.abs) %>
+              <%= render_money(renderable_amount_cents) %>
             </span>
             <span class="regular muted">
               withdrawal from
@@ -41,7 +43,7 @@
           <% else %>
             <span data-memo-for="<%= dom_id(@hcb_code) %>"><%= @hcb_code.memo %></span>
             <span class="regular muted"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
-            <%= number_to_currency(@hcb_code.amount.abs) %>
+            <%= render_money(renderable_amount_cents) %>
           <% end %>
         </span>
 
@@ -92,6 +94,12 @@
           <%= user_mention @hcb_code.stripe_card.user %>
         <% end %>
       </p>
+      <% if @hcb_code.stripe_atm_fee %>
+        <p>
+          <strong>ATM Fee</strong>
+          <span><%= render_money @hcb_code.stripe_atm_fee %></span>
+        </p>
+      <% end %>
       <p>
         <strong><%= @hcb_code.stripe_refund? ? "Refunded" : "Spent" %></strong>
         <%= local_time_ago @hcb_code.pt&.raw_pending_stripe_transaction&.created_at || Time.at(@hcb_code.ct.raw_stripe_transaction.stripe_transaction["created"]) %>
@@ -125,6 +133,8 @@
             <em>This transaction was declined by HCB because cash withdrawals were not enabled on the card.</em>
           <% elsif reason == "webhook_declined" %>
             <em>This transaction was declined by HCB due to insufficient funds.</em>
+          <% elsif @hcb_code.stripe_reversed_by_merchant? %>
+            <em>This transaction was reversed by the merchant.</em>
           <% else %>
             <em>This transaction was declined.</em>
           <% end %>

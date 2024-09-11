@@ -1,19 +1,28 @@
 # frozen_string_literal: true
 
 class MyController < ApplicationController
-  skip_after_action :verify_authorized, only: [:activities, :cards, :missing_receipts_list, :missing_receipts_icon, :inbox, :reimbursements, :reimbursements_icon] # do not force pundit
+  skip_after_action :verify_authorized, only: [:activities, :toggle_admin_activities, :cards, :missing_receipts_list, :missing_receipts_icon, :inbox, :reimbursements, :reimbursements_icon, :tasks] # do not force pundit
 
   def activities
-    if admin_signed_in?
+    if admin_signed_in? && cookies[:admin_activities] == "everyone"
       @activities = PublicActivity::Activity.all.order(created_at: :desc).page(params[:page]).per(25)
     else
       @activities = PublicActivity::Activity.for_user(current_user).order(created_at: :desc).page(params[:page]).per(25)
     end
   end
 
+  def toggle_admin_activities
+    cookies[:admin_activities] = cookies[:admin_activities] == "everyone" ? "myself" : "everyone"
+    redirect_to my_activities_url
+  end
+
   def cards
     @stripe_cards = current_user.stripe_cards.includes(:event)
     @emburse_cards = current_user.emburse_cards.includes(:event)
+  end
+
+  def tasks
+    @tasks = current_user.tasks
   end
 
   # async frame
@@ -44,10 +53,13 @@ class MyController < ApplicationController
 
   def inbox
     @count = current_user.transactions_missing_receipt.count
-    @hcb_codes = current_user.transactions_missing_receipt.page(params[:page]).per(params[:per] || 15)
+    hcb_code_ids_missing_receipt = current_user.hcb_code_ids_missing_receipt
+    @hcb_codes = Kaminari.paginate_array(HcbCode.where(id: hcb_code_ids_missing_receipt)
+                 .includes(:canonical_transactions, canonical_pending_transactions: :raw_pending_stripe_transaction) # HcbCode#card uses CT and PT
+                 .index_by(&:id).slice(*hcb_code_ids_missing_receipt).values)
+                         .page(params[:page]).per(params[:per] || 15)
 
-    @card_hcb_codes = @hcb_codes.includes(:canonical_transactions, canonical_pending_transactions: :raw_pending_stripe_transaction) # HcbCode#card uses CT and PT
-                                .group_by { |hcb| hcb.card.to_global_id.to_s }
+    @card_hcb_codes = @hcb_codes.group_by { |hcb| hcb.card.to_global_id.to_s }
     @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys, includes: :event)
                               # Order by cards with least transactions first
                               .sort_by { |card| @card_hcb_codes[card.to_global_id.to_s].count }
@@ -65,9 +77,9 @@ class MyController < ApplicationController
   end
 
   def reimbursements
-    @reports = current_user.reimbursement_reports unless params[:filter] == "review_requested"
-    @reports = Reimbursement::Report.submitted.where(event: current_user.events, reviewer_id: nil).or(current_user.assigned_reimbursement_reports.submitted) if params[:filter] == "review_requested"
-    @reports = @reports.search(params[:q]) if params[:q].present?
+    @my_reports = current_user.reimbursement_reports
+    @my_reports = @my_reports.search(params[:q]) if params[:q].present?
+    @reports_to_review = Reimbursement::Report.submitted.where(event: current_user.events, reviewer_id: nil).or(current_user.assigned_reimbursement_reports.submitted)
     @payout_method = current_user.payout_method
   end
 

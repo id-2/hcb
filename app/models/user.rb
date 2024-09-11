@@ -63,11 +63,7 @@ class User < ApplicationRecord
     monthly: 2,
   }, prefix: :receipt_report
 
-  enum :access_level, [
-    :user,
-    :admin,
-    :superadmin,
-  ], scopes: false, default: :user
+  enum :access_level, { user: 0, admin: 1, superadmin: 2 }, scopes: false, default: :user
 
   enum :session_validity_preference, {
     "15 minutes": 15,
@@ -138,6 +134,8 @@ class User < ApplicationRecord
   has_encrypted :birthday, type: :date
 
   include HasMetrics
+
+  include HasTasks
 
   before_create :format_number
   before_save :on_phone_number_update
@@ -294,17 +292,18 @@ class User < ApplicationRecord
     User::ReceiptBin.new(self)
   end
 
+  def hcb_code_ids_missing_receipt
+    @hcb_code_ids_missing_receipt ||= begin
+      user_cards = stripe_cards.includes(:event).where.not(event: { category: :salary }) + emburse_cards.includes(:emburse_transactions)
+      user_cards.flat_map { |card| card.hcb_codes.missing_receipt.receipt_required.pluck(:id) }
+    end
+  end
+
   def transactions_missing_receipt
     @transactions_missing_receipt ||= begin
-      user_cards = stripe_cards.includes(:event).where.not(event: { category: :salary }) + emburse_cards.includes(:emburse_transactions)
-      return HcbCode.none unless user_cards.any?
+      return HcbCode.none unless hcb_code_ids_missing_receipt.any?
 
-      user_hcb_code_ids = user_cards.flat_map { |card| card.hcb_codes.pluck(:id) }
-      return HcbCode.none unless user_hcb_code_ids.any?
-
-      user_hcb_codes = HcbCode.where(id: user_hcb_code_ids)
-
-      user_hcb_codes.missing_receipt.receipt_required.order(created_at: :desc)
+      user_hcb_codes = HcbCode.where(id: hcb_code_ids_missing_receipt).order(created_at: :desc)
     end
   end
 
@@ -350,6 +349,11 @@ class User < ApplicationRecord
 
   def sms_charge_notifications_enabled?
     charge_notifications_sms? || charge_notifications_email_and_sms?
+  end
+
+  def sync_with_loops
+    new_user = full_name_before_last_save.blank? && !onboarding?
+    UserService::SyncWithLoops.new(user_id: id, new_user:).run
   end
 
   private
@@ -406,11 +410,6 @@ class User < ApplicationRecord
     unless payout_method_type.nil? || payout_method.is_a?(User::PayoutMethod::Check) || payout_method.is_a?(User::PayoutMethod::AchTransfer) || payout_method.is_a?(User::PayoutMethod::PaypalTransfer)
       errors.add(:payout_method, "is an invalid method, must be check or ACH transfer")
     end
-  end
-
-  def sync_with_loops
-    new_user = full_name_before_last_save.blank? && !onboarding?
-    UserService::SyncWithLoops.new(user_id: id, new_user:).run if teenager?
   end
 
 end

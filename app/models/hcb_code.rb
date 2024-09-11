@@ -25,6 +25,7 @@ class HcbCode < ApplicationRecord
 
   include Commentable
   include Receiptable
+  include UsersHelper
 
   include Turbo::Broadcastable
 
@@ -33,7 +34,9 @@ class HcbCode < ApplicationRecord
   monetize :amount_cents
 
   has_many :hcb_code_tags
-  has_many :tags, through: :hcb_code_tags
+  has_many :tags, through: :hcb_code_tags, class_name: "::Tag"
+  has_many :hcb_code_tag_suggestions, class_name: "HcbCode::Tag::Suggestion"
+  has_many :suggested_hcb_code_tag_suggestions, -> { where(aasm_state: "suggested") }, class_name: "HcbCode::Tag::Suggestion", inverse_of: :hcb_code
 
   has_many :suggested_pairings
   has_many :suggested_receipts, source: :receipt, through: :suggested_pairings
@@ -230,6 +233,14 @@ class HcbCode < ApplicationRecord
 
   def stripe_cash_withdrawal?
     stripe_merchant&.[]("category_code") == "6011"
+  end
+
+  def stripe_atm_fee
+    pt&.raw_pending_stripe_transaction&.stripe_transaction&.dig("amount_details")&.dig("atm_fee") || ct&.raw_stripe_transaction&.stripe_transaction&.dig("amount_details")&.dig("atm_fee")
+  end
+
+  def stripe_reversed_by_merchant?
+    pt&.raw_pending_stripe_transaction&.stripe_transaction&.dig("status") == "reversed"
   end
 
   def stripe_auth_dashboard_url
@@ -486,6 +497,7 @@ class HcbCode < ApplicationRecord
     users += self.comments.map(&:user)
     users += self.comments.flat_map(&:mentioned_users)
     users += self.events.flat_map(&:users).reject(&:my_threads?)
+    users += [author] if author
 
     if comment.admin_only?
       users += self.events.map(&:point_of_contact)
@@ -530,6 +542,23 @@ class HcbCode < ApplicationRecord
 
   def suggested_memos
     receipts.pluck(:suggested_memo).compact
+  end
+
+  def author
+    return ach_transfer&.creator if ach_transfer?
+    return check&.creator if check?
+    return increase_check&.user if increase_check?
+    return disbursement&.requested_by if disbursement?
+    return stripe_cardholder&.user if stripe_card?
+    return reimbursement_expense_payout&.expense&.report&.user if reimbursement_expense_payout?
+    return paypal_transfer&.user if paypal_transfer?
+  end
+
+  def fallback_avatar
+    return gravatar_url(donation.email, donation.name, donation.email.to_i, 48) if donation? && !donation.anonymous?
+    return gravatar_url(invoice.sponsor.contact_email, invoice.sponsor.name, invoice.sponsor.contact_email.to_i, 48) if invoice?
+
+    nil
   end
 
 end

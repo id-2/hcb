@@ -17,6 +17,9 @@
   );
   background-attachment: fixed;
   color: $black;
+  > td > .author {
+    display: none;
+  }
 }
 
 .transaction--icy {
@@ -83,10 +86,6 @@ html[data-dark='true'] {
     }
   }
 
-  + td {
-    text-align: right; // right-align amount
-  }
-
   .add-tag-badge {
     @extend .mr1;
     visibility: hidden;
@@ -112,6 +111,7 @@ html[data-dark='true'] {
   padding-top: 0;
   padding-bottom: 0;
   line-height: 0;
+  color: map-get($palette, muted);
 
   img,
   svg {

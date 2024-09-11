@@ -42,10 +42,10 @@ class Receipt < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix :rct
 
-  belongs_to :receiptable, polymorphic: true, optional: true
+  belongs_to :receiptable, polymorphic: true, optional: true, touch: true
 
   belongs_to :user, class_name: "User", optional: true
-  alias_attribute :uploader, :user
+  alias_method :uploader, :user
   alias_method :transaction, :receiptable
 
   has_many :suggested_pairings, dependent: :destroy
@@ -61,7 +61,7 @@ class Receipt < ApplicationRecord
     end
   end
 
-  SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS = %w[quick_expense email_receipt_bin email_hcb_code].freeze
+  SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS = %w[quick_expense email_receipt_bin email_hcb_code email_reimbursement sms_reimbursement].freeze
 
   after_create_commit do
     # Queue async job to extract text from newly upload receipt
@@ -94,6 +94,8 @@ class Receipt < ApplicationRecord
     quick_expense: 15,
     transaction_popover: 16,
     transaction_popover_drag_and_drop: 17,
+    email_reimbursement: 18,
+    sms_reimbursement: 19
   }
 
   enum textual_content_source: {

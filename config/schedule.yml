@@ -5,6 +5,10 @@ g_suite_mark_verifieds_job:
 g_suite_verify_all_job:
   cron: "0 */1 * * *" # run every 1 hour
   class: "GSuiteJob::VerifyAll"
+
+g_suite_scan_verified_dns_job:
+  cron: "0 12 * * *" # run every 1 day
+  class: "GSuiteJob::ScanVerifiedDns"
   
 pending_transaction_engine_nightly_job:
   cron: "0 */3 * * *" # run every 3 hour
@@ -41,6 +45,11 @@ bank_fee_weekly_job:
 disbursement_nightly_job:
   cron: "0 0 * * *" # run every 1 day.
   class: "DisbursementJob::Nightly"
+
+disbursement_daily_job:
+  cron: "0 13 * * *" # runs at 9am ET
+  class: "DisbursementJob::Daily"
+  queue: "default"
 
 disbursement_hourly_job:
   cron: "*/30 * * * *" # run every 30 minutes
@@ -151,3 +160,6 @@ session_expiry_job:
   cron: "* * * * *"
   class: "SessionExpiryJob"
 
+user_job_sync_to_loops:
+  cron: "0 7 * * *" # run every 1 day
+  class: "UserJob::SyncToLoops"

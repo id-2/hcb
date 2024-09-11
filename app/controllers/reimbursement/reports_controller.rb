@@ -66,13 +66,13 @@ module Reimbursement
       authorize @report
       @commentable = @report
       @comments = @commentable.comments
-      @use_user_nav = current_user == @user && !@event.users.include?(@user) && !admin_signed_in?
+      @use_user_nav = @event.nil? || current_user == @user && !@event.users.include?(@user) && !admin_signed_in?
       @editing = params[:edit].to_i
 
     end
 
     def start
-      if !@event.public_reimbursement_page_enabled?
+      unless @event.public_reimbursement_page_available?
         return not_found
       end
     end
@@ -243,7 +243,7 @@ module Reimbursement
 
       @report.destroy
 
-      if organizer_signed_in?
+      if organizer_signed_in? && @event
         redirect_to event_reimbursements_path(@event)
       else
         redirect_to my_reimbursements_path
@@ -267,7 +267,7 @@ module Reimbursement
     def update_reimbursement_report_params
       reimbursement_report_params = params.require(:reimbursement_report).permit(:report_name, :event_id, :maximum_amount, :reviewer_id).compact
       reimbursement_report_params.delete(:maximum_amount) unless current_user.admin? || @event.users.include?(current_user)
-      reimbursement_report_params.delete(:maximum_amount) unless @report.draft?
+      reimbursement_report_params.delete(:maximum_amount) unless @report.draft? || @report.submitted?
       reimbursement_report_params
     end
 

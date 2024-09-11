@@ -3,8 +3,8 @@
 class DocumentsController < ApplicationController
   include SetEvent
 
-  before_action :set_event, only: [:index, :new, :fiscal_sponsorship_letter], if: -> { params[:id] || params[:event_id] }
-  before_action :set_document, except: [:common_index, :index, :new, :create, :fiscal_sponsorship_letter]
+  before_action :set_event, only: [:index, :new, :fiscal_sponsorship_letter, :verification_letter], if: -> { params[:id] || params[:event_id] }
+  before_action :set_document, except: [:common_index, :index, :new, :create, :fiscal_sponsorship_letter, :verification_letter]
   skip_after_action :verify_authorized, only: [:index]
 
   def common_index
@@ -108,6 +108,22 @@ class DocumentsController < ApplicationController
     end
   end
 
+  def verification_letter
+    authorize @event, policy_class: DocumentPolicy
+
+    @contract_signers = @event.organizer_positions.where(is_signee: true).includes(:user).map(&:user)
+
+    respond_to do |format|
+      format.pdf do
+        render pdf: "Verification Letter for #{ActiveStorage::Filename.new(@event.name).sanitized}", page_height: "11in", page_width: "8.5in", template: "documents/verification_letter"
+      end
+
+      format.png do
+        send_data ::DocumentService::PreviewVerificationLetter.new(event: @event, contract_signers: @contract_signers).run, filename: "verification_letter.png"
+      end
+    end
+  end
+
   private
 
   def document_params
@@ -115,7 +131,11 @@ class DocumentsController < ApplicationController
   end
 
   def set_document
+    @page = params[:page] || 1
+    @per = params[:per] || 20
+
     @document = Document.friendly.find(params[:id] || params[:document_id])
+    @downloads = @document.downloads.page(@page).per(@per)
     @event = @document.event
   end
 
