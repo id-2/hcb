@@ -94,28 +94,18 @@ class EventsController < ApplicationController
       @hide_seasonal_decorations = true
     end
 
-<<<<<<< malted/more-statsd -- Incoming Change
     StatsD.measure("transactions") do
       @all_transactions = TransactionGroupingEngine::Transaction::All.new(
         event_id: @event.id,
         search: params[:q],
         tag_id: @tag&.id,
         minimum_amount: @minimum_amount,
-        maximum_amount: @maximum_amount
+        maximum_amount: @maximum_amount,
+        user: @user,
+        start_date: @start_date,
+        end_date: @end_date
       ).run
     end
-=======
-    @all_transactions = TransactionGroupingEngine::Transaction::All.new(
-      event_id: @event.id,
-      search: params[:q],
-      tag_id: @tag&.id,
-      minimum_amount: @minimum_amount,
-      maximum_amount: @maximum_amount,
-      user: @user,
-      start_date: @start_date,
-      end_date: @end_date
-    ).run
->>>>>>> main -- Current Change
 
     if (@minimum_amount || @maximum_amount) && !organizer_signed_in?
       @all_transactions.reject!(&:likely_account_verification_related?)
