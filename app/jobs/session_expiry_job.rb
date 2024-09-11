@@ -11,4 +11,5 @@ class SessionExpiryJob < ApplicationJob
       session.destroy
     end
   end
+
 end
