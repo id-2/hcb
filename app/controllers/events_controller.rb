@@ -93,7 +93,6 @@ class EventsController < ApplicationController
     @allowed_params = tx_params # Used to pass to async_transactions
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
-    @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
       @hide_seasonal_decorations = true
@@ -152,9 +151,9 @@ class EventsController < ApplicationController
       }
     }
 
-    @transactions = Rails.cache.read(cache_key("transactions")) || Kaminari.paginate_array([])
-    @pending_transactions = Rails.cache.read(cache_key("pending_transactions")) || Kaminari.paginate_array([])
-    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run! if @transactions
+    @transactions = Kaminari.paginate_array([])
+    @pending_transactions = Kaminari.paginate_array([])
+    TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
     if current_user && !Flipper.enabled?(:native_changelog_2024_07_03, current_user)
       # @latest_changelog_post = ChangelogPost.latest
@@ -471,8 +470,6 @@ class EventsController < ApplicationController
     end
 
     @pending_transactions = _show_pending_transactions
-    Rails.cache.write(cache_key("pending_transactions"), @pending_transactions, expires_in: 12.hours)
-
     @transactions = Kaminari.paginate_array(@all_transactions).page(page).per(per_page)
 
     if show_running_balance?
@@ -499,7 +496,6 @@ class EventsController < ApplicationController
       @mock_total = @transactions.sum(&:amount_cents)
     end
 
-    Rails.cache.write(cache_key("transactions"), @transactions, expires_in: 12.hours)
     TransactionGroupingEngine::Transaction::AssociationPreloader.new(transactions: @transactions, event: @event).run!
 
     render :async_transactions, layout: false
@@ -1094,10 +1090,6 @@ class EventsController < ApplicationController
     if params[:show_mock_data].present?
       helpers.set_mock_data!(params[:show_mock_data] == "true")
     end
-  end
-
-  def cache_key(label)
-    [@event, label, tx_params]
   end
 
 end
