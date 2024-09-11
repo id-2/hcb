@@ -38,7 +38,7 @@ module Column
 
     has_paper_trail
 
-    after_save ->() { StatsD.gauge('Column.account_numbers', Column::AccountNumber.count) }
+    after_save -> { StatsD.gauge("Column.account_numbers", Column::AccountNumber.count) }
 
     private
 

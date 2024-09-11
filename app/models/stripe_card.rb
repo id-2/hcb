@@ -270,7 +270,6 @@ class StripeCard < ApplicationRecord
   end
 
   def sync_from_stripe!
-<<<<<<< malted/more-statsd -- Incoming Change
     StatsD.increment("StripeCard.syncs_from_stripe")
     StatsD.measure("StripeCard.sync_from_stripe") do
       if stripe_obj[:deleted]
@@ -284,37 +283,18 @@ class StripeCard < ApplicationRecord
       self.last4 = stripe_obj[:last4]
       self.stripe_status = stripe_obj[:status]
       self.card_type = stripe_obj[:type]
+      self.stripe_card_personalization_design_id = StripeCard::PersonalizationDesign.find_by(stripe_id: stripe_obj[:personalization_design])&.id
 
       if stripe_obj[:status] == "active"
-        self.activated = true
-      elsif stripe_obj[:status] == "inactive" && !self.activated
-        self.activated = false
+        self.initially_activated = true
+      elsif stripe_obj[:status] == "inactive" && !self.initially_activated
+        self.initially_activated = false
       end
-=======
-    if stripe_obj[:deleted]
-      self.stripe_status = "deleted"
-      return self
-    end
-    self.stripe_id = stripe_obj[:id]
-    self.stripe_brand = stripe_obj[:brand]
-    self.stripe_exp_month = stripe_obj[:exp_month]
-    self.stripe_exp_year = stripe_obj[:exp_year]
-    self.last4 = stripe_obj[:last4]
-    self.stripe_status = stripe_obj[:status]
-    self.card_type = stripe_obj[:type]
-    self.stripe_card_personalization_design_id = StripeCard::PersonalizationDesign.find_by(stripe_id: stripe_obj[:personalization_design])&.id
 
-    if stripe_obj[:status] == "active"
-      self.initially_activated = true
-    elsif stripe_obj[:status] == "inactive" && !self.initially_activated
-      self.initially_activated = false
-    end
-
-    if stripe_obj[:shipping]
-      if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?
-        self.lost_in_shipping = true
-        StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
->>>>>>> main -- Current Change
+      if stripe_obj[:shipping]
+        if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?
+          self.lost_in_shipping = true
+          StripeCardMailer.with(card_id: self.id).lost_in_shipping.deliver_later
 
       if stripe_obj[:shipping]
         if (stripe_obj[:shipping][:status] == "returned" || stripe_obj[:shipping][:status] == "failure") && !lost_in_shipping?

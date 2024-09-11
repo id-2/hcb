@@ -188,9 +188,9 @@ class Invoice < ApplicationRecord
   # Stripe syncing…
   before_destroy :close_stripe_invoice
 
-  after_save ->() {
-    StatsD.gauge('Invoice.paid', Invoice.paid.count)
-    StatsD.gauge('Invoice.unpaid', Invoice.unpaid.count)
+  after_save -> {
+    StatsD.gauge("Invoice.paid", Invoice.paid.count)
+    StatsD.gauge("Invoice.unpaid", Invoice.unpaid.count)
   }
 
   def pending_expired?
