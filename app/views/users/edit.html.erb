@@ -3,37 +3,41 @@
   <% page_full %>
   <% no_app_shell %>
   <style>
-    html, body { overflow-x: hidden }
+      html, body {
+          overflow-x: hidden
+      }
 
-    @media (min-width: 640px) {
-      html, body { overflow: hidden }
-    }
+      @media (min-width: 640px) {
+          html, body {
+              overflow: hidden
+          }
+      }
   </style>
   <div class="sm:flex sm:w-screen sm:h-screen dark:bg-neutral-900">
-  <div class="sm:flex-1 max-w-[1200px] p-6 pt-10 sm:p-16 sm:overflow-y-auto sm:max-h-screen max-w-screen">
-    <div class="flex items-center justify-between">
-      <img src="/logo-512.png" width="64" />
-      <%= button_to logout_users_path,
-                    method: :delete,
-                    class: "pop bg-transparent muted tooltipped tooltipped--s",
-                    'aria-label': "Sign out" do %>
-        <%= inline_icon "door-leave", size: home_action_size %>
-      <% end %>
-    </div>
-    <h1 class="border-0 mt-4 mb-2">Create your account</h1>
-    <turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
-      <section>
-        <h3 class="mt-0 opacity-50">Let's get your profile set up in less than two minutes.</h3>
-        <%= form_with(model: @user, local: true, html: { onsubmit: "onSubmit()" }, data: { turbo_frame: "_top" }) do |form| %>
-          <%= form_errors @user, "profile", "We couldn't update your" %>
-          <% if current_season(override_preference: true) %>
-            <div class="field field--checkbox">
-              <%= form.check_box :seasonal_themes_enabled %>
-              <%= form.label :seasonal_themes_enabled, "#{by_season "✨", override_preference: true, fall: "🎃", winter: "🎄"} Enable #{current_season(override_preference: true)} theme", class: "h3 bold" %>
-            </div>
-          <% end %>
-          <div class="sm:flex gap-2">
-            <div class="field flex-1">
+    <div class="sm:flex-1 max-w-[1200px] p-6 pt-10 sm:p-16 sm:overflow-y-auto sm:max-h-screen max-w-screen">
+      <div class="flex items-center justify-between">
+        <img src="/logo-512.png" width="64" />
+        <%= button_to logout_users_path,
+                      method: :delete,
+                      class: "pop bg-transparent muted tooltipped tooltipped--s",
+                      'aria-label': "Sign out" do %>
+          <%= inline_icon "door-leave", size: home_action_size %>
+        <% end %>
+      </div>
+      <h1 class="border-0 mt-4 mb-2">Create your account</h1>
+      <turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
+        <section>
+          <h3 class="mt-0 opacity-50">Let's get your profile set up in less than two minutes.</h3>
+          <%= form_with(model: @user, local: true, html: { onsubmit: "onSubmit()" }, data: { turbo_frame: "_top" }) do |form| %>
+            <%= form_errors @user, "profile", "We couldn't update your" %>
+            <% if current_season(override_preference: true) %>
+              <div class="field field--checkbox">
+                <%= form.check_box :seasonal_themes_enabled %>
+                <%= form.label :seasonal_themes_enabled, "#{by_season "✨", override_preference: true, fall: "🎃", winter: "🎄"} Enable #{current_season(override_preference: true)} theme", class: "h3 bold" %>
+              </div>
+            <% end %>
+            <div class="sm:flex gap-2">
+              <div class="field flex-1">
                 <%= form.label :full_name %>
                 <%= form.text_field :full_name, required: true, placeholder: "Fiona Hackworth III", style: "max-width:100%", pattern: '^\S+.+' %>
                 <% @user.errors.full_messages_for(:full_name).each do |message| %>
@@ -53,7 +57,9 @@
                 <input type="tel" id="phone_raw" style="max-width:100%;" value="<%= @user.phone_number || nil %>" required="required">
                 <% if @user.phone_number_in_database.present? && !@user.phone_number_verified? %>
                   <p class="h5 mt1 m0 warning flex items-center">
-                    <%= inline_icon "important-fill", class: "warning mr1" %> <span>Your phone number is unverified. <%= link_to "Click here", "#", class: "info", data: { behavior: "modal_trigger", modal: "verify_phone" } %> to verify it.</span>
+                    <%= inline_icon "important-fill", class: "warning mr1" %>
+                    <span>Your phone number is unverified. <%= link_to "Click here", "#", class: "info", data: { behavior: "modal_trigger", modal: "verify_phone" } %>
+                      to verify it.</span>
                   </p>
                 <% end %>
               </div>
@@ -68,10 +74,10 @@
               </div>
 
               <%= form.date_select :birthday,
-                                  start_year: Date.today.year - 100,
-                                  end_year: Date.today.year,
-                                  order: [:month, :day, :year],
-                                  prompt: @user.birthday.nil? %>
+                                   start_year: Date.today.year - 100,
+                                   end_year: Date.today.year,
+                                   order: [:month, :day, :year],
+                                   prompt: @user.birthday.nil? %>
             </div>
             <%= form.label :profile_picture %>
             <p class="flex items-center mt1">
@@ -79,7 +85,8 @@
               <span>
                   <% if @user.profile_picture.attached? %>
                   You're currently using an uploaded profile picture.<br>
-                  If you'd like to switch back to your Gravatar, <%= link_to "click here", user_delete_profile_picture_path(@user), method: :post %>.
+                  If you'd like to switch back to your Gravatar, <%= link_to "click here", user_delete_profile_picture_path(@user), method: :post %>
+                  .
                   <% else %>
                   If you have a <a href="https://gravatar.com" target="_blank">Gravatar</a>, we’ll pull it in here.<br>
                   Or, you can upload a profile picture below.<br>
@@ -100,24 +107,41 @@
           <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js" integrity="sha512-QMUqEPmhXq1f3DnAVdXvu40C8nbTgxvBGvNruP6RFacy3zWKbNTmx7rdQVVM2gkd2auCWhlPYtcW2tHwzso4SA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/css/intlTelInput.css" integrity="sha512-gxWow8Mo6q6pLa1XH/CcH8JyiSDEtiwJV78E+D+QP0EVasFs8wKXq16G8CLD4CJ2SnonHr4Lm/yY2fSI2+cbmw==" crossorigin="anonymous" referrerpolicy="no-referrer">
           <%= javascript_include_tag "phone_input.js" %>
-      </section>
-
-      <% if @user.phone_number_in_database.present? %>
-        <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="verify_phone">
-          <%= modal_header "Verify phone number" %>
-          <%= react_component "settings/SmsVerification",
-                  phone_number: @user.phone_number_in_database %>
         </section>
-      <% end %>
-    </turbo-frame>
-  </div>
-  <div class="hidden sm:flex flex-1 p-16 bg-smoke dark:bg-neutral-800 flex items-center justify-center text-center">
-    <div class="max-w-xl">
-      <%= inline_icon "welcome", size: 100 %>
-      <h1 class="h1 border-none text-5xl" style="margin-bottom: -10px">Welcome to HCB</h1>
-      <p class="max-w-lg text-xl opacity-75">We're excited to have you on board! Just a few quick details needed, and you'll be all set to start using our platform.</p>
+
+        <% if @user.phone_number_in_database.present? %>
+          <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="verify_phone">
+            <%= modal_header "Verify phone number" %>
+            <%= react_component "settings/SmsVerification",
+                                phone_number: @user.phone_number_in_database %>
+          </section>
+        <% end %>
+      </turbo-frame>
     </div>
-  </div>
+    <div class="hidden flex-1 bg-smoke dark:bg-neutral-800 sm:grid"
+         style="grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr);"
+    >
+      <%
+        images = [
+          ['https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0screenshot_2021-10-03_at_3.59.34_pm.25729adc.png&w=1200&q=75', "https://hcb.hackclub.com/zephyr"],
+          ['https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fchea-waters-evans-1-20210323-1536x1025.e81dbfdd.jpg&w=1920&q=75', "https://hcb.hackclub.com/the-charlotte-bridge"],
+          ['https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F6screenshot_2021-10-03_at_3.29.29_pm.ea2b9bcc.png&w=1920&q=75', "https://hcb.hackclub.com/windyhacks"],
+          ['https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0screenshot_2021-10-03_at_3.45.54_pm.e9948145.png&w=1920&q=75', "https://hcb.hackclub.com/the-innovation-circuit"],
+          ['https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0spacex_and_hack_club.4d15c05e.jpg&w=1920&q=75', "https://hcb.hackclub.com/zephyr"],
+          ['https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0color_pop.df871870.jpg&w=1920&q=75', "https://hcb.hackclub.com/hackpenn"],
+          ['https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0img_20210830_161125.a489169a.jpg&w=1920&q=75', "https://hcb.hackclub.com/wild-wild-west"],
+          ['https://user-images.githubusercontent.com/39828164/189497810-6d9d2920-6bee-4990-9553-57699918ae9c.jpg', "https://hcb.hackclub.com/hq"],
+        ]
+      %>
+
+      <% images.each do |image| %>
+        <a href="<%= image[1] %>" target="_blank" class="group relative flex w-full h-full min-w-0 min-h-0" style="background: #ec3750">
+          <img src="<%= image[0] %>" class="w-full h-full object-cover opacity-60" />
+
+          <%= inline_icon "external", class: "absolute top-0 right-0 m-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" %>
+        </a>
+      <% end %>
+    </div>
 <% else %>
 
   <% title "Account Settings" %>
@@ -162,7 +186,9 @@
           <input type="tel" id="phone_raw" value="<%= @user.phone_number || nil %>" required="required">
           <% if @user.phone_number_in_database.present? && !@user.phone_number_verified? %>
             <p class="h5 mt1 m0 warning flex items-center">
-              <%= inline_icon "important-fill", class: "warning mr1" %> <span>Your phone number is unverified. <%= link_to "Click here", "#", class: "info", data: { behavior: "modal_trigger", modal: "verify_phone" } %> to verify it.</span>
+              <%= inline_icon "important-fill", class: "warning mr1" %>
+              <span>Your phone number is unverified. <%= link_to "Click here", "#", class: "info", data: { behavior: "modal_trigger", modal: "verify_phone" } %>
+                to verify it.</span>
             </p>
           <% end %>
         </div>
@@ -172,10 +198,10 @@
             Used for card issuing.
           </p>
           <%= form.date_select :birthday,
-                              start_year: Date.today.year - 100,
-                              end_year: Date.today.year,
-                              order: [:month, :day, :year],
-                              prompt: @user.birthday.nil? %>
+                               start_year: Date.today.year - 100,
+                               end_year: Date.today.year,
+                               order: [:month, :day, :year],
+                               prompt: @user.birthday.nil? %>
         </div>
         <div class="field">
           <%= form.label :email %>
@@ -184,7 +210,8 @@
             <p style="max-width: 420px;">
               <small>
                 You've requested to update your email to <%= mail_to @user.email_updates.active.first.replacement %>.
-                To continue, click on the verification and authorization links in both your new and old email inboxes respectively.
+                To continue, click on the verification and authorization links in both your new and old email inboxes
+                respectively.
               </small>
             </p>
           <% end %>
@@ -195,7 +222,8 @@
           <span>
               <% if @user.profile_picture.attached? %>
               You're currently using an uploaded profile picture.<br>
-              If you'd like to switch back to your Gravatar, <%= link_to "click here", user_delete_profile_picture_path(@user), method: :post %>.
+              If you'd like to switch back to your Gravatar, <%= link_to "click here", user_delete_profile_picture_path(@user), method: :post %>
+              .
               <% else %>
               If you have a <a href="https://gravatar.com" target="_blank">Gravatar</a>, we’ll pull it in here.<br>
               Or, you can upload a profile picture below.<br>
@@ -210,87 +238,89 @@
           <%= form.label :session_duration_seconds, "Stay signed in for" %>
           <%= form.select :session_duration_seconds, SessionsHelper::SESSION_DURATION_OPTIONS.to_a %>
         </div>
-          <fieldset>
-            <legend class="heading h2 pt2 pb1" id="receipt-reports">Receipts</legend>
-            <%= form.label :receipt_report_option, "Receipt reports" %>
-            <p class="h5 muted mt0 mb1">
-              Get a regular report via email of what receipts are awaiting upload on your account.
+        <fieldset>
+          <legend class="heading h2 pt2 pb1" id="receipt-reports">Receipts</legend>
+          <%= form.label :receipt_report_option, "Receipt reports" %>
+          <p class="h5 muted mt0 mb1">
+            Get a regular report via email of what receipts are awaiting upload on your account.
+          </p>
+          <%= form.select :receipt_report_option,
+                          (User.receipt_report_options.map { |k, v| [k.humanize, k] }) %>
+
+          <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
+            <div class="mt2"></div>
+
+            <%= form.label :receipt_identifier, "Email us your receipts" %>
+
+            <p class="h5 muted mt0 mb1" style="max-width: 600px;">
+              Using this address, you can forward email receipts to
+              your <%= link_to "Receipt Bin", my_inbox_path, data: { turbo_frame: "_top" } %>. Perfect for when you have
+              email receipts to forward or if you're at an in-person point-of-sale terminal.
             </p>
-            <%= form.select :receipt_report_option,
-                            (User.receipt_report_options.map { |k, v| [k.humanize, k] }) %>
 
-            <% if Flipper.enabled?(:receipt_bin_2023_04_07, current_user) %>
-              <div class="mt2"></div>
-
-              <%= form.label :receipt_identifier, "Email us your receipts" %>
-
-              <p class="h5 muted mt0 mb1" style="max-width: 600px;">
-                Using this address, you can forward email receipts to your <%= link_to "Receipt Bin", my_inbox_path, data: { turbo_frame: "_top" } %>. Perfect for when you have email receipts to forward or if you're at an in-person point-of-sale terminal.
-              </p>
-
-              <%= turbo_frame_tag "mailbox_address" do %>
-                <% if @mailbox_address %>
-                  <%= render @mailbox_address %>
-                <% else %>
-                  <%= link_to "Choose an email address",
-                      mailbox_addresses_path,
-                      class: "btn pl2 pr2",
-                      data: { turbo: true, "turbo-method" => "post" } %>
-                <% end %>
+            <%= turbo_frame_tag "mailbox_address" do %>
+              <% if @mailbox_address %>
+                <%= render @mailbox_address %>
+              <% else %>
+                <%= link_to "Choose an email address",
+                            mailbox_addresses_path,
+                            class: "btn pl2 pr2",
+                            data: { turbo: true, "turbo-method" => "post" } %>
               <% end %>
             <% end %>
-          </fieldset>
-          <fieldset>
-            <legend class="heading h2 pt2">Comment notifications</legend>
-            <p class="h5 muted mt1 mb2">
-              Which comments would you like to receive notifications for?
-            </p>
-            <div class="field field--options field--green trio">
-              <%= form.radio_button :comment_notifications, :all_threads %>
-              <%= form.label :comment_notifications, value: :all_threads do %>
-                <%= inline_icon "like-fill", size: 28 %>
-                <strong>Everything</strong>
-              <% end %>
-              <%= form.radio_button :comment_notifications, :my_threads %>
-              <%= form.label :comment_notifications, value: :my_threads do %>
-                <%= inline_icon "thread", size: 28 %>
-                <strong>My Threads</strong>
-              <% end %>
-              <%= form.radio_button :comment_notifications, :no_threads %>
-              <%= form.label :comment_notifications, value: :no_threads do %>
-                <%= inline_icon "support", size: 28 %>
-                <strong>Nothing</strong>
-              <% end %>
-            </div>
-          </fieldset>
-          <fieldset>
-            <legend class="heading h2 pt2">Charge notifications</legend>
-            <p class="h5 muted mt1 mb2">
-              How would you like to receive charge notifications?
-            </p>
-            <div class="field field--options field--green">
-              <%= form.radio_button :charge_notifications, :email_and_sms %>
-              <%= form.label :charge_notifications, value: :email_and_sms do %>
-                <%= inline_icon "announcement", size: 28 %>
-                <strong>Email & SMS</strong>
-              <% end %>
-              <%= form.radio_button :charge_notifications, :email %>
-              <%= form.label :charge_notifications, value: :email do %>
-                <%= inline_icon "email", size: 28 %>
-                <strong>Email</strong>
-              <% end %>
-              <%= form.radio_button :charge_notifications, :sms %>
-              <%= form.label :charge_notifications, value: :sms do %>
-                <%= inline_icon "message", size: 28 %>
-                <strong>SMS</strong>
-              <% end %>
-              <%= form.radio_button :charge_notifications, :nothing %>
-              <%= form.label :charge_notifications, value: :nothing do %>
-                <%= inline_icon "view-close", size: 28 %>
-                <strong>Nothing</strong>
-              <% end %>
-            </div>
-          </fieldset>
+          <% end %>
+        </fieldset>
+        <fieldset>
+          <legend class="heading h2 pt2">Comment notifications</legend>
+          <p class="h5 muted mt1 mb2">
+            Which comments would you like to receive notifications for?
+          </p>
+          <div class="field field--options field--green trio">
+            <%= form.radio_button :comment_notifications, :all_threads %>
+            <%= form.label :comment_notifications, value: :all_threads do %>
+              <%= inline_icon "like-fill", size: 28 %>
+              <strong>Everything</strong>
+            <% end %>
+            <%= form.radio_button :comment_notifications, :my_threads %>
+            <%= form.label :comment_notifications, value: :my_threads do %>
+              <%= inline_icon "thread", size: 28 %>
+              <strong>My Threads</strong>
+            <% end %>
+            <%= form.radio_button :comment_notifications, :no_threads %>
+            <%= form.label :comment_notifications, value: :no_threads do %>
+              <%= inline_icon "support", size: 28 %>
+              <strong>Nothing</strong>
+            <% end %>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend class="heading h2 pt2">Charge notifications</legend>
+          <p class="h5 muted mt1 mb2">
+            How would you like to receive charge notifications?
+          </p>
+          <div class="field field--options field--green">
+            <%= form.radio_button :charge_notifications, :email_and_sms %>
+            <%= form.label :charge_notifications, value: :email_and_sms do %>
+              <%= inline_icon "announcement", size: 28 %>
+              <strong>Email & SMS</strong>
+            <% end %>
+            <%= form.radio_button :charge_notifications, :email %>
+            <%= form.label :charge_notifications, value: :email do %>
+              <%= inline_icon "email", size: 28 %>
+              <strong>Email</strong>
+            <% end %>
+            <%= form.radio_button :charge_notifications, :sms %>
+            <%= form.label :charge_notifications, value: :sms do %>
+              <%= inline_icon "message", size: 28 %>
+              <strong>SMS</strong>
+            <% end %>
+            <%= form.radio_button :charge_notifications, :nothing %>
+            <%= form.label :charge_notifications, value: :nothing do %>
+              <%= inline_icon "view-close", size: 28 %>
+              <strong>Nothing</strong>
+            <% end %>
+          </div>
+        </fieldset>
         <fieldset>
           <legend class="heading h2 pt2">Share usage data with us</legend>
           <p class="h5 muted mt1 mb2">
@@ -322,7 +352,7 @@
       <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="verify_phone">
         <%= modal_header "Verify phone number" %>
         <%= react_component "settings/SmsVerification",
-                phone_number: @user.phone_number_in_database %>
+                            phone_number: @user.phone_number_in_database %>
       </section>
     <% end %>
 
