@@ -6,7 +6,7 @@ ruby File.read(File.join(File.dirname(__FILE__), ".ruby-version")).strip
 
 gem "dotenv-rails", groups: [:development, :test]
 
-gem "rails", "~> 7.1.3"
+gem "rails", "~> 7.2"
 
 gem "puma", "~> 6.4" # app server
 
@@ -163,7 +163,7 @@ end
 group :development, :test do
   gem "erb_lint", require: false
   gem "rubocop"
-  gem "rubocop-rails", "~> 2.25"
+  gem "rubocop-rails", "~> 2.26"
   gem "relaxed-rubocop"
 
   gem "rspec-rails", "~> 6.1.4"
@@ -205,7 +205,7 @@ end
 gem "jbuilder", "~> 2.12"
 
 gem "ledgerjournal"
-gem "doorkeeper", "~> 5.6"
+gem "doorkeeper", "~> 5.7"
 
 gem "chartkick"
 gem "cssbundling-rails", "~> 1.4"

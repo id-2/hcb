@@ -31,6 +31,9 @@ class Event
 
       event :mark_inactive do
         transitions from: :active, to: :inactive
+        after do |new_plan_type|
+          event.create_plan!(plan_type: new_plan_type)
+        end
       end
     end
 
@@ -48,7 +51,7 @@ class Event
 
     def self.available_features
       # this must contain every HCB feature that we want enable / disable with plans.
-      %w[cards invoices donations account_number check_deposits transfers promotions google_workspace documentation settings reimbursements]
+      %w[cards invoices donations account_number check_deposits transfers promotions google_workspace documentation reimbursements]
     end
 
     self.available_features.each do |feature|
