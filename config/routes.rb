@@ -64,6 +64,7 @@ Rails.application.routes.draw do
 
     get "inbox", to: "my#inbox", as: :my_inbox
     get "activities", to: "my#activities", as: :my_activities
+    post "toggle_admin_activities", to: "my#toggle_admin_activities", as: :toggle_admin_activities
     get "tasks", to: "my#tasks", as: :my_tasks
     get "reimbursements", to: "my#reimbursements", as: :my_reimbursements
     get "reimbursements_icon", to: "my#reimbursements_icon", as: :my_reimbursements_icon
@@ -416,6 +417,15 @@ Rails.application.routes.draw do
 
       scope module: "hcb_code" do
         get "subscriptions/transactions", to: "subscriptions#transactions"
+      end
+    end
+  end
+
+  scope module: "hcb_code" do
+    namespace :tag do
+      resources :suggestions, only: [] do
+        post "accept"
+        post "reject"
       end
     end
   end
