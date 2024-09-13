@@ -302,8 +302,10 @@ html[data-dark='true'] {
   .btn.bg-warning {
     background-color: rgba(map-get($palette, warning), 0.75);
   }
+  .btn.btn--destroy,
   .btn.bg-error {
-    background-color: rgba(map-get($palette, error), 0.75);
+    background-color: rgba(map-get($palette, error), 0.75) !important;
+    color: map-get($palette, smoke) !important;
   }
 
   .badge {
