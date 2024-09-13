@@ -9,7 +9,7 @@ html[data-dark='true'] {
     background-color: $dark;
     color: map-get($palette, smoke);
     color-scheme: dark;
-    --shadow-border: 0 0 0 0.5px rgba(255, 255, 255, 0.375);
+    --shadow-border: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25);
     --shadow-sm: 0 2px 2px rgba(0, 0, 0, 0.04);
     --shadow-border-sm: var(--shadow-border), var(--shadow-sm);
     --shadow-border-md: var(--shadow-border), var(--shadow-md);
