@@ -36,7 +36,7 @@
                 <%= form.label :seasonal_themes_enabled, "#{by_season "✨", override_preference: true, fall: "🎃", winter: "🎄"} Enable #{current_season(override_preference: true)} theme", class: "h3 bold" %>
               </div>
             <% end %>
-            <div class="sm:flex gap-2">
+            <div class="md:flex gap-2">
               <div class="field flex-1">
                 <%= form.label :full_name %>
                 <%= form.text_field :full_name, required: true, placeholder: "Fiona Hackworth III", style: "max-width:100%", pattern: '^\S+.+' %>
@@ -50,7 +50,7 @@
               </div>
             </div>
 
-            <div class="sm:flex items-center gap-2">
+            <div class="md:flex items-center gap-2">
               <div class="field flex-1">
                 <%= form.label :phone_number, "Mobile phone number" %>
                 <%= form.hidden_field :phone_number, required: true, placeholder: "555-555-5555", id: "phone_number" %>
@@ -63,22 +63,19 @@
                   </p>
                 <% end %>
               </div>
-            </div>
-
-            <div class="field sm:flex items-center gap-2">
-              <div class="flex-1">
+              <div class="field flex-1">
                 <%= form.label :birthday %>
-                <p class="h5 muted mt0 mb1">
-                  Used for card issuing.
-                </p>
+                <div class="flex gap-2 onboarding">
+                  <%= form.date_select :birthday,
+                                       start_year: Date.today.year - 100,
+                                       end_year: Date.today.year,
+                                       order: [:month, :day, :year],
+                                       prompt: @user.birthday.nil? %>
+                </div>
               </div>
-
-              <%= form.date_select :birthday,
-                                   start_year: Date.today.year - 100,
-                                   end_year: Date.today.year,
-                                   order: [:month, :day, :year],
-                                   prompt: @user.birthday.nil? %>
             </div>
+
+
             <%= form.label :profile_picture %>
             <p class="flex items-center mt1">
               <%= avatar_for @user, 48, { class: "mr2" } %>
