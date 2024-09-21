@@ -281,13 +281,16 @@ class EventsController < ApplicationController
 
     @q = params[:q] || ""
 
+    cookies[:team_view] = params[:view] if params[:view]
+    @view = cookies[:team_view] || "grid"
+
     @all_positions = @event.organizer_positions
                            .joins(:user)
                            .where(role: @filter || %w[member manager])
                            .where("users.full_name ILIKE :query OR users.email ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%")
                            .order(created_at: :desc)
 
-    @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || params[:view] == "list" ? 20 : 10)
+    @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || @view == "list" ? 20 : 10)
 
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
@@ -377,6 +380,9 @@ class EventsController < ApplicationController
 
   def card_overview
     @status = %w[virtual physical active inactive].include?(params[:status]) ? params[:status] : nil
+
+    cookies[:card_overview_view] = params[:view] if params[:view]
+    @view = cookies[:card_overview_view] || "grid"
 
     @user_id = params[:user].presence
     @user = User.find(params[:user]) if params[:user]
@@ -642,23 +648,6 @@ class EventsController < ApplicationController
 
     @recurring_donations_monthly_sum = @recurring_donations.sum(0) { |donation| donation[:amount] }
 
-  end
-
-  def partner_donation_overview
-    authorize @event
-
-    relation = @event.partner_donations.not_unpaid
-
-    @stats = {
-      deposited: relation.deposited.sum(:payout_amount_cents),
-      in_transit: relation.in_transit.sum(:payout_amount_cents),
-    }
-
-    relation = relation.pending if params[:filter] == "pending"
-    relation = relation.in_transit if params[:filter] == "in_transit"
-    relation = relation.deposited if params[:filter] == "deposited"
-
-    @partner_donations = relation.order(created_at: :desc)
   end
 
   def transfers

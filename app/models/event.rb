@@ -30,11 +30,6 @@
 #  name                                         :text
 #  omit_stats                                   :boolean          default(FALSE)
 #  organization_identifier                      :string           not null
-#  owner_address                                :string
-#  owner_birthdate                              :date
-#  owner_email                                  :string
-#  owner_name                                   :string
-#  owner_phone                                  :string
 #  pending_transaction_engine_at                :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
 #  postal_code                                  :string
 #  public_message                               :text
@@ -53,19 +48,15 @@
 #  club_airtable_id                             :text
 #  emburse_department_id                        :string
 #  increase_account_id                          :string           not null
-#  partner_id                                   :bigint
 #  point_of_contact_id                          :bigint
 #
 # Indexes
 #
 #  index_events_on_club_airtable_id                        (club_airtable_id) UNIQUE
-#  index_events_on_partner_id                              (partner_id)
-#  index_events_on_partner_id_and_organization_identifier  (partner_id,organization_identifier) UNIQUE
 #  index_events_on_point_of_contact_id                     (point_of_contact_id)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (partner_id => partners.id)
 #  fk_rails_...  (point_of_contact_id => users.id)
 #
 class Event < ApplicationRecord
@@ -113,8 +104,6 @@ class Event < ApplicationRecord
   scope :omitted, -> { where(omit_stats: true) }
   scope :not_omitted, -> { where(omit_stats: false) }
   scope :hidden, -> { where("hidden_at is not null") }
-  scope :not_partner, -> { where(partner_id: 1) }
-  scope :partner, -> { where.not(partner_id: 1) }
   scope :hidden, -> { where.not(hidden_at: nil) }
   scope :not_hidden, -> { where(hidden_at: nil) }
   scope :funded, -> {
@@ -172,11 +161,11 @@ class Event < ApplicationRecord
     ActiveRecord::Base.connection.execute(query)
   end
 
-  scope :pending_fees_v2, -> do
+  scope :_fees_v2, -> do
     where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees.to_a.map { |a| a["event_id"] })
   end
 
-  self.ignored_columns = %w[start end sponsorship_fee]
+  self.ignored_columns = %w[start end sponsorship_fee redirect_url webhook_url]
 
   scope :demo_mode, -> { where(demo_mode: true) }
   scope :not_demo_mode, -> { where(demo_mode: false) }
@@ -223,9 +212,8 @@ class Event < ApplicationRecord
     state :rejected # Rejected from fiscal sponsorship
 
     # DEPRECATED
-    state :awaiting_connect # Initial state of partner events. Waiting for user to fill out HCB Connect form
-    state :pending # Awaiting HCB approval (after filling out HCB Connect form)
     state :unapproved # Old spend only events. Deprecated, should not be granted to any new events
+    state :pending
 
     event :mark_pending do
       transitions from: [:awaiting_connect, :approved], to: :pending
@@ -319,10 +307,6 @@ class Event < ApplicationRecord
   has_many :pinned_hcb_codes, -> { includes(hcb_code: [:canonical_transactions, :canonical_pending_transactions]) }, class_name: "HcbCode::Pin"
 
   has_many :check_deposits
-
-  belongs_to :partner, optional: true
-  has_one :partnered_signup, required: false
-  has_many :partner_donations
 
   has_many :subledgers
 
@@ -762,7 +746,7 @@ class Event < ApplicationRecord
   private
 
   def point_of_contact_is_admin
-    return unless point_of_contact # for remote partner created events
+    return unless point_of_contact
     return if point_of_contact&.admin_override_pretend?
 
     errors.add(:point_of_contact, "must be an admin")

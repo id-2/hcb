@@ -24,8 +24,6 @@ Rails.application.routes.draw do
 
   # API documentation
   scope "docs/api" do
-    get "v2", to: "docs#v2"
-    get "v2/swagger", to: "docs#swagger"
 
     get "v3", to: "docs#v3"
     get "v3/*path", to: "docs#v3"
@@ -186,11 +184,6 @@ Rails.application.routes.draw do
       get "hcb_codes", to: "admin#hcb_codes"
       get "bank_fees", to: "admin#bank_fees"
       get "users", to: "admin#users"
-      get "partners", to: "admin#partners"
-      get "partner/:id", to: "admin#partner", as: "partner"
-      post "partner/:id", to: "admin#partner_edit"
-      get "partnered_signups", to: "admin#partnered_signups"
-      post "partnered_signups/:id/sign", to: "admin#partnered_signup_sign_document", as: "partnered_signup_sign_document"
       get "raw_transactions", to: "admin#raw_transactions"
       get "raw_transaction_new", to: "admin#raw_transaction_new"
       post "raw_transaction_create", to: "admin#raw_transaction_create"
@@ -206,13 +199,11 @@ Rails.application.routes.draw do
       get "checks", to: "admin#checks"
       get "increase_checks", to: "admin#increase_checks"
       get "paypal_transfers", to: "admin#paypal_transfers"
-      get "partner_organizations", to: "admin#partner_organizations"
       get "events", to: "admin#events"
       get "event_new", to: "admin#event_new"
       post "event_create", to: "admin#event_create"
       get "donations", to: "admin#donations"
       get "recurring_donations", to: "admin#recurring_donations"
-      get "partner_donations", to: "admin#partner_donations"
       get "disbursements", to: "admin#disbursements"
       get "disbursement_new", to: "admin#disbursement_new"
       get "invoices", to: "admin#invoices"
@@ -258,9 +249,6 @@ Rails.application.routes.draw do
       get "invoice_process", to: "admin#invoice_process"
       post "invoice_mark_paid", to: "admin#invoice_mark_paid"
       get "grant_process", to: "admin#grant_process"
-
-      post "partnered_signups_accept", to: "admin#partnered_signups_accept"
-      post "partnered_signups_reject", to: "admin#partnered_signups_reject"
     end
   end
 
@@ -311,8 +299,6 @@ Rails.application.routes.draw do
   resources :g_suite_accounts, only: [:index, :create, :update, :edit, :destroy], path: "g_suite_accounts" do
     put "reset_password"
     put "toggle_suspension"
-    get "verify", to: "g_suite_account#verify"
-    post "reject"
   end
 
   resources :g_suites, except: [:new, :create, :edit, :update] do
@@ -522,29 +508,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :partner_donations, only: [:show] do
-    collection do
-      get "export"
-    end
-  end
-
   use_doorkeeper scope: "api/v4/oauth" do
     skip_controllers :authorized_applications
   end
 
   namespace :api do
-    get "v2/login", to: "v2#login"
-
-    post "v2/donations/new", to: "v2#donations_new"
-
-    get "v2/organizations", to: "v2#organizations"
-    get "v2/organization/:public_id", to: "v2#organization", as: :v2_organization
-    post "v2/organization/:public_id/generate_login_url", to: "v2#generate_login_url", as: :v2_generate_login_url
-
-    post "v2/partnered_signups/new", to: "v2#partnered_signups_new"
-    get "v2/partnered_signups", to: "v2#partnered_signups"
-    get "v2/partnered_signup/:public_id", to: "v2#partnered_signup", as: :v2_partnered_signup
-
     namespace :v4 do
       defaults format: :json do
         resource :user do
@@ -592,9 +560,6 @@ Rails.application.routes.draw do
       end
     end
   end
-
-  get "partnered_signups/:public_id", to: "partnered_signups#edit", as: :edit_partnered_signups
-  patch "partnered_signups/:public_id", to: "partnered_signups#update", as: :update_partnered_signups
 
   post "api/v1/users/find", to: "api#user_find"
   post "api/v1/events/create_demo", to: "api#create_demo_event"
@@ -679,7 +644,6 @@ Rails.application.routes.draw do
     get "expensify"
     get "reimbursements"
     get "donations", to: "events#donation_overview", as: :donation_overview
-    get "partner_donations", to: "events#partner_donation_overview", as: :partner_donation_overviews
     get "activation_flow", to: "events#activation_flow", as: :activation_flow
     post "activate", to: "events#activate", as: :activate
     post "finish_signee_backfill"
