@@ -109,7 +109,7 @@ if (window.matchMedia) {
     .matchMedia('(prefers-color-scheme: dark)')
     .addEventListener('change', e => {
       // This will only be called on changes (not during initial page load)
-        BK.setDark(getCookie("theme"))
+      BK.setDark(getCookie("theme"))
     })
 }
 
