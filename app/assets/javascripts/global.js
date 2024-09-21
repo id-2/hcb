@@ -5,7 +5,7 @@ const BK = {
   blocked: false,
 }
 
-window.setCookie = (name,value,days) => {
+window.setCookie = (name, value, days) => {
   let expires = "";
   if (days) {
     const date = new Date();
