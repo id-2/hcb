@@ -35,6 +35,7 @@ $(document).on('click', '[data-behavior~=flash]', function () {
   $(this).fadeOut('medium')
 })
 
+// Pop icon tooltip for search bar (event homepage only)
 $(document).on('turbo:load', function () {
   const isWindows = navigator.platform.toUpperCase().indexOf('WIN') >= 0;
   document.getElementById("command_bar_trigger").setAttribute("aria-label", `Jump to (${isWindows ? "Ctrl" : "⌘"} + K)`)
