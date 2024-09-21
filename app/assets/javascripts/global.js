@@ -51,10 +51,9 @@ BK.select = (selector, filter) =>
 // document.getElementsByTagName('html')[0].getAttribute('data-dark') === 'true'
 BK.isDark = () => {
   try {
-    const isExplicitlyDark = getCookie("theme") === 'dark' || (getCookie("theme") === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches) ;
+    const isDark = getCookie("theme") === 'dark' || (getCookie("theme") === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches) ;
     return (
-      isExplicitlyDark ||
-      document.getElementsByTagName('html')[0].getAttribute('data-dark') === 'true'
+      isDark || document.getElementsByTagName('html')[0].getAttribute('data-dark') === 'true'
     )
   } catch {
     return false
