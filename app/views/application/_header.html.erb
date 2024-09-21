@@ -1,7 +1,7 @@
 <header class="header <%= "mt3" unless content_for?(:nav) %>">
   <div class="header-left line-height-0 flex items-center justify-end">
     <% if !@event %>
-      <%= render partial: "application/dark_mode_toggle" %>
+      <%= render partial: "application/theme_toggle" %>
     <% end %>
     <% if signed_in? %>
       <a
