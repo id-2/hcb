@@ -4,7 +4,18 @@ $dark: #17171d;
 $darker: #121217;
 $darkless: #252429;
 
+.theme-icon-moon {
+  display: none;
+}
+
 html[data-dark='true'] {
+  .theme-icon-sun {
+    display: none;
+  }
+  .theme-icon-moon {
+    display: block;
+  }
+
   body {
     background-color: $dark;
     color: map-get($palette, smoke);

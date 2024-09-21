@@ -6,7 +6,8 @@
     type="button"
     aria-label="Appearance"
     data-action="class#toggle focus#focus">
-    <%= inline_icon "moon", size: home_action_size, fill: "currentColor" %>
+    <%= inline_icon "moon", size: home_action_size, class: "theme-icon-moon" %>
+    <%= inline_icon "sun", size: home_action_size, class: "theme-icon-sun" %>
   </button>
 
   <div data-menu-target="content" class="menu__content menu__content--compact menu__content--2 min-w-32 w-32" data-controller="dark-mode-toggle">
