@@ -1326,18 +1326,18 @@
   resolved "https://registry.yarnpkg.com/@hotwired/stimulus/-/stimulus-3.2.2.tgz#071aab59c600fed95b97939e605ff261a4251608"
   integrity sha512-eGeIqNOQpXoPAIP7tC1+1Yc1yl1xnwYqg+3mzqxyrbE5pg5YFBZcA6YoTiByJB6DKAEsiWtl6tjTJS4IYtbB7A==
 
-"@hotwired/turbo-rails@^8.0.5":
-  version "8.0.5"
-  resolved "https://registry.yarnpkg.com/@hotwired/turbo-rails/-/turbo-rails-8.0.5.tgz#18c2f0e4f7f952307650308590edf5eb9544b0d3"
-  integrity sha512-1A9G9u28IRAl0C57z8Ka3AhNPyJdwfOrbjr+ABZk2ZEUw2QO7cJ0pgs77asUj2E/tzn1PgrxrSVu24W+1Q5uBA==
+"@hotwired/turbo-rails@^8.0.10":
+  version "8.0.10"
+  resolved "https://registry.yarnpkg.com/@hotwired/turbo-rails/-/turbo-rails-8.0.10.tgz#28b0c1243868d9efc4a71f4a2ff7d97ee9cefbfa"
+  integrity sha512-BkERfjTbNwMb9/YQi0RL9+f9zkD+dZH2klEONtGwXrIE3O9BE1937Nn9++koZpDryD4XN3zE5U5ibyWoYJAWBg==
   dependencies:
-    "@hotwired/turbo" "^8.0.5"
+    "@hotwired/turbo" "^8.0.6"
     "@rails/actioncable" "^7.0"
 
-"@hotwired/turbo@^8.0.5":
-  version "8.0.5"
-  resolved "https://registry.yarnpkg.com/@hotwired/turbo/-/turbo-8.0.5.tgz#abae6dad018a891e4286e87fa0959217e3866d5a"
-  integrity sha512-TdZDA7fxVQ2ZycygvpnzjGPmFq4sO/E2QVg+2em/sJ3YTSsIWVEis8HmWlumz+c9DjWcUkcCuB+muF08TInpAQ==
+"@hotwired/turbo@^8.0.6":
+  version "8.0.10"
+  resolved "https://registry.yarnpkg.com/@hotwired/turbo/-/turbo-8.0.10.tgz#d95569d259f0daad6e824ee1ada877ff94beb72b"
+  integrity sha512-xen1YhNQirAHlA8vr/444XsTNITC1Il2l/Vx4w8hAWPpI5nQO78mVHNsmFuayETodzPwh25ob2TgfCEV/Loiog==
 
 "@humanwhocodes/module-importer@^1.0.1":
   version "1.0.1"
@@ -1544,10 +1544,10 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/merge-streams/-/merge-streams-2.3.0.tgz#719df7fb41766bc143369eaa0dd56d8dc87c9958"
   integrity sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==
 
-"@stripe/stripe-js@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-4.4.0.tgz#7b5b84c1366ef4916df7ac2c95c80cf79613f83e"
-  integrity sha512-p1WeTOwnAyXQ9I5/YC3+JXoUB6NKMR4qGjBobie2+rgYa3ftUTRS2L5qRluw/tGACty5SxqnfORCdsaymD1XjQ==
+"@stripe/stripe-js@^4.5.0":
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-4.5.0.tgz#0beda9beefc05143ef6955d7bb7960064aecc53c"
+  integrity sha512-dMOzc58AOlsF20nYM/avzV8RFhO/vgYTY7ajLMH6mjlnZysnOHZxsECQvjEmL8Q/ukPwHkOnxSPW/QGCCnp7XA==
 
 "@trysound/sax@0.2.0":
   version "0.2.0"
@@ -5259,15 +5259,7 @@ postcss-scss@^4.0.9:
   resolved "https://registry.yarnpkg.com/postcss-scss/-/postcss-scss-4.0.9.tgz#a03c773cd4c9623cb04ce142a52afcec74806685"
   integrity sha512-AjKOeiwAitL/MXxQW2DliT28EKukvvbEWx3LBmJIRN8KfBGZbRTxNYW0kSqi1COiTZ57nZ9NW06S6ux//N1c9A==
 
-postcss-selector-parser@^6.0.11, postcss-selector-parser@^6.0.16, postcss-selector-parser@^6.0.2, postcss-selector-parser@^6.0.4:
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/postcss-selector-parser/-/postcss-selector-parser-6.1.1.tgz#5be94b277b8955904476a2400260002ce6c56e38"
-  integrity sha512-b4dlw/9V8A71rLIDsSwVmak9z2DuBUB7CA1/wSdelNEzqsjoSPeADTWNO09lpH49Diy3/JIZ2bSPB1dI3LJCHg==
-  dependencies:
-    cssesc "^3.0.0"
-    util-deprecate "^1.0.2"
-
-postcss-selector-parser@^6.1.2:
+postcss-selector-parser@^6.0.11, postcss-selector-parser@^6.0.16, postcss-selector-parser@^6.0.2, postcss-selector-parser@^6.0.4, postcss-selector-parser@^6.1.2:
   version "6.1.2"
   resolved "https://registry.yarnpkg.com/postcss-selector-parser/-/postcss-selector-parser-6.1.2.tgz#27ecb41fb0e3b6ba7a1ec84fff347f734c7929de"
   integrity sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==
@@ -6177,10 +6169,10 @@ svgo@^3.2.0, svgo@^3.3.2:
     csso "^5.0.5"
     picocolors "^1.0.0"
 
-tailwindcss@^3.4.10:
-  version "3.4.10"
-  resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-3.4.10.tgz#70442d9aeb78758d1f911af29af8255ecdb8ffef"
-  integrity sha512-KWZkVPm7yJRhdu4SRSl9d4AK2wM3a50UsvgHZO7xY77NQr2V+fIrEuoDGQcbvswWvFGbS2f6e+jC/6WJm1Dl0w==
+tailwindcss@^3.4.12:
+  version "3.4.12"
+  resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-3.4.12.tgz#fd3b67c6d2c04d9d7bfa13e3fc70ccef9fef0455"
+  integrity sha512-Htf/gHj2+soPb9UayUNci/Ja3d8pTmu9ONTfh4QY8r3MATTZOzmv6UYWF7ZwikEIC8okpfqmGqrmDehua8mF8w==
   dependencies:
     "@alloc/quick-lru" "^5.2.0"
     arg "^5.0.2"
@@ -6416,10 +6408,10 @@ typed-array-length@^1.0.6:
     is-typed-array "^1.1.13"
     possible-typed-array-names "^1.0.0"
 
-ua-parser-js@^1.0.38:
-  version "1.0.38"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.38.tgz#66bb0c4c0e322fe48edfe6d446df6042e62f25e2"
-  integrity sha512-Aq5ppTOfvrCMgAPneW1HfWj66Xi7XL+/mIy996R1/CLS/rcyJQm6QZdsKrUeivDFQ+Oc9Wyuwor8Ze8peEoUoQ==
+ua-parser-js@^1.0.39:
+  version "1.0.39"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.39.tgz#bfc07f361549bf249bd8f4589a4cccec18fd2018"
+  integrity sha512-k24RCVWlEcjkdOxYmVJgeD/0a1TiSpqLg+ZalVGV9lsnr4yqu0w7tX/x2xX6G4zpkgQnRf89lxuZ1wsbjXM8lw==
 
 unbox-primitive@^1.0.2:
   version "1.0.2"

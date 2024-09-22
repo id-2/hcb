@@ -67,7 +67,6 @@ class User < ApplicationRecord
 
   has_many :logins
   has_many :login_codes
-  has_many :login_tokens
   has_many :user_sessions, dependent: :destroy
   has_many :organizer_position_invites, dependent: :destroy
   has_many :organizer_positions
@@ -110,7 +109,6 @@ class User < ApplicationRecord
 
   has_one_attached :profile_picture
 
-  has_one :partner, inverse_of: :representative
   has_one :unverified_totp, -> { where(aasm_state: :unverified) }, class_name: "User::Totp", inverse_of: :user
   has_one :totp, -> { where(aasm_state: :verified) }, class_name: "User::Totp", inverse_of: :user
 
@@ -213,6 +211,7 @@ class User < ApplicationRecord
 
   def safe_name
     # stripe requires names to be 24 chars or less, and must include a last name
+    return name unless name.length > 24
     return full_name unless full_name.length > 24
 
     initial_name
@@ -233,14 +232,6 @@ class User < ApplicationRecord
 
   def pretty_phone_number
     Phonelib.parse(self.phone_number).national
-  end
-
-  def representative?
-    self.partner.present?
-  end
-
-  def represented_partner
-    self.partner
   end
 
   def admin_dropdown_description
