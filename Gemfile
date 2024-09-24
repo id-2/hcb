@@ -54,7 +54,7 @@ gem "blind_index" # needed to query and/or guarantee uniqueness for encrypted fi
 
 gem "aasm" # state machine
 
-gem "paper_trail", "~> 15.1.0" # track changes to models
+gem "paper_trail", "~> 15.2.0" # track changes to models
 gem "acts_as_paranoid", "~> 0.10.2" # enables soft deletions
 
 gem "friendly_id", "~> 5.5.1" # slugs
@@ -226,3 +226,5 @@ gem "ruby-limiter"
 gem "ahoy_email", "~> 2.3"
 
 gem "email_reply_parser"
+
+gem "eu_central_bank"
