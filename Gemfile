@@ -23,7 +23,7 @@ gem "jsbundling-rails", "~> 1.3"
 gem "terser", "~> 1.2" # JS compressor
 gem "jquery-rails"
 gem "react-rails"
-gem "turbo-rails", "~> 2.0.5"
+gem "turbo-rails", "~> 2.0.10"
 
 gem "invisible_captcha"
 gem "local_time" # client-side timestamp converter for cache-safe rendering
@@ -35,7 +35,7 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 29.0"
-gem "yellow_pages", github: "hackclub/yellow_pages", ref: "61ee764"
+gem "yellow_pages", github: "hackclub/yellow_pages", ref: "eab7f30"
 
 gem "aws-sdk-s3", require: false
 
@@ -202,7 +202,7 @@ group :development do
   gem "bullet"
 end
 
-gem "jbuilder", "~> 2.12"
+gem "jbuilder", "~> 2.13"
 
 gem "ledgerjournal"
 gem "doorkeeper", "~> 5.7"
