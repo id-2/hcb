@@ -48,6 +48,20 @@ class EventPolicy < ApplicationPolicy
     admin_or_manager?
   end
 
+  alias remove_header_image? update?
+
+  alias remove_background_image? update?
+
+  alias remove_logo? update?
+
+  alias enable_feature? update?
+
+  alias disable_feature? update?
+
+  def validate_slug?
+    admin_or_user?
+  end
+
   def destroy?
     user&.admin? && record.demo_mode?
   end
@@ -61,7 +75,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def card_overview?
-    ((is_public || user?) && record.approved? && record.plan.cards_enabled?) || admin?
+    (is_public || admin_or_user?) && record.approved? && record.plan.cards_enabled?
   end
 
   def new_stripe_card?
@@ -105,7 +119,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def transfers?
-    ((is_public || user?) && record.plan.transfers_enabled?) || admin?
+    (is_public || admin_or_user?) && record.plan.transfers_enabled?
   end
 
   def promotions?
@@ -117,7 +131,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def reimbursements?
-    (user? && record.plan.reimbursements_enabled?) || admin?
+    admin_or_user? && record.plan.reimbursements_enabled?
   end
 
   def expensify?
@@ -125,35 +139,11 @@ class EventPolicy < ApplicationPolicy
   end
 
   def donation_overview?
-    ((is_public || user?) && record.approved? && record.plan.donations_enabled?) || admin?
-  end
-
-  def partner_donation_overview?
-    is_public || admin_or_user?
-  end
-
-  def remove_header_image?
-    admin_or_manager?
-  end
-
-  def remove_background_image?
-    admin_or_manager?
-  end
-
-  def remove_logo?
-    admin_or_manager?
-  end
-
-  def enable_feature?
-    admin_or_manager?
-  end
-
-  def disable_feature?
-    admin_or_manager?
+    (is_public || admin_or_user?) && record.approved? && record.plan.donations_enabled?
   end
 
   def account_number?
-    (manager? && record.plan.account_number_enabled?) || admin?
+    admin_or_manager? && record.plan.account_number_enabled?
   end
 
   def toggle_event_tag?
@@ -166,10 +156,6 @@ class EventPolicy < ApplicationPolicy
 
   def audit_log?
     user.admin?
-  end
-
-  def validate_slug?
-    admin_or_user?
   end
 
   def termination?

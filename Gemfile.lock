@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/hackclub/yellow_pages.git
-  revision: 61ee764e553387389a833a9d198bce7ef32ba3dd
-  ref: 61ee764
+  revision: eab7f30d31377f727acb205acf4fdd058a83023b
+  ref: eab7f30
   specs:
     yellow_pages (0.3.0)
 
@@ -112,7 +112,8 @@ GEM
       activerecord (>= 3.2, < 8.0)
       rake (>= 10.4, < 14.0)
     api-pagination (6.0.0)
-    appsignal (4.0.6)
+    appsignal (4.0.9)
+      logger
       rack
     argon2-kdf (0.2.0)
     ast (2.4.2)
@@ -171,7 +172,7 @@ GEM
     bootsnap (1.18.4)
       msgpack (~> 1.2)
     brakeman (5.4.1)
-    browser (5.3.1)
+    browser (6.0.0)
     builder (3.3.0)
     bullet (7.2.0)
       activesupport (>= 3.0.0)
@@ -199,7 +200,7 @@ GEM
       activesupport (>= 4.2.0)
     concurrent-ruby (1.3.4)
     connection_pool (2.4.1)
-    console1984 (0.2.0)
+    console1984 (0.2.1)
       irb (~> 1.13)
       parser
       rails (>= 7.0)
@@ -207,7 +208,7 @@ GEM
     cose (1.3.0)
       cbor (~> 0.5.9)
       openssl-signature_algorithm (~> 1.0)
-    countries (5.6.0)
+    countries (5.7.2)
       unaccent (~> 0.3)
     country_select (8.0.2)
       countries (~> 5.0)
@@ -278,6 +279,9 @@ GEM
     erubi (1.13.0)
     et-orbi (1.2.11)
       tzinfo
+    eu_central_bank (1.7.0)
+      money (~> 6.13, >= 6.13.6)
+      nokogiri (~> 1.9)
     execjs (2.9.1)
     factory_bot (6.4.6)
       activesupport (>= 5.0.0)
@@ -364,7 +368,7 @@ GEM
       multi_json (~> 1.11)
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
-    grape (2.1.3)
+    grape (2.2.0)
       activesupport (>= 6)
       dry-types (>= 1.1)
       mustermann-grape (~> 1.1.0)
@@ -380,10 +384,10 @@ GEM
       activesupport
       grape (>= 0.16.0)
       rake
-    grape-swagger (2.1.0)
+    grape-swagger (2.1.1)
       grape (>= 1.7, < 3.0)
       rack-test (~> 2)
-    grape-swagger-entity (0.5.4)
+    grape-swagger-entity (0.5.5)
       grape-entity (~> 1)
       grape-swagger (~> 2)
     hashid-rails (1.4.1)
@@ -396,7 +400,7 @@ GEM
     http-cookie (1.0.4)
       domain_name (~> 0.5)
     httpclient (2.8.3)
-    i18n (1.14.5)
+    i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     image_processing (1.12.2)
       mini_magick (>= 4.9.5, < 5)
@@ -409,15 +413,15 @@ GEM
     invisible_captcha (2.3.0)
       rails (>= 5.2)
     io-console (0.7.2)
-    irb (1.14.0)
+    irb (1.14.1)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     jaro_winkler (1.6.0)
-    jbuilder (2.12.0)
+    jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
     jmespath (1.6.2)
-    jquery-rails (4.4.0)
+    jquery-rails (4.6.0)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
@@ -515,7 +519,7 @@ GEM
     native-package-installer (1.1.9)
     net-http-persistent (4.0.2)
       connection_pool (~> 2.2)
-    net-imap (0.4.15)
+    net-imap (0.4.16)
       date
       net-protocol
     net-pop (0.1.2)
@@ -534,7 +538,7 @@ GEM
     openssl-signature_algorithm (1.3.0)
       openssl (> 2.0)
     os (1.1.4)
-    paper_trail (15.1.0)
+    paper_trail (15.2.0)
       activerecord (>= 6.1)
       request_store (~> 1.4)
     parallel (1.26.3)
@@ -545,7 +549,7 @@ GEM
     pg_search (2.3.6)
       activerecord (>= 5.2)
       activesupport (>= 5.2)
-    phonelib (0.8.4)
+    phonelib (0.9.2)
     pkg-config (1.5.6)
     plaid (29.0.0)
       faraday (>= 1.0.1, < 3.0)
@@ -577,7 +581,7 @@ GEM
       i18n (>= 0.5.0)
       railties (>= 6.1.0)
     public_suffix (6.0.1)
-    puma (6.4.2)
+    puma (6.4.3)
       nio4r (~> 2.0)
     pundit (2.3.2)
       activesupport (>= 3.0.0)
@@ -656,7 +660,7 @@ GEM
       connection_pool
     regexp_parser (2.9.2)
     relaxed-rubocop (2.5)
-    reline (0.5.9)
+    reline (0.5.10)
       io-console (~> 0.5)
     representable (3.2.0)
       declarative (< 0.1.0)
@@ -699,15 +703,14 @@ GEM
       rspec-support (~> 3.13)
     rspec-support (3.13.1)
     rtesseract (3.1.3)
-    rubocop (1.65.1)
+    rubocop (1.66.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.4, < 3.0)
-      rexml (>= 3.2.5, < 4.0)
-      rubocop-ast (>= 1.31.1, < 2.0)
+      rubocop-ast (>= 1.32.2, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.32.3)
@@ -796,9 +799,8 @@ GEM
       openssl (> 2.0)
       openssl-signature_algorithm (~> 1.0)
     trailblazer-option (0.1.2)
-    turbo-rails (2.0.5)
+    turbo-rails (2.0.10)
       actionpack (>= 6.0.0)
-      activejob (>= 6.0.0)
       railties (>= 6.0.0)
     twilio-ruby (7.2.0)
       faraday (>= 0.9, < 3.0)
@@ -811,13 +813,13 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.8.1)
-    unicode-display_width (2.5.0)
+    unicode-display_width (2.6.0)
     uniform_notifier (1.16.0)
     useragent (0.16.10)
     validates_email_format_of (1.8.2)
       i18n (>= 0.8.0)
       simpleidn
-    validates_zipcode (0.5.2)
+    validates_zipcode (0.5.3)
       activemodel (>= 4.2.0)
     web-console (4.2.1)
       actionview (>= 6.0.0)
@@ -833,7 +835,7 @@ GEM
       openssl (>= 2.2)
       safety_net_attestation (~> 0.4.0)
       tpm-key_attestation (~> 0.12.0)
-    webrick (1.8.1)
+    webrick (1.8.2)
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -866,7 +868,7 @@ DEPENDENCIES
   blind_index
   bootsnap (>= 1.4.4)
   brakeman
-  browser (~> 5.3)
+  browser (~> 6.0)
   bullet
   business_time
   byebug
@@ -883,6 +885,7 @@ DEPENDENCIES
   dry-validation
   email_reply_parser
   erb_lint
+  eu_central_bank
   factory_bot_rails
   faker
   faraday
@@ -905,7 +908,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   increase (~> 0.3.3)
   invisible_captcha
-  jbuilder (~> 2.12)
+  jbuilder (~> 2.13)
   jquery-rails
   jsbundling-rails (~> 1.3)
   kaminari
@@ -922,7 +925,7 @@ DEPENDENCIES
   monetize
   money-rails
   namae
-  paper_trail (~> 15.1.0)
+  paper_trail (~> 15.2.0)
   pg (>= 0.18, < 2.0)
   pg_search
   phonelib
@@ -967,7 +970,7 @@ DEPENDENCIES
   swagger-blocks
   table_print
   terser (~> 1.2)
-  turbo-rails (~> 2.0.5)
+  turbo-rails (~> 2.0.10)
   twilio-ruby
   validates_email_format_of
   validates_zipcode

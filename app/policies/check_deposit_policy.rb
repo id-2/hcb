@@ -2,7 +2,7 @@
 
 class CheckDepositPolicy < ApplicationPolicy
   def index?
-    admin? || (user? && check_deposits_enabled?)
+    admin_or_user? && check_deposits_enabled?
   end
 
   def create?
@@ -11,6 +11,10 @@ class CheckDepositPolicy < ApplicationPolicy
 
   def view_image?
     admin_or_manager?
+  end
+
+  def toggle_fronted?
+    admin?
   end
 
   private

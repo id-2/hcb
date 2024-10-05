@@ -86,6 +86,7 @@ class EventsController < ApplicationController
     @end_date = params[:end].presence
     @minimum_amount = params[:minimum_amount].presence ? Money.from_amount(params[:minimum_amount].to_f) : nil
     @maximum_amount = params[:maximum_amount].presence ? Money.from_amount(params[:maximum_amount].to_f) : nil
+    @missing_receipts = params[:missing_receipts].present?
 
     @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
     @pending_transactions = _show_pending_transactions
@@ -102,7 +103,8 @@ class EventsController < ApplicationController
       maximum_amount: @maximum_amount,
       user: @user,
       start_date: @start_date,
-      end_date: @end_date
+      end_date: @end_date,
+      missing_receipts: @missing_receipts
     ).run
 
     if (@minimum_amount || @maximum_amount) && !organizer_signed_in?
@@ -281,13 +283,16 @@ class EventsController < ApplicationController
 
     @q = params[:q] || ""
 
+    cookies[:team_view] = params[:view] if params[:view]
+    @view = cookies[:team_view] || "grid"
+
     @all_positions = @event.organizer_positions
                            .joins(:user)
                            .where(role: @filter || %w[member manager])
                            .where("users.full_name ILIKE :query OR users.email ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%")
                            .order(created_at: :desc)
 
-    @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || params[:view] == "list" ? 20 : 10)
+    @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || @view == "list" ? 20 : 10)
 
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
@@ -377,6 +382,9 @@ class EventsController < ApplicationController
 
   def card_overview
     @status = %w[virtual physical active inactive].include?(params[:status]) ? params[:status] : nil
+
+    cookies[:card_overview_view] = params[:view] if params[:view]
+    @view = cookies[:card_overview_view] || "grid"
 
     @user_id = params[:user].presence
     @user = User.find(params[:user]) if params[:user]
@@ -644,23 +652,6 @@ class EventsController < ApplicationController
 
   end
 
-  def partner_donation_overview
-    authorize @event
-
-    relation = @event.partner_donations.not_unpaid
-
-    @stats = {
-      deposited: relation.deposited.sum(:payout_amount_cents),
-      in_transit: relation.in_transit.sum(:payout_amount_cents),
-    }
-
-    relation = relation.pending if params[:filter] == "pending"
-    relation = relation.in_transit if params[:filter] == "in_transit"
-    relation = relation.deposited if params[:filter] == "deposited"
-
-    @partner_donations = relation.order(created_at: :desc)
-  end
-
   def transfers
     authorize @event
 
@@ -670,6 +661,7 @@ class EventsController < ApplicationController
 
     @ach_transfers = @event.ach_transfers
     @paypal_transfers = @event.paypal_transfers
+    @wires = @event.wires
     @checks = @event.checks.includes(:lob_address)
     @increase_checks = @event.increase_checks
     @disbursements = @event.outgoing_disbursements.includes(:destination_event)
@@ -678,9 +670,9 @@ class EventsController < ApplicationController
     @disbursements = @disbursements.not_card_grant_related if Flipper.enabled?(:card_grants_2023_05_25, @event)
 
     @stats = {
-      deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @increase_checks.increase_deposited.or(@increase_checks.in_transit).sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum + @paypal_transfers.deposited.sum(:amount_cents),
-      in_transit: @ach_transfers.in_transit.sum(:amount) + @checks.in_transit_or_in_transit_and_processed.sum(:amount) + @increase_checks.in_transit.sum(:amount) + @disbursements.reviewing_or_processing.sum(:amount) + @paypal_transfers.approved.or(@paypal_transfers.pending).sum(:amount_cents),
-      canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount) + @increase_checks.canceled.sum(:amount) + @disbursements.rejected.sum(:amount) + @paypal_transfers.rejected.sum(:amount_cents)
+      deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @increase_checks.increase_deposited.or(@increase_checks.in_transit).sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum + @paypal_transfers.deposited.sum(:amount_cents) + @wires.deposited.sum(:amount_cents),
+      in_transit: @ach_transfers.in_transit.sum(:amount) + @checks.in_transit_or_in_transit_and_processed.sum(:amount) + @increase_checks.in_transit.sum(:amount) + @disbursements.reviewing_or_processing.sum(:amount) + @paypal_transfers.approved.or(@paypal_transfers.pending).sum(:amount_cents) + @wires.approved.or(@wires.pending).sum(:amount_cents),
+      canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount) + @increase_checks.canceled.sum(:amount) + @disbursements.rejected.sum(:amount) + @paypal_transfers.rejected.sum(:amount_cents) + @wires.rejected.sum(:amount_cents)
     }
 
     @ach_transfers = @ach_transfers.in_transit if params[:filter] == "in_transit"
@@ -710,7 +702,12 @@ class EventsController < ApplicationController
     @paypal_transfers = @paypal_transfers.rejected if params[:filter] == "canceled"
     @paypal_transfers = @paypal_transfers.search_recipient(params[:q]) if params[:q].present?
 
-    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements + @card_grants + @paypal_transfers).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
+    @wires = @wires.approved.or(@wires.pending) if params[:filter] == "in_transit"
+    @wires = @wires.deposited if params[:filter] == "deposited"
+    @wires = @wires.rejected if params[:filter] == "canceled"
+    @wires = @wires.search_recipient(params[:q]) if params[:q].present?
+
+    @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements + @card_grants + @paypal_transfers + @wires).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
 
     # Generate mock data
     if helpers.show_mock_data?
@@ -1030,7 +1027,8 @@ class EventsController < ApplicationController
       maximum_amount: @maximum_amount,
       user: @user,
       start_date: @start_date,
-      end_date: @end_date
+      end_date: @end_date,
+      missing_receipts: @missing_receipts
     ).run
     PendingTransactionEngine::PendingTransaction::AssociationPreloader.new(pending_transactions:, event: @event).run!
     pending_transactions

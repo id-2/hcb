@@ -81,13 +81,6 @@ class StripeController < ActionController::Base
     head :ok
   end
 
-  def handle_charge_succeeded(event)
-    charge = event[:data][:object]
-    ::PartnerDonationService::HandleWebhookChargeSucceeded.new(charge).run
-
-    head :ok
-  end
-
   def handle_invoice_paid(event)
     stripe_invoice = event[:data][:object]
 
@@ -218,11 +211,15 @@ class StripeController < ActionController::Base
     return unless event.data.object.metadata[:donation].present?
 
     # get donation to process
-    donation = Donation.find_by_stripe_payment_intent_id(event.data.object.id)
+    donation = event.data.object.metadata[:donation_id].present? ? Donation.find_by_public_id(event.data.object.metadata[:donation_id]) : Donation.find_by_stripe_payment_intent_id(event.data.object.id)
+
+    unless donation.stripe_payment_intent_id.present?
+      donation.update(stripe_payment_intent_id: event.data.object.id)
+    end
 
     pi = StripeService::PaymentIntent.retrieve(
       id: donation.stripe_payment_intent_id,
-      expand: ["charges.data.balance_transaction", "latest_charge.balance_transaction"]
+      expand: ["charges.data.balance_transaction", "latest_charge.balance_transaction", "latest_charge.payment_method_details"]
     )
     donation.set_fields_from_stripe_payment_intent(pi)
     donation.save!
@@ -301,7 +298,7 @@ class StripeController < ActionController::Base
     design.sync_from_stripe!
 
     if design.event&.stripe_card_logo&.attached? # if the logo is no longer attached it's already been rejected.
-      StripeCardMailer.with(event: design.event, reason: event.data.object["rejection_reasons"]["card_logo"].first).design_rejected.deliver_later
+      StripeCard::PersonalizationDesignMailer.with(event: design.event, reason: event.data.object["rejection_reasons"]["card_logo"].first).design_rejected.deliver_later
       design.event.stripe_card_personalization_designs.update(stale: true)
       design.event.stripe_card_logo.delete
     end

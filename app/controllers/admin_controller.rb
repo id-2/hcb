@@ -50,116 +50,6 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
-  def partners
-    relation = Partner
-
-    @partners = relation.all
-
-    @count = relation.count
-
-    render layout: "admin"
-  end
-
-  def partner
-    @partner = Partner.find(params.require(:id))
-    render layout: "admin"
-  end
-
-  def partner_edit
-    @partner = Partner.find(params.require(:id))
-    edit_params = params.require(:partner)
-    @partner.update!(edit_params)
-    flash[:success] = "Partner updated"
-    redirect_to partners_admin_index_path
-  end
-
-  def partnered_signup_sign_document
-    # @msw: now that we're removing the partnered signup flow with docusign, this is just hardcoded to redirect to the root path
-    redirect_to root_path
-  end
-
-  def partnered_signups
-    relation = PartneredSignup
-
-    @partnered_signups = relation.not_unsubmitted
-
-    @count = @partnered_signups.count
-
-    render layout: "admin"
-  end
-
-  def partnered_signups_accept
-    @partnered_signup = PartneredSignup.find(params[:id])
-    @partner = @partnered_signup.partner
-
-    authorize @partnered_signup
-
-    PartneredSignup.transaction do
-      # Create an event
-      @organization = Event.create!(
-        partner: @partner,
-        name: @partnered_signup.organization_name,
-        organization_identifier: SecureRandom.hex(30) + @partnered_signup.organization_name,
-      )
-
-      # Invite users to event
-      ::EventService::PartnerInviteUser.new(
-        partner: @partner,
-        event: @organization,
-        user_email: @partnered_signup.owner_email
-      ).run
-
-      # Record the org & user in the signup
-      @partnered_signup.update(
-        event: @organization,
-        user: User.find_by(email: @partnered_signup.owner_email),
-      )
-
-      # Mark the signup as completed
-      # TODO: remove bypass for unapproved (unsigned contracts by admin)
-      @partnered_signup.mark_accepted! if @partnered_signup.applicant_signed?
-      @partnered_signup.mark_completed!
-
-      ::PartneredSignupJob::DeliverWebhook.perform_later(@partnered_signup.id)
-      flash[:success] = "Partner signup accepted"
-      redirect_to partnered_signups_admin_index_path and return
-    end
-  rescue => e
-    notify_airbrake(e)
-
-    # Something went wrong
-    flash[:error] = "Something went wrong. #{e}"
-    redirect_to partnered_signups_admin_index_path
-  end
-
-  def partnered_signups_reject
-    @partnered_signup = PartneredSignup.find(params[:id])
-    @partner = @partnered_signup.partner
-    @partnered_signup.rejected_at = Time.now
-    authorize @partnered_signup
-
-    if @partnered_signup.save
-      ::PartneredSignupJob::DeliverWebhook.perform_later(@partnered_signup.id)
-      flash[:success] = "Partner signup rejected"
-      redirect_to partnered_signups_admin_index_path
-    else
-      render :edit, status: :unprocessable_entity
-    end
-  end
-
-  def partner_organizations
-    @page = params[:page] || 1
-    @per = params[:per] || 100
-
-    relation = Event.partner
-
-    @count = relation.count
-
-    @partner_organizations = relation.page(@page).per(@per).reorder("created_at desc")
-
-    render layout: "admin"
-  end
-
   def events
     @page = params[:page] || 1
     @per = params[:per] || 100
@@ -732,40 +622,28 @@ class AdminController < ApplicationController
     render layout: "admin"
   end
 
-  def partner_donations
+  def wires
     @page = params[:page] || 1
     @per = params[:per] || 20
     @q = params[:q].present? ? params[:q] : nil
-    @deposited = params[:deposited] == "1" ? true : nil
-    @in_transit = params[:in_transit] == "1" ? true : nil
-    @pending = params[:pending] == "1" ? true : nil
-    @not_unpaid = params[:not_unpaid] == "1" ? true : nil
-
     @event_id = params[:event_id].present? ? params[:event_id] : nil
 
-    if @event_id
-      @event = Event.find(@event_id)
-      relation = @event.partner_donations.includes(:event)
-    else
-      relation = PartnerDonation.includes(:event)
-    end
+    @wires = Wire.all
 
-    if @q
-      if @q.to_f.nonzero?
-        @q = (@q.to_f * 100).to_i
-        relation = relation.where("payout_amount_cents = ? or payout_amount_cents = ?", @q, -@q)
-      else
-        relation = relation.search_name(@q)
-      end
-    end
+    @wires = @wires.search_recipient(@q) if @q
 
-    relation = relation.deposited if @deposited
-    relation = relation.in_transit if @in_transit
-    relation = relation.pending if @pending
-    relation = relation.not_unpaid if @not_unpaid
+    @wires.where(event_id: @event_id) if @event_id
 
-    @count = relation.count
-    @partner_donations = relation.page(@page).per(@per).order("created_at desc")
+    @wires = @wires.page(@page).per(@per).order(
+      Arel.sql("aasm_state = 'pending' DESC"),
+      "created_at desc"
+    )
+
+    render layout: "admin"
+  end
+
+  def wire_process
+    @wire = Wire.find(params[:id])
 
     render layout: "admin"
   end
@@ -1118,6 +996,31 @@ class AdminController < ApplicationController
       canonical_transaction.update!(hcb_code: paypal_transfer.hcb_code, transaction_source_type: "PaypalTransfer", transaction_source_id: paypal_transfer.id)
 
       paypal_transfer.mark_deposited!
+
+      redirect_to transaction_admin_path(canonical_transaction)
+    end
+  rescue => e
+    redirect_to transaction_admin_path(params[:id]), flash: { error: e.message }
+  end
+
+  def set_wire
+    ActiveRecord::Base.transaction do
+      wire = Wire.find(params[:wire_id])
+
+      canonical_transaction = CanonicalTransactionService::SetEvent.new(
+        canonical_transaction_id: params[:id],
+        event_id: wire.event.id,
+        user: current_user
+      ).run
+
+      CanonicalPendingTransactionService::Settle.new(
+        canonical_transaction:,
+        canonical_pending_transaction: wire.canonical_pending_transaction
+      ).run!
+
+      canonical_transaction.update!(hcb_code: wire.hcb_code, transaction_source_type: "Wire", transaction_source_id: wire.id)
+
+      wire.mark_deposited!
 
       redirect_to transaction_admin_path(canonical_transaction)
     end
