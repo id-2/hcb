@@ -31,12 +31,6 @@
         <h3 class="-mt-2.5 opacity-50">Let's get your profile set up in less than two minutes.</h3>
         <%= form_with(model: @user, local: true, html: { onsubmit: "onSubmit()" }, data: { turbo_frame: "_top" }) do |form| %>
           <%= form_errors @user, "profile", "We couldn't update your" %>
-          <% if current_season(override_preference: true) %>
-            <div class="field field--checkbox">
-              <%= form.check_box :seasonal_themes_enabled %>
-              <%= form.label :seasonal_themes_enabled, "#{by_season "✨", override_preference: true, fall: "🎃", winter: "🎄"} Enable #{current_season(override_preference: true)} theme", class: "h3 bold" %>
-            </div>
-          <% end %>
           <div class="md:flex gap-2">
             <div class="field flex-1">
               <%= form.label :full_name %>
