@@ -35,7 +35,7 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 29.0"
-gem "yellow_pages", github: "hackclub/yellow_pages", ref: "eab7f30"
+gem "yellow_pages", github: "hackclub/yellow_pages", ref: "4711379"
 
 gem "aws-sdk-s3", require: false
 
@@ -228,3 +228,5 @@ gem "ahoy_email", "~> 2.3"
 gem "email_reply_parser"
 
 gem "eu_central_bank"
+
+gem "whitesimilarity"
