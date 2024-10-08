@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/hackclub/yellow_pages.git
-  revision: eab7f30d31377f727acb205acf4fdd058a83023b
-  ref: eab7f30
+  revision: 4711379cb81c2d6e6e904dc123521aa36fe19e66
+  ref: 4711379
   specs:
-    yellow_pages (0.3.0)
+    yellow_pages (0.4.0)
 
 GEM
   remote: https://rubygems.org/
@@ -839,6 +839,7 @@ GEM
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    whitesimilarity (0.0.2)
     wicked_pdf (2.8.1)
       activesupport
     wkhtmltopdf-binary (0.12.6.8)
@@ -976,6 +977,7 @@ DEPENDENCIES
   validates_zipcode
   web-console (>= 3.3.0)
   webauthn (~> 3.1)
+  whitesimilarity
   wicked_pdf
   wkhtmltopdf-binary (= 0.12.6.8)
   xxhash
