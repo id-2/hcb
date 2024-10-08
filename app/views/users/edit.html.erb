@@ -14,7 +14,7 @@
       }
   </style>
   <div class="sm:flex sm:w-screen sm:h-screen dark:bg-neutral-900">
-    <div class="sm:flex-1 max-w-[1000px] p-6 pt-10 sm:p-16 sm:overflow-y-auto sm:max-h-screen max-w-screen">
+    <div class="sm:flex-1 max-w-[1000px] p-6 pt-10 sm:p-16 sm:overflow-y-auto sm:h-screen max-w-screen">
       <div class="flex items-center justify-between">
         <img src="/logo-512.png" width="50px" />
         <%= button_to logout_users_path,
@@ -98,7 +98,7 @@
         <% end %>
       </turbo-frame>
     </div>
-    <div class="hidden flex-1 bg-smoke dark:bg-neutral-800 sm:grid"
+    <div class="hidden flex-1 bg-smoke dark:bg-neutral-800 sm:grid h-screen"
          style="grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr);"
     >
       <%
