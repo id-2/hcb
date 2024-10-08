@@ -7,11 +7,13 @@ require "admin_constraint"
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 
-  mount Audits1984::Engine => "/console", constraints: AdminConstraint.new
-  mount Sidekiq::Web => "/sidekiq", :constraints => AdminConstraint.new
-  mount Flipper::UI.app(Flipper), at: "flipper", as: "flipper", constraints: AdminConstraint.new
-  mount Blazer::Engine, at: "blazer", constraints: AdminConstraint.new
-  get "/sidekiq", to: "users#auth" # fallback if adminconstraint fails, meaning user is not signed in
+  constraints AdminConstraint do
+    mount Audits1984::Engine => "/console"
+    mount Sidekiq::Web => "/sidekiq"
+    mount Flipper::UI.app(Flipper), at: "flipper", as: "flipper"
+    mount Blazer::Engine, at: "blazer"
+  end
+  get "/sidekiq", to: redirect("users/auth") # fallback if adminconstraint fails, meaning user is not signed in
   if Rails.env.development?
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
   end
@@ -339,6 +341,7 @@ Rails.application.routes.draw do
       post "freeze"
       post "defrost"
       post "cancel"
+      post "enable_cash_withdrawal"
       get "ephemeral_keys"
     end
   end
@@ -528,6 +531,7 @@ Rails.application.routes.draw do
         resource :user do
           resources :events, path: "organizations", only: [:index]
           resources :stripe_cards, path: "cards", only: [:index]
+          resources :card_grants, only: [:index]
           resources :invitations, only: [:index, :show] do
             member do
               post "accept"
@@ -541,6 +545,7 @@ Rails.application.routes.draw do
 
         resources :events, path: "organizations", only: [:show] do
           resources :stripe_cards, path: "cards", only: [:index]
+          resources :card_grants, only: [:index, :create]
           resources :transactions, only: [:show, :update] do
             resources :receipts, only: [:create, :index]
             resources :comments, only: [:index]
@@ -567,6 +572,8 @@ Rails.application.routes.draw do
             get "ephemeral_keys"
           end
         end
+
+        resources :card_grants, only: [:show]
 
         get "stripe_terminal_connection_token", to: "stripe_terminal#connection_token"
 
@@ -714,7 +721,6 @@ Rails.application.routes.draw do
     end
 
     resources :payment_recipients, only: [:destroy]
-
 
     member do
       post "test_ach_payment"

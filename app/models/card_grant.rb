@@ -39,6 +39,9 @@
 class CardGrant < ApplicationRecord
   include Hashid::Rails
 
+  include PublicIdentifiable
+  set_public_id_prefix :cdg
+
   belongs_to :event
   belongs_to :subledger, optional: true
   belongs_to :stripe_card, optional: true
@@ -124,11 +127,11 @@ class CardGrant < ApplicationRecord
   end
 
   def expire!
-    hcb_user = User.find_by!(email: "hcb@hackclub.com")
+    hcb_user = User.find_by!(email: "bank@hackclub.com")
     cancel!(hcb_user, expired: true)
   end
 
-  def cancel!(canceled_by = User.find_by!(email: "hcb@hackclub.com"), expired: false)
+  def cancel!(canceled_by = User.find_by!(email: "bank@hackclub.com"), expired: false)
     if balance > 0
       custom_memo = "Return of funds from #{expired ? "expiration" : "cancellation"} of grant to #{user.name}"
 
@@ -170,8 +173,16 @@ class CardGrant < ApplicationRecord
     (merchant_lock + (setting&.merchant_lock || [])).uniq
   end
 
+  def allowed_merchant_names
+    allowed_merchants.map { |merchant_id| YellowPages::Merchant.lookup(network_id: merchant_id).name || "Unnamed Merchant (#{merchant_id})" }.uniq
+  end
+
   def allowed_categories
     (category_lock + (setting&.category_lock || [])).uniq
+  end
+
+  def allowed_category_names
+    allowed_categories.map { |category| YellowPages::Category.lookup(key: category).name || "#{category}*" }.uniq
   end
 
   def expires_after
