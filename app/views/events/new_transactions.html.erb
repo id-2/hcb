@@ -1,0 +1,14 @@
+<main data-controller="transactions">
+  <div>testing</div>
+
+  <table>
+    <% @event.new_transactions.order(datetime: :desc).each do |nt| %>
+      <tr>
+        <td><%= nt.datetime %></td>
+        <td><%= nt.memo %></td>
+        <td><%= nt.amount_cents %></td>
+      </tr>
+    <% end %>
+  </table>
+
+</main>

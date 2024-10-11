@@ -1326,6 +1326,19 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
     t.index ["subject_type", "subject_id"], name: "index_metrics_on_subject"
   end
 
+  create_table "new_transactions", force: :cascade do |t|
+    t.bigint "event_id"
+    t.string "transaction_source_type"
+    t.bigint "transaction_source_id"
+    t.datetime "datetime"
+    t.string "memo"
+    t.integer "amount_cents"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_new_transactions_on_event_id"
+    t.index ["transaction_source_type", "transaction_source_id"], name: "index_new_transactions_on_transaction_source"
+  end
+
   create_table "oauth_access_grants", force: :cascade do |t|
     t.bigint "resource_owner_id", null: false
     t.bigint "application_id", null: false

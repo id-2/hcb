@@ -645,6 +645,7 @@ Rails.application.routes.draw do
     get "edit", to: redirect("/%{event_id}/settings")
     get "breakdown"
     get "transactions"
+    get "new_transactions"
     put "toggle_hidden"
     post "claim_point_of_contact"
 

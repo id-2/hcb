@@ -116,6 +116,11 @@ class EventsController < ApplicationController
     render partial: "events/home/tags_users", locals: { users: @users, tags: @tags, event: @event }
   end
 
+  def new_transactions
+
+    authorize @event
+  end
+
   def transactions
     render_tour @organizer_position, :welcome
 

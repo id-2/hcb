@@ -17,6 +17,7 @@ class EventPolicy < ApplicationPolicy
   alias_method :transaction_heatmap?, :show?
 
   alias_method :transactions?, :show?
+  alias_method :new_transactions?, :show?
 
   def toggle_hidden?
     user&.admin?
