@@ -56,6 +56,67 @@ class EventsController < ApplicationController
 
   # GET /events/1
   def show
+    authorize @event
+
+    if !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event) && !(params[:event_home_page_redesign_2024_09_21] && admin_signed_in?)
+      redirect_to event_transactions_path(@event.slug)
+      return
+    end
+
+    pending_transactions = _show_pending_transactions
+    canonical_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
+    all_transactions = [*pending_transactions, *canonical_transactions]
+
+    @recent_transactions = all_transactions.first(5)
+    @money_in = all_transactions.reject { |t| t.amount_cents <= 0 }.first(3)
+    @money_out = all_transactions.reject { |t| t.amount_cents >= 0 }.first(3)
+
+    @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).first(5)
+    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
+    @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
+  end
+
+  def transaction_heatmap
+    authorize @event
+    heatmap_engine_response = BreakdownEngine::Heatmap.new(@event).run
+
+    @heatmap = heatmap_engine_response[:heatmap]
+    @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
+    @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]
+    @past_year_transactions_count = heatmap_engine_response[:transactions_count]
+
+    respond_to do |format|
+      format.html { render partial: "events/home/heatmap", locals: { heatmap: @heatmap, event: @event } }
+    end
+  end
+
+  def top_merchants
+    authorize @event
+    @merchants = BreakdownEngine::Merchants.new(@event).run
+    respond_to do |format|
+      format.html { render partial: "events/home/top_merchants", locals: { merchants: @merchants, event: @event } }
+    end
+  end
+
+  def top_categories
+    authorize @event
+    @categories = BreakdownEngine::Categories.new(@event).run
+    respond_to do |format|
+      format.html { render partial: "events/home/top_categories", locals: { categories: @categories, event: @event } }
+    end
+  end
+
+  def tags_users
+    authorize @event
+    @users = BreakdownEngine::Users.new(@event).run
+    @tags = BreakdownEngine::Tags.new(@event).run
+    @empty_tags = @users.empty? || !Flipper.enabled?(:transaction_tags_2022_07_29, @event)
+    @empty_users = @users.empty?
+
+    render partial: "events/home/tags_users", locals: { users: @users, tags: @tags, event: @event }
+  end
+
+  def transactions
     render_tour @organizer_position, :welcome
 
     maybe_pending_invite = OrganizerPositionInvite.pending.find_by(user: current_user, event: @event)
@@ -201,24 +262,6 @@ class EventsController < ApplicationController
       @popover = flash[:popover]
       flash.delete(:popover)
     end
-  end
-
-  def breakdown
-    authorize @event
-
-    heatmap_engine_response = BreakdownEngine::Heatmap.new(@event).run
-    @heatmap = heatmap_engine_response[:heatmap]
-    @maximum_positive_change = heatmap_engine_response[:maximum_positive_change]
-    @maximum_negative_change = heatmap_engine_response[:maximum_negative_change]
-    @past_year_transactions_count = heatmap_engine_response[:transactions_count]
-
-    @merchants = BreakdownEngine::Merchants.new(@event).run
-
-    @categories = BreakdownEngine::Categories.new(@event).run
-
-    @users = BreakdownEngine::Users.new(@event).run
-
-    @tags = BreakdownEngine::Tags.new(@event).run
   end
 
   def balance_by_date
@@ -492,64 +535,16 @@ class EventsController < ApplicationController
     @g_suite = @event.g_suites.first
     @waitlist_form_submitted = GWaitlistTable.all(filter: "{OrgID} = '#{@event.id}'").any? unless Flipper.enabled?(:google_workspace, @event)
 
-    # this is janky and should be fixed at some point!
-    # for more context on what this is:
-    # result[0] = verification key
-    # result[1] = spf
-    # result[2] = mx1
-    # result[3] = mx2
-    # result[4] = mx3
-    # result[5] = mx4
-    # result[6] = mx5
-    # result[7] = DKIM
-    # result[8] = DMARC
-    @result = [false, false, false, false, false, false, false, false, false]
+    if @g_suite.present?
+      @results = GSuiteService::Verify.new(g_suite_id: @g_suite.id).results(skip_g_verify: true)
 
-    if @g_suite&.verification_error?
-      Resolv::DNS.open do |dns|
-        records = dns.getresources(@g_suite.domain, Resolv::DNS::Resource::IN::TXT)
-        records.each do |record|
-          if record.data.include?("google-site-verification=#{@g_suite.verification_key}")
-            @result[0] = true
-          end
-          if record.data.include?("v=spf1") && record.data.include?("include:_spf.google.com")
-            @result[1] = true
-          end
-        end
-        if @g_suite.dkim_key.present?
-          records = dns.getresources("google._domainkey.#{@g_suite.domain}", Resolv::DNS::Resource::IN::TXT)
-          records.each do |record|
-            if record.data.include?(@g_suite.dkim_key)
-              @result[7] = true
-            end
-          end
-          records = dns.getresources("_DMARC.#{@g_suite.domain}", Resolv::DNS::Resource::IN::TXT)
-          records.each do |record|
-            if record.data.include?("v=DMARC1;")
-              @result[8] = true
-            end
-          end
-        end
-      end
-
-      mx_records = [
-        "ASPMX.L.GOOGLE.COM",
-        "ALT1.ASPMX.L.GOOGLE.COM",
-        "ALT2.ASPMX.L.GOOGLE.COM",
-        "ALT3.ASPMX.L.GOOGLE.COM",
-        "ALT4.ASPMX.L.GOOGLE.COM"
-      ]
-
-      Resolv::DNS.open do |dns|
-        mx_response = dns.getresources(@g_suite.domain, Resolv::DNS::Resource::IN::MX)
-        mx_response.each do |record|
-          mx_host = record.exchange.to_s.upcase
-          index = mx_records.index(mx_host)
-          @result[index + 2] = true if index
-        end
+      unless @g_suite.verification_error?
+        # If we're not in an error state, then we don't want to show the
+        # "checklist-style" with the strike-through. Setting the results to false
+        # will not strike-through the rows.
+        @results = @results.transform_values { false }
       end
     end
-
   end
 
   def g_suite_create
