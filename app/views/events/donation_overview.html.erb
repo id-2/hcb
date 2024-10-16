@@ -132,7 +132,7 @@
         <%= inline_icon "copy", size: 28 %>
       </button>
     </div>
-    <pre><%= html_escape "<iframe src='#{start_donation_donations_url @event}' style='border:none;' name='donateFrame' scrolling='yes' frameborder='0' marginheight='0px' marginwidth='0px' height='512px' width='512px' allowfullscreen></iframe>".gsub("'", '"') %></pre>
+    <pre><%= donations_embed_html_code %></pre>
     <h3 class="mb1">Preview</h3>
     <iframe src='<%= start_donation_donations_url @event %>' style='border:none;' name='donateFrame' scrolling='yes' frameborder='0' marginheight='0px' marginwidth='0px' height='256px' width='512px' allowfullscreen style="width: 100%; max-width: 100%; max-height: 40vh;"></iframe>
   </section>
