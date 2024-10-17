@@ -214,6 +214,31 @@
   }
 }
 
+.modal__expand {
+  float: right;
+  width: 28px;
+  height: 28px;
+  transform: translateX(-76px);
+
+  @media (min-width: 32em) {
+    margin: -14px; // half the size
+  }
+
+  @media screen and (max-width: 32em) {
+    width: 40px;
+    height: 40px;
+    transform: translateX(-36px);
+
+    svg {
+      transform: scale(1.25);
+    }
+
+    header:has(&) h2 {
+      padding-right: 112px;
+    }
+  }
+}
+
 // NOTE: text for screenreader users to close modal. hidden onscreen
 .close-modal {
   position: absolute;

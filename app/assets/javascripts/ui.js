@@ -21,6 +21,15 @@ const loadModals = element => {
     return this.blur()
   })
 
+  $(element).on('click', '[data-behavior~=popover__expand]', function (e) {
+    console.log({ e })
+    $(this).parents().closest("section.modal").css({
+      transition: "0.5s width",
+      width: "100vw",
+      maxWidth: "100vw"
+    })
+  })
+
   $(element).on(
     'click',
     '[data-behavior~=modal_trigger] [data-behavior~=modal_ignore]',
@@ -329,6 +338,7 @@ $(document).on('turbo:load', function () {
     }
     return $(m).attr('aria-expanded', !o)
   }
+  
 
   if (BK.thereIs('shipping_address_inputs')) {
     const shippingInputs = BK.s('shipping_address_inputs')

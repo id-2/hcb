@@ -4,7 +4,7 @@
     <% @event.pinned_hcb_codes.each do |pin| %>
      <% if @show_popovers %>
         <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= pin.__id__ %>">
-          <%= modal_header(pin.hcb_code.local_hcb_code.pretty_title(show_amount: true, show_event_name: false, amount_cents: pin.hcb_code.amount), external_link: pin.hcb_code.local_hcb_code.url) %>
+          <%= modal_header(pin.hcb_code.local_hcb_code.pretty_title(show_amount: true, show_event_name: false, amount_cents: pin.hcb_code.amount), external_link: pin.hcb_code.local_hcb_code.url, popover: true) %>
           <%= async_frame_to pin.hcb_code.local_hcb_code.popover_url, as: :span, lazy: true do %>
             <strong>Loading...</strong>
           <% end %>
