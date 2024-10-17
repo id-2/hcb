@@ -61,23 +61,23 @@
 <% if organizer_signed_in? %>
   <div class="flex mb2 max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
     <%= link_to "#", class: "list-badge quick-action ml-0", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
-      <%= inline_icon "payment-transfer", size: 16 %>
+      <%= inline_icon "payment-transfer", size: 20 %>
       Transfer money
     <% end %>
     <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "create_reimbursement" } do %>
-      <%= inline_icon "attachment", size: 16 %>
+      <%= inline_icon "attachment", size: 20 %>
       Get reimbursed
     <% end %>
     <%= link_to event_check_deposits_path(@event), class: "list-badge quick-action" do %>
-      <%= inline_icon "cheque", size: 16 %>
+      <%= inline_icon "cheque", size: 20 %>
       Deposit a check
     <% end %>
     <%= link_to account_number_event_path(@event), class: "list-badge quick-action" do %>
-      <%= inline_icon "bank-account", size: 16 %>
+      <%= inline_icon "bank-account", size: 20 %>
       View account numbers
     <% end %>
     <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "new_invoice" } do %>
-      <%= inline_icon "briefcase", size: 16 %>
+      <%= inline_icon "briefcase", size: 20 %>
       Send an invoice
     <% end %>
   </div>
