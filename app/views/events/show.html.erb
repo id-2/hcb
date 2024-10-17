@@ -60,7 +60,7 @@
 
 <% if organizer_signed_in? %>
   <div class="flex mb2 max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
-    <%= link_to "#", class: "list-badge quick-action", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
+    <%= link_to "#", class: "list-badge quick-action ml-0", data: { behavior: "modal_trigger", modal: "send_transfer" } do %>
       <%= inline_icon "payment-transfer", size: 16 %>
       Transfer money
     <% end %>
