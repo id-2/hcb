@@ -23,7 +23,7 @@
           <%= subtitle %>
         </div>
       </div>
-      <span class="text-xs font-bold p-2 <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
+      <span class="text-xs font-bold p-1 <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
     </a>
 
     <% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && (@event || transaction.local_hcb_code.event).present? %>
@@ -58,7 +58,7 @@
           <%= subtitle %>
         </div>
       </div>
-      <span class="text-xs font-bold p-2 <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
+      <span class="text-xs font-bold p-1 <%= transaction.amount_cents > 0 ? "success" : "error" %>"><%= render_transaction_amount transaction.amount_cents %></span>
     </a>
 
     <% if Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && (@event || transaction.local_hcb_code.event).present? %>
