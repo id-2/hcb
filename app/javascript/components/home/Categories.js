@@ -105,7 +105,7 @@ export default function Users({ data }) {
         labelLine={false}
       >
         {data.map((_, index) => (
-          <Cell key={`cell-${index}`} fill={shuffled[index % colors.length]} />
+          <Cell key={`cell-${index}`} style={{ outline: "none" }} fill={shuffled[index % colors.length]} />
         ))}
       </Pie>
       <Tooltip content={CustomTooltip} />
