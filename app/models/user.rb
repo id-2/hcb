@@ -36,6 +36,8 @@
 #  index_users_on_slug   (slug) UNIQUE
 #
 class User < ApplicationRecord
+  has_paper_trail skip: [:birthday] # ciphertext columns will still be tracked
+
   include PublicIdentifiable
   set_public_id_prefix :usr
 
@@ -61,7 +63,7 @@ class User < ApplicationRecord
     none: 0,
     weekly: 1,
     monthly: 2,
-  }, prefix: :receipt_report
+  }, prefix: :receipt_report, default: :weekly
 
   enum :access_level, { user: 0, admin: 1, superadmin: 2 }, scopes: false, default: :user
 
