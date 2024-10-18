@@ -276,15 +276,6 @@ summary {
   transform: translateY(35px) translateX(0.75rem);
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  // Setting height: 100% breaks turbo frames
-  padding-top: 50px;
-}
-
 .admin-tools {
   padding: 0.5rem;
   border-radius: 0.5rem;

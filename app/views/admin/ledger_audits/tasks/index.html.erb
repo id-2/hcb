@@ -53,8 +53,8 @@
     <% hcb_code = task.hcb_code %>
     <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="hcb_code_details_<%= hcb_code.id %>">
       <%= modal_header(hcb_code.pretty_title(show_event_name: defined?(show_event_name), show_amount: defined?(show_amount)), external_link: hcb_code.url) %>
-      <%= async_frame_to hcb_code.popover_url, as: :div, class: "loading-container", lazy: true do %>
-        <% inline_icon "loading" %>
+      <%= async_frame_to hcb_code.popover_url, as: :div, lazy: true do %>
+        <%= render partial: "application/loading_container" %>
       <% end %>
     </section>
   <% end %>
