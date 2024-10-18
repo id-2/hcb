@@ -109,6 +109,54 @@ class UsersController < ApplicationController
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     authorize @user
+
+    if @onboarding
+      @onboarding_gallery = [
+        # TODO: Use #cdn links instead
+        {
+          image: "https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0screenshot_2021-10-03_at_3.59.34_pm.25729adc.png&w=1200&q=75",
+          url: "https://hcb.hackclub.com/zephyr",
+          overlay_color: "#802434",
+        },
+        {
+          image: "https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fchea-waters-evans-1-20210323-1536x1025.e81dbfdd.jpg&w=1920&q=75",
+          url: "https://hcb.hackclub.com/the-charlotte-bridge",
+          overlay_color: "#805b24",
+        },
+        {
+          image: "https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F6screenshot_2021-10-03_at_3.29.29_pm.ea2b9bcc.png&w=1920&q=75",
+          url: "https://hcb.hackclub.com/windyhacks",
+          overlay_color: "#807f0a",
+        },
+        {
+          image: "https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0screenshot_2021-10-03_at_3.45.54_pm.e9948145.png&w=1920&q=75",
+          url: "https://hcb.hackclub.com/the-innovation-circuit",
+          overlay_color: "#22806c",
+          object_position: "center"
+        },
+        {
+          image: "https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0spacex_and_hack_club.4d15c05e.jpg&w=1920&q=75",
+          url: "https://hcb.hackclub.com/zephyr",
+          overlay_color: "#3c7d80",
+          object_position: "center"
+        },
+        {
+          image: "https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0color_pop.df871870.jpg&w=1920&q=75",
+          url: "https://hcb.hackclub.com/hackpenn",
+          overlay_color: "#225c80",
+        },
+        {
+          image: "https://the.hackfoundation.org/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0img_20210830_161125.a489169a.jpg&w=1920&q=75",
+          url: "https://hcb.hackclub.com/wild-wild-west",
+          overlay_color: "#6c2280",
+        },
+        {
+          image: "https://user-images.githubusercontent.com/39828164/189497810-6d9d2920-6bee-4990-9553-57699918ae9c.jpg",
+          url: "https://hcb.hackclub.com/hq",
+          overlay_color: "#802434",
+        }
+      ]
+    end
   end
 
   def edit_address
