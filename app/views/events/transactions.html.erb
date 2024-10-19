@@ -26,17 +26,6 @@
 
 <%= render "nav", selected: :transactions %>
 
-<%# Demo mode callout thing %>
-<% if organizer_signed_in? && @event.demo_mode %>
-  <div class="card border b--info pb0 mt3" style="text-wrap: pretty;" id="playground-callout" data-tour-step="playground_mode">
-    <p class="mt0">
-      <strong>Welcome to Playground Mode</strong>
-      <br>
-      While in Playground mode, explore the dashboard with mock data, and invite your team.
-    </p>
-  </div>
-<% end %>
-
 <h1 class="items-center hidden md:flex">
   Financials
   <% if admin_signed_in? %>
