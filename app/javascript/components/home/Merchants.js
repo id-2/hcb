@@ -67,7 +67,7 @@ export default function Users({ data }) {
       padding={{ top: 32, left: 32 }}
     >
       <BarChart data={data} width={256} height={200}>
-        <CartesianGrid strokeDasharray="3 3"  opacity={0.5} />
+        <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
         <YAxis
           tickFormatter={n => USDollarNoCents.format(n)}
           width={
