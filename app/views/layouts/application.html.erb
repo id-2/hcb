@@ -1,4 +1,4 @@
-<% @is_dark = !!@dark || cookies[:theme] === "dark" || (cookies[:theme] === "system" && cookies[:system_preference] === "dark") %>
+<% @is_dark = !!@dark || cookies[:theme] == "dark" || (cookies[:theme] == "system" && cookies[:system_preference] == "dark") %>
 
 <!DOCTYPE html>
 <html lang="en" data-dark="<%= @is_dark %>" <%= "data-ignore-theme" unless @dark.nil? %>>
