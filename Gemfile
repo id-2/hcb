@@ -12,7 +12,7 @@ gem "puma", "~> 6.4" # app server
 
 gem "pg", ">= 0.18", "< 2.0" # database
 gem "redis", "~> 5.3" # for caching, jobs, etc.
-gem "sidekiq", "~> 7.1.3" # background jobs
+gem "sidekiq", "~> 7.3.2" # background jobs
 gem "sidekiq-cron", "~> 1.12" # run Sidekiq jobs at scheduled intervals
 
 gem "image_processing", "~> 1.2"
@@ -111,7 +111,6 @@ gem "namae" # multi-cultural human name parser
 gem "premailer-rails" # css to inline styles for emails
 gem "safely_block"
 gem "strong_migrations" # protects against risky migrations
-gem "swagger-blocks"
 gem "xxhash" # fast hashing
 
 gem "diffy" # rendering diffs (comments)

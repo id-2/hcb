@@ -25,12 +25,9 @@ Rails.application.routes.draw do
   end
 
   # API documentation
-  scope "docs/api" do
-
-    get "v3", to: "docs#v3"
-    get "v3/*path", to: "docs#v3"
-
-    get "/", to: redirect("/docs/api/v3")
+  namespace :docs do
+    get "api/v3(/*path)", to: "api#v3"
+    get "api", to: redirect("/docs/api/v3")
   end
 
   # V3 API
@@ -643,7 +640,6 @@ Rails.application.routes.draw do
     get :transaction_heatmap
 
     get "edit", to: redirect("/%{event_id}/settings")
-    get "breakdown"
     get "transactions"
     put "toggle_hidden"
     post "claim_point_of_contact"
