@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_21_163544) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -690,8 +688,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
     t.inet "ip_address"
     t.datetime "in_transit_at"
     t.boolean "anonymous", default: false, null: false
-    t.boolean "fee_covered", default: false, null: false
     t.boolean "tax_deductible", default: true, null: false
+    t.boolean "fee_covered", default: false, null: false
     t.boolean "in_person", default: false
     t.bigint "collected_by_id"
     t.index ["event_id"], name: "index_donations_on_event_id"
@@ -2094,6 +2092,14 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
     t.jsonb "object"
     t.jsonb "object_changes"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
+  end
+
+  create_table "web_push_subscriptions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.jsonb "subscription", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_web_push_subscriptions_on_user_id"
   end
 
   create_table "webauthn_credentials", force: :cascade do |t|
