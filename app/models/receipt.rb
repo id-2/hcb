@@ -13,6 +13,7 @@
 #  extracted_merchant_zip_code     :string
 #  extracted_subtotal_amount_cents :integer
 #  extracted_total_amount_cents    :integer
+#  extracted_total_amount_currency :string           default("USD")
 #  receiptable_type                :string
 #  suggested_memo                  :string
 #  textual_content_bidx            :string
@@ -156,7 +157,7 @@ class Receipt < ApplicationRecord
   end
 
   def extracted_incorrect_amount_cents?
-    if receiptable.respond_to?(:amount_cents) && extracted_total_amount_cents
+    if receiptable.respond_to?(:amount_cents) && extracted_total_amount_cents && extracted_total_amount_currency == "USD"
       return extracted_total_amount_cents.abs != receiptable.amount_cents.abs
     end
 

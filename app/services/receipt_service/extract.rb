@@ -25,6 +25,7 @@ module ReceiptService
 
         subtotal_amount_cents
         total_amount_cents // the amount likely to be charged to a credit card
+        total_amount_currency // the currency that total_amount_cents, if unclear, assume USD
         card_last_four
         date // in the format of YYYY-MM-DD
         merchant_url // URL for merchant's primary website including https, if available
@@ -77,6 +78,7 @@ module ReceiptService
         suggested_memo: data.transaction_memo,
         extracted_subtotal_amount_cents: data.subtotal_amount_cents&.to_i,
         extracted_total_amount_cents: data.total_amount_cents&.to_i,
+        extracted_total_amount_currency: data.extracted_total_amount_currency,
         extracted_card_last4: data.card_last_four,
         extracted_date: data.date&.to_date,
         extracted_merchant_name: data.merchant_name,

@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_22_060023) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1636,6 +1636,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
     t.string "extracted_merchant_zip_code"
     t.boolean "data_extracted", default: false, null: false
     t.integer "textual_content_source", default: 0
+    t.string "extracted_total_amount_currency", default: "USD"
     t.string "textual_content_bidx"
     t.index ["receiptable_type", "receiptable_id"], name: "index_receipts_on_receiptable_type_and_receiptable_id"
     t.index ["textual_content_bidx"], name: "index_receipts_on_textual_content_bidx"
