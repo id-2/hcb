@@ -46,6 +46,7 @@
 #
 # Foreign Keys
 #
+#  fk_rails_...  (event_id => events.id)
 #  fk_rails_...  (fee_reimbursement_id => fee_reimbursements.id)
 #  fk_rails_...  (payout_id => donation_payouts.id)
 #
@@ -79,6 +80,7 @@ class Donation < ApplicationRecord
   after_commit :send_donation_notification
 
   validates :name, :email, presence: true, unless: -> { recurring? || in_person? } # recurring donations have a name/email in their `RecurringDonation` object
+  validates :email, on: :create, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }, unless: -> { recurring? || in_person? } # recurring donations have an email in their `RecurringDonation` object
   validates_presence_of :amount
   validates :amount, numericality: { greater_than_or_equal_to: 100, less_than_or_equal_to: 999_999_99 }
 

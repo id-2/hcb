@@ -25,12 +25,14 @@ Rails.application.routes.draw do
   end
 
   # API documentation
-  scope "docs/api" do
-
-    get "v3", to: "docs#v3"
-    get "v3/*path", to: "docs#v3"
-
-    get "/", to: redirect("/docs/api/v3")
+  namespace :docs do
+    resources :api, only: [] do
+      collection do
+        # This crazy nesting is to get Rails to generate meaningful route helpers
+        get "v3(/*path)", to: "api#v3"
+        get "/", to: redirect("/docs/api/v3")
+      end
+    end
   end
 
   # V3 API
@@ -480,12 +482,6 @@ Rails.application.routes.draw do
   get "roles", to: "static_pages#roles"
   get "audit", to: "admin#audit"
 
-  resources :central, only: [:index] do
-    collection do
-      get "ledger"
-    end
-  end
-
   resources :emburse_card_requests, path: "emburse_card_requests", except: [:new, :create] do
     collection do
       get "export"
@@ -635,8 +631,15 @@ Rails.application.routes.draw do
   get "/events" => "events#index"
   get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
   resources :events, except: [:new, :create, :edit], concerns: :commentable, path: "/" do
+
+    # Loaded as Turbo frames on the home page
+    get :top_merchants
+    get :top_categories
+    get :tags_users
+    get :transaction_heatmap
+
     get "edit", to: redirect("/%{event_id}/settings")
-    get "breakdown"
+    get "transactions"
     put "toggle_hidden"
     post "claim_point_of_contact"
 
@@ -723,7 +726,6 @@ Rails.application.routes.draw do
     resources :payment_recipients, only: [:destroy]
 
     member do
-      post "test_ach_payment"
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
       get "audit_log"

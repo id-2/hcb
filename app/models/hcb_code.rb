@@ -358,14 +358,6 @@ class HcbCode < ApplicationRecord
     @fee_revenue ||= FeeRevenue.find_by(id: hcb_i2) if fee_revenue?
   end
 
-  def ach_payment?
-    hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::ACH_PAYMENT_CODE
-  end
-
-  def ach_payment
-    @ach_payment ||= AchPayment.find(hcb_i2) if ach_payment?
-  end
-
   def check_deposit?
     hcb_i1 == ::TransactionGroupingEngine::Calculate::HcbCode::CHECK_DEPOSIT_CODE
   end
@@ -563,7 +555,8 @@ class HcbCode < ApplicationRecord
     nil
   end
 
-  def fallback_avatar_tooltip
+  def author_name
+    return author&.name if author&.name.present?
     return donation.name if donation? && !donation.anonymous?
     return invoice.sponsor.name if invoice?
 
