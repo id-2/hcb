@@ -78,7 +78,7 @@ module ReceiptService
         suggested_memo: data.transaction_memo,
         extracted_subtotal_amount_cents: data.subtotal_amount_cents&.to_i,
         extracted_total_amount_cents: data.total_amount_cents&.to_i,
-        extracted_total_amount_currency: data.extracted_total_amount_currency,
+        extracted_total_amount_currency: data.total_amount_currency || "USD",
         extracted_card_last4: data.card_last_four,
         extracted_date: data.date&.to_date,
         extracted_merchant_name: data.merchant_name,

@@ -43,7 +43,7 @@ module ReceiptService
 
       distances = {
         amount_cents: {
-          value: @extracted.extracted_total_amount_cents && (hcb_code.amount_cents.abs - @extracted.extracted_total_amount_cents.abs).abs == 0 ? 0 : 1,
+          value: @extracted.extracted_total_amount_cents && @extracted.extracted_total_amount_currency == "USD" && (hcb_code.amount_cents.abs - @extracted.extracted_total_amount_cents.abs).abs == 0 ? 0 : 1,
           weight: 200,
         },
         card_last_four: {
