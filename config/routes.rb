@@ -26,8 +26,13 @@ Rails.application.routes.draw do
 
   # API documentation
   namespace :docs do
-    get "api/v3(/*path)", to: "api#v3"
-    get "api", to: redirect("/docs/api/v3")
+    resources :api, only: [] do
+      collection do
+        # This crazy nesting is to get Rails to generate meaningful route helpers
+        get "v3(/*path)", to: "api#v3"
+        get "/", to: redirect("/docs/api/v3")
+      end
+    end
   end
 
   # V3 API
@@ -476,12 +481,6 @@ Rails.application.routes.draw do
   get "faq", to: "static_pages#faq"
   get "roles", to: "static_pages#roles"
   get "audit", to: "admin#audit"
-
-  resources :central, only: [:index] do
-    collection do
-      get "ledger"
-    end
-  end
 
   resources :emburse_card_requests, path: "emburse_card_requests", except: [:new, :create] do
     collection do
