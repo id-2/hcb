@@ -35,13 +35,11 @@
 #  public_message                               :text
 #  public_reimbursement_page_enabled            :boolean          default(FALSE), not null
 #  public_reimbursement_page_message            :text
-#  redirect_url                                 :string
 #  reimbursements_require_organizer_peer_review :boolean          default(FALSE), not null
+#  short_name                                   :string
 #  slug                                         :text
-#  sponsorship_fee                              :decimal(, )
 #  stripe_card_shipping_type                    :integer          default("standard"), not null
 #  transaction_engine_v2_at                     :datetime
-#  webhook_url                                  :string
 #  website                                      :string
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
@@ -52,8 +50,8 @@
 #
 # Indexes
 #
-#  index_events_on_club_airtable_id                        (club_airtable_id) UNIQUE
-#  index_events_on_point_of_contact_id                     (point_of_contact_id)
+#  index_events_on_club_airtable_id     (club_airtable_id) UNIQUE
+#  index_events_on_point_of_contact_id  (point_of_contact_id)
 #
 # Foreign Keys
 #
@@ -316,7 +314,6 @@ class Event < ApplicationRecord
   has_one :card_grant_setting
   accepts_nested_attributes_for :card_grant_setting, update_only: true
 
-  has_one :stripe_ach_payment_source
   has_one :increase_account_number
 
   has_one :column_account_number, class_name: "Column::AccountNumber"
@@ -463,89 +460,67 @@ class Event < ApplicationRecord
   end
 
   def balance_v2_cents(start_date: nil, end_date: nil)
-    @balance_v2_cents ||=
-      begin
-        sum = settled_balance_cents(start_date:, end_date:)
-        sum += pending_outgoing_balance_v2_cents(start_date:, end_date:)
-        sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
-        sum
-      end
+    sum = settled_balance_cents(start_date:, end_date:)
+    sum += pending_outgoing_balance_v2_cents(start_date:, end_date:)
+    sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
+    sum
   end
 
   # This calculates v2 cents of settled (Canonical Transactions)
   # @return [Integer] Balance in cents (v2 transaction engine)
   def settled_balance_cents(start_date: nil, end_date: nil)
-    @settled_balance_cents ||=
-      settled_incoming_balance_cents(start_date:, end_date:) +
-      settled_outgoing_balance_cents(start_date:, end_date:)
+    settled_incoming_balance_cents(start_date:, end_date:) + settled_outgoing_balance_cents(start_date:, end_date:)
   end
 
   # v2 cents (v2 transaction engine)
   def settled_incoming_balance_cents(start_date: nil, end_date: nil)
-    @settled_incoming_balance_cents ||=
-      begin
-        ct = canonical_transactions.where("amount_cents > 0")
+    ct = canonical_transactions.where("amount_cents > 0")
 
-        ct = ct.where("date >= ?", start_date) if start_date
-        ct = ct.where("date <= ?", end_date) if end_date
+    ct = ct.where("date >= ?", start_date) if start_date
+    ct = ct.where("date <= ?", end_date) if end_date
 
-        ct.sum(:amount_cents)
-      end
+    ct.sum(:amount_cents)
   end
 
   # v2 cents (v2 transaction engine)
   def settled_outgoing_balance_cents(start_date: nil, end_date: nil)
-    @settled_outgoing_balance_cents ||=
-      begin
-        ct = canonical_transactions.where("amount_cents < 0")
+    ct = canonical_transactions.where("amount_cents < 0")
 
-        ct = ct.where("date >= ?", start_date) if start_date
-        ct = ct.where("date <= ?", end_date) if end_date
+    ct = ct.where("date >= ?", start_date) if start_date
+    ct = ct.where("date <= ?", end_date) if end_date
 
-        ct.sum(:amount_cents)
-      end
+    ct.sum(:amount_cents)
   end
 
   def fronted_incoming_balance_v2_cents(start_date: nil, end_date: nil)
-    @fronted_incoming_balance_v2_cents ||=
-      begin
-        pts = canonical_pending_transactions.incoming.fronted.not_declined
+    pts = canonical_pending_transactions.incoming.fronted.not_declined
 
-        pts = pts.where("date >= ?", @start_date) if @start_date
-        pts = pts.where("date <= ?", @end_date) if @end_date
+    pts = pts.where("date >= ?", @start_date) if @start_date
+    pts = pts.where("date <= ?", @end_date) if @end_date
 
-        sum_fronted_amount(pts)
-      end
+    sum_fronted_amount(pts)
   end
 
   def pending_balance_v2_cents(start_date: nil, end_date: nil)
-    @pending_balance_v2_cents ||=
-      pending_incoming_balance_v2_cents(start_date:, end_date:) +
-      pending_outgoing_balance_v2_cents(start_date:, end_date:)
+    pending_incoming_balance_v2_cents(start_date:, end_date:) + pending_outgoing_balance_v2_cents(start_date:, end_date:)
   end
 
   def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil)
-    @pending_incoming_balance_v2_cents ||=
-      begin
-        cpt = canonical_pending_transactions.incoming.unsettled.not_fronted
+    cpt = canonical_pending_transactions.incoming.unsettled.not_fronted
 
-        cpt = cpt.where("date >= ?", start_date) if start_date
-        cpt = cpt.where("date <= ?", end_date) if end_date
+    cpt = cpt.where("date >= ?", start_date) if start_date
+    cpt = cpt.where("date <= ?", end_date) if end_date
 
-        cpt.sum(:amount_cents)
-      end
+    cpt.sum(:amount_cents)
   end
 
   def pending_outgoing_balance_v2_cents(start_date: nil, end_date: nil)
-    @pending_outgoing_balance_v2_cents ||=
-      begin
-        cpt = canonical_pending_transactions.outgoing.unsettled
+    cpt = canonical_pending_transactions.outgoing.unsettled
 
-        cpt = cpt.where("date >= ?", start_date) if start_date
-        cpt = cpt.where("date <= ?", end_date) if end_date
+    cpt = cpt.where("date >= ?", start_date) if start_date
+    cpt = cpt.where("date <= ?", end_date) if end_date
 
-        cpt.sum(:amount_cents)
-      end
+    cpt.sum(:amount_cents)
   end
 
   def balance_available_v2_cents
@@ -743,6 +718,14 @@ class Event < ApplicationRecord
     return name if length >= name.length
 
     self[:short_name] || name[0...length]
+  end
+
+  monetize :minimumn_wire_amount_cents
+
+  def minimumn_wire_amount_cents
+    return 100 if canonical_transactions.where("amount_cents > 0").where("date >= ?", 1.year.ago).sum(:amount_cents) > 50_000_00
+
+    return 500_00
   end
 
   private

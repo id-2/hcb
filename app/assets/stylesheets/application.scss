@@ -245,7 +245,6 @@ summary {
 @import 'components/shimmer';
 @import 'components/carousel';
 @import 'components/callout';
-@import 'components/breakdown';
 @import 'components/balance_chart';
 @import 'components/reimbursements/expenses';
 @import 'components/reimbursements/actions';
@@ -253,6 +252,7 @@ summary {
 @import 'components/reactions';
 @import 'components/tags';
 @import 'components/filter_tabs';
+@import 'components/home_page';
 
 .turbo-progress-bar {
   height: 0.125rem;

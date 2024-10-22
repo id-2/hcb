@@ -12,7 +12,7 @@ gem "puma", "~> 6.4" # app server
 
 gem "pg", ">= 0.18", "< 2.0" # database
 gem "redis", "~> 5.3" # for caching, jobs, etc.
-gem "sidekiq", "~> 7.1.3" # background jobs
+gem "sidekiq", "~> 7.3.2" # background jobs
 gem "sidekiq-cron", "~> 1.12" # run Sidekiq jobs at scheduled intervals
 
 gem "image_processing", "~> 1.2"
@@ -35,7 +35,7 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 29.0"
-gem "yellow_pages", github: "hackclub/yellow_pages", ref: "eab7f30"
+gem "yellow_pages", github: "hackclub/yellow_pages", ref: "4711379"
 
 gem "aws-sdk-s3", require: false
 
@@ -111,7 +111,6 @@ gem "namae" # multi-cultural human name parser
 gem "premailer-rails" # css to inline styles for emails
 gem "safely_block"
 gem "strong_migrations" # protects against risky migrations
-gem "swagger-blocks"
 gem "xxhash" # fast hashing
 
 gem "diffy" # rendering diffs (comments)
