@@ -17,10 +17,12 @@ module Reimbursement
           attachments: params[:file],
           upload_method: :quick_expense
         ).run!
-        @expense.update(
-          memo: receipt.first.suggested_memo,
-          amount_cents: Money.from_cents(receipt.first.extracted_total_amount_cents, receipt.first.extracted_total_amount_currency).cents.to_f / 100
-        ) if receipt.first.suggested_memo
+        if receipt.first.suggested_memo
+          @expense.update(
+            memo: receipt.first.suggested_memo,
+            amount_cents: Money.from_cents(receipt.first.extracted_total_amount_cents, receipt.first.extracted_total_amount_currency).cents.to_f / 100
+          )
+        end
       end
 
       if @expense.save

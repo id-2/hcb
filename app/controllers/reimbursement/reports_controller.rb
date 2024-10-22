@@ -50,10 +50,12 @@ module Reimbursement
           attachments: params[:reimbursement_report][:file],
           upload_method: :quick_expense
         ).run!
-        @expense.update(
-          memo: receipt.first.suggested_memo,
-          amount_cents: Money.from_cents(receipt.extracted_total_amount_cents, receipt.first.extracted_total_amount_currency).cents.to_f / 100
-        ) if receipt.first.suggested_memo
+        if receipt.first.suggested_memo
+          @expense.update(
+            memo: receipt.first.suggested_memo,
+            amount_cents: Money.from_cents(receipt.extracted_total_amount_cents, receipt.first.extracted_total_amount_currency).cents.to_f / 100
+          )
+        end
         redirect_to reimbursement_report_path(@report, edit: @expense.id)
       else
         redirect_to event_reimbursements_path(@event), flash: { error: @report.errors.full_messages.to_sentence }
