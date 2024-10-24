@@ -3,7 +3,7 @@
 class OrganizerPositionInvitesController < ApplicationController
   include SetEvent
 
-  before_action :set_opi, only: [:show, :accept, :reject, :cancel, :toggle_signee_status]
+  before_action :set_opi, only: [:show, :accept, :reject, :cancel, :toggle_signee_status, :resend]
   before_action :set_event, only: [:new, :create]
   before_action :hide_footer, only: :show
 
@@ -92,6 +92,15 @@ class OrganizerPositionInvitesController < ApplicationController
     end
   end
 
+  def resend
+    authorize @invite
+
+    @invite.deliver
+
+    flash[:success] = "Invite successfully resent to #{@invite.user.email}"
+    redirect_to event_team_path @invite.event
+  end
+
   def toggle_signee_status
     authorize @invite
     unless @invite.update(is_signee: !@invite.is_signee?)
@@ -127,7 +136,9 @@ class OrganizerPositionInvitesController < ApplicationController
   end
 
   def invite_params
-    params.require(:organizer_position_invite).permit(:email, :is_signee, :role, :enable_controls, :initial_control_allowance_amount)
+    permitted_params = [:email, :role, :enable_controls, :initial_control_allowance_amount]
+    permitted_params << :is_signee if admin_signed_in?
+    params.require(:organizer_position_invite).permit(permitted_params)
   end
 
 end

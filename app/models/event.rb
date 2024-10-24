@@ -11,7 +11,6 @@
 #  can_front_balance                            :boolean          default(TRUE), not null
 #  category                                     :integer
 #  country                                      :integer
-#  custom_css_url                               :string
 #  deleted_at                                   :datetime
 #  demo_mode                                    :boolean          default(FALSE), not null
 #  demo_mode_request_meeting_at                 :datetime
@@ -58,6 +57,7 @@
 #  fk_rails_...  (point_of_contact_id => users.id)
 #
 class Event < ApplicationRecord
+  self.ignored_columns = %w[sponsorship_fee has_fiscal_sponsorship_document]
   MIN_WAITING_TIME_BETWEEN_FEES = 5.days
 
   include Hashid::Rails
@@ -162,8 +162,6 @@ class Event < ApplicationRecord
   scope :pending_fees_v2, -> do
     where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees.to_a.map { |a| a["event_id"] })
   end
-
-  self.ignored_columns = %w[start end sponsorship_fee redirect_url webhook_url]
 
   scope :demo_mode, -> { where(demo_mode: true) }
   scope :not_demo_mode, -> { where(demo_mode: false) }
@@ -314,7 +312,6 @@ class Event < ApplicationRecord
   has_one :card_grant_setting
   accepts_nested_attributes_for :card_grant_setting, update_only: true
 
-  has_one :stripe_ach_payment_source
   has_one :increase_account_number
 
   has_one :column_account_number, class_name: "Column::AccountNumber"
@@ -384,7 +381,7 @@ class Event < ApplicationRecord
     "ELSE 'z' || name END ASC   "
   )
 
-  enum category: {
+  enum :category, {
     hackathon: 0,
     'hack club': 1,
     nonprofit: 2,
@@ -400,7 +397,7 @@ class Event < ApplicationRecord
     'hcb internals': 12 # eg. https://hcb.hackclub.com/clearing
   }
 
-  enum stripe_card_shipping_type: {
+  enum :stripe_card_shipping_type, {
     standard: 0,
     express: 1,
     priority: 2,
@@ -667,11 +664,6 @@ class Event < ApplicationRecord
     !engaged?
   end
 
-  def sponsorship_fee
-    Airbrake.notify("Deprecated Event#sponsorship_fee used.")
-    revenue_fee
-  end
-
   def plan
     super&.becomes(super.plan_type&.constantize)
   end
@@ -732,6 +724,7 @@ class Event < ApplicationRecord
   private
 
   def point_of_contact_is_admin
+    return unless point_of_contact_changed?
     return unless point_of_contact
     return if point_of_contact&.admin_override_pretend?
 

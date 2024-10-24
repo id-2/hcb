@@ -9,17 +9,11 @@ $darkless: #252429;
 }
 
 html[data-dark='true'] {
-  .theme-icon-sun {
-    display: none;
-  }
-  .theme-icon-moon {
-    display: block;
-  }
+  color-scheme: dark;
 
   body {
     background-color: $dark;
     color: map-get($palette, smoke);
-    color-scheme: dark;
   }
 
   input[type='date'],
