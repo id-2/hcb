@@ -440,8 +440,21 @@ class StripeCard < ApplicationRecord
   end
 
   def personalization_design_must_be_of_the_same_event
+    # [@garyhtou] There are 3 classes of designs:
+    # 1. Event-specific designs
+    # 2. Common designs (can be used by everyone)
+    # 3. Unlisted designs (only for admins)
+
+    # This validation is essentially an authorization check to ensure they may
+    # use the chosen design.
+
     if personalization_design&.event.present? && personalization_design.event != event
       errors.add(:personalization_design, "must be of the same event")
+    end
+
+    if personalization_design.unlisted? && !user.admin?
+      # Only admins can issue unlisted designs
+      errors.add(:personalization_design, "is invalid")
     end
   end
 
