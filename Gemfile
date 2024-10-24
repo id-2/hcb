@@ -23,7 +23,7 @@ gem "jsbundling-rails", "~> 1.3"
 gem "terser", "~> 1.2" # JS compressor
 gem "jquery-rails"
 gem "react-rails"
-gem "turbo-rails", "~> 2.0.10"
+gem "turbo-rails", "~> 2.0.11"
 
 gem "invisible_captcha"
 gem "local_time" # client-side timestamp converter for cache-safe rendering
@@ -42,8 +42,6 @@ gem "aws-sdk-s3", require: false
 gem "airrecord", "~> 1.0" # Airtable API for internal operations
 
 gem "twilio-ruby" # SMS notifications
-
-gem "lob"
 
 gem "google-apis-admin_directory_v1", "~> 0.58.0" # GSuite
 
@@ -87,11 +85,6 @@ gem "api-pagination"
 gem "flipper" # feature flags
 gem "flipper-active_record"
 gem "flipper-ui"
-
-gem "scientist" # helps refactor code for critical paths with confidence
-# gem "lab_tech" # collects data from scientist experiments
-gem "table_print" # pretty prints tables in console (used with lab_tech)
-
 
 gem "pundit" # implements authorization policies
 
@@ -143,7 +136,7 @@ gem "bootsnap", ">= 1.4.4", require: false # reduces boot times through caching;
 
 gem "appsignal" # error tracking + performance monitoring
 gem "lograge" # Log formatting
-gem "statsd-instrument", "~> 3.8" # For reporting to HC Grafana
+gem "statsd-instrument", "~> 3.9" # For reporting to HC Grafana
 
 group :production do
 
@@ -165,7 +158,7 @@ group :development, :test do
   gem "rubocop-rails", "~> 2.26"
   gem "relaxed-rubocop"
 
-  gem "rspec-rails", "~> 6.1.4"
+  gem "rspec-rails", "~> 7.0.1"
 
   # Lets you set a breakpoint with a REPL using binding.pry
   gem "pry-byebug", require: ENV["EXCLUDE_PRY"] != "true"

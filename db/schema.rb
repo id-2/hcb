@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_23_030322) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -455,6 +455,16 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "changelog_posts_users", force: :cascade do |t|
+    t.bigint "changelog_post_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["changelog_post_id", "user_id"], name: "index_changelog_posts_users_on_changelog_post_id_and_user_id", unique: true
+    t.index ["changelog_post_id"], name: "index_changelog_posts_users_on_changelog_post_id"
+    t.index ["user_id"], name: "index_changelog_posts_users_on_user_id"
+  end
+
   create_table "check_deposits", force: :cascade do |t|
     t.bigint "event_id", null: false
     t.integer "amount_cents"
@@ -859,11 +869,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
     t.datetime "pending_transaction_engine_at", precision: nil, default: "2021-02-13 22:49:40"
     t.string "aasm_state"
     t.string "organization_identifier", null: false
-    t.string "redirect_url"
-    t.string "webhook_url"
     t.integer "country"
     t.boolean "holiday_features", default: true, null: false
-    t.string "custom_css_url"
     t.integer "category"
     t.boolean "can_front_balance", default: true, null: false
     t.boolean "demo_mode", default: false, null: false
@@ -2162,6 +2169,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_03_075430) do
   add_foreign_key "card_grants", "subledgers"
   add_foreign_key "card_grants", "users"
   add_foreign_key "card_grants", "users", column: "sent_by_id"
+  add_foreign_key "changelog_posts_users", "changelog_posts"
+  add_foreign_key "changelog_posts_users", "users"
   add_foreign_key "check_deposits", "events"
   add_foreign_key "checks", "lob_addresses"
   add_foreign_key "checks", "users", column: "creator_id"

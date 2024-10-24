@@ -437,6 +437,7 @@ class AdminController < ApplicationController
     @per = params[:per] || 20
     @q = params[:q].presence
     @pending = params[:pending] == "1"
+    @unlisted = params[:unlisted] == "1"
 
     @event_id = params[:event_id].presence
 
@@ -449,8 +450,8 @@ class AdminController < ApplicationController
     end
 
     relation = relation.search(@q) if @q
-
     relation = relation.under_review if @pending
+    relation = relation.unlisted if @unlisted
 
     @count = relation.count
     relation = relation.page(@page).per(@per).order(
@@ -458,7 +459,7 @@ class AdminController < ApplicationController
       "stripe_card_personalization_designs.created_at desc"
     )
 
-    @common_designs = relation.common
+    @common_designs = StripeCard::PersonalizationDesign.includes(:event).common
     @designs = relation
 
     render layout: "admin"
@@ -1152,14 +1153,6 @@ class AdminController < ApplicationController
 
   def grant_process
     @grant = Grant.find(params[:id])
-
-    render layout: "admin"
-  end
-
-  def column_statements
-    @page = params[:page] || 1
-    @per = params[:per] || 20
-    @statements = Column::Statement.page(@page).per(@per).order(created_at: :desc)
 
     render layout: "admin"
   end

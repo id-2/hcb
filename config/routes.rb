@@ -217,7 +217,6 @@ Rails.application.routes.draw do
       post "google_workspaces_verify_all", to: "admin#google_workspaces_verify_all"
       get "balances", to: "admin#balances"
       get "grants", to: "admin#grants"
-      get "column_statements", to: "admin#column_statements"
       get "hq_receipts", to: "admin#hq_receipts"
       get "account_numbers", to: "admin#account_numbers"
       get "emails", to: "admin#emails"
@@ -270,6 +269,9 @@ Rails.application.routes.draw do
       post "submit", on: :member
       post "reject", on: :member
     end
+    resources :column_statements, only: :index do
+      get "bank_account_summary_report"
+    end
   end
 
   post "set_event", to: "admin#set_event_multiple_transactions", as: :set_event_multiple_transactions
@@ -281,6 +283,7 @@ Rails.application.routes.draw do
     post "accept"
     post "reject"
     post "cancel"
+    post "resend"
     member do
       post "toggle_signee_status"
       post "change_position_role"
@@ -334,7 +337,7 @@ Rails.application.routes.draw do
     resources :personalization_designs, only: [:show] do
       member do
         post "make_common"
-        post "make_private"
+        post "make_unlisted"
       end
     end
   end
@@ -726,7 +729,6 @@ Rails.application.routes.draw do
     resources :payment_recipients, only: [:destroy]
 
     member do
-      post "test_ach_payment"
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
       get "audit_log"
