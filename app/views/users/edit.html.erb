@@ -29,8 +29,7 @@
       </div>
       <h1 class="border-0 mt-10 mb-2">Create your account</h1>
       <turbo-frame id="settings" autoscroll data-autoscroll-behavior="smooth">
-        <p>
-        <h3 class="-mt-2.5 opacity-50">Let's get your profile set up in less than two minutes.</h3>
+        <p class="muted">Let's get your profile set up in less than two minutes.</p>
         <%= form_with(model: @user, local: true, html: { onsubmit: "onSubmit()" }, data: { turbo_frame: "_top" }) do |form| %>
           <%= form_errors @user, "profile", "We couldn't update your" %>
           <div class="md:flex gap-2">
