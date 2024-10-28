@@ -70,6 +70,12 @@ class Event
       end
     end
 
+    monetize def minimum_wire_amount_cents
+      return 1_00 if event.canonical_transactions.where("amount_cents > 0").where("date >= ?", 1.year.ago).sum(:amount_cents) > 50_000_00
+
+      500_00
+    end
+
   end
 
 end
