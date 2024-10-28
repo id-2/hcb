@@ -30,6 +30,10 @@ class Event
         "Has access to all standard features with no fees."
       end
 
+      def minimum_wire_amount_cents
+        1_00
+      end
+
     end
 
   end
