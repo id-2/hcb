@@ -717,6 +717,7 @@ class Event < ApplicationRecord
 
   def minimumn_wire_amount_cents
     return 100 if canonical_transactions.where("amount_cents > 0").where("date >= ?", 1.year.ago).sum(:amount_cents) > 50_000_00
+    return 100 if hack_club_hq?
 
     return 500_00
   end
