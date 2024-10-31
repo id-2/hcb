@@ -21,17 +21,9 @@
 #
 class Event
   class Plan
-    class HackClubAffiliate < FeeWaived
+    class SalaryAccount < FeeWaived
       def label
-        "Hack Club affiliated project"
-      end
-
-      def description
-        "Has access to all standard features with no fees."
-      end
-
-      def exempt_from_wire_minimum?
-        true
+        "salary account"
       end
 
     end

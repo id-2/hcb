@@ -26,13 +26,15 @@
 #  recipient_name            :string           not null
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
+#  column_id                 :text
 #  event_id                  :bigint           not null
 #  user_id                   :bigint           not null
 #
 # Indexes
 #
-#  index_wires_on_event_id  (event_id)
-#  index_wires_on_user_id   (user_id)
+#  index_wires_on_column_id  (column_id) UNIQUE
+#  index_wires_on_event_id   (event_id)
+#  index_wires_on_user_id    (user_id)
 #
 # Foreign Keys
 #
@@ -447,5 +449,48 @@ class Wire < ApplicationRecord
   end
 
   store :recipient_information, accessors: self.recipient_information_accessors
+
+  def send_wire!
+    return unless may_mark_approved?
+
+    account_number_id = event.column_account_number&.column_id ||
+                        Rails.application.credentials.dig(:column, ColumnService::ENVIRONMENT, :default_account_number)
+
+    column_counterparty = ColumnService.post("/counterparties", {
+      idempotency_key: self.id.to_s,
+      routing_number_type: "bic",
+      routing_number: bic_code,
+      account_number:,
+      wire: {
+        beneficiary_name: recipient_name,
+        beneficiary_email: recipient_email,
+        beneficiary_address: {
+          line_1: address_line1,
+          line_2: address_line2,
+          city: address_city,
+          state: address_state,
+          postal_code: address_postal_code,
+          country_code: recipient_country
+        }
+      }.merge(recipient_information.compact_blank)
+    }.compact_blank)
+
+    column_wire_transfer = ColumnService.post("/transfers/international-wire", {
+      idempotency_key: self.id.to_s,
+      amount: amount_cents,
+      currency_code: currency,
+      counterparty_id: column_counterparty["id"],
+      description: payment_for,
+      account_number_id:,
+      message_to_beneficiary_bank: "please contact with the beneficiary",
+      remittance_info: {
+        general_info: recipient_information[:remittance_info]
+      }
+    }.compact_blank)
+
+    self.column_id = column_wire_transfer["id"]
+    mark_approved
+    save!
+  end
 
 end

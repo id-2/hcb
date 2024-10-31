@@ -72,7 +72,6 @@
 #
 class Transaction < ApplicationRecord
   include Receiptable
-  include Commentable
   extend FriendlyId
 
   paginates_per 250
@@ -191,10 +190,6 @@ class Transaction < ApplicationRecord
   def set_default_display_name
     # used by the migration that adds display names
     self.display_name ||= self.name
-  end
-
-  def notify_user_invoice
-    MoneyReceivedMailer.with(transaction: self).money_received.deliver_later
   end
 
   # Utility method for getting the fee on the transaction if there is one. Used

@@ -34,7 +34,7 @@ gem "faraday" # web requests
 
 gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
-gem "plaid", "~> 29.0"
+gem "plaid", "~> 33.0"
 gem "yellow_pages", github: "hackclub/yellow_pages", ref: "4711379"
 
 gem "aws-sdk-s3", require: false
@@ -58,7 +58,7 @@ gem "acts_as_paranoid", "~> 0.10.2" # enables soft deletions
 gem "friendly_id", "~> 5.5.1" # slugs
 gem "hashid-rails", "~> 1.0" # obfuscate IDs in URLs
 
-gem "active_storage_validations", "1.1.4" # file validations
+gem "active_storage_validations", "1.3.0" # file validations
 gem "validates_email_format_of" # email address validations
 gem "phonelib" # phone number validations
 
@@ -103,7 +103,9 @@ gem "loofah" # html email parsing
 gem "namae" # multi-cultural human name parser
 gem "premailer-rails" # css to inline styles for emails
 gem "safely_block"
-gem "strong_migrations" # protects against risky migrations
+gem "strong_migrations", "~> 1" # protects against risky migrations
+# [@garyhtou] ^ We still use Postgres 11 in dev (not in prod). Strong Migrations
+#               2.x is incompatible with Postgres 11.
 gem "xxhash" # fast hashing
 
 gem "diffy" # rendering diffs (comments)
@@ -155,7 +157,7 @@ end
 group :development, :test do
   gem "erb_lint", require: false
   gem "rubocop"
-  gem "rubocop-rails", "~> 2.26"
+  gem "rubocop-rails", "~> 2.27"
   gem "relaxed-rubocop"
 
   gem "rspec-rails", "~> 7.0.1"

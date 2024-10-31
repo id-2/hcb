@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_23_030322) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_28_201843) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -849,7 +849,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_23_030322) do
   create_table "events", force: :cascade do |t|
     t.text "name"
     t.text "address"
-    t.decimal "sponsorship_fee"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "emburse_department_id"
@@ -868,7 +867,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_23_030322) do
     t.datetime "last_fee_processed_at", precision: nil
     t.datetime "pending_transaction_engine_at", precision: nil, default: "2021-02-13 22:49:40"
     t.string "aasm_state"
-    t.string "organization_identifier", null: false
+    t.string "organization_identifier"
     t.integer "country"
     t.boolean "holiday_features", default: true, null: false
     t.integer "category"
@@ -2139,6 +2138,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_23_030322) do
     t.string "address_line2"
     t.string "address_state"
     t.string "address_postal_code"
+    t.text "column_id"
+    t.index ["column_id"], name: "index_wires_on_column_id", unique: true
     t.index ["event_id"], name: "index_wires_on_event_id"
     t.index ["user_id"], name: "index_wires_on_user_id"
   end

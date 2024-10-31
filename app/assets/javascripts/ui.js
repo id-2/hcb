@@ -151,25 +151,6 @@ $(document).keydown(function (e) {
   }
 })
 
-function loadAsyncFrames() {
-  $.each(BK.s('async_frame'), (i, frame) => {
-    const loadFrame = () => {
-      $.get($(frame).data('src'), data => {
-        const parent = $(frame).parent()
-        $(frame).replaceWith(data)
-        loadModals(parent)
-        loadTextExpander()
-      }).fail(() => {
-        $(frame).children('.shimmer').first().addClass('shimmer--error')
-      })
-    }
-
-    if ($(frame).data('loading') == 'lazy') {
-      whenViewed(frame, loadFrame)
-    } else loadFrame()
-  })
-}
-
 $(document).on('turbo:load', function () {
   if (window.location !== window.parent.location) {
     $('[data-behavior~=hide_iframe]').hide()
@@ -178,8 +159,6 @@ $(document).on('turbo:load', function () {
   $('[data-behavior~=select_content]').on('click', e => e.target.select())
 
   BK.s('autohide').hide()
-
-  loadAsyncFrames()
 
   if (BK.thereIs('login')) {
     let email
@@ -570,8 +549,6 @@ document.addEventListener('turbo:before-stream-render', event => {
       })
     } else if (streamElement.action == 'close_modal') {
       $.modal.close().remove()
-    } else if (streamElement.action == 'load_new_async_frames') {
-      loadAsyncFrames()
     } else {
       fallbackToDefaultActions(streamElement)
     }
