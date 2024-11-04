@@ -28,7 +28,7 @@
 #  last_fee_processed_at                        :datetime
 #  name                                         :text
 #  omit_stats                                   :boolean          default(FALSE)
-#  organization_identifier                      :string           not null
+#  organization_identifier                      :string
 #  pending_transaction_engine_at                :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
 #  postal_code                                  :string
 #  public_message                               :text
@@ -57,7 +57,7 @@
 #  fk_rails_...  (point_of_contact_id => users.id)
 #
 class Event < ApplicationRecord
-  self.ignored_columns = %w[sponsorship_fee has_fiscal_sponsorship_document]
+  self.ignored_columns = %w[sponsorship_fee has_fiscal_sponsorship_document organization_identifier transaction_engine_v2_at pending_transaction_engine_at]
   MIN_WAITING_TIME_BETWEEN_FEES = 5.days
 
   include Hashid::Rails
@@ -135,7 +135,6 @@ class Event < ApplicationRecord
           from canonical_event_mappings cem
           inner join fees f on cem.id = f.canonical_event_mapping_id
           inner join events e on e.id = cem.event_id
-          where e.transaction_engine_v2_at is not null
           group by cem.event_id
       ) as q1 left outer join (
           select
@@ -145,7 +144,6 @@ class Event < ApplicationRecord
           inner join fees f on cem.id = f.canonical_event_mapping_id
           inner join canonical_transactions ct on cem.canonical_transaction_id = ct.id
           inner join events e on e.id = cem.event_id
-          where e.transaction_engine_v2_at is not null
           and f.reason = 'HACK CLUB FEE'
           group by cem.event_id
       ) q2
@@ -194,11 +192,6 @@ class Event < ApplicationRecord
       qualifier: :demo_mode?,
       emoji: "🧪",
       description: "Demo Account"
-    },
-    winter_hardware_grant: {
-      qualifier: :hardware_grant?,
-      emoji: "❄️",
-      description: "Winter hardware grant"
     }
   }.freeze
 
@@ -335,7 +328,7 @@ class Event < ApplicationRecord
 
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
 
-  validates :name, :organization_identifier, presence: true
+  validates :name, presence: true
   validates :slug, presence: true, format: { without: /\s/ }
   validates :slug, format: { without: /\A\d+\z/ }
   validates_uniqueness_of_without_deleted :slug
@@ -561,24 +554,6 @@ class Event < ApplicationRecord
 
   alias fee_balance fee_balance_v2_cents
 
-  def plan_name
-    if demo_mode?
-      "playground mode"
-    elsif plan.present?
-      plan.label
-    elsif unapproved?
-      "pending approval"
-    elsif hack_club_hq?
-      "Hack Club affiliated project"
-    elsif salary?
-      "salary account"
-    elsif revenue_fee == 0
-      "full fiscal sponsorship (fee waived)"
-    else
-      "full fiscal sponsorship"
-    end
-  end
-
   def used_emburse?
     emburse_cards.any?
   end
@@ -717,6 +692,7 @@ class Event < ApplicationRecord
 
   def minimumn_wire_amount_cents
     return 100 if canonical_transactions.where("amount_cents > 0").where("date >= ?", 1.year.ago).sum(:amount_cents) > 50_000_00
+    return 100 if plan.exempt_from_wire_minimum?
 
     return 500_00
   end

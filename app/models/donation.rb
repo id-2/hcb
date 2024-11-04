@@ -57,7 +57,6 @@ class Donation < ApplicationRecord
   set_public_id_prefix :don
 
   include AASM
-  include Commentable
 
   include HasStripeDashboardUrl
   has_stripe_dashboard_url "payments", :stripe_payment_intent_id
@@ -331,6 +330,8 @@ class Donation < ApplicationRecord
   def send_donation_notification
     # only runs when status becomes succeeded, should not run on delete.
     return unless status_previously_changed?(to: "succeeded")
+    # don't send for repeated recurring donations
+    return if recurring? && !initial_recurring_donation?
 
     if first_donation?
       DonationMailer.with(donation: self).first_donation_notification.deliver_later

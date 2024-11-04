@@ -22,9 +22,9 @@
 #
 class Event
   class Plan
-    class FivePercent < Standard
-      def revenue_fee
-        0.05
+    class SalaryAccount < FeeWaived
+      def label
+        "salary account"
       end
 
     end

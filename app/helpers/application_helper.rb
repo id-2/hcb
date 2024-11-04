@@ -53,17 +53,6 @@ module ApplicationHelper
     content_tag(:span, content.join.html_safe)
   end
 
-  def async_frame_to(url, options = { as: :div }, &block)
-    content_tag options[:as].to_sym,
-                block_given? ? capture(&block) : nil,
-                data: {
-                  src: url,
-                  behavior: "async_frame",
-                  loading: options[:lazy] ? "lazy" : nil
-                },
-                **options
-  end
-
   def blankslate(text, options = {})
     other_options = options.except(:class)
     content_tag(:p, text, class: "center mt0 mb0 pt4 pb4 slate bold h3 mx-auto rounded-lg border #{options[:class]}", **other_options)
@@ -249,6 +238,10 @@ module ApplicationHelper
 
   def page_xl
     content_for(:container_class) { "container--xl" }
+  end
+
+  def page_full
+    content_for(:container_class) { "container--full" }
   end
 
   def page_md

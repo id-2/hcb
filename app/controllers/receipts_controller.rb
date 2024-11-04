@@ -238,7 +238,7 @@ class ReceiptsController < ApplicationController
           streams.append(turbo_stream.replace(
                            ct.local_hcb_code.hashid,
                            partial: "canonical_transactions/canonical_transaction",
-                           locals: @frame && @event ? { ct:, event: @event, show_amount: true, updated_via_turbo_stream: true } : { ct:, force_display_details: true, receipt_upload_button: true, show_event_name: true, updated_via_turbo_stream: true }
+                           locals: @frame && @event ? { ct:, event: @event, show_amount: true, updated_via_turbo_stream: true, show_author_column: true } : { ct:, force_display_details: true, receipt_upload_button: true, show_event_name: true, updated_via_turbo_stream: true }
                          ))
         end
       else
@@ -247,7 +247,7 @@ class ReceiptsController < ApplicationController
           streams.append(turbo_stream.replace(
                            pt.local_hcb_code.hashid,
                            partial: "canonical_pending_transactions/canonical_pending_transaction",
-                           locals: @frame && @event ? { pt:, event: @event, show_amount: true, updated_via_turbo_stream: true } : { pt:, force_display_details: true, receipt_upload_button: !@frame, show_event_name: true, updated_via_turbo_stream: true }
+                           locals: @frame && @event ? { pt:, event: @event, show_amount: true, updated_via_turbo_stream: true, show_author_column: true } : { pt:, force_display_details: true, receipt_upload_button: !@frame, show_event_name: true, updated_via_turbo_stream: true }
                          ))
         end
       end
@@ -295,10 +295,9 @@ class ReceiptsController < ApplicationController
       streams.append(turbo_stream.remove("modal_receipt_#{@receipt.id}"))
     end
 
-    if @frame
-      streams.append(turbo_stream.load_new_async_frames)
-      streams.append(turbo_stream.close_modal)
-    end
+    # if @frame
+    #   streams.append(turbo_stream.close_modal)
+    # end
 
     unless params[:upload_method] == :transaction_page
       streams.append(turbo_stream.refresh_link_modals)

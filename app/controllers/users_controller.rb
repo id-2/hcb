@@ -104,7 +104,7 @@ class UsersController < ApplicationController
 
   def edit
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
-    @onboarding = @user.onboarding?
+    set_onboarding
     @mailbox_address = @user.active_mailbox_address
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
@@ -128,7 +128,7 @@ class UsersController < ApplicationController
 
   def edit_featurepreviews
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
-    @onboarding = @user.full_name.blank?
+    set_onboarding
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     authorize @user
@@ -136,7 +136,7 @@ class UsersController < ApplicationController
 
   def edit_security
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
-    @onboarding = @user.full_name.blank?
+    set_onboarding
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
     @oauth_authorizations = @user.api_tokens
@@ -193,7 +193,7 @@ class UsersController < ApplicationController
 
   def edit_admin
     @user = params[:id] ? User.friendly.find(params[:id]) : current_user
-    @onboarding = @user.full_name.blank?
+    set_onboarding
     show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
     @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
 
@@ -272,7 +272,7 @@ class UsersController < ApplicationController
         redirect_back_or_to edit_user_path(@user)
       end
     else
-      @onboarding = User.friendly.find(params[:id]).full_name.blank?
+      set_onboarding
       show_impersonated_sessions = admin_signed_in? || current_session.impersonated?
       @sessions = show_impersonated_sessions ? @user.user_sessions : @user.user_sessions.not_impersonated
       if @user.stripe_cardholder&.errors&.any?
@@ -336,6 +336,11 @@ class UsersController < ApplicationController
 
   def set_shown_private_feature_previews
     @shown_private_feature_previews = params[:classified_top_secret]&.split(",") || []
+  end
+
+  def set_onboarding
+    @onboarding = @user.onboarding?
+    @hide_seasonal_decorations = true if @onboarding
   end
 
   def user_params
