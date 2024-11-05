@@ -18,7 +18,7 @@
     <tbody>
       <% @tasks.each do |task| %>
         <% hcb_code = task.hcb_code %>
-        <tr class="<%= hcb_code.event.hack_club_hq? ? "admin-bg-red" : "" %>">
+        <tr class="<%= hcb_code.event.plan.is_a?(Event::Plan::HackClubAffiliate) ? "admin-bg-red" : "" %>">
           <td><%= hcb_code.created_at.strftime("%Y-%m-%d") %></td>
           <td>
             <span style="display: flex; align-items: center; gap: 8px;">
@@ -53,7 +53,7 @@
     <% hcb_code = task.hcb_code %>
     <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="hcb_code_details_<%= hcb_code.id %>">
       <%= modal_header(hcb_code.pretty_title(show_event_name: defined?(show_event_name), show_amount: defined?(show_amount)), external_link: hcb_code.url) %>
-      <%= async_frame_to hcb_code.popover_url, as: :div, lazy: true do %>
+      <%= turbo_frame_tag hcb_code.public_id, src: hcb_code.popover_url, loading: :lazy do %>
         <%= render partial: "application/loading_container" %>
       <% end %>
     </section>
