@@ -4,7 +4,7 @@ class WiresController < ApplicationController
   include SetEvent
 
   before_action :set_event, only: %i[new create]
-  before_action :set_wire, only: %i[approve reject]
+  before_action :set_wire, only: %i[approve reject send_wire]
 
   def new
     @wire = @event.wires.build
@@ -43,7 +43,7 @@ class WiresController < ApplicationController
     redirect_to wire_process_admin_path(@wire), flash: { error: e.message }
   end
 
-  def send
+  def send_wire
     authorize @wire
 
     @wire.send_wire!
