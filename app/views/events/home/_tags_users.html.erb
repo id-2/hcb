@@ -17,6 +17,10 @@
           </div>
         </div>
       <% else %>
+        <div class="flex flex-row justify-between mb2 mt2 items-center">
+          <h3 class="mt0 mb0">Top tags</h3>
+          <h5 class="homepage-eyebrow mt0 mb0">All time</h5>
+        </div>
         <%= pie_chart tags,
                       library: pie_chart_config,
                       download: true,
@@ -39,6 +43,10 @@
           </div>
         </div>
       <% else %>
+        <div class="flex flex-row justify-between mb2 mt2 items-center">
+          <h3 class="mt0 mb0">Top users</h3>
+          <h5 class="homepage-eyebrow mt0 mb0">All time</h5>
+        </div>
         <%= pie_chart users.map { |u| [u[:name], u[:value]] }.to_h,
                       library: pie_chart_config,
                       download: true,
