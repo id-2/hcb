@@ -4,6 +4,7 @@ import { Priority } from 'kbar'
 import Icon from '@hackclub/icons'
 import csrf from '../../common/csrf'
 import React from 'react'
+import ReimbursementIcon from '../icons/reimbursement'
 
 const restrictedCategories = ['outernet guild', 'hardware grant']
 
@@ -47,7 +48,7 @@ export const generateEventActions = data => {
       id: `${event.slug}-invoices`,
       name: 'Invoices',
       perform: navigate(`/${event.slug}/invoices`),
-      icon: <Icon glyph="briefcase" size={16} />,
+      icon: <Icon glyph="payment-docs" size={16} />,
       parent: event.slug,
     })),
     ...data.filter(restrictedFilter).map(event => ({
@@ -85,7 +86,7 @@ export const generateEventActions = data => {
       id: `${event.slug}-reimbursements`,
       name: 'Reimbursements',
       perform: navigate(`/${event.slug}/reimbursements`),
-      icon: <Icon glyph="attachment" size={16} />,
+      icon: <ReimbursementIcon size={16} />,
       parent: event.slug,
     })),
     ...data.map(event => ({
@@ -152,7 +153,7 @@ export const initalActions = [
     keywords: 'receipts inbox',
     perform: navigate('/my/inbox'),
     section: 'Pages',
-    icon: <Icon glyph="payment-docs" size={16} />,
+    icon: <Icon glyph="attachment" size={16} />,
     priority: Priority.HIGH,
   },
   {
@@ -166,7 +167,7 @@ export const initalActions = [
   },
   {
     id: 'change_theme',
-    name: 'Change Theme',
+    name: 'Change theme',
     keywords: 'dark light', // eslint-disable-next-line no-undef
     perform: () => BK.toggleDark(),
     section: 'Actions',
@@ -175,7 +176,7 @@ export const initalActions = [
   },
   {
     id: 'signout',
-    name: 'Sign Out',
+    name: 'Sign out',
     keywords: 'sign out logout log out',
     perform: () =>
       fetch('/users/logout', {
@@ -446,7 +447,7 @@ export const adminActions = adminUrls => [
     id: 'admin_tool_31',
     section: 'Admin Tools',
     priority: Priority.HIGH,
-    name: 'Check Deposits',
+    name: 'Check deposits',
     icon: <Icon glyph="payment-docs" size={16} />,
     perform: navigate('/admin/check_deposits'),
   },

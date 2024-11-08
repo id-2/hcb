@@ -33,13 +33,13 @@
     <%= dock_item "Receipts",
       my_inbox_path,
       tooltip: "See transactions awaiting receipts",
-      icon: "payment-docs",
+      icon: "attachment",
       async_badge: my_missing_receipts_icon_path,
       selected: local_assigns[:selected] == :receipts %>
     <%= dock_item "Reimbursements",
       my_reimbursements_path,
       tooltip: "See expense reimbursements",
-      icon: "attachment",
+      icon: "reimbursement",
       async_badge: my_reimbursements_icon_path,
       selected: local_assigns[:selected] == :reimbursements %>
     <%= dock_item "Settings",
