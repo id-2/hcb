@@ -5,47 +5,47 @@
 <div>
   <table>
     <thead>
-    <tr>
-      <th class="w-40">Date</th>
-      <th>Flagged By</th>
-      <th>Event Point of Contact</th>
-      <th>Memo</th>
-      <th>Amount</th>
-      <th>Receipts</th>
-      <th>Actions</th>
-    </tr>
+      <tr>
+        <th class="w-40">Date</th>
+        <th>Flagged By</th>
+        <th>Event Point of Contact</th>
+        <th>Memo</th>
+        <th>Amount</th>
+        <th>Receipts</th>
+        <th>Actions</th>
+      </tr>
     </thead>
     <tbody>
-    <% @tasks.each do |task| %>
-      <% hcb_code = task.hcb_code %>
-      <tr class="<%= hcb_code.event.plan.is_a?(Event::Plan::HackClubAffiliate) ? "admin-bg-red" : "" %>">
-        <td><%= hcb_code.created_at.strftime("%Y-%m-%d") %></td>
-        <td>
+      <% @tasks.each do |task| %>
+        <% hcb_code = task.hcb_code %>
+        <tr class="<%= hcb_code.event.plan.is_a?(Event::Plan::HackClubAffiliate) ? "admin-bg-red" : "" %>">
+          <td><%= hcb_code.created_at.strftime("%Y-%m-%d") %></td>
+          <td>
             <span style="display: flex; align-items: center; gap: 8px;">
               <%= avatar_for task.reviewer, 24, { class: "avatar" } %>
               <%= task.reviewer&.name %>
             </span>
-        </td>
-        <td>
+          </td>
+          <td>
             <span style="display: flex; align-items: center; gap: 8px;">
               <%= avatar_for hcb_code.event.point_of_contact, 24, { class: "avatar" } %>
               <%= hcb_code.event.point_of_contact&.name %>
             </span>
-        </td>
-        <td>
-          <%= link_to hcb_code.memo, "#", data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "hcb_code_details_#{hcb_code.id}" } %>
-        </td>
-        <td>
-          <%= render_money hcb_code.amount_cents %>
-        </td>
-        <td>
-          <%= hcb_code.receipts.count %>
-        </td>
-        <td>
-          <%= link_to "Review", admin_ledger_audits_task_path(task), class: "btn" %>
-        </td>
-      </tr>
-    <% end %>
+          </td>
+          <td>
+            <%= link_to hcb_code.memo, "#", data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "hcb_code_details_#{hcb_code.id}" } %>
+          </td>
+          <td>
+            <%= render_money hcb_code.amount_cents %>
+          </td>
+          <td>
+            <%= hcb_code.receipts.count %>
+          </td>
+          <td>
+            <%= link_to "Review", admin_ledger_audits_task_path(task), class: "btn" %>
+          </td>
+        </tr>
+      <% end %>
     </tbody>
   </table>
 
@@ -114,21 +114,21 @@
   <% end %>
 
   <style>
-      form, input {
-          margin-bottom: 0px !important;
-      }
+    form, input {
+      margin-bottom: 0px!important;
+    }
 
-      h3 {
-          margin-top: 0px;
-          margin-bottom: 16px;
-      }
+    h3 {
+      margin-top: 0px;
+      margin-bottom: 16px;
+    }
 
-      hr {
-          display: none;
-      }
+    hr {
+      display: none;
+    }
 
-      .avatar {
-          margin-bottom: 0px;
-      }
+    .avatar {
+      margin-bottom: 0px;
+    }
   </style>
 </div>

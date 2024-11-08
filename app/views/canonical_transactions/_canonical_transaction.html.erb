@@ -197,9 +197,9 @@
             <h2 class="h2 mt0 mx0 border-none flex items-center justify-between">
               <span class="flex-auto">
                 <%= pop_icon_to "edit",
-                                my_inbox_path,
-                                class: "mr2 align-middle", "aria-label": "Rename transaction",
-                                data: { turbo: true } if organizer_signed_in? %>
+                    my_inbox_path,
+                    class: "mr2 align-middle", "aria-label": "Rename transaction",
+                    data: { turbo: true } if organizer_signed_in? %>
                 <span class="align-middle"
                       data-controller="navigation"
                       data-action="dblclick->navigation#navigate"
