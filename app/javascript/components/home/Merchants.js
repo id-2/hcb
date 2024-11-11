@@ -1,5 +1,14 @@
 import React from 'react'
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import PropTypes from 'prop-types'
 import { colors, shuffle, USDollarNoCents, useDarkMode } from './utils'
 import { CustomTooltip } from './components'
@@ -54,6 +63,6 @@ Merchants.propTypes = {
     PropTypes.shape({
       name: PropTypes.string,
       value: PropTypes.number,
-    }),
+    })
   ).isRequired,
 }

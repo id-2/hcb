@@ -6,8 +6,8 @@ import { colors, shuffle, useDarkMode } from './utils'
 import { CustomTooltip, renderLegend } from './components'
 
 export default function Users({ data }) {
-  let shuffled = shuffle(colors);
-  const isDark = useDarkMode();
+  let shuffled = shuffle(colors)
+  const isDark = useDarkMode()
 
   return (
     <PieChart width={400} height={400}>
@@ -24,7 +24,7 @@ export default function Users({ data }) {
         }
         labelLine={false}
         strokeWidth={2}
-        stroke={isDark ? "#252429" : "#FFFFFF"}
+        stroke={isDark ? '#252429' : '#FFFFFF'}
       >
         {data.map((_, index) => (
           <Cell
