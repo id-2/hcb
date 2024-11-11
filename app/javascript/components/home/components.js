@@ -33,7 +33,6 @@ export const renderLegend = ({ payload }) => {
           text-wrap: balance!important;
           white-space: normal;
         }
-        
         `}
       </style>
     </>
