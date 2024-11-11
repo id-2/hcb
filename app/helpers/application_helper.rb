@@ -3,6 +3,11 @@
 module ApplicationHelper
   include ActionView::Helpers
 
+  def upsert_query_params(**new_params)
+    params = request.query_parameters || {}
+    params.merge(new_params)
+  end
+
   def render_money(amount, opts = {})
     amount = amount.cents if amount.is_a?(Money)
 
@@ -83,7 +88,7 @@ module ApplicationHelper
 
   def pop_icon_to(icon, url, options = { class: "info" })
     link_to url, options.merge(class: "pop #{options[:class]}") do
-      inline_icon icon, size: 28
+      inline_icon icon, size: options[:icon_size] || 28
     end
   end
 
