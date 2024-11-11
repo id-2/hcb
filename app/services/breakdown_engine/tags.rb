@@ -11,13 +11,13 @@ module BreakdownEngine
         amount_cents_sum = tag.hcb_codes.sum do |hcb_code|
           [hcb_code.amount_cents, 0].min
         end
-        if amount_cents_sum > 0
-          array << {
-            name: tag.label,
-            truncated: tag.label,
-            value: (amount_cents_sum * -1).to_f / 100
-          }
-        end
+        next unless amount_cents_sum > 0
+
+        array << {
+          name: tag.label,
+          truncated: tag.label,
+          value: (amount_cents_sum * -1).to_f / 100
+        }
       end
 
       total_amount = tags.sum { |tag| tag[:value] }
@@ -46,5 +46,6 @@ module BreakdownEngine
 
       tags
     end
+
   end
 end
