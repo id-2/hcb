@@ -48,7 +48,8 @@ export const CustomTooltip = ({ active, payload }) => {
           background: '#1f2d3d',
           borderRadius: '8px',
           padding: '0.25rem 0.75rem',
-          boxShadow: "0 0 2px 0 rgba(0, 0, 0, 0.0625), 0 4px 8px 0 rgba(0, 0, 0, 0.125)"
+          boxShadow:
+            '0 0 2px 0 rgba(0, 0, 0, 0.0625), 0 4px 8px 0 rgba(0, 0, 0, 0.125)',
         }}
       >
         {payload[0].payload.name} {payload[0].payload.name && <br />}

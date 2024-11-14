@@ -3,9 +3,9 @@ import 'intl/locale-data/jsonp/en-US'
 import { useEffect, useState } from 'react'
 
 export const generateColor = (i, isDark) => {
-  const lightness = isDark ? 40 + (Math.min(i, 10) * 5) : 60 - (Math.min(i, 10) * 5);
-  return `hsl(352, 83%, ${lightness}%)`;
-};
+  const lightness = isDark ? 40 + Math.min(i, 10) * 5 : 60 - Math.min(i, 10) * 5
+  return `hsl(352, 83%, ${lightness}%)`
+}
 
 export const USDollar = new Intl.NumberFormat('en-US', {
   style: 'currency',

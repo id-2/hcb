@@ -1,6 +1,13 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts'
 import { CustomTooltip, renderLegend } from './components'
 import { generateColor, useDarkMode } from './utils'
 
