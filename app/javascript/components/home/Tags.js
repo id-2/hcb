@@ -1,15 +1,14 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import { Cell, Legend, Pie, PieChart, Tooltip } from 'recharts'
-import PropTypes from 'prop-types'
-import { colors, shuffle, useDarkMode } from './utils'
 import { CustomTooltip, renderLegend } from './components'
+import { generateColor, useDarkMode } from './utils'
 
 export default function Tags({ data }) {
-  let shuffled = shuffle(colors)
   const isDark = useDarkMode()
 
   return (
-    <PieChart width={400} height={450}>
+    <PieChart width={400} height={420}>
       <Pie
         data={data}
         dataKey="value"
@@ -25,8 +24,8 @@ export default function Tags({ data }) {
         strokeWidth={2}
         stroke={isDark ? '#252429' : '#FFFFFF'}
       >
-        {data.map((_, index) => (
-          <Cell key={`cell-${index}`} fill={shuffled[index % colors.length]} />
+        {data.map((_, i) => (
+          <Cell key={`cell-${i}`} fill={generateColor(i, isDark)} />
         ))}
       </Pie>
       <Tooltip content={CustomTooltip} />

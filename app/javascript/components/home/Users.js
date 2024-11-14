@@ -1,42 +1,56 @@
-import React from 'react'
-import { Cell, Legend, Pie, PieChart, Tooltip } from 'recharts'
-import 'intl/locale-data/jsonp/en-US'
 import PropTypes from 'prop-types'
-import { colors, shuffle, useDarkMode } from './utils'
-import { CustomTooltip, renderLegend } from './components'
+import React from 'react'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { CustomTooltip } from './components'
+import { generateColor, USDollarNoCents, useDarkMode } from './utils'
 
 export default function Users({ data }) {
-  let shuffled = shuffle(colors)
   const isDark = useDarkMode()
 
   return (
-    <PieChart width={400} height={400}>
-      <Pie
-        data={data}
-        dataKey="value"
-        nameKey="name"
-        cx="50%"
-        cy="50%"
-        outerRadius={140}
-        fill="#82ca9d"
-        label={({ percent }) =>
-          percent > 0.1 ? `${(percent * 100).toFixed(0)}%` : ''
-        }
-        labelLine={false}
-        strokeWidth={2}
-        stroke={isDark ? '#252429' : '#FFFFFF'}
-      >
-        {data.map((_, index) => (
-          <Cell
-            key={`cell-${index}`}
-            style={{ outline: 'none' }}
-            fill={shuffled[index % colors.length]}
-          />
-        ))}
-      </Pie>
-      <Tooltip content={CustomTooltip} />
-      <Legend layout="horizontal" content={renderLegend} />
-    </PieChart>
+    <ResponsiveContainer
+      width="100%"
+      height={420}
+      padding={{ top: 32, left: 32 }}
+    >
+      <BarChart data={data} width={256} height={128} layout="vertical">
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke={'rgba(200, 200, 200, 0.3)'}
+        />
+        <XAxis
+          type="number"
+          tickFormatter={n => USDollarNoCents.format(n)}
+          width={
+            USDollarNoCents.format(Math.max(data.map(d => d['value']))).length *
+            18
+          }
+        />
+        <YAxis
+          type="category"
+          dataKey="name"
+          textAnchor="end"
+          verticalAnchor="start"
+          interval={0}
+          height={80}
+        />
+        <Tooltip content={CustomTooltip} />
+        <Bar dataKey="value">
+          {data.map((c, i) => (
+            <Cell key={c.name} fill={generateColor(i, isDark)} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   )
 }
 

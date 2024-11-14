@@ -2,18 +2,10 @@ import Intl from 'intl'
 import 'intl/locale-data/jsonp/en-US'
 import { useEffect, useState } from 'react'
 
-export const colors = Array.from(
-  { length: 11 },
-  (_, i) => `hsl(352, 83%, ${70 - i * 5}%)`
-)
-
-export const shuffle = array => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[array[i], array[j]] = [array[j], array[i]]
-  }
-  return array
-}
+export const generateColor = (i, isDark) => {
+  const lightness = isDark ? 20 + (Math.min(i, 10) * 5) : 60 - (Math.min(i, 10) * 5);
+  return `hsl(352, 83%, ${lightness}%)`;
+};
 
 export const USDollar = new Intl.NumberFormat('en-US', {
   style: 'currency',

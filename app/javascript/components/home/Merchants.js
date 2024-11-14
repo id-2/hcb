@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import {
   Bar,
@@ -9,12 +10,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import PropTypes from 'prop-types'
-import { colors, shuffle, USDollarNoCents, useDarkMode } from './utils'
 import { CustomTooltip } from './components'
+import { generateColor, USDollarNoCents, useDarkMode } from './utils'
 
 export default function Merchants({ data }) {
-  let shuffled = shuffle(colors)
   const isDark = useDarkMode()
 
   return (
@@ -26,7 +25,7 @@ export default function Merchants({ data }) {
       <BarChart data={data} width={256} height={128}>
         <CartesianGrid
           strokeDasharray="3 3"
-          stroke={isDark ? '#252429' : '#e0e6ed'}
+          stroke={'rgba(200, 200, 200, 0.3)'}
         />
         <YAxis
           tickFormatter={n => USDollarNoCents.format(n)}
@@ -41,7 +40,6 @@ export default function Merchants({ data }) {
             textAnchor="end"
             verticalAnchor="start"
             interval={0}
-            angle={-60}
             height={80}
           />
         ) : (
@@ -50,7 +48,7 @@ export default function Merchants({ data }) {
         <Tooltip content={CustomTooltip} />
         <Bar dataKey="value">
           {data.map((c, i) => (
-            <Cell key={c.name} fill={shuffled[i % shuffled.length]} />
+            <Cell key={c.name} fill={generateColor(i, isDark)} />
           ))}
         </Bar>
       </BarChart>
