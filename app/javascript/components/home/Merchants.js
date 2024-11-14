@@ -45,8 +45,8 @@ export default function Merchants({ data }) {
         ) : (
           <XAxis dataKey="name" />
         )}
-        <Tooltip content={CustomTooltip} />
-        <Bar dataKey="value">
+        <Tooltip content={CustomTooltip} cursor={{ fill: 'transparent' }} />
+        <Bar dataKey="value" radius={[5, 5, 0, 0]}>
           {data.map((c, i) => (
             <Cell key={c.name} fill={generateColor(i, isDark)} />
           ))}

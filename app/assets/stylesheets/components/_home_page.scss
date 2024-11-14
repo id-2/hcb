@@ -33,11 +33,9 @@
   gap: 2px;
   max-width: 100%;
 }
-
-@media only screen and (max-width: 600px) {
+@media (max-width: 768px) {
   .grid-container {
-    grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: repeat(53, 1fr);
+    gap: 0px;
   }
 }
 

@@ -43,7 +43,7 @@ export default function Users({ data }) {
           interval={0}
           height={80}
         />
-        <Tooltip content={CustomTooltip} />
+        <Tooltip content={CustomTooltip} cursor={{ fill: 'transparent' }} />
         <Bar dataKey="value">
           {data.map((c, i) => (
             <Cell key={c.name} fill={generateColor(i, isDark)} />

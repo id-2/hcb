@@ -94,17 +94,6 @@ class EventsController < ApplicationController
     authorize @event
     @merchants = BreakdownEngine::Merchants.new(@event).run
 
-    @merchants = [
-      { name: "Amazon", value: 100000, truncated: "Amazon" },
-      { name: "Apple", value: 5000, truncated: "Apple" },
-      { name: "Google", value: 25000 , truncated: "Google" },
-      { name: "Microsoft", value: 10000, truncated: "Microsoft" },
-      { name: "Facebook", value: 5000 , truncated: "Facebook" },
-      { name: "Twitter", value: 2500 , truncated: "Twitter" },
-      { name: "LinkedIn", value: 1000, truncated: "LinkedIn" },
-      { name: "Snapchat", value: 500 , truncated: "Snapchat" },
-    ]
-
     respond_to do |format|
       format.html { render partial: "events/home/top_merchants", locals: { merchants: @merchants, event: @event } }
     end
@@ -113,17 +102,6 @@ class EventsController < ApplicationController
   def top_categories
     authorize @event
     @categories = BreakdownEngine::Categories.new(@event).run
-
-    @categories = [
-      { name: "1", value: 100000, truncated: "1" },
-      { name: "2", value: 5000, truncated: "2" },
-      { name: "3", value: 25000 , truncated: "3" },
-      { name: "4", value: 10000, truncated: "4" },
-      { name: "5", value: 5000 , truncated: "5" },
-      { name: "6", value: 2500 , truncated: "6" },
-      { name: "7", value: 1000, truncated: "7" },
-      { name: "8", value: 500 , truncated: "8" },
-    ]
 
     respond_to do |format|
       format.html { render partial: "events/home/top_categories", locals: { categories: @categories, event: @event } }
@@ -134,23 +112,6 @@ class EventsController < ApplicationController
     authorize @event
     @users = BreakdownEngine::Users.new(@event).run
     @tags = BreakdownEngine::Tags.new(@event).run
-    @tags = [
-      { name: "1", value: 100000, truncated: "1" },
-      { name: "2", value: 5000, truncated: "2" },
-      { name: "3", value: 25000 , truncated: "3" },
-      { name: "4", value: 10000, truncated: "4" },
-      { name: "5", value: 5000 , truncated: "5" },
-      { name: "6", value: 2500 , truncated: "6" },
-      { name: "7", value: 1000, truncated: "7" },
-      { name: "8", value: 500 , truncated: "8" },
-    ]
-    @users = [
-      { name: "Zach L", value: 100000, truncated: "this is person 1" },
-      { name: "barack obama", value: 5000, truncated: "this is person 2" },
-      { name: "long name test 2 aaaa", value: 25000 , truncated: "this is person 3" },
-      { name: "t", value: 10000, truncated: "this is person 4" },
-      { name: "asdfsasdfasdf a", value: 5000 , truncated: "this is person 5" },
-    ]
     @empty_tags = @users.empty? || !Flipper.enabled?(:transaction_tags_2022_07_29, @event)
     @empty_users = @users.empty?
 
