@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_11_05_040152) do
+ActiveRecord::Schema[7.2].define(version: 2024_11_14_025823) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -822,12 +822,12 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_05_040152) do
   end
 
   create_table "event_plans", force: :cascade do |t|
-    t.string "plan_type"
     t.string "aasm_state"
     t.bigint "event_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "inactive_at"
+    t.string "type"
     t.index ["event_id"], name: "index_event_plans_on_event_id"
   end
 
@@ -855,8 +855,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_05_040152) do
     t.string "emburse_department_id"
     t.text "slug"
     t.bigint "point_of_contact_id"
-    t.integer "expected_budget"
-    t.boolean "has_fiscal_sponsorship_document"
     t.text "club_airtable_id"
     t.datetime "hidden_at", precision: nil
     t.boolean "donation_page_enabled", default: true
@@ -1230,44 +1228,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_05_040152) do
     t.index ["status"], name: "index_invoices_on_status"
     t.index ["stripe_invoice_id"], name: "index_invoices_on_stripe_invoice_id", unique: true
     t.index ["voided_by_id"], name: "index_invoices_on_voided_by_id"
-  end
-
-  create_table "lab_tech_experiments", force: :cascade do |t|
-    t.string "name"
-    t.integer "percent_enabled", default: 0, null: false
-    t.integer "equivalent_count", default: 0, null: false
-    t.integer "timed_out_count", default: 0, null: false
-    t.integer "other_error_count", default: 0, null: false
-    t.index ["name"], name: "index_lab_tech_experiments_by_name", unique: true
-  end
-
-  create_table "lab_tech_observations", force: :cascade do |t|
-    t.integer "result_id", null: false
-    t.string "name", limit: 100
-    t.float "duration"
-    t.text "value"
-    t.text "sql"
-    t.string "exception_class"
-    t.text "exception_message"
-    t.text "exception_backtrace"
-    t.datetime "created_at", precision: nil
-    t.text "diff"
-    t.index ["result_id"], name: "index_lab_tech_observations_by_result_id"
-  end
-
-  create_table "lab_tech_results", force: :cascade do |t|
-    t.integer "experiment_id", null: false
-    t.text "context"
-    t.boolean "equivalent", default: false, null: false
-    t.boolean "raised_error", default: false, null: false
-    t.float "time_delta"
-    t.float "speedup_factor"
-    t.datetime "created_at", precision: nil
-    t.boolean "timed_out", default: false, null: false
-    t.float "control_duration"
-    t.float "candidate_duration"
-    t.index ["experiment_id", "equivalent"], name: "index_lab_tech_results_by_exp_id_and_equivalent"
-    t.index ["experiment_id", "raised_error"], name: "index_lab_tech_results_by_exp_id_and_raised"
   end
 
   create_table "lob_addresses", force: :cascade do |t|
@@ -1854,11 +1814,23 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_05_040152) do
     t.integer "stripe_card_personalization_design_id"
     t.boolean "initially_activated", default: false, null: false
     t.boolean "cash_withdrawal_enabled", default: false
+    t.datetime "canceled_at"
     t.index ["event_id"], name: "index_stripe_cards_on_event_id"
     t.index ["replacement_for_id"], name: "index_stripe_cards_on_replacement_for_id"
     t.index ["stripe_cardholder_id"], name: "index_stripe_cards_on_stripe_cardholder_id"
     t.index ["stripe_id"], name: "index_stripe_cards_on_stripe_id", unique: true
     t.index ["subledger_id"], name: "index_stripe_cards_on_subledger_id"
+  end
+
+  create_table "stripe_service_fees", force: :cascade do |t|
+    t.string "stripe_balance_transaction_id", null: false
+    t.string "stripe_topup_id"
+    t.integer "amount_cents", null: false
+    t.string "stripe_description", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["stripe_balance_transaction_id"], name: "index_stripe_service_fees_on_stripe_balance_transaction_id", unique: true
+    t.index ["stripe_topup_id"], name: "index_stripe_service_fees_on_stripe_topup_id", unique: true
   end
 
   create_table "subledgers", force: :cascade do |t|

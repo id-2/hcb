@@ -66,6 +66,8 @@ module Reimbursement
     scope :search, ->(q) { joins(:user).where("users.full_name ILIKE :query OR reimbursement_reports.name ILIKE :query", query: "%#{User.sanitize_sql_like(q)}%") }
     scope :pending, -> { where(aasm_state: ["draft", "submitted", "reimbursement_requested"]) }
     scope :to_calculate_total, -> { where.not(aasm_state: ["rejected"]) }
+    scope :visible, -> { joins(:user).where.not(user: { full_name: nil }, invited_by_id: nil) }
+    # view https://github.com/hackclub/hcb/issues/8486 for context behind this scope
 
     include AASM
     include Commentable
@@ -298,6 +300,10 @@ module Reimbursement
 
     def exceeds_maximum_amount?
       maximum_amount_cents && amount_cents > maximum_amount_cents
+    end
+
+    def from_public_reimbursement_form?
+      invited_by_id.nil?
     end
 
     private

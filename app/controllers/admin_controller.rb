@@ -4,7 +4,7 @@ class AdminController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
   before_action :signed_in_admin
 
-  layout "application"
+  layout "admin"
 
   def task_size
     starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -46,8 +46,6 @@ class AdminController < ApplicationController
                            elsif @canonical_transaction.amount_cents.abs >= 5_000_00 # $5k
                              "Are you really really sure you want to map this transaction? 🤔 it seems like a big one :)"
                            end
-
-    render layout: "admin"
   end
 
   def events
@@ -61,7 +59,6 @@ class AdminController < ApplicationController
     respond_to do |format|
       format.html do
         @events = @events.page(@page).per(@per)
-        render layout: "admin"
       end
       format.csv { render csv: @events }
     end
@@ -69,12 +66,9 @@ class AdminController < ApplicationController
 
   def event_process
     @event = Event.find(params[:id])
-
-    render layout: "admin"
   end
 
   def event_new
-    render layout: "admin"
   end
 
   def event_create
@@ -89,7 +83,7 @@ class AdminController < ApplicationController
       point_of_contact_id: params[:point_of_contact_id],
       approved: params[:approved].to_i == 1,
       is_public: params[:is_public].to_i == 1,
-      plan_type: params[:plan_type],
+      plan: params[:plan],
       organized_by_hack_clubbers: params[:organized_by_hack_clubbers].to_i == 1,
       organized_by_teenagers: params[:organized_by_teenagers].to_i == 1,
       omit_stats: params[:omit_stats].to_i == 1,
@@ -154,8 +148,6 @@ class AdminController < ApplicationController
     @sum = relation.sum(:amount_cents)
 
     @bank_fees = relation.page(@page).per(@per).order("bank_fees.created_at desc")
-
-    render layout: "admin"
   end
 
   def users
@@ -184,7 +176,6 @@ class AdminController < ApplicationController
 
     respond_to do |format|
       format.html do
-        render layout: "admin"
       end
       format.csv { render csv: @users.includes(:stripe_cards, :emburse_cards) }
     end
@@ -199,8 +190,6 @@ class AdminController < ApplicationController
     @cards = StripeCard.includes(stripe_cardholder: :user).page(@page).per(@per).order("stripe_cards.created_at desc")
 
     @cards = @cards.joins(stripe_cardholder: :user).where("users.full_name ILIKE :query OR users.email ILIKE :query OR stripe_cards.last4 ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%") if @q
-
-    render layout: "admin"
   end
 
   def bank_accounts
@@ -210,7 +199,6 @@ class AdminController < ApplicationController
 
     @bank_accounts = relation.all.order("id asc")
 
-    render layout: "admin"
   end
 
   def raw_transactions
@@ -224,12 +212,9 @@ class AdminController < ApplicationController
     @count = relation.count
 
     @raw_transactions = relation.page(@page).per(@per).order("date_posted desc")
-
-    render layout: "admin"
   end
 
   def raw_transaction_new
-    render layout: "admin"
   end
 
   def raw_transaction_create
@@ -295,8 +280,6 @@ class AdminController < ApplicationController
     @count = relation.count
 
     @canonical_transactions = relation.page(@page).per(@per).order(date: :desc)
-
-    render layout: "admin"
   end
 
   def pending_ledger
@@ -336,8 +319,6 @@ class AdminController < ApplicationController
     @count = relation.count
 
     @canonical_pending_transactions = relation.page(@page).per(@per).order("date desc")
-
-    render layout: "admin"
   end
 
   def ach
@@ -381,7 +362,6 @@ class AdminController < ApplicationController
       "created_at desc"
     )
 
-    render layout: "admin"
   end
 
   def reimbursements
@@ -395,9 +375,9 @@ class AdminController < ApplicationController
     if @event_id
       @event = Event.find(@event_id)
 
-      relation = @event.reimbursement_reports.includes(:event)
+      relation = @event.reimbursement_reports.includes(:event).visible
     else
-      relation = Reimbursement::Report.includes(:event)
+      relation = Reimbursement::Report.includes(:event).visible
     end
 
     relation = relation.search(@q) if @q
@@ -411,25 +391,6 @@ class AdminController < ApplicationController
       "reimbursement_reports.created_at desc"
     )
 
-    render layout: "admin"
-  end
-
-  def reimbursements_status
-    @clearinghouse_transactions = TransactionGroupingEngine::Transaction::All.new(event_id: EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING).run
-
-    @pending_transactions = PendingTransactionEngine::PendingTransaction::All.new(event_id: EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING).run
-
-    @unidentified_transactions = @clearinghouse_transactions.reject { |tx| (tx.local_hcb_code.reimbursement_payout_holding? || tx.local_hcb_code.reimbursement_payout_transfer?) || tx.hcb_code == "HCB-500-5084" || tx.amount_cents == 0 } # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
-
-    @incomplete_payout_holdings = @clearinghouse_transactions.select { |tx|
-      tx.local_hcb_code.reimbursement_payout_holding? && (
-        tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.nil? ||
-        @clearinghouse_transactions.select { |ctx| ctx.hcb_code == tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.hcb_code }.none? ||
-        tx.local_hcb_code.reimbursement_payout_holding.payout_transfer.local_hcb_code.amount_cents.abs != tx.local_hcb_code.amount_cents.abs
-      ) && !tx.local_hcb_code.reimbursement_payout_holding.reversed? && tx.hcb_code != "HCB-712-732" # https://hackclub.slack.com/archives/C047Y01MHJQ/p1720156952566249
-    }
-
-    render layout: false
   end
 
   def stripe_card_personalization_designs
@@ -462,11 +423,9 @@ class AdminController < ApplicationController
     @common_designs = StripeCard::PersonalizationDesign.includes(:event).common
     @designs = relation
 
-    render layout: "admin"
   end
 
   def stripe_card_personalization_design_new
-    render layout: "admin"
   end
 
   def stripe_card_personalization_design_create
@@ -485,7 +444,6 @@ class AdminController < ApplicationController
   def ach_start_approval
     @ach_transfer = AchTransfer.find(params[:id])
 
-    render layout: "admin"
   end
 
   def ach_approve
@@ -511,7 +469,6 @@ class AdminController < ApplicationController
   def disbursement_process
     @disbursement = Disbursement.find(params[:id])
 
-    render layout: "admin"
   end
 
   def disbursement_approve
@@ -577,7 +534,6 @@ class AdminController < ApplicationController
       "created_at desc"
     )
 
-    render layout: "admin"
   end
 
   def increase_checks
@@ -588,13 +544,11 @@ class AdminController < ApplicationController
       "created_at desc"
     )
 
-    render layout: "admin"
   end
 
   def increase_check_process
     @check = IncreaseCheck.find(params[:id])
 
-    render layout: "admin"
   end
 
   def paypal_transfers
@@ -614,13 +568,11 @@ class AdminController < ApplicationController
       "created_at desc"
     )
 
-    render layout: "admin"
   end
 
   def paypal_transfer_process
     @paypal_transfer = PaypalTransfer.find(params[:id])
 
-    render layout: "admin"
   end
 
   def wires
@@ -640,13 +592,11 @@ class AdminController < ApplicationController
       "created_at desc"
     )
 
-    render layout: "admin"
   end
 
   def wire_process
     @wire = Wire.find(params[:id])
 
-    render layout: "admin"
   end
 
   def donations
@@ -692,7 +642,6 @@ class AdminController < ApplicationController
     @count = relation.count
     @donations = relation.page(@page).per(@per).order("created_at desc")
 
-    render layout: "admin"
   end
 
   def recurring_donations
@@ -710,7 +659,6 @@ class AdminController < ApplicationController
 
     @donations = relation.page(params[:page]).per(20).order(created_at: :desc)
 
-    render layout: "admin"
   end
 
   def disbursements
@@ -751,7 +699,6 @@ class AdminController < ApplicationController
       "created_at desc"
     )
 
-    render layout: "admin"
   end
 
   def disbursement_new
@@ -787,7 +734,6 @@ class AdminController < ApplicationController
     respond_to do |format|
       format.html do
         @hcb_codes = @hcb_codes.page(@page).per(@per)
-        render layout: "admin"
       end
       format.csv { render csv: @hcb_codes }
     end
@@ -835,13 +781,11 @@ class AdminController < ApplicationController
     @count = relation.count
     @invoices = relation.page(@page).per(@per).order(created_at: :desc)
 
-    render layout: "admin"
   end
 
   def invoice_process
     @invoice = Invoice.find(params[:id])
 
-    render layout: "admin"
   end
 
   def invoice_mark_paid
@@ -877,7 +821,6 @@ class AdminController < ApplicationController
     @count = relation.count
     @sponsors = relation.page(@page).per(@per).order("created_at desc")
 
-    render layout: "admin"
   end
 
   def google_workspaces
@@ -904,13 +847,11 @@ class AdminController < ApplicationController
     @count = relation.count
     @g_suites = relation.page(@page).per(@per).order("created_at desc")
 
-    render layout: "admin"
   end
 
   def google_workspace_process
     @g_suite = GSuite.find(params[:id])
 
-    render layout: "admin"
   end
 
   def google_workspace_approve
@@ -1116,7 +1057,6 @@ class AdminController < ApplicationController
 
     respond_to do |format|
       format.html do
-        render layout: "admin"
       end
 
       filename = "balances_#{Time.now.strftime("%Y_%m_%d %H_%M_%S")}"
@@ -1148,21 +1088,18 @@ class AdminController < ApplicationController
     @per = params[:per] || 20
     @grants = Grant.includes(:event, :recipient).page(@page).per(@per).order(created_at: :desc)
 
-    render layout: "admin"
   end
 
   def grant_process
     @grant = Grant.find(params[:id])
 
-    render layout: "admin"
   end
 
   def hq_receipts
     @page = params[:page] || 1
     @per = params[:per] || 20
-    @users = User.where(id: Event.hack_club_hq.or(Event.omitted).includes(:users).flat_map(&:users).map(&:id)).page(@page).per(@per).order(created_at: :desc)
+    @users = User.where(id: Event.omitted.includes(:users).flat_map(&:users).map(&:id)).page(@page).per(@per).order(created_at: :desc)
 
-    render layout: "admin"
   end
 
   def account_numbers
@@ -1189,7 +1126,6 @@ class AdminController < ApplicationController
     @count = relation.count
     @account_numbers = relation.page(@page).per(@per).order("events.id desc")
 
-    render layout: "admin"
   end
 
   def email
@@ -1215,7 +1151,6 @@ class AdminController < ApplicationController
 
     @messages = messages.page(@page).per(@per).order(sent_at: :desc)
 
-    render layout: "admin"
   end
 
   def merchant_memo_check
@@ -1263,7 +1198,7 @@ class AdminController < ApplicationController
       @category = params[:category].present? ? params[:category] : "all"
     end
     @point_of_contact_id = params[:point_of_contact_id].present? ? params[:point_of_contact_id] : "all"
-    @plan = params[:plan_type].present? ? params[:plan_type] : "all"
+    @plan = params[:plan].present? ? params[:plan] : "all"
     if params[:country] == 9999.to_s
       @country = 9999
     else
@@ -1298,7 +1233,7 @@ class AdminController < ApplicationController
     relation = relation.where(id: events.joins(:canonical_transactions).where("canonical_transactions.date >= ?", @activity_since_date)) if @activity_since_date.present?
     if @plan != "all"
       relation = relation.where(id: events.joins("LEFT JOIN event_plans on event_plans.event_id = events.id")
-                         .where("event_plans.aasm_state = 'active' AND event_plans.plan_type = ?", @plan))
+                         .where("event_plans.aasm_state = 'active' AND event_plans.type = ?", @plan))
     end
     if @category == "none"
       relation = relation.where(category: nil)

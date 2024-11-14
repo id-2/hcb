@@ -7,7 +7,7 @@
 #  id          :bigint           not null, primary key
 #  aasm_state  :string
 #  inactive_at :datetime
-#  plan_type   :string
+#  type        :string
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  event_id    :bigint           not null
@@ -24,6 +24,8 @@ class Event
   class Plan < ApplicationRecord
     has_paper_trail
 
+    self.ignored_columns += ["plan_type"]
+
     belongs_to :event
 
     include AASM
@@ -33,14 +35,15 @@ class Event
 
       event :mark_inactive do
         transitions from: :active, to: :inactive
-        after do |new_plan_type|
-          event.create_plan!(plan_type: new_plan_type)
+        after do |new_type|
+          event.reload
+          event.create_plan!(type: new_type)
         end
       end
     end
 
     def standard?
-      plan_type == Event::Plan::Standard.name
+      type == Event::Plan::Standard.name
     end
 
     def was_backfilled?
@@ -73,8 +76,8 @@ class Event
     end
 
     validate do
-      unless plan_type.in?(Event::Plan.descendants.map(&:name))
-        errors.add(:plan_type, "is invalid")
+      unless type.in?(Event::Plan.descendants.map(&:name))
+        errors.add(:type, "is invalid")
       end
     end
 
