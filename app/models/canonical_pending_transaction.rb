@@ -14,7 +14,6 @@
 #  memo                                             :text             not null
 #  created_at                                       :datetime         not null
 #  updated_at                                       :datetime         not null
-#  ach_payment_id                                   :bigint
 #  check_deposit_id                                 :bigint
 #  grant_id                                         :bigint
 #  increase_check_id                                :bigint
@@ -33,7 +32,6 @@
 #
 # Indexes
 #
-#  index_canonical_pending_transactions_on_ach_payment_id           (ach_payment_id)
 #  index_canonical_pending_transactions_on_check_deposit_id         (check_deposit_id)
 #  index_canonical_pending_transactions_on_grant_id                 (grant_id)
 #  index_canonical_pending_transactions_on_hcb_code                 (hcb_code)
@@ -107,7 +105,6 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :outgoing_disbursement, -> { where("raw_pending_outgoing_disbursement_transaction_id is not null") }
   scope :reimbursement_expense_payout, -> { where.not(reimbursement_expense_payout_id: nil) }
   scope :reimbursement_payout_holding, -> { where.not(reimbursement_payout_holding_id: nil) }
-  scope :ach_payment, -> { where.not(ach_payment: nil) }
   scope :unmapped, -> { includes(:canonical_pending_event_mapping).where(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }
   scope :mapped, -> { includes(:canonical_pending_event_mapping).where.not(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }
   scope :unsettled, -> {
