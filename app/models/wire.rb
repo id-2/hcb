@@ -339,6 +339,7 @@ class Wire < ApplicationRecord
     when "PK"
       fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "Should be prepended with CNIC, SNIC, Passport, or NTN depending on the ID type." }
+      fields << { type: :text_area, key: "remittance_info", label: "Remittance information", description: "Relationship between remitter and beneficiary must be clearly identified" }
       fields << { type: :text_area, key: "purpose_code", label: "Purpose code", description: "A 4-digit purpose of payment code.", refer_to: "https://www.sbp.org.pk/fe_returns/cod5.pdf" }
     when "PY"
       fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
@@ -455,8 +456,7 @@ class Wire < ApplicationRecord
   def send_wire!
     return unless may_mark_approved?
 
-    account_number_id = event.column_account_number&.column_id ||
-                        Rails.application.credentials.dig(:column, ColumnService::ENVIRONMENT, :default_account_number)
+    account_number_id = (event.column_account_number || event.create_column_account_number)&.column_id
 
     column_counterparty = ColumnService.post("/counterparties", {
       idempotency_key: self.id.to_s,
