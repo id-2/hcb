@@ -147,7 +147,7 @@
         <% Wire.information_required_for(country[0]).each do |field| %>
           <div class="field">
             <%= form.label field[:key], field[:label], class: "mb1" %>
-            <%= form.send(field[:type], field[:key], required: true) %>
+            <%= form.send(field[:type], field[:key], required: true, maxlength: 140) %>
             <div class="muted mt1">
               <%= field[:description] %>
               <% if field[:refer_to] %>
