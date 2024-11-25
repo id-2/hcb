@@ -42,7 +42,7 @@
   align-items: end; // bottom-align stats of varying sizes
 
   // On iPhone SE/super small screens, 1 column. Most phones, 2 columns
-  @media screen and (max-width: 48em) and (min-width: 24em) {
+  @media screen and (max-width: 48em) and (min-width: 36em) {
     grid-template-columns: repeat(2, 1fr);
     grid-gap: 1rem;
 
