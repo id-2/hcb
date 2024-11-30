@@ -47,20 +47,20 @@ $(document).on('click', '[data-behavior~=flash]', function () {
 })
 
 loadModals(document)
-;(() => {
-  let autoModals = $('[data-modal-auto-open~=true]')
+  ; (() => {
+    let autoModals = $('[data-modal-auto-open~=true]')
 
-  if (autoModals.length < 1) return
+    if (autoModals.length < 1) return
 
-  let element = autoModals.first()
+    let element = autoModals.first()
 
-  BK.s('modal', '#' + $(element).data('modal')).modal({
-    modalClass: $(element).parents('turbo-frame').length
-      ? 'turbo-frame-modal'
-      : undefined,
-    closeExisting: false,
-  })
-})()
+    BK.s('modal', '#' + $(element).data('modal')).modal({
+      modalClass: $(element).parents('turbo-frame').length
+        ? 'turbo-frame-modal'
+        : undefined,
+      closeExisting: false,
+    })
+  })()
 
 $(document).on('keyup', 'action', function (e) {
   if (e.keyCode === 13) {
@@ -159,6 +159,19 @@ $(document).keydown(function (e) {
 $(document).on('click', '[data-behavior~=toggle_theme]', () => BK.toggleDark())
 
 $(document).on('turbo:load', function () {
+  // Persist sidebar scroll position while navigating between pages
+  document.addEventListener("turbo:before-cache", () => {
+    const sidebar = document.getElementById("sidebar-scroll-container");
+    if (sidebar) sessionStorage.setItem("sidebarScrollPosition", sidebar.scrollTop)
+  });
+
+  document.addEventListener("turbo:load", () => {
+    const sidebar = document.getElementById("sidebar-scroll-container");
+    if (!sidebar) return;
+    const scrollPosition = sessionStorage.getItem("sidebarScrollPosition");
+    if (scrollPosition) sidebar.scrollTop = scrollPosition;
+  });
+
   if (window.location !== window.parent.location) {
     $('[data-behavior~=hide_iframe]').hide()
   }
@@ -412,8 +425,7 @@ $(document).on('turbo:load', function () {
 
   $('[data-behavior~=mention]').on('click', e => {
     BK.s('comment').val(
-      `${
-        BK.s('comment').val() + (BK.s('comment').val().length > 0 ? ' ' : '')
+      `${BK.s('comment').val() + (BK.s('comment').val().length > 0 ? ' ' : '')
       }${e.target.dataset.mentionValue || e.target.innerText}`
     )
     BK.s('comment')[0].scrollIntoView()
