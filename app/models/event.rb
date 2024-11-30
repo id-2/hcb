@@ -19,16 +19,12 @@
 #  donation_page_message                        :text
 #  donation_reply_to_email                      :text
 #  donation_thank_you_message                   :text
-#  expected_budget                              :integer
-#  has_fiscal_sponsorship_document              :boolean
 #  hidden_at                                    :datetime
 #  holiday_features                             :boolean          default(TRUE), not null
 #  is_indexable                                 :boolean          default(TRUE)
 #  is_public                                    :boolean          default(TRUE)
 #  last_fee_processed_at                        :datetime
 #  name                                         :text
-#  omit_stats                                   :boolean          default(FALSE)
-#  organization_identifier                      :string
 #  postal_code                                  :string
 #  public_message                               :text
 #  public_reimbursement_page_enabled            :boolean          default(FALSE), not null
@@ -40,14 +36,12 @@
 #  website                                      :string
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
-#  club_airtable_id                             :text
 #  emburse_department_id                        :string
 #  increase_account_id                          :string           not null
 #  point_of_contact_id                          :bigint
 #
 # Indexes
 #
-#  index_events_on_club_airtable_id     (club_airtable_id) UNIQUE
 #  index_events_on_point_of_contact_id  (point_of_contact_id)
 #
 # Foreign Keys
@@ -55,7 +49,6 @@
 #  fk_rails_...  (point_of_contact_id => users.id)
 #
 class Event < ApplicationRecord
-  self.ignored_columns = %w[sponsorship_fee has_fiscal_sponsorship_document organization_identifier transaction_engine_v2_at pending_transaction_engine_at]
   MIN_WAITING_TIME_BETWEEN_FEES = 5.days
 
   include Hashid::Rails
@@ -97,8 +90,8 @@ class Event < ApplicationRecord
   scope :transparent, -> { where(is_public: true) }
   scope :not_transparent, -> { where(is_public: false) }
   scope :indexable, -> { where(is_public: true, is_indexable: true, demo_mode: false) }
-  scope :omitted, -> { where(omit_stats: true) }
-  scope :not_omitted, -> { where(omit_stats: false) }
+  scope :omitted, -> { includes(:plan).where(plan: { type: Event::Plan.that(:omit_stats).collect(&:name) }) }
+  scope :not_omitted, -> { includes(:plan).where.not(plan: { type: Event::Plan.that(:omit_stats).collect(&:name) }) }
   scope :hidden, -> { where("hidden_at is not null") }
   scope :hidden, -> { where.not(hidden_at: nil) }
   scope :not_hidden, -> { where(hidden_at: nil) }
@@ -112,6 +105,7 @@ class Event < ApplicationRecord
   scope :not_organized_by_hack_clubbers, -> { includes(:event_tags).where.not(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }).or(includes(:event_tags).where(event_tags: { name: nil })) }
   scope :organized_by_teenagers, -> { includes(:event_tags).where(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }) }
   scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(includes(:event_tags).where(event_tags: { name: nil })) }
+  scope :robotics_team, -> { includes(:event_tags).where(event_tags: { name: EventTag::Tags::ROBOTICS_TEAM }) }
   scope :flag_enabled, ->(flag) {
     joins("INNER JOIN flipper_gates ON CONCAT('Event;', events.id) = flipper_gates.value")
       .where("flipper_gates.feature_key = ? AND flipper_gates.key = ?", flag, "actors")
@@ -344,7 +338,7 @@ class Event < ApplicationRecord
   end
 
   before_validation do
-    build_plan(plan_type: Event::Plan::Standard) if plan.nil?
+    build_plan(type: Event::Plan::Standard) if plan.nil?
   end
 
   # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
@@ -373,19 +367,19 @@ class Event < ApplicationRecord
   )
 
   enum :category, {
-    hackathon: 0,
-    'hack club': 1,
-    nonprofit: 2,
-    event: 3,
-    'high school hackathon': 4,
-    'robotics team': 5,
-    'hardware grant': 6, # winter event 2022
-    'hack club hq': 7,
-    'outernet guild': 8, # summer event 2023
-    'grant recipient': 9,
-    salary: 10, # e.g. Sam's Shillings
-    ai: 11,
-    'hcb internals': 12 # eg. https://hcb.hackclub.com/clearing
+    hackathon: 0, # done, converted to EventTag
+    'hack club': 1, # done, converted to EventTag
+    nonprofit: 2, # deprecated
+    event: 3, # deprecated
+    'high school hackathon': 4, # converted to EventTag (Hackathon)
+    'robotics team': 5, # converted to EventTag
+    'hardware grant': 6, # winter event 2022, converted to EventTag
+    'hack club hq': 7, # converted to EventTag
+    'outernet guild': 8, # summer event 2023, converted to EventTag
+    'grant recipient': 9, # converted to EventTag
+    salary: 10, # converted to Event::Plan
+    ai: 11, # converted to EventTag
+    'hcb internals': 12 # eg. https://hcb.hackclub.com/clearing. to be converted to Event::Plan
   }
 
   enum :stripe_card_shipping_type, {
@@ -589,6 +583,14 @@ class Event < ApplicationRecord
     event_tags.where(name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS]).exists?
   end
 
+  def robotics_team?
+    event_tags.where(name: EventTag::Tags::ROBOTICS_TEAM).exists?
+  end
+
+  def hackathon?
+    event_tags.where(name: EventTag::Tags::HACKATHON).exists?
+  end
+
   def reload
     @total_fee_payments_v2_cents = nil
     super
@@ -620,9 +622,9 @@ class Event < ApplicationRecord
 
   def service_level
     return 1 if robotics_team?
-    return 1 if hack_club_hq?
     return 1 if organized_by_hack_clubbers?
     return 1 if organized_by_teenagers?
+    return 1 if plan.is_a?(Event::Plan::HackClubAffiliate)
     return 1 if canonical_transactions.revenue.where("date >= ?", 1.year.ago).sum(:amount_cents) >= 50_000_00
     return 1 if balance_available_v2_cents > 50_000_00
 
@@ -635,10 +637,6 @@ class Event < ApplicationRecord
 
   def dormant?
     !engaged?
-  end
-
-  def plan
-    super&.becomes(super.plan_type&.constantize)
   end
 
   def revenue_fee
@@ -693,6 +691,10 @@ class Event < ApplicationRecord
     return 100 if plan.exempt_from_wire_minimum?
 
     return 500_00
+  end
+
+  def omit_stats?
+    plan.omit_stats
   end
 
   private

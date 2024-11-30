@@ -33,6 +33,10 @@
       <script async src="https://cdn.headwayapp.co/widget.js"></script>
     <% end %>
 
+    <% unless Rails.env.production? %>
+      <meta name="turbo-prefetch" content="false">
+    <% end %>
+
     <% if Rails.env.production? %>
       <script>
         console.log(`%c                -*%@@%*-
@@ -163,8 +167,9 @@
       </main>
     <% else %>
       <%= render "application/header" unless @no_app_shell %>
+      <%= yield(:header) %>
       <main class="container <%= content_for :container_class %>" style="<%= content_for :container_style %>">
-        <%= render "application/flash" %>
+        <%= render "application/flash" unless @hide_flash %>
         <%= yield %>
         <%= render "application/footer" unless @no_app_shell || @hide_footer %>
       </main>

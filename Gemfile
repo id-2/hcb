@@ -75,7 +75,7 @@ gem "wicked_pdf" # HTML to PDF conversion
 
 gem "rack-cors" # manage CORS
 gem "rack-attack" # rate limiting
-gem "browser", "~> 6.0" # browser detection
+gem "browser", "~> 6.1" # browser detection
 
 # Pagination
 gem "kaminari"
@@ -96,7 +96,6 @@ gem "grape-route-helpers"
 gem "grape-swagger"
 gem "grape-swagger-entity", "~> 0.5"
 
-gem "maildown" # markdown for views
 gem "redcarpet" # markdown parsing
 gem "loofah" # html email parsing
 
@@ -199,9 +198,8 @@ end
 gem "jbuilder", "~> 2.13"
 
 gem "ledgerjournal"
-gem "doorkeeper", "~> 5.7"
+gem "doorkeeper", "~> 5.8"
 
-gem "chartkick"
 gem "cssbundling-rails", "~> 1.4"
 
 gem "rtesseract"

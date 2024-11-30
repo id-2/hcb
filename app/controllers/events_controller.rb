@@ -6,7 +6,7 @@ class EventsController < ApplicationController
   include SetEvent
 
   include Rails::Pagination
-  before_action :set_event, except: [:index, :new, :create, :by_airtable_id]
+  before_action :set_event, except: [:index, :new, :create]
   before_action except: [:show, :index] do
     render_back_to_tour @organizer_position, :welcome, event_path(@event)
   end
@@ -72,7 +72,7 @@ class EventsController < ApplicationController
     @money_out = all_transactions.reject { |t| t.amount_cents >= 0 }.first(3)
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).first(5)
-    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
+    @organizers = @event.organizer_positions.includes(:user).order(users: { preferred_name: :asc, full_name: :asc })
     @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
   end
 
@@ -149,7 +149,7 @@ class EventsController < ApplicationController
     @maximum_amount = params[:maximum_amount].presence ? Money.from_amount(params[:maximum_amount].to_f) : nil
     @missing_receipts = params[:missing_receipts].present?
 
-    @organizers = @event.organizer_positions.includes(:user).order(created_at: :desc)
+    @organizers = @event.organizer_positions.includes(:user).order(users: { preferred_name: :asc, full_name: :asc })
     @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
@@ -286,19 +286,6 @@ class EventsController < ApplicationController
     }
   end
 
-  # GET /event_by_airtable_id/recABC
-  def by_airtable_id
-    authorize Event
-    @event = Event.find_by(club_airtable_id: params[:airtable_id])
-
-    if @event.nil?
-      flash[:error] = "We couldn’t find that event!"
-      redirect_to root_path
-    else
-      redirect_to @event
-    end
-  end
-
   def team
     authorize @event
 
@@ -317,7 +304,7 @@ class EventsController < ApplicationController
     @all_positions = @event.organizer_positions
                            .joins(:user)
                            .where(role: @filter || %w[member manager])
-                           .where("users.full_name ILIKE :query OR users.email ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%")
+                           .where(organizer_signed_in? ? "users.full_name ILIKE :query OR users.email ILIKE :query" : "users.full_name ILIKE :query", query: "%#{User.sanitize_sql_like(@q)}%")
                            .order(created_at: :desc)
 
     @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || @view == "list" ? 20 : 10)
@@ -343,8 +330,6 @@ class EventsController < ApplicationController
     fixed_event_params = event_params
     fixed_user_event_params = user_event_params
 
-    fixed_event_params[:club_airtable_id] = nil if event_params.key?(:club_airtable_id) && event_params[:club_airtable_id].empty?
-
     # processing hidden for admins
     if fixed_event_params[:hidden] == "1" && !@event.hidden_at.present?
       fixed_event_params[:hidden_at] = DateTime.now
@@ -361,11 +346,11 @@ class EventsController < ApplicationController
     end
     fixed_user_event_params.delete(:hidden)
 
-    if fixed_event_params[:plan_type] && fixed_event_params[:plan_type] != @event.plan&.plan_type
-      @event.plan.mark_inactive!(fixed_event_params[:plan_type]) # deactivate old plan and replace it
+    if fixed_event_params[:plan] && fixed_event_params[:plan] != @event.plan&.type
+      @event.plan.mark_inactive!(fixed_event_params[:plan]) # deactivate old plan and replace it
     end
 
-    fixed_event_params.delete(:plan_type)
+    fixed_event_params.delete(:plan)
     begin
       if @event.update(current_user.admin? ? fixed_event_params : fixed_user_event_params)
         flash[:success] = "Organization successfully updated."
@@ -409,7 +394,8 @@ class EventsController < ApplicationController
   end
 
   def card_overview
-    @status = %w[virtual physical active inactive].include?(params[:status]) ? params[:status] : nil
+    @status = %w[active inactive].include?(params[:status]) ? params[:status] : nil
+    @type = %w[virtual physical].include?(params[:type]) ? params[:type] : nil
 
     cookies[:card_overview_view] = params[:view] if params[:view]
     @view = cookies[:card_overview_view] || "grid"
@@ -417,7 +403,7 @@ class EventsController < ApplicationController
     @user_id = params[:user].presence
     @user = User.find(params[:user]) if params[:user]
 
-    @has_filter = @status.present? || @user_id.present?
+    @has_filter = @status.present? || @type.present? || @user_id.present?
 
     all_stripe_cards = @event.stripe_cards.where.missing(:card_grant).joins(:stripe_cardholder, :user)
                              .order("stripe_status asc, created_at desc")
@@ -429,6 +415,11 @@ class EventsController < ApplicationController
                          all_stripe_cards.active
                        when "inactive"
                          all_stripe_cards.deactivated
+                       else
+                         all_stripe_cards
+                       end
+
+    all_stripe_cards = case @type
                        when "virtual"
                          all_stripe_cards.virtual
                        when "physical"
@@ -736,7 +727,7 @@ class EventsController < ApplicationController
 
   def reimbursements
     authorize @event
-    @reports = @event.reimbursement_reports
+    @reports = @event.reimbursement_reports.visible
     @reports = @reports.pending if params[:filter] == "pending"
     @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:filter] == "reimbursed"
     @reports = @reports.rejected if params[:filter] == "rejected"
@@ -864,11 +855,11 @@ class EventsController < ApplicationController
       Document.create(user: current_user, event_id: @event.id, name: file.original_filename, file:)
     end
 
-    if event_params[:plan_type] && event_params[:plan_type] != @event.plan.plan_type
-      @event.plan.mark_inactive!(event_params[:plan_type]) # deactivate old plan and replace it
+    if event_params[:plan] && event_params[:plan] != @event.plan.type
+      @event.plan.mark_inactive!(event_params[:plan]) # deactivate old plan and replace it
     end
 
-    if @event.update(event_params.except(:files, :plan_type).merge({ demo_mode: false }))
+    if @event.update(event_params.except(:files, :plan).merge({ demo_mode: false }))
       flash[:success] = "Organization successfully activated."
       redirect_to event_path(@event)
     else
@@ -899,15 +890,11 @@ class EventsController < ApplicationController
       :start,
       :end,
       :address,
-      :expected_budget,
-      :omit_stats,
       :demo_mode,
       :can_front_balance,
       :emburse_department_id,
       :country,
       :postal_code,
-      :category,
-      :club_airtable_id,
       :point_of_contact_id,
       :slug,
       :hidden,
@@ -928,7 +915,7 @@ class EventsController < ApplicationController
       :background_image,
       :stripe_card_logo,
       :stripe_card_shipping_type,
-      :plan_type,
+      :plan,
       card_grant_setting_attributes: [
         :merchant_lock,
         :category_lock,
@@ -938,12 +925,11 @@ class EventsController < ApplicationController
       config_attributes: [
         :id,
         :anonymous_donations,
-        :cover_donation_fees
+        :cover_donation_fees,
+        :contact_email
       ]
     )
 
-    # Expected budget is in cents on the backend, but dollars on the frontend
-    result_params[:expected_budget] = result_params[:expected_budget].to_f * 100 if result_params[:expected_budget]
     # convert whatever the user inputted into something that is a legal slug
     result_params[:slug] = ActiveSupport::Inflector.parameterize(user_event_params[:slug]) if result_params[:slug]
 
@@ -984,7 +970,8 @@ class EventsController < ApplicationController
       config_attributes: [
         :id,
         :anonymous_donations,
-        :cover_donation_fees
+        :cover_donation_fees,
+        :contact_email
       ]
     )
 

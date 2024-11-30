@@ -75,7 +75,6 @@
           <p>
             <strong>Category</strong>
             <span>
-              <%= @event.category %>
               <% Event::BADGES.each do |_key, badge| %>
                 <% if event.send(badge[:qualifier]) %>
                   <span title="<%= badge[:emoji] %> <%= badge[:description] %>"><%= badge[:emoji] %></span>
@@ -95,7 +94,7 @@
             <strong>Fee on revenue</strong>
             <span><%= number_to_percentage(@event.revenue_fee * 100, significant: true, strip_insignificant_zeros: true) %></span>
           </p>
-          <% if @event.high_school_hackathon? && @event.revenue_fee == 0 %>
+          <% if @event.plan.is_a?(Event::Plan::HighSchoolHackathon) %>
             <p>
               <strong>
                 <a

@@ -65,7 +65,7 @@
               step: 0.01,
               min: 1,
               required: true,
-              data: { behavior: "check_amount_field", controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
+              data: { behavior: "check_amount_field", controller: "truncate-decimal", action: "truncate-decimal#truncate blur->truncate-decimal#pad" } %>
           </div>
         </div>
         <% @check.errors.messages_for(:amount).each do |message| %>
@@ -208,6 +208,7 @@
               "file-drop-target" => "fileInput"
             },
             disabled: %>
+        <%= inline_icon "view-close", size: 24, class: "muted", "data-behavior": "clear_input" %>
       </div>
       <p class="muted mt0 mb2">Required for reimbursements / goods & services payments.</p>
 

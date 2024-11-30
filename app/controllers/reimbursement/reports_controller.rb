@@ -14,7 +14,7 @@ module Reimbursement
     def create
       @event = Event.find(report_params[:event_id])
       user = User.find_or_create_by!(email: report_params[:email])
-      @report = @event.reimbursement_reports.build(report_params.except(:email, :receipt_id, :value).merge(user:, inviter: current_user))
+      @report = @event.reimbursement_reports.build(report_params.except(:email, :receipt_id, :value).merge(user:, inviter: organizer_signed_in? ? current_user : nil))
 
       authorize @report
 
@@ -164,7 +164,9 @@ module Reimbursement
       authorize @report
 
       begin
-        @report.mark_reimbursement_approved!
+        @report.with_lock do
+          @report.mark_reimbursement_approved!
+        end
         flash[:success] = "Reimbursement has been approved; the team & report creator will be notified."
       rescue => e
         flash[:error] = e.message

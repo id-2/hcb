@@ -3,7 +3,11 @@
 class GSuiteMailer < ApplicationMailer
   before_action :set_g_suite
 
-  default to: -> { organization_managers }
+  default to: -> {
+    emails = organization_managers
+    emails << @g_suite.event.config.contact_email if @g_suite.event.config.contact_email.present?
+    emails
+  }
 
   def notify_of_configuring
     mail subject: "[Action Requested] Your Google Workspace for #{@g_suite.domain} needs configuration"
@@ -19,6 +23,15 @@ class GSuiteMailer < ApplicationMailer
 
   def notify_of_error_after_verified
     mail subject: "[Action Required] Your Google Workspace for #{@g_suite.domain} is missing critical DNS records"
+  end
+
+  def notify_operations_of_entering_created_state
+    @g_suite = GSuite.find(params[:g_suite_id])
+    attrs = {
+      to: ::ApplicationMailer::OPERATIONS_EMAIL,
+      subject: "[OPS] [ACTION] [Google Workspace] Process #{@g_suite.domain}"
+    }
+    mail attrs
   end
 
   private

@@ -7,7 +7,7 @@
 #  id          :bigint           not null, primary key
 #  aasm_state  :string
 #  inactive_at :datetime
-#  plan_type   :string
+#  type        :string
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  event_id    :bigint           not null
@@ -33,6 +33,10 @@ class Event
 
       def features
         %w[cards]
+      end
+
+      def omit_stats
+        true
       end
 
     end

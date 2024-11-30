@@ -26,7 +26,7 @@ class StatsController < ApplicationController
   end
 
   def stats
-    json = Rails.cache.fetch("stats", expires_in: 1.minute) do
+    json = Rails.cache.fetch("stats", expires_in: 15.minutes, race_condition_ttl: 30) do
       now = params[:date].present? ? Date.parse(params[:date]) : DateTime.current
       year_ago = now - 1.year
       qtr_ago = now - 3.months
@@ -34,7 +34,7 @@ class StatsController < ApplicationController
       week_ago = now - 1.week
 
       events_list = Event.not_omitted
-                         .where("created_at <= ?", now)
+                         .where("events.created_at <= ?", now)
                          .order(created_at: :desc)
                          .limit(10)
                          .pluck(:created_at)
@@ -56,7 +56,7 @@ class StatsController < ApplicationController
                            .not_hidden
                            .not_demo_mode
                            .approved
-                           .where("created_at <= ?", now)
+                           .where("events.created_at <= ?", now)
                            .count,
         last_transaction_date: tx_all.order(:date).last.date.to_time.to_i,
 
@@ -153,7 +153,7 @@ class StatsController < ApplicationController
             INNER JOIN canonical_pending_event_mappings cpem ON cpem.canonical_pending_transaction_id = cpt.id
             INNER JOIN events ON events.id = cpem.event_id
             WHERE sc.user_id = users.id
-            AND   receipts.id IS NULL AND cpdm.id IS NULL AND hcb_codes.marked_no_or_lost_receipt_at IS NULL AND events.category != 10
+            AND   receipts.id IS NULL AND cpdm.id IS NULL AND hcb_codes.marked_no_or_lost_receipt_at IS NULL
         )
       FROM users
       WHERE id IN (?)

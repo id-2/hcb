@@ -16,6 +16,8 @@ class CardGrantsController < ApplicationController
 
     @prefill_email = params[:email]
 
+    @event.create_card_grant_setting unless @event.card_grant_setting.present?
+
     last_card_grant = @event.card_grants.order(created_at: :desc).first
 
     if last_card_grant.present?
@@ -111,7 +113,7 @@ class CardGrantsController < ApplicationController
   private
 
   def set_card_grant
-    @card_grant = CardGrant.find_by_hashid(params.require(:id))
+    @card_grant = CardGrant.find_by_hashid!(params.require(:id))
   end
 
 end

@@ -194,7 +194,6 @@ Rails.application.routes.draw do
       get "stripe_card_personalization_designs", to: "admin#stripe_card_personalization_designs"
       get "stripe_card_personalization_design_new", to: "admin#stripe_card_personalization_design_new"
       post "stripe_card_personalization_design_create", to: "admin#stripe_card_personalization_design_create"
-      get "reimbursements_status", to: "admin#reimbursements_status"
       get "checks", to: "admin#checks"
       get "increase_checks", to: "admin#increase_checks"
       get "paypal_transfers", to: "admin#paypal_transfers"
@@ -304,6 +303,7 @@ Rails.application.routes.draw do
   resources :g_suite_accounts, only: [:index, :create, :update, :edit, :destroy], path: "g_suite_accounts" do
     put "reset_password"
     put "toggle_suspension"
+    resources :g_suite_aliases, only: [:create, :destroy], shallow: true
   end
 
   resources :g_suites, except: [:new, :create, :edit, :update] do
@@ -361,6 +361,7 @@ Rails.application.routes.draw do
     member do
       post "approve"
       post "reject"
+      post "mark_failed"
     end
   end
 
@@ -568,7 +569,11 @@ Rails.application.routes.draw do
           end
         end
 
-        resources :card_grants, only: [:show]
+        resources :card_grants, only: [:show] do
+          member do
+            post "topup"
+          end
+        end
 
         get "stripe_terminal_connection_token", to: "stripe_terminal#connection_token"
 
@@ -628,7 +633,6 @@ Rails.application.routes.draw do
   get "/search" => "search#index"
 
   get "/events" => "events#index"
-  get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
   resources :events, except: [:new, :create, :edit], concerns: :commentable, path: "/" do
 
     # Loaded as Turbo frames on the home page

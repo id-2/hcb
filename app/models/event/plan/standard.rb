@@ -7,7 +7,7 @@
 #  id          :bigint           not null, primary key
 #  aasm_state  :string
 #  inactive_at :datetime
-#  plan_type   :string
+#  type        :string
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  event_id    :bigint           not null
@@ -40,6 +40,14 @@ class Event
       end
 
       def exempt_from_wire_minimum?
+        false
+      end
+
+      def requires_reimbursement_expense_categorization?
+        false
+      end
+
+      def omit_stats
         false
       end
 

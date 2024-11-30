@@ -14,7 +14,6 @@
 #  memo                                             :text             not null
 #  created_at                                       :datetime         not null
 #  updated_at                                       :datetime         not null
-#  ach_payment_id                                   :bigint
 #  check_deposit_id                                 :bigint
 #  grant_id                                         :bigint
 #  increase_check_id                                :bigint
@@ -33,7 +32,6 @@
 #
 # Indexes
 #
-#  index_canonical_pending_transactions_on_ach_payment_id           (ach_payment_id)
 #  index_canonical_pending_transactions_on_check_deposit_id         (check_deposit_id)
 #  index_canonical_pending_transactions_on_grant_id                 (grant_id)
 #  index_canonical_pending_transactions_on_hcb_code                 (hcb_code)
@@ -57,8 +55,6 @@
 #
 class CanonicalPendingTransaction < ApplicationRecord
   has_paper_trail
-
-  self.ignored_columns = %w[ach_payment_id]
 
   include PgSearch::Model
   pg_search_scope :search_memo, against: [:memo, :custom_memo, :hcb_code], using: { tsearch: { any_word: true, prefix: true, dictionary: "english" } }, ranked_by: "canonical_pending_transactions.date"
@@ -107,7 +103,6 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :outgoing_disbursement, -> { where("raw_pending_outgoing_disbursement_transaction_id is not null") }
   scope :reimbursement_expense_payout, -> { where.not(reimbursement_expense_payout_id: nil) }
   scope :reimbursement_payout_holding, -> { where.not(reimbursement_payout_holding_id: nil) }
-  scope :ach_payment, -> { where.not(ach_payment: nil) }
   scope :unmapped, -> { includes(:canonical_pending_event_mapping).where(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }
   scope :mapped, -> { includes(:canonical_pending_event_mapping).where.not(canonical_pending_event_mappings: { canonical_pending_transaction_id: nil }) }
   scope :unsettled, -> {
@@ -129,7 +124,15 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :not_fronted, -> { where(fronted: false) }
   scope :not_declined, -> { includes(:canonical_pending_declined_mapping).where(canonical_pending_declined_mapping: { canonical_pending_transaction_id: nil }) }
   scope :not_waived, -> { where(fee_waived: false) }
-  scope :included_in_stats, -> { includes(canonical_pending_event_mapping: :event).where(events: { omit_stats: false }) }
+  scope :included_in_stats, -> {
+    includes(
+      canonical_pending_event_mapping: { event: :plan }
+    ).where.not(
+      event_plans: {
+        type: Event::Plan.that(:omit_stats).collect(&:name)
+      }
+    )
+  }
   scope :with_custom_memo, -> { where("custom_memo is not null") }
 
   scope :pending_expired, -> { unsettled.where(created_at: ..5.days.ago) }
