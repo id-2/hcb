@@ -37,6 +37,7 @@
     </div>
     <h2>Tasks</h2>
     <ul class="grid left-align w-100 mt0" id="task-grid">
+      <%= card_to "All Tasks", tasks_admin_index_path, { async_badge: :all_tasks } %>
       <%= card_to "Applications", link_to_airtable_task(:bank_applications), { async_badge: :pending_bank_applications_airtable } %>
       <%= card_to "OnBoard ID", link_to_airtable_task(:onboard_id), { async_badge: :pending_onboard_id_airtable } %>
       <%= card_to "Ledger", ledger_admin_index_path, { badge: CanonicalTransaction.not_stripe_top_up.unmapped.count } %>
