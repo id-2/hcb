@@ -34,8 +34,8 @@ class StripeServiceFee < ApplicationRecord
 
   def hcb_code
     [
-      :TransactionGroupingEngine::Calculate::HcbCode::HCB_CODE,
-      :TransactionGroupingEngine::Calculate::HcbCode::STRIPE_SERVICE_FEE_CODE,
+      ::TransactionGroupingEngine::Calculate::HcbCode::HCB_CODE,
+      ::TransactionGroupingEngine::Calculate::HcbCode::STRIPE_SERVICE_FEE_CODE,
       id
     ].join(:TransactionGroupingEngine::Calculate::HcbCode::SEPARATOR)
   end
