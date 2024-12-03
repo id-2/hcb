@@ -69,12 +69,13 @@ class Wire < ApplicationRecord
     create_canonical_pending_transaction!(
       event:,
       amount_cents: -1 * usd_amount_cents,
-      memo: "OUTGOING WIRE",
+      memo: "Wire to #{recipient_name}".strip.upcase,
       date: created_at
     )
   end
 
   validates_length_of :remittance_info, maximum: 140
+  validates_length_of :payment_for, maximum: 140
 
   # IBAN & postal code formats sourced from https://column.com/docs/international-wires/country-specific-details
 
@@ -319,6 +320,8 @@ class Wire < ApplicationRecord
   end
 
   def usd_amount_cents
+    return -1 * local_hcb_code.amount_cents unless local_hcb_code.no_transactions?
+
     eu_bank = EuCentralBank.new
     eu_bank.update_rates
     eu_bank.exchange(amount_cents, currency, "USD").cents

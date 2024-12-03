@@ -24,7 +24,6 @@ class EventsController < ApplicationController
           {
             name: x.name,
             slug: x.slug,
-            category: x.category,
             logo: x.logo.attached? ? Rails.application.routes.url_helpers.url_for(x.logo) : "none",
             demo_mode: x.demo_mode,
             member: true
@@ -37,7 +36,6 @@ class EventsController < ApplicationController
               {
                 slug: e.slug,
                 name: e.name,
-                category: e.category,
                 logo: e.logo.attached? ? Rails.application.routes.url_helpers.url_for(e.logo) : "none",
                 demo_mode: false,
                 member: false
@@ -72,7 +70,7 @@ class EventsController < ApplicationController
     @money_out = all_transactions.reject { |t| t.amount_cents >= 0 }.first(3)
 
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).first(5)
-    @organizers = @event.organizer_positions.includes(:user).order(users: { preferred_name: :asc, full_name: :asc })
+    @organizers = @event.organizer_positions.joins(:user).order(Arel.sql("CONCAT(preferred_name, full_name) ASC"))
     @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
   end
 
@@ -149,7 +147,7 @@ class EventsController < ApplicationController
     @maximum_amount = params[:maximum_amount].presence ? Money.from_amount(params[:maximum_amount].to_f) : nil
     @missing_receipts = params[:missing_receipts].present?
 
-    @organizers = @event.organizer_positions.includes(:user).order(users: { preferred_name: :asc, full_name: :asc })
+    @organizers = @event.organizer_positions.joins(:user).order(Arel.sql("CONCAT(preferred_name, full_name) ASC"))
     @pending_transactions = _show_pending_transactions
 
     if !signed_in? && !@event.holiday_features
@@ -181,7 +179,7 @@ class EventsController < ApplicationController
         "settled" => ->(t) { t.local_hcb_code.check? || t.local_hcb_code.increase_check? },
         "pending" => ->(t) { t.raw_pending_outgoing_check_transaction_id || t.increase_check_id }
       },
-      "account_transfer"       => {
+      "hcb_transfer"           => {
         "settled" => ->(t) { t.local_hcb_code.disbursement? },
         "pending" => ->(t) { t.local_hcb_code.disbursement? }
       },
@@ -212,6 +210,14 @@ class EventsController < ApplicationController
       "reimbursement"          => {
         "settled" => ->(t) { t.local_hcb_code.reimbursement_expense_payout? },
         "pending" => ->(t) { false }
+      },
+      "wire"                   => {
+        "settled" => ->(t) { t.local_hcb_code.wire? },
+        "pending" => ->(t) { t.wire_id }
+      },
+      "paypal_transfer"        => {
+        "settled" => ->(t) { t.local_hcb_code.paypal_transfer? },
+        "pending" => ->(t) { t.paypal_transfer_id }
       }
     }
 
@@ -643,9 +649,9 @@ class EventsController < ApplicationController
     @disbursements = @disbursements.not_card_grant_related if Flipper.enabled?(:card_grants_2023_05_25, @event)
 
     @stats = {
-      deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @increase_checks.increase_deposited.or(@increase_checks.in_transit).sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum + @paypal_transfers.deposited.sum(:amount_cents) + @wires.deposited.sum(:amount_cents),
-      in_transit: @ach_transfers.in_transit.sum(:amount) + @checks.in_transit_or_in_transit_and_processed.sum(:amount) + @increase_checks.in_transit.sum(:amount) + @disbursements.reviewing_or_processing.sum(:amount) + @paypal_transfers.approved.or(@paypal_transfers.pending).sum(:amount_cents) + @wires.approved.or(@wires.pending).sum(:amount_cents),
-      canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount) + @increase_checks.canceled.sum(:amount) + @disbursements.rejected.sum(:amount) + @paypal_transfers.rejected.sum(:amount_cents) + @wires.rejected.sum(:amount_cents)
+      deposited: @ach_transfers.deposited.sum(:amount) + @checks.deposited.sum(:amount) + @increase_checks.increase_deposited.or(@increase_checks.in_transit).sum(:amount) + @disbursements.fulfilled.pluck(:amount).sum + @paypal_transfers.deposited.sum(:amount_cents) + @wires.deposited.sum(&:usd_amount_cents),
+      in_transit: @ach_transfers.in_transit.sum(:amount) + @checks.in_transit_or_in_transit_and_processed.sum(:amount) + @increase_checks.in_transit.sum(:amount) + @disbursements.reviewing_or_processing.sum(:amount) + @paypal_transfers.approved.or(@paypal_transfers.pending).sum(:amount_cents) + @wires.approved.or(@wires.pending).sum(&:usd_amount_cents),
+      canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount) + @increase_checks.canceled.sum(:amount) + @disbursements.rejected.sum(:amount) + @paypal_transfers.rejected.sum(:amount_cents) + @wires.rejected.sum(&:usd_amount_cents)
     }
 
     @ach_transfers = @ach_transfers.in_transit if params[:filter] == "in_transit"

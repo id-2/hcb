@@ -6,10 +6,7 @@ import csrf from '../../common/csrf'
 import React from 'react'
 import ReimbursementIcon from '../icons/reimbursement'
 
-const restrictedCategories = ['outernet guild', 'hardware grant']
-
-const restrictedFilter = e =>
-  !restrictedCategories.includes(e.category) && !e.demo_mode
+const restrictedFilter = e => !e.demo_mode
 
 export const generateEventActions = data => {
   return [
