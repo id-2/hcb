@@ -62,7 +62,6 @@ class AchTransfer < ApplicationRecord
   set_public_id_prefix :ach
 
   include AASM
-  include Commentable
 
   include PgSearch::Model
   pg_search_scope :search_recipient, against: [:recipient_name], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "ach_transfers.created_at"
