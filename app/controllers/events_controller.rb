@@ -72,6 +72,17 @@ class EventsController < ApplicationController
     @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).first(5)
     @organizers = @event.organizer_positions.joins(:user).order(Arel.sql("CONCAT(preferred_name, full_name) ASC"))
     @cards = all_stripe_cards = @event.stripe_cards.order(created_at: :desc).where(stripe_cardholder: current_user&.stripe_cardholder).first(10)
+
+    @selected_users = params[:user_ids] || []
+    @selected_types = params[:types] || []
+
+    if @selected_users.any?
+      all_transactions.select! { |t| @selected_users.include?(t.user_id.to_s) }
+    end
+
+    if @selected_types.any?
+      all_transactions.select! { |t| @selected_types.include?(t.transaction_type) }
+    end
   end
 
   def transaction_heatmap
