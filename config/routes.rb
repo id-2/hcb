@@ -149,6 +149,11 @@ Rails.application.routes.draw do
     end
   end
   scope module: :users do
+    resources "wrapped", only: :index do
+      collection do
+        get "data"
+      end
+    end
     resources :email_updates, only: [] do
       collection do
         get "verify"
@@ -636,7 +641,7 @@ Rails.application.routes.draw do
   resources :events, except: [:new, :create, :edit], concerns: :commentable, path: "/" do
 
     # Loaded as Turbo frames on the home page
-    get :top_merchants
+    get :merchants_categories
     get :top_categories
     get :tags_users
     get :transaction_heatmap
