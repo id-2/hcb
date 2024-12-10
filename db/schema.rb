@@ -1807,13 +1807,13 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_10_051800) do
 
   create_table "stripe_service_fees", force: :cascade do |t|
     t.string "stripe_balance_transaction_id", null: false
-    t.bigint "stripe_topup_id"
     t.integer "amount_cents", null: false
     t.string "stripe_description", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "stripe_topup_id"
     t.index ["stripe_balance_transaction_id"], name: "index_stripe_service_fees_on_stripe_balance_transaction_id", unique: true
-    t.index ["stripe_topup_id"], name: "index_stripe_service_fees_on_stripe_topup_id", unique: true
+    t.index ["stripe_topup_id"], name: "index_stripe_service_fees_on_stripe_topup_id"
   end
 
   create_table "subledgers", force: :cascade do |t|

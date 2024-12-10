@@ -15,7 +15,7 @@
 # Indexes
 #
 #  index_stripe_service_fees_on_stripe_balance_transaction_id  (stripe_balance_transaction_id) UNIQUE
-#  index_stripe_service_fees_on_stripe_topup_id                (stripe_topup_id) UNIQUE
+#  index_stripe_service_fees_on_stripe_topup_id                (stripe_topup_id)
 #
 class StripeServiceFee < ApplicationRecord
   after_create_commit do
