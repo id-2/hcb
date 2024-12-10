@@ -10,7 +10,7 @@
 #  created_at                    :datetime         not null
 #  updated_at                    :datetime         not null
 #  stripe_balance_transaction_id :string           not null
-#  stripe_topup_id               :string
+#  stripe_topup_id               :bigint
 #
 # Indexes
 #
