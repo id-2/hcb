@@ -9,6 +9,10 @@ class ApiController < ApplicationController
 
   rescue_from(ActiveRecord::RecordNotFound) { render json: { error: "Record not found" }, status: :not_found }
 
+  before_save do
+    self.country_alpha2 = ISO3166::Country[params[:country]]&.alpha2
+  end
+
   def the_current_user
     return head :not_found unless signed_in?
 
@@ -23,7 +27,6 @@ class ApiController < ApplicationController
       name: params[:name],
       email: params[:email],
       country: params[:country],
-      country_alpha2: self.class.get_country_name(params[:country].to_i),
       postal_code: ValidatesZipcode.valid?(params[:postal_code], params[:country]) ? params[:postal_code] : nil,
       is_public: params[:transparent].nil? ? true : params[:transparent],
     ).run
