@@ -108,14 +108,6 @@
 .z4 {
   z-index: 4;
 }
-.border {
-  border-style: solid;
-  border-width: 1px;
-}
-.border-bottom {
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
-}
 .hide {
   position: absolute !important;
   height: 1px;
