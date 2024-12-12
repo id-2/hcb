@@ -12,8 +12,9 @@ const tours = {
     if (options.initial || options.demo) {
       steps.push({
         attachTo: 'invite',
-        text: `Invite others to your ${options.demo ? 'demo' : 'new'
-          } organization. It's like multiplayer banking!`,
+        text: `Invite others to your ${
+          options.demo ? 'demo' : 'new'
+        } organization. It's like multiplayer banking!`,
         placement: isMobile ? 'bottom' : 'right',
       })
     }
@@ -58,7 +59,7 @@ function TourOverlay(props) {
   const tour = props.tour && tours[props.tour](props.options)
 
   useEffect(() => {
-    ; (async () => {
+    ;(async () => {
       if (props.tour && currentStep < tour.length) {
         await fetch(`/tours/${props.id}/set_step`, {
           method: 'POST',
