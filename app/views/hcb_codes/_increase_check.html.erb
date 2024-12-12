@@ -33,7 +33,7 @@
       <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
     </div>
   </h2>
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <p>
       <% if @hcb_code.increase_check.sent? %>
         <strong>Sent by</strong>
@@ -110,7 +110,7 @@
   </section>
 
   <% if @hcb_code.increase_check.may_mark_rejected? %>
-    <div class="card__banner card__darker border-top overflow-hidden flex items-center g2">
+    <div class="card__banner card__darker border-t overflow-hidden flex items-center g2">
       <% cancel_button = button_to "Cancel check", reject_increase_check_path(@hcb_code.increase_check), class: "btn bg-error #{"disabled" unless policy(@hcb_code.increase_check).reject?}", data: { turbo_confirm: "Are you sure you want to cancel this check?" } %>
       <% if policy(@hcb_code.increase_check).reject? %>
         <%= cancel_button %>

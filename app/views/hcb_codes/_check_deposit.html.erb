@@ -38,7 +38,7 @@
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <p>
       <strong>Deposited by</strong>
       <%= user_mention @hcb_code.check_deposit.created_by %>
@@ -94,7 +94,7 @@
   </div>
 
   <% if @hcb_code.check_deposit.pending? || @hcb_code.fee_waived? %>
-    <section class="card__banner card__darker secondary border-top italic">
+    <section class="card__banner card__darker secondary border-t italic">
       <% if @hcb_code.check_deposit.pending? %>
         Checks may take up to 2 weeks to deposit.
       <% end %>

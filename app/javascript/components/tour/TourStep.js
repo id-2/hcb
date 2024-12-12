@@ -122,10 +122,10 @@ function TourStep({
     >
       <div
         className={clsx(
-          (staticSide == 'left' || staticSide == 'top') && 'border-left',
-          (staticSide == 'left' || staticSide == 'bottom') && 'border-bottom',
-          (staticSide == 'right' || staticSide == 'bottom') && 'border-right',
-          (staticSide == 'right' || staticSide == 'top') && 'border-top',
+          (staticSide == 'left' || staticSide == 'top') && 'border-l',
+          (staticSide == 'left' || staticSide == 'bottom') && 'border-b',
+          (staticSide == 'right' || staticSide == 'bottom') && 'border-r',
+          (staticSide == 'right' || staticSide == 'top') && 'border-t',
           'b--info',
           'arrow'
         )}

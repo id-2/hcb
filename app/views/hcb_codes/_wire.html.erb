@@ -18,7 +18,7 @@
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <p>
       <strong>Sent by</strong>
       <%= user_mention @hcb_code.wire.user %>
@@ -74,7 +74,7 @@
   </turbo-frame>
 
   <% if admin_signed_in? && @hcb_code.wire.may_mark_rejected? %>
-    <div class="card__banner card__darker border-top overflow-hidden">
+    <div class="card__banner card__darker border-t overflow-hidden">
       <% admin_tool "w-fit" do %>
         <%= button_to "Process", wire_process_admin_path(@hcb_code.wire), class: "btn", method: :get, data: { turbo_frame: "_top" } %>
       <% end %>

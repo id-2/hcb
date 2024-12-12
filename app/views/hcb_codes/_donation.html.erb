@@ -58,7 +58,7 @@
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <% if @donation.payment_method_type == 'card' %>
       <p data-behavior="modal_trigger" data-modal="payment_details" class="pointer" tabindex="0">
         <strong>
@@ -137,7 +137,7 @@
   </section>
 
   <% unless @donation.deposited? %>
-    <section class="card__banner card__darker secondary border-top">
+    <section class="card__banner card__darker secondary border-t">
       <p class="my0 italic">
         <% if @hcb_code.fee_waived? %>
           Fees were waived on this transaction — enjoy!
@@ -147,7 +147,7 @@
     </section>
   <% end %>
   <% if @donation.deposited? && @hcb_code.fee_waived? %>
-    <section class="card__banner card__darker secondary border-top">
+    <section class="card__banner card__darker secondary border-t">
       <p class="my0 italic">
         Fees were waived on this transaction — enjoy!
       </p>

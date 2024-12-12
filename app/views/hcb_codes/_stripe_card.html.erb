@@ -83,7 +83,7 @@
       <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
     </h2>
 
-    <section class="card__banner card__darker details-horiz border-top border-bottom">
+    <section class="card__banner card__darker details-horiz border-y">
       <p>
         <strong>Card</strong>
         <%= stripe_card_mention @hcb_code.stripe_card %>
@@ -357,7 +357,7 @@
           <span><%= country_to_emoji @hcb_code.stripe_merchant["country"] %></span>
         </p>
       </div>
-      <article class="card__banner secondary border-top" style="margin: -2em; margin-top: 0;">
+      <article class="card__banner secondary border-t" style="margin: -2em; margin-top: 0;">
         <p class="my0 muted">
           Details are provided by the merchant and not guaranteed to be correct.
         </p>
@@ -411,7 +411,7 @@
 
       <% @raw_pending_stripe_tranasction_decorator = RawPendingStripeTransactionDecorator.new @hcb_code.pt.raw_pending_stripe_transaction %>
       <% if @raw_pending_stripe_tranasction_decorator.currency != 'USD' %>
-        <article class="card__banner secondary border-top" style="margin: -2em; margin-top: 0;">
+        <article class="card__banner secondary border-t" style="margin: -2em; margin-top: 0;">
           <p class="my0 muted">
             This transaction was initially charged as <%= @raw_pending_stripe_tranasction_decorator.original_amount_international %>.
           </p>

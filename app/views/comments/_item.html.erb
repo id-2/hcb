@@ -1,7 +1,7 @@
 <% if policy(comment).show? %>
   <div class="mt2 mb2 <%= local_assigns[:class] %>" id="<%= dom_id comment %>">
     <div class="card border pb0 pt0 mb2 max-width-4<%= " current-user" if comment.user == current_user %>  <%= " comment--admin" if comment.admin_only? %>" id="comment-<%= comment.hashid %>">
-      <div class="border-bottom card__banner secondary">
+      <div class="border-b card__banner secondary">
         <%= user_mention comment.user, click_to_mention: true %> <%= comment.action_text %>
         <%= link_to "#comment-#{comment.hashid}", title: comment.created_at, data: { controller: "clipboard", clipboard_text_value: url_for(only_path: false, anchor: "comment-#{comment.hashid}"), action: "clipboard#copy" } do %>
           <%= time_ago_in_words comment.created_at %> ago<%= inline_icon "link", size: 24, class: "align-middle" %><% end %>
@@ -33,7 +33,7 @@
         <%= render partial: "comments/reactions", locals: { comment: } %>
       </div>
       <% if comment.has_attached_file? %>
-        <div class="border-top card__banner">
+        <div class="border-t card__banner">
         <% if organizer_signed_in? %>
           <%= link_to "📎 attachment", url_for(comment.file), target: "_blank" %>
         <% else %>

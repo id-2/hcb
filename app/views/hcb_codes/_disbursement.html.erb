@@ -28,7 +28,7 @@
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <% unless @hcb_code.disbursement.requested_by.nil? %>
       <p>
         <% if @hcb_code.disbursement.reviewing? || @hcb_code.disbursement.rejected? %>
@@ -122,7 +122,7 @@
   </section>
 
   <% if @event.can_front_balance? %>
-    <section class="card__banner card__darker secondary border-top flex items-center g2">
+    <section class="card__banner card__darker secondary border-t flex items-center g2">
       <% if @hcb_code.disbursement.may_mark_rejected? %>
         <% admin_tool "w-fit" do %>
           <%= button_to "Process", disbursement_process_admin_path(@hcb_code.disbursement), class: "btn", method: :get, data: { turbo_frame: "_top" } %>

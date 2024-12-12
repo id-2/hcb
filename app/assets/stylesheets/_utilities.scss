@@ -26,11 +26,35 @@
 }
 
 .border,
-.border-top,
-.border-right,
-.border-bottom,
-.border-left {
+.border-t,
+.border-r,
+.border-b,
+.border-y,
+.border-l {
   border-color: map-get($palette, smoke);
+}
+.border-y {
+  border-top-style: solid;
+  border-bottom-style: solid;
+}
+.border-t {
+  border-top-style: solid;
+}
+.border-r {
+  border-right-style: solid;
+}
+.border-b {
+  border-bottom-style: solid;
+}
+.border-l {
+  border-left-style: solid;
+}
+.border {
+  border-style: solid;
+}
+.border-x {
+  border-left-style: solid;
+  border-right-style: solid;
 }
 
 .px0 {

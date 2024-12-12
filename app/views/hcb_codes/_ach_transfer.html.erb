@@ -18,7 +18,7 @@
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <p>
       <strong>Sent by</strong>
       <%= user_mention @hcb_code.ach_transfer.creator %>
@@ -117,7 +117,7 @@
   </turbo-frame>
 
   <% if @hcb_code.ach_transfer.may_mark_rejected? %>
-    <div class="card__banner card__darker border-top overflow-hidden flex items-center g2">
+    <div class="card__banner card__darker border-t overflow-hidden flex items-center g2">
       <% cancel_button = button_to "Cancel transfer", cancel_ach_transfer_path(@hcb_code.ach_transfer), class: "btn bg-error #{"disabled" unless policy(@hcb_code.ach_transfer).cancel?}" %>
       <% if policy(@hcb_code.ach_transfer).cancel? %>
         <%= cancel_button %>

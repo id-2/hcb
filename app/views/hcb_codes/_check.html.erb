@@ -23,7 +23,7 @@
     </div>
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <p>
       <strong>Sent by</strong>
       <%= user_mention @hcb_code.check.creator %>

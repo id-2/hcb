@@ -68,7 +68,7 @@
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>
   </h2>
 
-  <section class="card__banner card__darker details-horiz border-top border-bottom">
+  <section class="card__banner card__darker details-horiz border-y">
     <p>
       <strong>Sent by</strong>
       <%= user_mention @invoice.creator %>
@@ -147,7 +147,7 @@
     </p>
     <%= render "hcb_codes/tags", hcb_code: @hcb_code, event: @event || @hcb_code.event %>
   </section>
-  <section class="card__banner card__darker details details--wide border-top md-pl0 md-pr0">
+  <section class="card__banner card__darker details details--wide border-t md-pl0 md-pr0">
     <table>
     <thead>
       <tr>
@@ -171,7 +171,7 @@
     </table>
   </section>
 
-  <section class="card__banner border-top flex flex-wrap">
+  <section class="card__banner border-t flex flex-wrap">
     <div class="btn-group mr-auto">
     <%= link_to organizer_signed_in? ? invoice_hosted_path(@invoice.hashid) : root_path,
       disabled: !organizer_signed_in?,
@@ -211,7 +211,7 @@
         <span class="regular"><%= render_money @invoice.amount_paid %></span>
       <% end %>
     </h2>
-    <section class="card__banner card__darker details-horiz border-top border-bottom">
+    <section class="card__banner card__darker details-horiz border-t border-b">
       <% if @invoice.payment_method_type == 'card' %>
         <action data-behavior="modal_trigger" data-modal="payment_details" class="details-horiz__col pointer" tabindex="0">
           <strong>
@@ -296,7 +296,7 @@
 
     <% unless @invoice.deposited? %>
       <% if @invoice.event.can_front_balance? %>
-        <section class="card__banner card__darker secondary border-top">
+        <section class="card__banner card__darker secondary border-t">
           <p class="my0 italic">
             <% if @hcb_code.fee_waived? %>
               Fees were waived on this transaction — enjoy!
@@ -309,7 +309,7 @@
     <% end %>
 
     <% if (@invoice.deposited? || !@invoice.event.can_front_balance?) && @hcb_code.fee_waived? %>
-      <section class="card__banner card__darker secondary border-top">
+      <section class="card__banner card__darker secondary border-t">
         <p class="my0 italic">
           Fees were waived on this transaction — enjoy!
         </p>
