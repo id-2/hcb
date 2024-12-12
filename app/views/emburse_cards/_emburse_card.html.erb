@@ -1,4 +1,4 @@
-<%= link_to organizer_signed_in? ? emburse_card : root_path, class: "text-decoration-none" do %>
+<%= link_to organizer_signed_in? ? emburse_card : root_path, class: "no-underline" do %>
   <%= creator_bar emburse_card, prefix: "issued " unless defined? headless %>
   <% if emburse_card.canceled? %>
     <div class="canceled-card-wrapper">

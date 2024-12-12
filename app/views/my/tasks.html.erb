@@ -8,7 +8,7 @@
 </h1>
 
 <% @tasks.incomplete.each do |task| %>
-  <%= link_to task.url, class: "text-decoration-none", target: "_blank"  do %>
+  <%= link_to task.url, class: "no-underline", target: "_blank"  do %>
     <div class="card bg-none flex items-center g2 mt2">
       <input type="checkbox" style="height: 24px; width: 24px; pointer-events: none">
       <div class="flex flex-col">
@@ -28,7 +28,7 @@
   <h3>Recently completed</h3>
 
   <% @tasks.complete.where("completed_at > ?", 24.hours.ago).order(completed_at: :desc).first(5).each do |task| %>
-    <%= link_to task.url, class: "text-decoration-none", target: "_blank" do %>
+    <%= link_to task.url, class: "no-underline", target: "_blank" do %>
       <div class="card bg-none flex items-center g2 mt2">
         <input type="checkbox" checked style="height: 24px; width: 24px; pointer-events: none">
         <div class="flex flex-col">

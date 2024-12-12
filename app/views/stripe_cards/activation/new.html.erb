@@ -10,7 +10,7 @@
 <p>Enter the last four digits of your card number to activate it.</p>
 
 <%= form_with url: stripe_cards_activation_path, method: :post do |form| %>
-  <a class="text-decoration-none flex justify-start">
+  <a class="no-underline flex justify-start">
     <div class="stripe-card inactive ml0 mr0" data-behavior="hover_tilt" style="background-image: <%= GeoPattern.generate(@pattern || rand(1..1000000000)).to_data_uri %>">
       <p class="stripe-card__number fs-mask">
         <span>••••</span>
