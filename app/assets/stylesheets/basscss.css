@@ -99,15 +99,6 @@
     float: right;
   }
 }
-.z1 {
-  z-index: 1;
-}
-.z2 {
-  z-index: 2;
-}
-.z4 {
-  z-index: 4;
-}
 .hide {
   position: absolute !important;
   height: 1px;
@@ -137,9 +128,6 @@
 }
 .display-none {
   display: none !important;
-}
-.display-none-not-important {
-  display: none;
 }
 .h-fit-content {
   height: fit-content;

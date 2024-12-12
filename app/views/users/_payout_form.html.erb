@@ -99,7 +99,7 @@
   <% end %>
   <section
     data-behavior="ach_transfer_payout_method_inputs"
-    class="<%= "display-none-not-important" unless user.payout_method.instance_of?(User::PayoutMethod::AchTransfer) %>"
+    class="<%= "hidden" unless user.payout_method.instance_of?(User::PayoutMethod::AchTransfer) %>"
     x-data="
     {
       routingNumber: '<%= errored ? r_no : obfuscated_routing_number %>',
