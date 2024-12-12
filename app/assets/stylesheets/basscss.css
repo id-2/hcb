@@ -65,12 +65,6 @@
   -ms-user-select: all;
   user-select: none;
 }
-.truncate {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .list-reset {
   list-style: none;
   padding-left: 0;
