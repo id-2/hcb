@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class ApiController < ApplicationController
+  include CountryEnumable
   before_action :check_token, except: [:the_current_user]
   skip_before_action :verify_authenticity_token # do not use CSRF token checking for API routes
   skip_after_action :verify_authorized # do not force pundit
@@ -22,6 +23,7 @@ class ApiController < ApplicationController
       name: params[:name],
       email: params[:email],
       country: params[:country],
+      country_alpha2: self.class.get_country_name(params[:country].to_i),
       postal_code: ValidatesZipcode.valid?(params[:postal_code], params[:country]) ? params[:postal_code] : nil,
       is_public: params[:transparent].nil? ? true : params[:transparent],
     ).run

@@ -17,6 +17,10 @@ module CountryEnumable
       enum field, self.country_enum_list, prefix: field
     end
 
+    def get_country_name(int)
+      country_enum_list.key(int)
+    end
+    
     private
 
     def country_enum_list
