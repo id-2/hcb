@@ -260,6 +260,11 @@ summary {
   background-color: map-get($palette, primary);
 }
 
+::selection {
+  background-color: map-get($palette, primary);
+  color: $white;
+}
+
 #HW_badge_cont {
   position: absolute;
   top: -10px;
