@@ -240,7 +240,7 @@
 
                 <article class="details-horiz mt2 mb1">
 
-                  <div class="mt1 md-mt0" style="width: 100%;">
+                  <div class="mt1 md:mt-0" style="width: 100%;">
                     <p class="details__simulated">
                       <%= stripe_verification_check_badge "address_line1" %>
                       <span>Address check</span>
@@ -251,7 +251,7 @@
                     </p>
                   </div>
 
-                  <div class="mt1 md-mt0" style="width: 100%;">
+                  <div class="mt1 md:mt-0" style="width: 100%;">
                     <p class="details__simulated">
                       <%= stripe_verification_check_badge "expiry" %>
                       <span>Expiry check</span>
@@ -371,7 +371,7 @@
       <% @verification_data = @hcb_code.pt.raw_pending_stripe_transaction.stripe_transaction["verification_data"] %>
 
       <article class="details-horiz">
-        <div class="mt1 md-mt0" style="width: 100%;">
+        <div class="mt1 md:mt-0" style="width: 100%;">
           <p class="details__simulated">
             <strong>Type</strong>
             <span class="pl1">
@@ -386,7 +386,7 @@
           <% end %>
         </div>
 
-        <div class="mt1 md-mt0" style="width: 100%;">
+        <div class="mt1 md:mt-0" style="width: 100%;">
           <p class="details__simulated">
             <%= stripe_verification_check_badge "address_line1" %>
             <span>Address check</span>
@@ -397,7 +397,7 @@
           </p>
         </div>
 
-        <div class="mt1 md-mt0" style="width: 100%;">
+        <div class="mt1 md:mt-0" style="width: 100%;">
           <p class="details__simulated">
             <%= stripe_verification_check_badge "expiry" %>
             <span>Expiry check</span>
