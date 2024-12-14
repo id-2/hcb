@@ -261,8 +261,8 @@ summary {
 }
 
 ::selection {
-  background-color: map-get($palette, primary);
-  color: $white;
+  background-color: lighten(map-get($palette, primary), 25%);
+  color: darken(map-get($palette, primary), 10%);
 }
 
 #HW_badge_cont {
