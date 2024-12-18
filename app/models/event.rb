@@ -8,6 +8,7 @@
 #  aasm_state                                   :string
 #  activated_at                                 :datetime
 #  address                                      :text
+#  amount_raised_in_cents                       :integer          default(0)
 #  can_front_balance                            :boolean          default(TRUE), not null
 #  country                                      :integer
 #  deleted_at                                   :datetime
@@ -32,6 +33,7 @@
 #  short_name                                   :string
 #  slug                                         :text
 #  stripe_card_shipping_type                    :integer          default("standard"), not null
+#  total_card_limit                             :integer
 #  website                                      :string
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
@@ -326,6 +328,7 @@ class Event < ApplicationRecord
   validates_uniqueness_of_without_deleted :slug
 
   after_save :update_slug_history
+  after_save :calculate_total_card_limit
 
   validates :website, format: URI::DEFAULT_PARSER.make_regexp(%w[http https]), if: -> { website.present? }
 
@@ -374,6 +377,25 @@ class Event < ApplicationRecord
   include PublicActivity::Model
   tracked owner: proc{ |controller, record| controller&.current_user }, event_id: proc { |controller, record| record.id }, only: [:create]
 
+  def calculate_total_card_limit
+    a = amount_raised_in_cents.to_f / 100
+    number_of_people = users.count
+    physical_limit = physical_card_limit_per_user(a)
+    virtual_limit = virtual_card_limit_per_user(a)
+    total_limit = 0.3 * number_of_people * (physical_limit + virtual_limit)
+    update_column(:total_card_limit, total_limit.round)
+  end
+
+  def physical_card_limit_per_user(a = amount_raised_in_cents.to_f / 100)
+    return 0 if a <= 0
+    Math.log(a) + 2
+  end
+  
+  def virtual_card_limit_per_user(a = amount_raised_in_cents.to_f / 100)
+    return 0 if a <= 0
+    3.5 * Math.log(a) + 1
+  end
+  
   def admin_formatted_name
     "#{name} (#{id})"
   end
@@ -680,6 +702,7 @@ class Event < ApplicationRecord
     plan.omit_stats
   end
 
+  private :calculate_total_card_limit
   private
 
   def point_of_contact_is_admin

@@ -107,6 +107,7 @@ class User < ApplicationRecord
   has_many :approved_expenses, class_name: "Reimbursement::Expense", inverse_of: :approved_by
 
   has_many :card_grants
+  has_many :cards
 
   has_one_attached :profile_picture
 
@@ -173,6 +174,14 @@ class User < ApplicationRecord
   end
 
   scope :currently_online, -> { where(id: UserSession.where("last_seen_at > ?", 15.minutes.ago).pluck(:user_id)) }
+
+  def active_physical_cards
+    stripe_cards.physical.active
+  end
+
+  def active_virtual_cards
+    stripe_cards.virtual.active
+  end
 
   # admin? takes into account an admin user's preference
   # to pretend to be a non-admin, normal user

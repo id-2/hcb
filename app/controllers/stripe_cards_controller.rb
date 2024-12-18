@@ -120,7 +120,12 @@ class StripeCardsController < ApplicationController
       stripe_card_personalization_design_id: sc[:stripe_card_personalization_design_id] || StripeCard::PersonalizationDesign.common.first&.id
     ).run
 
-    redirect_to new_card, flash: { success: "Card was successfully created." }
+    if new_card.persisted?
+      redirect_to new_card, flash: { success: "Card was successfully created." }
+    else
+      flash.now[:error] = new_card.errors.full_messages.join(", ")
+      render :new
+    end
   rescue => e
     notify_airbrake(e)
 

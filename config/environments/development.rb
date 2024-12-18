@@ -91,6 +91,8 @@ Rails.application.configure do
 
   config.action_mailer.show_previews = true
 
+  config.action_controller.forgery_protection_origin_check = false
+
   # Configure the URL host for links
   config.action_mailer.default_url_options = {
     host: Rails.application.credentials.default_url_host[:test]
