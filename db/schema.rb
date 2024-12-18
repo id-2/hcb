@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -872,8 +874,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_18_070501) do
     t.string "postal_code"
     t.boolean "reimbursements_require_organizer_peer_review", default: false, null: false
     t.string "short_name"
-    t.integer "total_card_limit"
-    t.integer "amount_raised_in_cents", default: 0
     t.index ["point_of_contact_id"], name: "index_events_on_point_of_contact_id"
   end
 

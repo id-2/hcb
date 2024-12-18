@@ -117,7 +117,6 @@ class StripeCard < ApplicationRecord
   validate :only_physical_cards_can_have_personalization_design
   validate :user_physical_card_limit_not_exceeded, on: :create
   validate :user_virtual_card_limit_not_exceeded, on: :create
-  validate :event_total_card_limit_not_exceeded, on: :create
   validate :personalization_design_must_be_of_the_same_event
   validates_length_of :name, maximum: 40
 
@@ -128,8 +127,7 @@ class StripeCard < ApplicationRecord
   def user_physical_card_limit_not_exceeded
     return unless physical?
     return if card_grant?
-    limit = event.physical_card_limit_per_user.to_i
-    if user.stripe_cards.physical.where(event: event).count >= limit
+    if user.stripe_cards.physical.where(event: event).count >= 4
       errors.add(:base, "You have reached the maximum number of physical cards allowed.")
     end
   end
@@ -137,19 +135,8 @@ class StripeCard < ApplicationRecord
   def user_virtual_card_limit_not_exceeded
     return unless virtual?
     return if card_grant?
-    limit = event.virtual_card_limit_per_user.to_i
-    if user.stripe_cards.virtual.where(event: event).count >= limit
+    if user.stripe_cards.virtual.where(event: event).count >= 10
       errors.add(:base, "You have reached the maximum number of virtual cards allowed.")
-    end
-  end
-
-  def event_total_card_limit_not_exceeded
-    return if event.total_card_limit.nil?
-    return if card_grant?
-    one_year_ago = Time.current - 1.year
-    total_issued_cards = event.stripe_cards.where("created_at > ?", one_year_ago).count
-    if total_issued_cards >= event.total_card_limit
-      errors.add(:base, "The maximum number of cards allowed for this event has been reached.")
     end
   end
 
