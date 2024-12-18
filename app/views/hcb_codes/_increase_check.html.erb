@@ -22,10 +22,28 @@
   <h2 class="h2 mt0 border-none">
     <div class="flex items-center justify-between" style="gap: 8px">
       <span class="flex-auto mr1">
-        <span class="regular muted"><%= @hcb_code.increase_check.sent? ? "Sent" : "Sending" %></span>
-        <%= @hcb_code.increase_check.recipient_name %>
-        <span class="regular muted"> a&nbsp;check for </span>
-        <span class="regular"><%= render_money @hcb_code.increase_check.amount %></span>
+        <%= turbo_frame_tag @hcb_code, class: "flex items-center" do %>
+          <%= pop_icon_to "edit",
+              edit_hcb_code_path(@hcb_code),
+              class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
+              data: { turbo: true } %>
+          <span class="align-middle"
+                data-controller="navigation"
+                data-action="dblclick->navigation#navigate"
+                data-navigation-location-param="<%= edit_hcb_code_path(@hcb_code) %>"
+                data-navigation-frame-param="<%= dom_id(@hcb_code) %>">
+
+            <span data-memo-for="<%= dom_id(@hcb_code) %>"><%= @hcb_code.increase_check.memo %></span>
+            <span class="regular muted"> for </span>
+            <%= render_money @hcb_code.increase_check.amount %>
+          </span>
+
+          <%= render "hcb_codes/memo_stream", hcb_code: @hcb_code %>
+
+          <span style="flex-grow: 1;"></span>
+
+          <%= render partial: "hcb_codes/ai_memo", locals: { hcb_code: @hcb_code } %>
+        <% end %>
       </span>
       <span class="badge h4 ml2 nowrap bg-<%= @hcb_code.increase_check.state %>">
         <%= @hcb_code.increase_check.state_text %>
