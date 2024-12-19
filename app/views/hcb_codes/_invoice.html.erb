@@ -52,6 +52,7 @@
             edit_hcb_code_path(@hcb_code),
             class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
             data: { turbo: true } %>
+
         <span class="align-middle"
               data-controller="navigation"
               data-action="dblclick->navigation#navigate"
@@ -61,8 +62,11 @@
           <span class="regular muted"> for </span>
           <span class="regular"><%= render_money @invoice.item_amount %></span>
         </span>
+
         <%= render "hcb_codes/memo_stream", hcb_code: @hcb_code %>
+
         <span style="flex-grow: 1;"></span>
+
         <%= render partial: "hcb_codes/ai_memo", locals: { hcb_code: @hcb_code } %>
       <% end %>
     </span>

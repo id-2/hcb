@@ -12,6 +12,7 @@
             edit_hcb_code_path(@hcb_code),
             class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
             data: { turbo: true } %>
+
         <span class="align-middle"
               data-controller="navigation"
               data-action="dblclick->navigation#navigate"
@@ -21,6 +22,7 @@
           <span class="regular muted"> for </span>
           <span class="regular"><%= Money.from_cents(@hcb_code.wire.amount_cents, @hcb_code.wire.currency).format %></span>
         </span>
+
         <%= render "hcb_codes/memo_stream", hcb_code: @hcb_code %>
 
         <span style="flex-grow: 1;"></span>

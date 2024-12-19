@@ -18,11 +18,16 @@
               data-action="dblclick->navigation#navigate"
               data-navigation-location-param="<%= edit_hcb_code_path(@hcb_code) %>"
               data-navigation-frame-param="<%= dom_id(@hcb_code) %>">
-
           <span data-memo-for="<%= dom_id(@hcb_code) %>"><%= @hcb_code.memo %></span>
           <span class="regular muted"> for </span>
           <span class="regular"><%= render_money @hcb_code.ach_transfer.amount %></span>
         </span>
+
+        <%= render "hcb_codes/memo_stream", hcb_code: @hcb_code %>
+
+        <span style="flex-grow: 1;"></span>
+
+        <%= render partial: "hcb_codes/ai_memo", locals: { hcb_code: @hcb_code } %>
       <% end %>
     </span>
     <span class="badge h4 md-right ml0 bg-<%= @hcb_code.ach_transfer.state %> nowrap">
