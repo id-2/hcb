@@ -6,7 +6,7 @@
 
     <div class="flex g1 items-center">
       <% if admin_signed_in? %>
-        <div class="line-height-0 tooltipped tooltipped--w" aria-label="<%= (organizer_position_invite.signee? ? "Contract signee" : "No contract signature") + ". Click to toggle." %>">
+        <div class="leading-[0] tooltipped tooltipped--w" aria-label="<%= (organizer_position_invite.signee? ? "Contract signee" : "No contract signature") + ". Click to toggle." %>">
           <%= link_to toggle_signee_status_organizer_position_invite_path(organizer_position_invite.id), data: { turbo_method: "post", turbo_frame: "_top", turbo_confirm: "Are you sure you want to toggle #{organizer_position_invite.user.name}'s contract signee status?" } do %>
             <div class="warning">
               <% if organizer_position_invite.signee? %>

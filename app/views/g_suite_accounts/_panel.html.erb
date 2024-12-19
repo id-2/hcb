@@ -86,7 +86,7 @@
               <div class="flex alias-creation">
                 <% if account.g_suite_aliases.count < 30 && policy(account).create? %>
                   <div
-                    class="pop success pointer tooltipped tooltipped--e line-height-0 m-2 alias-new"
+                    class="pop success pointer tooltipped tooltipped--e leading-[0] m-2 alias-new"
                     aria-label="Create Alias">
                     <%= inline_icon "plus", size: home_action_size %>
                   </div>
@@ -94,7 +94,7 @@
                   <div
                     class="tooltipped tooltipped--e"
                     aria-label="<%= account.g_suite_aliases.count >= 30 ? "You can’t create more than 30 aliases." : "You don't have permission to create aliases." %>">
-                    <div class="pop success line-height-0 m-2 disabled" disabled>
+                    <div class="pop success leading-[0] m-2 disabled" disabled>
                       <%= inline_icon "plus", size: home_action_size %>
                     </div>
                   </div>
@@ -112,13 +112,13 @@
                     </div>
                     <%= form.hidden_field :g_suite_account_id, value: account.id %>
                     <div class="flex">
-                      <div class="actions m-auto mr-2 tooltipped tooltipped--e line-height-0" aria-label="Create Alias">
+                      <div class="actions m-auto mr-2 tooltipped tooltipped--e leading-[0]" aria-label="Create Alias">
                         <%= form.button nil, class: "pop success pointer alias-save" do %>
                           <%= inline_icon "checkmark", size: home_action_size %>
                         <% end %>
                       </div>
                       <div
-                        class="pop error pointer tooltipped tooltipped--e line-height-0 m-auto alias-cancel"
+                        class="pop error pointer tooltipped tooltipped--e leading-[0] m-auto alias-cancel"
                         aria-label="Cancel">
                         <%= inline_icon "view-close", size: home_action_size %>
                       </div>

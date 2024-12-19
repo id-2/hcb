@@ -130,6 +130,6 @@ module DonationsHelper
     end
 
     tag = inline_icon icon_name, size: 24
-    content_tag(:span, class: "pr1 #{background} line-height-0 tooltipped tooltipped--w", 'aria-label': text) { tag }
+    content_tag(:span, class: "pr1 #{background} leading-[0] tooltipped tooltipped--w", 'aria-label': text) { tag }
   end
 end

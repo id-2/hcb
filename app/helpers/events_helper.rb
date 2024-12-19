@@ -8,7 +8,7 @@ module EventsHelper
       class: "dock__item #{"dock__item--selected" if selected} #{"tooltipped tooltipped--e" if tooltip} #{"disabled" if disabled}",
       'aria-label': tooltip
     ) do
-      (content_tag :div, class: "line-height-0 relative" do
+      (content_tag :div, class: "leading-[0] relative" do
         if async_badge
           inline_icon(icon, size: 24) +
           turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" })

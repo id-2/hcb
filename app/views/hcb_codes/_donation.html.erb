@@ -38,10 +38,10 @@
     <span style="flex-grow: 1">
       <%= @donation.name(show_anonymous: organizer_signed_in?) %>
       <% if @donation.anonymous? %>
-        <div class="line-height-0 mx-1 tooltipped tooltipped--s inline align-bottom" style="margin: 0 2px;" aria-label="Anonymous donor"><%= inline_icon "private-fill", size: 24, class: "muted" %></div>
+        <div class="leading-[0] mx-1 tooltipped tooltipped--s inline align-bottom" style="margin: 0 2px;" aria-label="Anonymous donor"><%= inline_icon "private-fill", size: 24, class: "muted" %></div>
       <% end %>
       <% if @donation.in_person? %>
-        <div class="line-height-0 mx-1 tooltipped tooltipped--s inline align-bottom" style="margin: 0 2px;" aria-label="In-person donor"><%= inline_icon "card", size: 24, class: "muted" %></div>
+        <div class="leading-[0] mx-1 tooltipped tooltipped--s inline align-bottom" style="margin: 0 2px;" aria-label="In-person donor"><%= inline_icon "card", size: 24, class: "muted" %></div>
       <% end %>
       <span class="regular muted"> donated </span>
       <span class="regular"><%= render_money @donation.amount_received %></span>

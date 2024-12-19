@@ -160,7 +160,7 @@ def invoice_card_check_badge(check, invoice = @invoice)
   end
 
   tag = inline_icon icon_name, size: 24
-  content_tag(:span, class: "pr1 #{background} line-height-0 tooltipped tooltipped--w", 'aria-label': text) { tag }
+  content_tag(:span, class: "pr1 #{background} leading-[0] tooltipped tooltipped--w", 'aria-label': text) { tag }
 end
 
 # this information is visible to admins only because payouts should feel instant to the user

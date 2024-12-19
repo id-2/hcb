@@ -1,5 +1,5 @@
 <header class="header <%= "mt3" unless content_for?(:nav) %>">
-  <div class="header-left line-height-0 flex items-center justify-end">
+  <div class="header-left leading-[0] flex items-center justify-end">
     <% unless @event || request.path.include?("auth") || request.path.include?("logins") %>
       <%= render partial: "application/theme_toggle" %>
     <% end %>
@@ -17,7 +17,7 @@
 
   <%= render partial: "logo" %>
 
-  <div class="header-right line-height-0 flex items-center gap-3.5">
+  <div class="header-right leading-[0] flex items-center gap-3.5">
     <% if signed_in? %>
       <%= link_to my_inbox_path,
                   class: "muted tooltipped tooltipped--s",
