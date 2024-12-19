@@ -125,7 +125,7 @@
     <% if policy(@event).donation_overview? || ( @event.approved? && @event.plan.invoices_enabled? ) || policy(@event).account_number? || policy(@event.check_deposits.build).index? %>
       <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:donations, :invoices, :account_number, :deposit_check] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="receive">
         <div class="line-height-0 relative"><%= inline_icon "support", size: 32, class: "primary" %></div>
-        <span class="line-height-3">Receive</span>
+        <span class="leading-[3]">Receive</span>
 
         <div class="menu__content" data-behavior="menu_content">
           <h4 class="mb0 h5 muted text-left pl1 mt1">Receive</h4>
@@ -140,7 +140,7 @@
     <% if policy(@event).transfers? || policy(@event).reimbursements? || policy(@event).card_overview? %>
       <button class="dock__item <%= "dock__item--selected" if local_assigns[:selected].in? [:cards, :transfers] %> bg-transparent border-none menu__toggle" data-behavior="menu_toggle" data-tour-step="spend">
         <div class="line-height-0 relative"><%= inline_icon "card", size: 32, class: "primary" %></div>
-        <span class="line-height-3">Spend</span>
+        <span class="leading-[3]">Spend</span>
 
         <div class="menu__content" data-behavior="menu_content">
           <h4 class="mb0 h5 muted text-left pl1 mt1">Spend</h4>
@@ -153,7 +153,7 @@
     <% end %>
     <button class="dock__item bg-transparent border-none menu__toggle" data-behavior="menu_toggle">
       <div class="line-height-0 relative"><%= inline_icon "more", size: 32, class: "primary" %></div>
-      <span class="line-height-3">More</span>
+      <span class="leading-[3]">More</span>
 
       <div class="menu__content" data-behavior="menu_content">
         <h4 class="mb0 h5 muted text-left pl1 mt1">More</h4>

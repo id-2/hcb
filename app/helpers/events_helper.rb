@@ -15,7 +15,7 @@ module EventsHelper
         else
           inline_icon(icon, size: 24)
         end
-      end) + content_tag(:span, name.html_safe, class: "line-height-3")
+      end) + content_tag(:span, name.html_safe, class: "leading-[3]")
     end
   end
 

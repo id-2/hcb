@@ -38,18 +38,6 @@
 .nowrap {
   white-space: nowrap;
 }
-.line-height-1 {
-  line-height: 1;
-}
-.line-height-2 {
-  line-height: 1.125;
-}
-.line-height-3 {
-  line-height: 1.25;
-}
-.line-height-4 {
-  line-height: 1.5;
-}
 .no-select {
   -webkit-user-select: none;
   -moz-user-select: all;
