@@ -29,6 +29,7 @@
 #  stripe_status                         :text
 #  created_at                            :datetime         not null
 #  updated_at                            :datetime         not null
+#  card_grant_id                         :integer
 #  event_id                              :bigint           not null
 #  replacement_for_id                    :bigint
 #  stripe_card_personalization_design_id :integer
@@ -61,7 +62,7 @@ class StripeCard < ApplicationRecord
 
   after_create_commit :notify_user, unless: :skip_notify_user
 
-  attr_accessor :skip_notify_user
+  attr_accessor :skip_notify_user, :enforce_card_limit
 
   scope :deactivated, -> { where.not(stripe_status: "active") }
   scope :canceled, -> { where(stripe_status: "canceled") }
@@ -69,9 +70,11 @@ class StripeCard < ApplicationRecord
   scope :active, -> { where(stripe_status: "active") }
   scope :physical_shipping, -> { physical.includes(:user, :event).reject { |c| c.stripe_obj[:shipping][:status] == "delivered" } }
   scope :platinum, -> { where(is_platinum_april_fools_2023: true) }
+  scope :non_granted, -> { where(card_grant_id: nil) }
 
   scope :on_main_ledger, -> { where(subledger_id: nil) }
 
+  belongs_to :card_grant, optional: true
   belongs_to :event
   belongs_to :subledger, optional: true
   belongs_to :stripe_cardholder
@@ -115,8 +118,8 @@ class StripeCard < ApplicationRecord
 
   validate :only_physical_cards_can_be_lost_in_shipping
   validate :only_physical_cards_can_have_personalization_design
-  validate :user_physical_card_limit_not_exceeded, on: :create
-  validate :user_virtual_card_limit_not_exceeded, on: :create
+  validate :user_physical_card_limit_not_exceeded, on: :create, if: :enforce_card_limit?
+  validate :user_virtual_card_limit_not_exceeded, on: :create, if: :enforce_card_limit?
   validate :personalization_design_must_be_of_the_same_event
   validates_length_of :name, maximum: 40
 
@@ -124,24 +127,24 @@ class StripeCard < ApplicationRecord
     self.canceled_at = Time.now if stripe_status_changed?(to: "canceled")
   end
 
+  def enforce_card_limit?
+    enforce_card_limit != false
+  end
+
   def user_physical_card_limit_not_exceeded
     return unless physical?
-    return if card_grant?
-    if user.stripe_cards.physical.where(event: event).count >= 4
+
+    if user.stripe_cards.physical.non_granted.where(event:).count >= 4
       errors.add(:base, "You have reached the maximum number of physical cards allowed.")
     end
   end
-  
+
   def user_virtual_card_limit_not_exceeded
     return unless virtual?
-    return if card_grant?
-    if user.stripe_cards.virtual.where(event: event).count >= 10
+
+    if user.stripe_cards.virtual.non_granted.where(event:).count >= 10
       errors.add(:base, "You have reached the maximum number of virtual cards allowed.")
     end
-  end
-
-  def card_grant?
-    card_grant.present?
   end
 
   def full_card_number

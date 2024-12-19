@@ -89,7 +89,7 @@ class CardGrantsController < ApplicationController
   def activate
     authorize @card_grant
 
-    @card_grant.create_stripe_card(current_session)
+    @card_grant.create_stripe_card(current_session, card_grant_id: @card_grant.id)
 
     redirect_to @card_grant
   end
