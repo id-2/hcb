@@ -7,7 +7,7 @@
         <div class="field">
           <%= card_grant_setting_fields.label :merchant_lock, "Update Approved Merchants" %>
           <%= card_grant_setting_fields.text_field :merchant_lock, placeholder: "123456789", class: "w-100 fit", value: event.card_grant_setting.merchant_lock.join(", "), disabled: !policy(event).update? %>
-          <p class="h5 muted mt0 mb1">
+          <p class="text-sm muted mt0 mb1">
             Provide a comma-separated list of merchant network IDs to lock all card grants issued from this event to.
           </p>
         </div>
@@ -15,19 +15,19 @@
         <div class="field">
           <%= card_grant_setting_fields.label :category_lock, "Update Category Lock" %>
           <%= card_grant_setting_fields.text_field :category_lock, placeholder: "fast_food_restaurants", value: event.card_grant_setting.category_lock.join(", "), disabled: !policy(event).update? %>
-          <p class="h5 muted mt0 mb1">Provide a comma-separated list of <a href="https://stripe.com/docs/issuing/categories">merchant categories</a> to lock all card grants issued from this event to.</p>
+          <p class="text-sm muted mt0 mb1">Provide a comma-separated list of <a href="https://stripe.com/docs/issuing/categories">merchant categories</a> to lock all card grants issued from this event to.</p>
         </div>
 
         <div class="field">
           <%= card_grant_setting_fields.label :keyword_lock, "Update Merchant Name Lock" %>
           <%= card_grant_setting_fields.text_field :keyword_lock, placeholder: "\\AApple[a-zA-Z]{0,2}\\z", value: event.card_grant_setting.keyword_lock, disabled: !policy(event).update? %>
-          <p class="h5 muted mt0 mb1">Provide a <a href="https://rubular.com">Ruby regular expression</a> string for us to match the merchant name to.</p>
+          <p class="text-sm muted mt0 mb1">Provide a <a href="https://rubular.com">Ruby regular expression</a> string for us to match the merchant name to.</p>
         </div>
 
         <div class="field">
           <%= card_grant_setting_fields.label :invite_message, "Update Invite Message" %>
           <%= card_grant_setting_fields.text_area :invite_message, placeholder: "It's pizza time!", value: event.card_grant_setting.invite_message, disabled: !policy(event).update? %>
-          <p class="h5 muted mt0 mb1">
+          <p class="text-sm muted mt0 mb1">
             <%= link_to "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#table-of-contents", target: "_blank", class: "flex items-center" do %>
               <%= inline_icon "markdown", size: 32 %> Styling with Markdown is supported
             <% end %>

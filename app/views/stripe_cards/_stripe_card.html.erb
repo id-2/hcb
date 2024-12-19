@@ -13,7 +13,7 @@
     data-behavior="hover_tilt"
     style="background-image: <%= GeoPattern.generate(stripe_card.public_id).to_data_uri unless stripe_card.platinum? || stripe_card.personalization_design.present? %>">
     <% if stripe_card.platinum? %>
-      <span class="font-bold caps h6 absolute flex items-center" style="opacity: 50%; right: 10px; top: 10px;">
+      <span class="font-bold caps text-xs absolute flex items-center" style="opacity: 50%; right: 10px; top: 10px;">
         <%= inline_icon "bank-account" %>
         Platinum
       </span>
@@ -38,7 +38,7 @@
       <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
         <%= defined?(@event) ? stripe_card.user.name : stripe_card.event.name %>
       </span>
-      <span class="ml2 badge h6 stripe-card__status">
+      <span class="ml2 badge text-xs stripe-card__status">
         <%= stripe_card.status_text %>
       </span>
     </p>

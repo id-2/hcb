@@ -4,7 +4,7 @@
   <div class="field">
     <%= form.label :display_name, "Display name" %>
     <%= form.text_field :display_name, placeholder: transaction.name, autofocus: true, style: "max-width: none;" %>
-    <span class="muted block h5">
+    <span class="muted block text-sm">
       Give this transaction a more descriptive name to improve your records.
     </span>
   </div>
@@ -15,18 +15,18 @@
         <div class="field">
           <%= form.label :fee_reimbursement, "Fee refund" %>
           <%= form.collection_select(:fee_reimbursement_id, FeeReimbursement.pending.reorder(:amount) + [transaction.fee_reimbursement].compact, :id, :admin_dropdown_description, include_blank: "Select one…") %>
-        <p class="muted h5 mb0">If this isn’t a transfer to reimburse a Stripe fee, leave this field blank.</p>
+        <p class="muted text-sm mb0">If this isn’t a transfer to reimburse a Stripe fee, leave this field blank.</p>
         </div>
       <% end %>
       <% if transaction.potential_ach_transfer? %>
           <%= form.label :ach_transfer, "ACH Transfer" %>
           <%= form.collection_select(:ach_transfer_id, AchTransfer.in_transit, :id, :admin_dropdown_description, include_blank: "Select one…") %>
-          <p class="muted h5 mb2">If this isn't a transaction from an ACH Transfer, leave this field blank.</p>
+          <p class="muted text-sm mb2">If this isn't a transaction from an ACH Transfer, leave this field blank.</p>
       <% end %>
       <% if transaction.potential_disbursement? %>
           <%= form.label :disbursement, "Disbursement" %>
           <%= form.collection_select(:disbursement_id, Disbursement.processing.sort_by { |d| d.amount } + [transaction.disbursement].compact, :id, :admin_dropdown_description, include_blank: "Select one…") %>
-          <p class="muted h5 mb2">If this isn't a transaction from a disbursement, leave this field blank.</p>
+          <p class="muted text-sm mb2">If this isn't a transaction from a disbursement, leave this field blank.</p>
       <% end %>
       <% if transaction.potential_emburse? %>
         <div class="field lcr-select-target">
@@ -34,7 +34,7 @@
           <%= form.collection_select(:emburse_transfer_id, EmburseTransfer.unpaired.reorder(:load_amount) + [transaction.emburse_transfer].compact,
                                      :id, :description, include_blank: "Select one…") %>
         </div>
-        <p class="muted h5 mb2">If this isn’t from transferring money to Emburse to fulfill a Load Card Request, leave this field blank.</p>
+        <p class="muted text-sm mb2">If this isn’t from transferring money to Emburse to fulfill a Load Card Request, leave this field blank.</p>
       <% end %>
       <% if transaction.potential_invoice_payout? %>
         <div class="field invoicepayout-select-target">

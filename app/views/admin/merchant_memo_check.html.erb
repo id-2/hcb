@@ -12,12 +12,12 @@
       <tr>
         <td>
           <%= d[:yp_name] %>
-          <span class="h6 muted"><%= d[:yp_network_id] %></span>
+          <span class="text-xs muted"><%= d[:yp_network_id] %></span>
         </td>
         <td>
           <details>
             <summary><%= d[:memos].count %> memos</summary>
-            <div class="h6 inline-grid grid-cols-3">
+            <div class="text-xs inline-grid grid-cols-3">
               <% d[:memos].each do |m| %>
                 <p><%= m %></p>
               <% end %>

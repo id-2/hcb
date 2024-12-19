@@ -24,7 +24,7 @@
           <% if g_suite_account.under_review? %>
             <td><%= link_to "Process", edit_g_suite_account_path(g_suite_account), class: "btn bg-info" %></td>
           <% else %>
-            <td><%= link_to "Edit", edit_g_suite_account_path(g_suite_account), class: "h5 btn bg-info" %></td>
+            <td><%= link_to "Edit", edit_g_suite_account_path(g_suite_account), class: "text-sm btn bg-info" %></td>
           <% end %>
         </tr>
       <% end %>
@@ -58,7 +58,7 @@
         <% if g_suite_account.under_review? %>
           <td><%= link_to "Process", edit_g_suite_account_path(g_suite_account), class: "btn bg-info" %></td>
         <% else %>
-          <td><%= link_to "Edit", edit_g_suite_account_path(g_suite_account), class: "h5 btn bg-info" %></td>
+          <td><%= link_to "Edit", edit_g_suite_account_path(g_suite_account), class: "text-sm btn bg-info" %></td>
         <% end %>
       </tr>
     <% end %>

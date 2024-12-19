@@ -160,7 +160,7 @@
                 <%= recurring_donation.name %>
               <% end %>
               <% if organizer_signed_in? %>
-                <%= mail_to recurring_donation.email, class: "muted h5" %>
+                <%= mail_to recurring_donation.email, class: "muted text-sm" %>
               <% end %>
             </td>
             <td><%= format_date recurring_donation.created_at %></td>
@@ -189,7 +189,7 @@
           <%= inline_icon "download", size: 16 %>
           Export
       </button>
-      <div class="menu__content menu__content--2 h5" data-menu-target="content">
+      <div class="menu__content menu__content--2 text-sm" data-menu-target="content">
         <%= link_to "Export donations (CSV)", export_donations_path(event: @event, format: :csv), target: :_blank %>
         <%= link_to "Export donations (JSON)", export_donations_path(event: @event, format: :json), target: :_blank %>
         <%= link_to "Export donors (CSV)", export_donors_donations_path(event: @event, format: :csv), target: :_blank %>

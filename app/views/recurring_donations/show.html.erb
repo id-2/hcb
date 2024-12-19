@@ -56,7 +56,7 @@
         <%= inline_icon "card", size: 24, class: "muted mr1" %>
         ••••<%= @recurring_donation.last4 %>
         <% unless @recurring_donation.canceled? %>
-          <button class="btn bg-accent ml-auto h5" style="padding: 4px 16px" data-behavior="modal_trigger" data-modal="change_payment_details">Change</button>
+          <button class="btn bg-accent ml-auto text-sm" style="padding: 4px 16px" data-behavior="modal_trigger" data-modal="change_payment_details">Change</button>
         <% end %>
       </span>
     </p>
@@ -65,7 +65,7 @@
       <span class="flex items-center">
         <%= render_money @recurring_donation.amount %> per month
         <% unless @recurring_donation.canceled? %>
-          <button class="btn bg-accent ml-auto h5" style="padding: 4px 16px" data-behavior="modal_trigger" data-modal="change_amount">Change</button>
+          <button class="btn bg-accent ml-auto text-sm" style="padding: 4px 16px" data-behavior="modal_trigger" data-modal="change_amount">Change</button>
         <% end %>
       </span>
     </p>

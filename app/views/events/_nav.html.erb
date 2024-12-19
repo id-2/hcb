@@ -34,7 +34,7 @@
         <% end %>
     <% end %>
     <% if policy(@event).donation_overview? || ( @event.approved? && @event.plan.invoices_enabled? ) || policy(@event).account_number? || policy(@event.check_deposits.build).index? %>
-      <h4 class="mb0 h5 font-medium muted">Receive</h4>
+      <h4 class="mb0 text-sm font-medium muted">Receive</h4>
       <hr>
     <% end %>
     <%= dock_item "Donations",
@@ -59,7 +59,7 @@
       icon: "cheque",
       selected: local_assigns[:selected] == :deposit_check if policy(@event.check_deposits.build).index? %>
     <% if policy(@event).transfers? || policy(@event).reimbursements? || policy(@event).card_overview? || Flipper.enabled?(:grants_2023_06_21, @event) %>
-      <h4 class="mb0 h5 font-medium muted">Spend</h4>
+      <h4 class="mb0 text-sm font-medium muted">Spend</h4>
       <hr>
     <% end %>
     <%= dock_item "Cards",
@@ -128,7 +128,7 @@
         <span class="leading-3">Receive</span>
 
         <div class="menu__content" data-behavior="menu_content">
-          <h4 class="mb0 h5 muted text-left pl1 mt1">Receive</h4>
+          <h4 class="mb0 text-sm muted text-left pl1 mt1">Receive</h4>
           <div class="menu__divider"></div>
           <%= link_to "Donations", event_donation_overview_path(@event) if policy(@event).donation_overview? %>
           <%= link_to "Invoices", event_invoices_path(@event) if @event.approved? && @event.plan.invoices_enabled? %>
@@ -143,7 +143,7 @@
         <span class="leading-3">Spend</span>
 
         <div class="menu__content" data-behavior="menu_content">
-          <h4 class="mb0 h5 muted text-left pl1 mt1">Spend</h4>
+          <h4 class="mb0 text-sm muted text-left pl1 mt1">Spend</h4>
           <div class="menu__divider"></div>
           <%= link_to "Cards", event_cards_overview_path(@event) if policy(@event).card_overview? %>
           <%= link_to "Transfers", event_transfers_path(@event) if policy(@event).transfers? %>
@@ -156,7 +156,7 @@
       <span class="leading-3">More</span>
 
       <div class="menu__content" data-behavior="menu_content">
-        <h4 class="mb0 h5 muted text-left pl1 mt1">More</h4>
+        <h4 class="mb0 text-sm muted text-left pl1 mt1">More</h4>
         <div class="menu__divider"></div>
         <%= link_to "Team", event_team_path(event_id: @event.slug) %>
         <%= link_to "Promotions & perks", event_promotions_path(event_id: @event.slug) if policy(@event).promotions? %>

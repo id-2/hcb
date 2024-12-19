@@ -1,5 +1,5 @@
 <footer data-behavior="hide_iframe">
-  <p class="muted max-w-96 mx-auto h5 mb1 text-balance center">
+  <p class="muted max-w-96 mx-auto text-sm mb1 text-balance center">
     <% if @event.plan.is_a?(Event::Plan::HackClubAffiliate) %>
       Hack Club is <span class="nowrap">a 501(c)(3)</span>&nbsp;nonprofit.<br>Our registered EIN is <span class="nowrap">81-2908499</span>.
     <% else %>
@@ -9,7 +9,7 @@
       <span class="nowrap">a 501(c)(3)</span>&nbsp;nonprofit. Our registered EIN is <span class="nowrap">81-2908499</span>.
     <% end %>
   </p>
-  <p class="muted h5 center">
+  <p class="muted text-sm center">
     Questions? Get in touch at <%= help_email %>.
   </p>
 </footer>

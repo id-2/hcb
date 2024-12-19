@@ -22,7 +22,7 @@
           <%= inline_icon "private" %>
           Donate <%= render_money @recurring_donation.amount %> per month
         </button>
-        <p class="h5 muted inline-block mt2 mb0">Your card will immediately be charged <%= render_money @recurring_donation.amount %> and a receipt will be emailed to <strong><%= @recurring_donation.email %></strong>.</p>
+        <p class="text-sm muted inline-block mt2 mb0">Your card will immediately be charged <%= render_money @recurring_donation.amount %> and a receipt will be emailed to <strong><%= @recurring_donation.email %></strong>.</p>
       </div>
     <% end %>
   </div>

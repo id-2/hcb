@@ -9,7 +9,7 @@
 <% end %>
 
 <% if @allowed_destination_events.empty? %>
-  <p class="h5 muted">It looks like you don't have any organizations to transfer to. You can transfer funds between any organizations you're a part of.</p>
+  <p class="text-sm muted">It looks like you don't have any organizations to transfer to. You can transfer funds between any organizations you're a part of.</p>
 <% end %>
 
 <%= render "form", disbursement: @disbursement %>

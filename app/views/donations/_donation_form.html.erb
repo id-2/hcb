@@ -22,7 +22,7 @@
 
     <div class="field mb2">
       <%= form.label :email, "Your email" %>
-      <span class="muted block h5">We’ll send <%= @monthly ? "receipts" : "a receipt" %> here for your tax records.</span>
+      <span class="muted block text-sm">We’ll send <%= @monthly ? "receipts" : "a receipt" %> here for your tax records.</span>
       <%= form.email_field :email, placeholder: "fionah@gmail.com", required: true %>
       <% donation.errors.messages_for(:email).each do |message| %>
         <div class="primary"><%= message %></div>
@@ -31,7 +31,7 @@
 
     <div class="field mb2">
       <%= form.label :message, "Message" %>
-      <span class="muted block h5">Optionally include a note.</span>
+      <span class="muted block text-sm">Optionally include a note.</span>
       <%= form.text_area :message, placeholder: "Keep up the good work!", required: false %>
     </div>
 

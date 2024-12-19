@@ -6,7 +6,7 @@
     data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
     <%= inline_icon "filter", size: 28 %>
   </button>
-  <div class="menu__content menu__content--2 menu__content--compact h5" style="width: 320px; padding: 0.5rem;" data-menu-target="content" data-controller="filter">
+  <div class="menu__content menu__content--2 menu__content--compact text-sm" style="width: 320px; padding: 0.5rem;" data-menu-target="content" data-controller="filter">
     <div data-controller="tabs" data-tabs-default-tab-value="<%= @tag ? "tags" : @user ? "user" : @type ? "type" : @start_date || @end_date ? "date" : @maximum_amount || @minimum_amount ? "amount" : Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 ? "tags" : "user" %>">
       <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0 %>
         <button id="tags" data-tabs-target="btn" data-action="click->tabs#select">Tag</button>

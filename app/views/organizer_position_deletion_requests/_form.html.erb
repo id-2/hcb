@@ -6,7 +6,7 @@
   <div class="field">
     <%= form.label :reason, "Give a short description of why you’re removing their account." %>
     <%= form.text_area :reason %>
-    <span class="muted h5">(So we have context when we contact you.)</span>
+    <span class="muted text-sm">(So we have context when we contact you.)</span>
   </div>
 
   <% cards_num = @opdr.organizer_active_cards.count %>

@@ -13,7 +13,7 @@
           data-behavior="menu_toggle" aria-expanded="false" tabindex="0"
           class="pop menu__toggle z-[1] event_settings__banner--edit">
           <%= inline_icon "photo", size: 24 %>
-          <div class="menu__content h5" data-behavior="menu_content">
+          <div class="menu__content text-sm" data-behavior="menu_content">
             <div class="field--fileupload">
               <%= form.label :background_image, "Choose file", class: "field--fileupload__label" %>
               <%= form.file_field :background_image, accept: "image/*,image/heic", class: "field--fileupload__field" %>
@@ -39,7 +39,7 @@
             data-behavior="menu_toggle" aria-expanded="false" tabindex="0"
             class="pop menu__toggle z-[1] event_settings__logo--edit">
             <%= inline_icon "photo", size: 24 %>
-            <div class="menu__content menu__content--left h5" data-behavior="menu_content">
+            <div class="menu__content menu__content--left text-sm" data-behavior="menu_content">
               <div class="field--fileupload">
                 <%= form.label :logo, "Choose file", class: "field--fileupload__label" %>
                 <%= form.file_field :logo, accept: "image/*,image/heic", class: "field--fileupload__field" %>
@@ -59,7 +59,7 @@
         <% if @event.name.length > Event::MAX_SHORT_NAME_LENGTH %>
           <div class="field flex-1">
             <%= form.label :short_name, "Nickname" %>
-            <p class="h5 muted mt0 mb1">
+            <p class="text-sm muted mt0 mb1">
               At most sixteen characters long; used on statement descriptors and printed on your event's HCB card.
             </p>
             <%= form.text_field :short_name, placeholder: "#{@event.name[0...Event::MAX_SHORT_NAME_LENGTH]}...", maxlength: Event::MAX_SHORT_NAME_LENGTH, disabled: !policy(@event).update? %>
@@ -77,7 +77,7 @@
       <div class="md:flex items-center">
         <div class="float-left flex gap-3 items-center flex-1 max-w-2xl mr-auto">
           <%= inline_icon "info", size: 24, class: "muted" %>
-          <p class="h5 muted m0">
+          <p class="text-sm muted m0">
             Your logo is displayed on the
             <%= link_to "donation page",
               @event.donation_page_available? ? start_donation_donations_path(@event) : { anchor: "donations" },
@@ -144,7 +144,7 @@
     <div class="card mb3">
       <div class="field">
         <%= form.label :stripe_card_logo, "Card logo" %>
-        <p class="h5 muted mt0 mb2">
+        <p class="text-sm muted mt0 mb2">
           Displayed in the top right of each of your organization's cards. A logo needs to be a binary image containing a black logo on a white background.
           The file must be a PNG, with dimensions of up to 1000px by 200px and a file size no greater than 512kb. Logos are reviewed by our card issuer, Stripe.
         </p>
@@ -165,7 +165,7 @@
     <div class="field">
       <%= form.fields_for :config do |config| %>
         <%= config.label :contact_email, "Your team's contact email" %>
-        <p class="h5 muted mt0 mb1">
+        <p class="text-sm muted mt0 mb1">
           If you'd prefer for the HCB operations team to reach out to a shared email, configure that here.
         </p>
         <%= config.email_field :contact_email, placeholder: "team@lioncityhacks.com" %>

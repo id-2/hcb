@@ -10,7 +10,7 @@
     <%= form_with model: @user, data: { turbo_frame: "_top" } do |form| %>
       <fieldset class="field">
         <%= form.label :receipt_report_option, "Receipt reminders" %>
-        <p class="h5 muted mt0 mb1">
+        <p class="text-sm muted mt0 mb1">
           Get a regular email roundup of your transactions awaiting receipts.
         </p>
         <%= form.select :receipt_report_option,
@@ -18,7 +18,7 @@
       </fieldset>
       <fieldset class="field">
         <legend class="font-medium">Transaction comments</legend>
-        <p class="h5 muted mt-0 mb-3">
+        <p class="text-sm muted mt-0 mb-3">
           Get an email when someone comments on a transaction or reimbursement report.
         </p>
         <div class="field field--options field--green trio">
@@ -41,7 +41,7 @@
       </fieldset>
       <fieldset>
         <legend class="font-medium">Card charges</legend>
-        <p class="h5 muted mt-0 mb-3">
+        <p class="text-sm muted mt-0 mb-3">
           Get a notification when there’s a charge on any of your cards.
         </p>
         <div class="field field--options max-w-3xl grid grid--narrow">

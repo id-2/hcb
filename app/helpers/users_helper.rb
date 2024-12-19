@@ -129,7 +129,7 @@ module UsersHelper
               end
     mention = user_mention(creator, options, default_name = "Anonymous User")
     content_tag :div, class: "comment__name" do
-      mention + relative_timestamp(object.created_at, prefix: options[:prefix], class: "h5 muted")
+      mention + relative_timestamp(object.created_at, prefix: options[:prefix], class: "text-sm muted")
     end
   end
 
