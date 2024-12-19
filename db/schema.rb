@@ -2056,6 +2056,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_19_000855) do
     t.integer "charge_notifications", default: 0, null: false
     t.boolean "use_two_factor_authentication", default: false
     t.boolean "teenager"
+    t.integer "creation_method"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

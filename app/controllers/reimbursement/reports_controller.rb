@@ -8,12 +8,12 @@ module Reimbursement
     skip_before_action :signed_in_user, only: [:show, :start, :create, :finished]
     skip_after_action :verify_authorized, only: [:start, :finished]
 
-    invisible_captcha only: [:create], on_spam: :on_spam
+    invisible_captcha only: [:create], on_spam: :on_spam, timestamp_enabled: true, timestamp_threshold: 2
 
     # POST /reimbursement_reports
     def create
       @event = Event.find(report_params[:event_id])
-      user = User.find_or_create_by!(email: report_params[:email])
+      user = User.create_with(creation_method: :reimbursement_report).find_or_create_by!(email: report_params[:email])
       @report = @event.reimbursement_reports.build(report_params.except(:email, :receipt_id, :value).merge(user:, inviter: organizer_signed_in? ? current_user : nil))
 
       authorize @report
