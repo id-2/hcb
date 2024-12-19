@@ -39,7 +39,7 @@ module ApplicationHelper
 
   def render_transaction_amount(amount)
     if amount > 0
-      content_tag(:span, "+#{render_money amount}", class: "success-dark medium")
+      content_tag(:span, "+#{render_money amount}", class: "success-dark font-medium")
     else
       render_money amount
     end

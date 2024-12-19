@@ -21,10 +21,6 @@
   text-decoration: none;
 }
 
-.medium {
-  font-weight: 500;
-}
-
 .border,
 .border-t,
 .border-r,
@@ -107,7 +103,7 @@
   background-color: rgba($yellow, 0.125);
 }
 
-.transaction--positive > td > span > span > span.success-dark.medium {
+.transaction--positive > td > span > span > span.success-dark.font-medium {
   font-weight: 400;
 }
 
