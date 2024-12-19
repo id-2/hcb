@@ -12,7 +12,7 @@
       <span class="regular"><%= Money.from_cents(@hcb_code.wire.amount_cents, @hcb_code.wire.currency).format %></span>
       <span class="regular muted">via a wire</span>
     </span>
-    <span class="badge h4 md-right ml0 bg-<%= @hcb_code.wire.state %> nowrap">
+    <span class="badge h4 md:float-right ml0 bg-<%= @hcb_code.wire.state %> nowrap">
       <%= @hcb_code.wire.state_text %>
     </span>
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>

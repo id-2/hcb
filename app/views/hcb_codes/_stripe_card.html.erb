@@ -57,17 +57,17 @@
 
       <% if @hcb_code.pt && !@hcb_code.pt.settled? %>
         <% if @hcb_code.pt.raw_pending_stripe_transaction&.stripe_transaction&.dig("status") == "reversed" %>
-          <span class="badge h4 md-right bg-accent">
+          <span class="badge h4 md:float-right bg-accent">
             Reversed
             <%= inline_icon :info, size: 20 %>
           </span>
         <% elsif @hcb_code.pt.declined? %>
-          <span class="badge h4 md-right bg-accent">
+          <span class="badge h4 md:float-right bg-accent">
             Declined
             <%= inline_icon :info, size: 20 %>
           </span>
         <% else %>
-          <span class="badge h4 md-right bg-muted">
+          <span class="badge h4 md:float-right bg-muted">
             Pending
             <%= inline_icon :info, size: 20 %>
           </span>
@@ -75,7 +75,7 @@
       <% end %>
 
       <% if @hcb_code.personal_transaction.present? %>
-        <span class="badge h4 md-right bg-warning">
+        <span class="badge h4 md:float-right bg-warning">
           Personal
           <%= inline_icon :info, size: 20 %>
         </span>

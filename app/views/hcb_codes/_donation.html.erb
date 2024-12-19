@@ -50,7 +50,7 @@
       <% end %>
     </span>
 
-    <span class="badge h4 md-right bg-<%= @donation.state %> nowrap">
+    <span class="badge h4 md:float-right bg-<%= @donation.state %> nowrap">
       <%= @donation.state_text %>
       <%= inline_icon @donation.state_icon, size: 20 if @donation.state_icon %>
     </span>
