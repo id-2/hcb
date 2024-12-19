@@ -108,7 +108,7 @@
           <details open class="admin-nav-item pb0">
             <summary class="nav-item" style="<%= name == parent ? "color: var(--hcb-accent)" : "color: var(--hcb-tx-1)" %>">
               <%= name %>
-              <span class="badge <%= task_sum > 0 ? "bg-success" : "bg-muted" %> h-fit-content">
+              <span class="badge <%= task_sum > 0 ? "bg-success" : "bg-muted" %> h-fit">
                 <%= task_sum > 0 ? task_sum : counter_sum %>
               </span>
             </summary>
@@ -119,7 +119,7 @@
 
                   <%= link_to link, style: active == name ? "color: var(--hcb-accent)" : "color: var(--hcb-tx-1)" do %>
                     <%= name %>
-                    <span class="badge <%= (:counter.in? flags) || count.zero? ? "bg-muted" : "" %> h-fit-content">
+                    <span class="badge <%= (:counter.in? flags) || count.zero? ? "bg-muted" : "" %> h-fit">
                       <%= count %>
                     </span>
                   <% end %>
