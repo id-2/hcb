@@ -135,6 +135,8 @@ class CardGrant < ApplicationRecord
   end
 
   def cancel!(canceled_by = User.find_by!(email: "bank@hackclub.com"), expired: false)
+    raise ArgumentError, "Grant is already #{status}" unless active?
+
     if balance > 0
       custom_memo = "Return of funds from #{expired ? "expiration" : "cancellation"} of grant to #{user.name}"
 
@@ -207,7 +209,7 @@ class CardGrant < ApplicationRecord
   end
 
   def create_user
-    self.user = User.find_or_create_by!(email:)
+    self.user = User.create_with(creation_method: :card_grant).find_or_create_by!(email:)
   end
 
   def create_subledger

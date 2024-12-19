@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_12_06_041419) do
+ActiveRecord::Schema[7.2].define(version: 2024_12_18_101200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -883,6 +883,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_06_041419) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "processed_at", precision: nil
+    t.bigint "stripe_topup_id"
+    t.index ["stripe_topup_id"], name: "index_fee_reimbursements_on_stripe_topup_id"
     t.index ["transaction_memo"], name: "index_fee_reimbursements_on_transaction_memo", unique: true
   end
 
@@ -1809,13 +1811,24 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_06_041419) do
 
   create_table "stripe_service_fees", force: :cascade do |t|
     t.string "stripe_balance_transaction_id", null: false
-    t.string "stripe_topup_id"
     t.integer "amount_cents", null: false
     t.string "stripe_description", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "stripe_topup_id"
     t.index ["stripe_balance_transaction_id"], name: "index_stripe_service_fees_on_stripe_balance_transaction_id", unique: true
-    t.index ["stripe_topup_id"], name: "index_stripe_service_fees_on_stripe_topup_id", unique: true
+    t.index ["stripe_topup_id"], name: "index_stripe_service_fees_on_stripe_topup_id"
+  end
+
+  create_table "stripe_topups", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "stripe_id"
+    t.string "statement_descriptor", null: false
+    t.jsonb "metadata"
+    t.string "description", null: false
+    t.integer "amount_cents", null: false
+    t.index ["stripe_id"], name: "index_stripe_topups_on_stripe_id", unique: true
   end
 
   create_table "subledgers", force: :cascade do |t|
@@ -2043,6 +2056,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_06_041419) do
     t.integer "comment_notifications", default: 0, null: false
     t.integer "charge_notifications", default: 0, null: false
     t.boolean "use_two_factor_authentication", default: false
+    t.boolean "teenager"
+    t.integer "creation_method"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

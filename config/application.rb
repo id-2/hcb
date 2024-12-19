@@ -65,12 +65,14 @@ module Bank
 
     config.action_mailer.deliver_later_queue_name = "critical"
     config.action_mailbox.queues.routing = "default"
+    config.action_mailbox.queues.incineration = "low"
     config.active_storage.queues.analysis = "low"
     config.active_storage.queues.purge = "low"
     config.active_storage.queues.mirror = "low"
 
     # console1984 / audits1984
     config.console1984.ask_for_username_if_empty = true
+    config.console1984.incinerate = false
 
     # Custom configuration for application-wide constants
     #
