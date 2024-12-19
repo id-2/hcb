@@ -126,7 +126,7 @@
         <% if current_season(override_preference: true) %>
           <div class="field field--checkbox">
             <%= form.check_box :seasonal_themes_enabled %>
-            <%= form.label :seasonal_themes_enabled, "#{by_season "✨", override_preference: true, fall: "🎃", winter: "🎄"} Enable #{current_season(override_preference: true)} theme", class: "h3 bold" %>
+            <%= form.label :seasonal_themes_enabled, "#{by_season "✨", override_preference: true, fall: "🎃", winter: "🎄"} Enable #{current_season(override_preference: true)} theme", class: "h3 font-bold" %>
           </div>
         <% end %>
 

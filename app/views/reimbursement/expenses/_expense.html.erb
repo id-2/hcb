@@ -34,7 +34,7 @@
               #<%= expense.expense_number %>
             </code>
           <% end %>
-          <div style="flex-grow: 1" data-expense-form-target="memo" class="bold <%= "muted" unless expense.memo.presence %>">
+          <div style="flex-grow: 1" data-expense-form-target="memo" class="font-bold <%= "muted" unless expense.memo.presence %>">
             <%= expense.card_label.presence || "Untitled Expense" %>
           </div>
           <% if expense.approved_by %>
@@ -99,7 +99,7 @@
     <%= modal_header "Move Expense" %>
     <%= form_with(model: expense.becomes(Reimbursement::Expense), class: "mb3 mt1", style: "max-width: 600px;", html: { "x-data" => "{reportId: null, eventId: null}" }, local: true, data: { turbo: false }) do |form| %>
       <div class="field event-select-target">
-        <%= form.label :reimbursement_report_id, "Move To A Pre-Existing Report", class: "mt2 bold" %>
+        <%= form.label :reimbursement_report_id, "Move To A Pre-Existing Report", class: "mt2 font-bold" %>
         <%= form.select(:reimbursement_report_id,
             current_user.admin? ?
               Reimbursement::Report.all.excluding(expense.report).reject(&:locked?).map { |report| [report.name, report.id] } :
@@ -112,7 +112,7 @@
         <% end %>
       </div>
       <div class="field event-select-target">
-        <%= form.label :event_id, "Create A New Report", class: "mt2 bold" %>
+        <%= form.label :event_id, "Create A New Report", class: "mt2 font-bold" %>
         <%= form.select(:event_id,
             current_user.admin? ?
               Event.all.reorder(Event::CUSTOM_SORT).map { |event| [event.name, event.id] } :

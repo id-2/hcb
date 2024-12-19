@@ -5,7 +5,7 @@
       <% @event.event_tags.each do |tag| %>
         <span class="badge bg-muted ml0 mr1">
           <% if tag.purpose.present? %>
-            <span class="bold italic"><%= tag.purpose.titleize %>:</span>&nbsp;
+            <span class="font-bold italic"><%= tag.purpose.titleize %>:</span>&nbsp;
           <% end %>
           <%= tag.name %>
           <%= button_to toggle_event_tag_event_path(id: @event.id, event_tag_id: tag.id), class: "p0 leading-[0] bg-transparent border-none cursor-pointer link-reset", form_class: "leading-[0]", form: { "data-turbo" => "true" } do %>
@@ -25,7 +25,7 @@
                 <%= "✓" if @event.event_tags.include?(tag) %>
 
                 <% if tag.purpose.present? %>
-                  <span class="bold italic"><%= tag.purpose.titleize %>:</span>&nbsp;
+                  <span class="font-bold italic"><%= tag.purpose.titleize %>:</span>&nbsp;
                 <% end %>
                 <%= tag.name %>
               <% end %>

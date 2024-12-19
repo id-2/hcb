@@ -46,7 +46,7 @@
 
   <div class="field">
     <div class="flex items-center">
-      <span class="bold muted" style="width: 1rem;">$</span>
+      <span class="font-bold muted" style="width: 1rem;">$</span>
       <div class="flex flex-col">
         <%= form.number_field :amount,
           placeholder: "500.00",
@@ -70,7 +70,7 @@
     <%= form.email_field :recipient_email, placeholder: "fionah@gmail.com", required: true, disabled: %>
   </div>
 
-  <%= form.label :file, "Attach a receipt / invoice", class: "mt2 semibold" %>
+  <%= form.label :file, "Attach a receipt / invoice", class: "mt2 font-semibold" %>
   <div class="field field--fileupload mb1 mt1" data-controller="file-drop form" data-file-drop-title-value="Drop to add a receipt.">
     <%= form.label :file, "Choose file", class: "field--fileupload__label", data: {
           action: "

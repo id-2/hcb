@@ -11,7 +11,7 @@
 
 <% if @hcb_code.check_deposit.rejected? %>
   <div class="banner error-card mt3">
-    <p class="bold block mt0 mb0"><%= @hcb_code.check_deposit.rejection_description %></p>
+    <p class="font-bold block mt0 mb0"><%= @hcb_code.check_deposit.rejection_description %></p>
 
     <% if @hcb_code.check_deposit.rejection_reason == "incomplete_image" %>
       <p class="mt1 mb0">Try taking a photo of the entire check and <%= link_to "resubmitting", event_check_deposits_path(@event) %>.</p>

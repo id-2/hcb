@@ -106,7 +106,7 @@ class PreviewLink extends React.Component {
         </label>
         <div className="field">
           <div className="flex items-center">
-            <span className="bold muted" style={{ width: '1rem' }}>
+            <span className="font-bold muted" style={{ width: '1rem' }}>
               $
             </span>
             <input

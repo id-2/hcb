@@ -40,13 +40,13 @@
 </table>
 
 <% if @check.local_hcb_code.receipts.any? { |r| r.extracted_incorrect_amount_cents? } %>
-  <div class="warning bold mb2">
+  <div class="warning font-bold mb2">
     ⚠️ Please check these receipts closely, we suspect that their amounts don't match
   </div>
 <% end %>
 
 <% if @check.local_hcb_code.receipts.any? { |r| r.duplicated? } %>
-  <div class="warning bold mb2">
+  <div class="warning font-bold mb2">
     ⚠️ We suspect that one or more of these receipts have been used before
   </div>
 <% end %>
@@ -59,7 +59,7 @@
   <%= button_to "💸 Approve and send check", approve_increase_check_path(@check), method: :post, data: { confirm: "Are you sure you want to send this check?" } %>
   <%= form_with(model: nil, local: true, url: reject_increase_check_path(@check), method: :post) do |form| %>
     <div class="field">
-      <%= form.label "Reject with a comment", class: "bold mb1" %> <br>
+      <%= form.label "Reject with a comment", class: "font-bold mb1" %> <br>
       <%= form.text_area :comment, style: "width: 400px;", placeholder: "(Markdown supported)" %>
     </div>
     <%= form.submit "Reject", data: { confirm: "Mark as rejected? This requires you to communicate to the organizer about the reason why." } %>

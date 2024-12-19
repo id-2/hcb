@@ -24,13 +24,13 @@
       <div class="card <%= "mt2" if defined?(include_spacing) %> flex flex-col<%= " pt0" if defined?(show_banner) && defined?(receiptable) && (receiptable.receipts.any? || receiptable.no_or_lost_receipt?) %>" id="link_receipt_<%= instance %>_form">
         <% if defined?(show_banner) %>
           <% if defined?(receiptable) && receiptable.receipts.any? %>
-            <p class="card__banner bg-success white bold flex items-center mt0 mb2">
+            <p class="card__banner bg-success white font-bold flex items-center mt0 mb2">
               <%= inline_icon "checkmark", size: 24, class: "mr2" %>
               <%= pluralize receiptable.receipts.count, "receipt" %>
               added
             </p>
           <% elsif defined?(receiptable) && receiptable.no_or_lost_receipt? %>
-            <p class="card__banner bg-muted white bold flex items-center mt0 mb2">
+            <p class="card__banner bg-muted white font-bold flex items-center mt0 mb2">
               <%= inline_icon "view-close", size: 24, class: "mr2" %>
               Marked no/lost receipt
             </p>

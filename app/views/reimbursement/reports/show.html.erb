@@ -61,7 +61,7 @@
   <%= modal_header "Return Report" %>
   <p>
     Returning the report to <%= @report.user.first_name %> will allow them (as well as you and other team members) to make changes
-    to the report. <span class="bold">If you have specific changes you'd like to see made, list them below:</span>
+    to the report. <span class="font-bold">If you have specific changes you'd like to see made, list them below:</span>
   </p>
   <%= form_with url: reimbursement_report_request_changes_path(report_id: @report.id), model: [@report, Comment.new] do |form| %>
     <%= form.hidden_field :commentable_type, value: @commentable.class %>
@@ -128,7 +128,7 @@
       </p>
       <% if @report.maximum_amount_cents %>
         <p>
-          <%= @event.name %> has restricted this report to <span class="bold"><%= render_money @report.maximum_amount_cents %></span> in total reimbursement.
+          <%= @event.name %> has restricted this report to <span class="font-bold"><%= render_money @report.maximum_amount_cents %></span> in total reimbursement.
         </p>
       <% end %>
 
@@ -147,7 +147,7 @@
 <% elsif @report.submitted? && !organizer_signed_in? %>
   <% admin_tool("card mt2 p2", "div") do %>
     <p class="mt0 mb0">
-      This report is currently being reviewed by <%= @event.name %>'s team. As an admin you may approve expenses, however, keep in mind that <span class="bold">all actions you take at this point will be on behalf of <%= @event.name %>.</span>
+      This report is currently being reviewed by <%= @event.name %>'s team. As an admin you may approve expenses, however, keep in mind that <span class="font-bold">all actions you take at this point will be on behalf of <%= @event.name %>.</span>
     </p>
   <% end %>
 <% end %>

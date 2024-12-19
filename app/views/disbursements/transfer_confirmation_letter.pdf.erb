@@ -35,7 +35,7 @@
       transform: translateY(-50%);
     }
 
-    .bold {
+    .font-bold {
       font-weight: bold;
     }
 
@@ -78,7 +78,7 @@
     <br />
     <div style="height: 80px;">
       <p style="margin: 0; float: right; font-size: 11pt; line-height: 1.5">
-        <span class="bold">Hack Club</span><br />
+        <span class="font-bold">Hack Club</span><br />
         <span style="white-space: nowrap;">8605 Santa Monica Boulevard #86294</span><br />
         West Hollywood, CA 90069<br />
         hcb@hackclub.com
@@ -88,7 +88,7 @@
     <br />
     <br />
     <p style="margin-top: 2rem; margin-bottom: 0.5rem;"><%= format_date @disbursement.created_at %></p>
-    <p style="font-size: 12.5pt;"><span class="bold">HCB Transfer: <%= @disbursement.source_event.name %> to
+    <p style="font-size: 12.5pt;"><span class="font-bold">HCB Transfer: <%= @disbursement.source_event.name %> to
         <%= @disbursement.destination_event.name %></span></p>
     <br />
     <div style="line-height: 1.25;">
@@ -108,24 +108,24 @@
         <tbody>
           <% unless @disbursement.requested_by.nil? %>
           <tr>
-            <td class="bold">Sent by</td>
+            <td class="font-bold">Sent by</td>
             <td colspan="2"><%= @disbursement.requested_by.name %></td>
           </tr>
           <% end %>
           <tr>
-            <td class="bold">From</td>
+            <td class="font-bold">From</td>
             <td colspan="2"><%= @disbursement.source_event.name %></td>
           </tr>
           <tr>
-            <td class="bold">To</td>
+            <td class="font-bold">To</td>
             <td colspan="2"><%= @disbursement.destination_event.name %></td>
           </tr>
           <tr>
-            <td class="bold">Payment purpose</td>
+            <td class="font-bold">Payment purpose</td>
             <td colspan="2"><%= @disbursement.name %></td>
           </tr>
           <tr>
-            <td class="bold">Amount</td>
+            <td class="font-bold">Amount</td>
             <td colspan="2"><%= render_money @disbursement.amount %></td>
           </tr>
         </tbody>

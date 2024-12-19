@@ -85,7 +85,7 @@
           <% designs.each do |design| %>
             <%= form.radio_button :stripe_card_personalization_design_id, design.id %>
               <%= form.label :stripe_card_personalization_design_id, value: design.id, style: "align-items: center; justify-content: start; padding: 0px; gap: 1rem; #{"background: rgba(241, 196, 15, 0.125)!important;" if design.unlisted?}", class: ("admin-tools" if design.unlisted?).to_s do %>
-              <span style="padding-top: 1rem; text-wrap: balance" class="bold">
+              <span style="padding-top: 1rem; text-wrap: balance" class="font-bold">
                 <%= design.name_without_id %>
               </span>
               <div style="display: flex; flex-direction: row; justify-content: start; width: 100%;">

@@ -25,7 +25,7 @@
           Visit <%= link_to "reimbursements", event_reimbursements_path(@event), class: "info" %> to learn more.
         </li>
         <li>Checks can only be sent within the US. The recipient must have a U.S. bank account to cash the check.</li>
-        <li>This check will be valid for <span class="bold">180 days</span>, until <%= format_date IncreaseCheck::VALID_DURATION.from_now %>. The recipient must deposit it before then.</li>
+        <li>This check will be valid for <span class="font-bold">180 days</span>, until <%= format_date IncreaseCheck::VALID_DURATION.from_now %>. The recipient must deposit it before then.</li>
         <li>HCB team needs to approve your check before it's sent out. This usually takes 1 business day.</li>
       </ul>
     <% end %>
@@ -56,7 +56,7 @@
       <%= form.label :amount, "Amount" %>
       <div class="field">
         <div class="flex items-center">
-          <span class="bold muted" style="width: 1rem;">$</span>
+          <span class="font-bold muted" style="width: 1rem;">$</span>
           <div class="flex flex-col">
             <%= form.number_field :amount,
               placeholder: "500.00",
@@ -187,7 +187,7 @@
         <%= form.label :send_email_notification, "Would you like us to notify the recipient?" %>
       </div>
 
-      <%= form.label :file, "Attach a receipt / invoice", class: "mt2 semibold" %>
+      <%= form.label :file, "Attach a receipt / invoice", class: "mt2 font-semibold" %>
       <div class="field field--fileupload mb1 mt1" data-controller="file-drop form" data-file-drop-title-value="Drop to add a receipt.">
         <%= form.label :file, "Choose file", class: "field--fileupload__label", data: {
               action: "

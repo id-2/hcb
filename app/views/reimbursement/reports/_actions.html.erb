@@ -46,7 +46,7 @@
               <%= inline_icon "reply" %>
               Mark As Draft
               <% button_hint = capture do %>
-                <span class="bold">Status:</span> the HCB team is reviewing this report. To make further changes, mark it as a draft.
+                <span class="font-bold">Status:</span> the HCB team is reviewing this report. To make further changes, mark it as a draft.
               <% end %>
             <% end %>
           <% elsif current_user == report.user && report.submitted? %>
@@ -54,7 +54,7 @@
               <%= inline_icon "reply" %>
               Mark As Draft
               <% button_hint = capture do %>
-                <span class="bold">Status:</span> your report is currently under review by the <%= report.event.name %> team. To make further changes, mark it as a draft.
+                <span class="font-bold">Status:</span> your report is currently under review by the <%= report.event.name %> team. To make further changes, mark it as a draft.
               <% end %>
             <% end %>
           <% elsif !report.closed? %>
@@ -62,7 +62,7 @@
               <%= inline_icon "reply" %>
               Return to <%= report.user.first_name %>
               <% button_hint = capture do %>
-                <span class="bold">Your next step:</span> approve individual expenses and reimburse the report. Or, return the report to <%= report.user.first_name %>.
+                <span class="font-bold">Your next step:</span> approve individual expenses and reimburse the report. Or, return the report to <%= report.user.first_name %>.
               <% end %>
             <% end %>
           <% end %>
@@ -76,7 +76,7 @@
               <%= inline_icon "profile" %>
               <%= report.payout_holding&.failed? ? "Edit" : "Add" %> Payout Information
               <% button_hint = capture do %>
-                <span class="bold">Your next step:</span> before you can be reimbursed, you need to provide HCB your payout information.
+                <span class="font-bold">Your next step:</span> before you can be reimbursed, you need to provide HCB your payout information.
               <% end %>
             <% end %>
           <% elsif admin_signed_in? %>
@@ -84,7 +84,7 @@
               <%= inline_icon "profile" %>
               <%= report.payout_holding&.failed? ? "Edit" : "Add" %> <%= user.first_name %>'s Payout Information
               <% button_hint = capture do %>
-                <span class="bold">Status:</span> before <%= user.first_name %> can be reimbursed, they need to add their payout information.
+                <span class="font-bold">Status:</span> before <%= user.first_name %> can be reimbursed, they need to add their payout information.
               <% end %>
             <% end %>
           <% elsif !user.payout_method.present? %>
@@ -93,7 +93,7 @@
                 <%= inline_icon "send" %>
                 Submit & request review
                 <% button_hint = capture do %>
-                  <span class="bold">Status:</span> before <%= user.first_name %> can be reimbursed, they need to add their payout information.
+                  <span class="font-bold">Status:</span> before <%= user.first_name %> can be reimbursed, they need to add their payout information.
                 <% end %>
               </div>
             </div>
@@ -101,11 +101,11 @@
           <% if report.payout_holding&.failed? %>
             <% if user == current_user %>
               <% button_hint = capture do %>
-                <span class="bold">Warning:</span> your <%= user.payout_method.human_kind %> information was flagged as invalid, please edit your payout settings and HCB will retry the payment.
+                <span class="font-bold">Warning:</span> your <%= user.payout_method.human_kind %> information was flagged as invalid, please edit your payout settings and HCB will retry the payment.
               <% end %>
             <% else %>
               <% button_hint = capture do %>
-                <span class="bold">Warning:</span> <%= user.first_name %>'s <%= user.payout_method.human_kind %> information was flagged as invalid, please ask them to edit their payout settings and HCB will retry the payment.
+                <span class="font-bold">Warning:</span> <%= user.first_name %>'s <%= user.payout_method.human_kind %> information was flagged as invalid, please ask them to edit their payout settings and HCB will retry the payment.
               <% end %>
             <% end %>
           <% end %>
@@ -117,11 +117,11 @@
               <% if report.expenses.none? %>
                 Get started by adding an expense to this report.
               <% elsif report.missing_receipts? %>
-                <span class="bold">Your next step:</span> make sure you have a receipt, memo, and amount for each expense to continue.
+                <span class="font-bold">Your next step:</span> make sure you have a receipt, memo, and amount for each expense to continue.
               <% elsif report.exceeds_maximum_amount? %>
-               <span class="bold warning">Warning</span>: your report is above <%= report.event.name %>'s limit. To continue, lower the amount requested.
+               <span class="font-bold warning">Warning</span>: your report is above <%= report.event.name %>'s limit. To continue, lower the amount requested.
               <% elsif report.event.nil? %>
-               <span class="bold warning">Warning</span>: please <%= link_to "select an event", "#", data: { behavior: "modal_trigger", modal: "edit" } %> to request reimbursement from.
+               <span class="font-bold warning">Warning</span>: please <%= link_to "select an event", "#", data: { behavior: "modal_trigger", modal: "edit" } %> to request reimbursement from.
               <% end %>
             <% end %>
           </div>
@@ -130,7 +130,7 @@
             <%= inline_icon "send" %>
             Submit & request review
             <% button_hint = capture do %>
-              <span class="bold warning">Warning</span>: your report is beyond your balance. To continue, lower the amount requested.
+              <span class="font-bold warning">Warning</span>: your report is beyond your balance. To continue, lower the amount requested.
             <% end %>
           </div>
         <% elsif report.initial_draft? %>
@@ -138,7 +138,7 @@
             <%= inline_icon "send" %>
             Submit & request review
             <% button_hint = capture do %>
-              <span class="bold">Your next step:</span> after adding all of your expenses, submit the report to request a review.
+              <span class="font-bold">Your next step:</span> after adding all of your expenses, submit the report to request a review.
             <% end %>
           <% end %>
         <% elsif report.draft? %>
@@ -146,7 +146,7 @@
             <%= inline_icon "send" %>
             Submit & request review
             <% button_hint = capture do %>
-              <span class="bold">Your next step:</span> after adding all of your expenses, submit the report to request a review.
+              <span class="font-bold">Your next step:</span> after adding all of your expenses, submit the report to request a review.
             <% end %>
           <% end %>
         <% elsif report.may_mark_reimbursement_requested? && policy(report).request_reimbursement? %>
@@ -179,7 +179,7 @@
             <% end %>
             <% unless ::Shared::AmpleBalance.ample_balance?(report.amount_to_reimburse_cents, report.event) %>
               <% button_hint = capture do %>
-                <span class="bold warning">⚠️ Warning</span>: this organization does not have the balance to fulfil this report.
+                <span class="font-bold warning">⚠️ Warning</span>: this organization does not have the balance to fulfil this report.
               <% end %>
             <% end %>
           <% end %>

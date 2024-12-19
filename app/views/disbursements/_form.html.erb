@@ -45,7 +45,7 @@
   <%= form.label :amount, "Amount" %>
   <div class="field">
     <div class="flex items-center">
-      <span class="bold muted" style="width: 1rem;">$</span>
+      <span class="font-bold muted" style="width: 1rem;">$</span>
       <%= form.number_field :amount, value: (@disbursement&.amount.nil? ? nil : (@disbursement.amount.to_f / 100)),
                                      placeholder: "500.00",
                                      step: 0.01,

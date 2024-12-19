@@ -16,7 +16,7 @@
   <div class="field">
     <%= form.label :load_amount, "Amount to transfer" %>
     <div class="flex items-center">
-      <span class="bold muted" style="width: 1rem;">$</span>
+      <span class="font-bold muted" style="width: 1rem;">$</span>
       <%= form.text_field :load_amount,
         value: emburse_transfer.load_amount.nil? ? nil : (emburse_transfer.load_amount / 100.00),
         max: (current_user&.admin? ? nil : (@event.available_balance / 100.00)),

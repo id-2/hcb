@@ -19,10 +19,6 @@
 .h6 {
   font-size: 0.75rem;
 }
-.bold,
-.semibold {
-  font-weight: 600;
-}
 .medium {
   font-weight: 500;
 }

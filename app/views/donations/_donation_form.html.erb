@@ -51,7 +51,7 @@
           <%= form.label :amount, "Donation amount" %>
         <% end %>
         <div class="flex items-center">
-          <span class="bold muted shrink-none" style="width: 1rem;">$</span>
+          <span class="font-bold muted shrink-none" style="width: 1rem;">$</span>
           <%= form.number_field :amount,
                                 value: (donation.amount.nil? ? nil : ("%.2f" % (donation.amount.to_f / 100))),
                                 placeholder: @placeholder_amount,

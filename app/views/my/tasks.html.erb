@@ -12,7 +12,7 @@
     <div class="card bg-none flex items-center g2 mt2">
       <input type="checkbox" style="height: 24px; width: 24px; pointer-events: none">
       <div class="flex flex-col">
-        <div class="bold"><%= task.text %></div>
+        <div class="font-bold"><%= task.text %></div>
         <div>
           Created
           <span data-controller="timestamp" data-timestamp-time-value="<%= task.created_at.to_i * 1000 %>">
@@ -32,7 +32,7 @@
       <div class="card bg-none flex items-center g2 mt2">
         <input type="checkbox" checked style="height: 24px; width: 24px; pointer-events: none">
         <div class="flex flex-col">
-          <div class="bold"><%= task.text %></div>
+          <div class="font-bold"><%= task.text %></div>
           <div>
             Completed
             <span data-controller="timestamp" data-timestamp-time-value="<%= task.completed_at.to_i * 1000 %>">

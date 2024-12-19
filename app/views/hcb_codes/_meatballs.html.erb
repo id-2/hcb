@@ -44,7 +44,7 @@
     <%= modal_header "Mark as paid" %>
     <p>
       This will void the invoice; only use this tool if the sponsor has paid this invoice through alternative means.
-      <span class="bold">Please provide context about how this invoice was paid below:</span>
+      <span class="font-bold">Please provide context about how this invoice was paid below:</span>
     </p>
     <%= form_with url: invoice_manually_mark_as_paid_path(hcb_code.invoice), method: :POST do |form| %>
       <%= form.text_area :manually_marked_as_paid_reason, class: "card mb2 overflow-visible", placeholder: "This was paid by…", "data-behavior": "ctrl_enter_submit", style: "min-height: 100px", required: true %>

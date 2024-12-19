@@ -33,12 +33,12 @@
 
 <% if @invoice.void_v2? && !@invoice.manually_marked_as_paid? %>
   <div class="banner banner--archived mt3">
-    <span class="bold block mb1">This invoice was voided by <%= user_mention @invoice.voided_by %> on <%= format_date @invoice.void_v2_at %>.</span>
+    <span class="font-bold block mb1">This invoice was voided by <%= user_mention @invoice.voided_by %> on <%= format_date @invoice.void_v2_at %>.</span>
     <span class="block">It will only display in the Voided tab<span class="xs-hide"> on the Invoices page</span>.</span>
   </div>
 <% elsif @invoice.archived? %>
   <div class="banner banner--archived mt3">
-    <span class="bold block mb1">This invoice was archived by <%= user_mention @invoice.archived_by %> on <%= format_date @invoice.archived_at %>.</span>
+    <span class="font-bold block mb1">This invoice was archived by <%= user_mention @invoice.archived_by %> on <%= format_date @invoice.archived_at %>.</span>
     <span class="block">It will only display in the Archived tab<span class="xs-hide"> on the Invoices page</span>.</span>
     <span>You can <%= link_to "un-archive it", invoice_unarchive_path(@invoice), method: :post %>.</span>
   </div>

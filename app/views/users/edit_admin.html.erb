@@ -106,7 +106,7 @@
                     Inactive
                   <% end %>
                 </td>
-                <td class="<%= "primary bold" if card.expired? %>"><%= Date.parse("#{card.stripe_exp_month}/#{card.stripe_exp_year}").strftime("%m/%y") %></td>
+                <td class="<%= "primary font-bold" if card.expired? %>"><%= Date.parse("#{card.stripe_exp_month}/#{card.stripe_exp_year}").strftime("%m/%y") %></td>
                   <td><%= link_to "View", stripe_card_path(card), data: { turbo_frame: "_top" } %></td>
                 </tr>
               <% end %>

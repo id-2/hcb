@@ -30,7 +30,7 @@
       transform: translateY(-50%);
     }
 
-    .bold {
+    .font-bold {
       font-weight: bold;
     }
 
@@ -73,7 +73,7 @@
     <br />
     <div style="height: 80px;">
       <p style="margin: 0; float: right; font-size: 11pt; line-height: 1.5">
-        <span class="bold">Hack Club</span><br />
+        <span class="font-bold">Hack Club</span><br />
         <span style="white-space: nowrap;">8605 Santa Monica Boulevard #86294</span><br />
         West Hollywood, CA 90069<br />
         hcb@hackclub.com
@@ -85,7 +85,7 @@
     <p style="margin-top: 2rem; margin-bottom: 0.5rem;">
       <%= @ach_transfer.canonical_pending_transaction.date.strftime("%B #{@ach_transfer.canonical_pending_transaction.date.day.ordinalize}, %Y") %>
     </p>
-    <p style="font-size: 12.5pt;"><span class="bold"><%= @event.name %> ACH Transfer to
+    <p style="font-size: 12.5pt;"><span class="font-bold"><%= @event.name %> ACH Transfer to
         <%= @ach_transfer.recipient_name %></span></p>
     <br />
     <div style="line-height: 1.25;">
@@ -105,33 +105,33 @@
         </thead>
         <tbody>
           <tr>
-            <td class="bold">Sent by</td>
+            <td class="font-bold">Sent by</td>
             <td colspan="2"><%= @ach_transfer.creator.name %></td>
           </tr>
           <tr>
-            <td class="bold">Recipient name</td>
+            <td class="font-bold">Recipient name</td>
             <td colspan="2"><%= @ach_transfer.recipient_name %></td>
           </tr>
           <% if @ach_transfer.recipient_tel.present? %>
           <tr>
-            <td class="bold">Recipient phone</td>
+            <td class="font-bold">Recipient phone</td>
             <td colspan="2"><%= @ach_transfer.recipient_tel %></td>
           </tr>
           <% end %>
           <tr>
-            <td class="bold">Payment purpose</td>
+            <td class="font-bold">Payment purpose</td>
             <td colspan="2"><%= @ach_transfer.payment_for %></td>
           </tr>
           <tr>
-            <td class="bold">Routing number</td>
+            <td class="font-bold">Routing number</td>
             <td colspan="2"><%= @ach_transfer.routing_number %></td>
           </tr>
           <tr>
-            <td class="bold">Account number</td>
+            <td class="font-bold">Account number</td>
             <td colspan="2"><%= @ach_transfer.account_number %></td>
           </tr>
           <tr>
-            <td class="bold">Amount</td>
+            <td class="font-bold">Amount</td>
             <td colspan="2"><%= render_money @ach_transfer.amount %></td>
           </tr>
         </tbody>

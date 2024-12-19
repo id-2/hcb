@@ -119,7 +119,7 @@
   <%= form.label :amount_money, "Amount" %>
   <div class="field">
     <div class="flex items-center">
-      <span class="bold muted" style="width: 1rem;">$</span>
+      <span class="font-bold muted" style="width: 1rem;">$</span>
       <%= form.number_field :amount_money, placeholder: "500.00", step: 0.01, min: 0.01, required: true, disabled:, data: { controller: "truncate-decimal", action: "truncate-decimal#truncate blur->truncate-decimal#pad" } %>
     </div>
   </div>
@@ -129,7 +129,7 @@
     <%= form.label :send_email_notification, "Would you like us to notify the recipient?" %>
   </div>
 
-  <%= form.label :file, "Attach a receipt / invoice", class: "mt2 semibold" %>
+  <%= form.label :file, "Attach a receipt / invoice", class: "mt2 font-semibold" %>
   <div class="field field--fileupload mb1 mt1" data-controller="file-drop form" data-file-drop-title-value="Drop to add a receipt.">
     <%= form.label :file, "Choose file", class: "field--fileupload__label", data: {
           action: "

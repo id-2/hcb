@@ -70,7 +70,7 @@
 
     <%= form_with(model: nil, local: true, url: disbursement_reject_admin_path(@disbursement), method: :post) do |form| %>
       <div class="field">
-        <%= form.label "Reject with a comment", class: "bold mb1" %> <br>
+        <%= form.label "Reject with a comment", class: "font-bold mb1" %> <br>
         <%= form.text_area :comment, style: "width: 400px;", placeholder: "(Markdown supported)" %>
       </div>
       <%= form.submit "Reject disbursement",
