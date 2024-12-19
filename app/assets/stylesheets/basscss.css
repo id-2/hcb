@@ -38,12 +38,6 @@
 .nowrap {
   white-space: nowrap;
 }
-.no-select {
-  -webkit-user-select: none;
-  -moz-user-select: all;
-  -ms-user-select: all;
-  user-select: none;
-}
 .list-reset {
   list-style: none;
   padding-left: 0;
