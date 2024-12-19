@@ -24,7 +24,7 @@
                             class: "bg-transparent fit",
                             style: "border-color: #338eda; min-height: 0; font-size: 1.5rem; padding: 0.125rem 0 0.125rem 4px; letter-spacing: -0.02em" %>
 
-        <span class="regular muted ml1 mr1"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
+        <span class="font-normal muted ml1 mr1"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
         <span class="mr3"><%= number_to_currency(@hcb_code.amount.abs) %></span>
 
         <datalist id="custom-memos">

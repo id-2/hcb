@@ -36,13 +36,13 @@
             <span>
               <%= render_money(renderable_amount_cents) %>
             </span>
-            <span class="regular muted">
+            <span class="font-normal muted">
               withdrawal from
             </span>
             <span data-memo-for="<%= dom_id(@hcb_code) %>"><%= @hcb_code.memo %></span>
           <% else %>
             <span data-memo-for="<%= dom_id(@hcb_code) %>"><%= @hcb_code.memo %></span>
-            <span class="regular muted"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
+            <span class="font-normal muted"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
             <%= render_money(renderable_amount_cents) %>
           <% end %>
         </span>

@@ -7,9 +7,9 @@
 <article class="card pb0 mt3 mb1">
   <h2 class="h2 mt0 border-none flex items-center justify-between" style="gap: 1ch">
     <span style="flex-grow: 1">
-      <span class="regular muted"><%= @hcb_code.ach_transfer.deposited? ? "Transferred " : "Transferring " %> </span>
+      <span class="font-normal muted"><%= @hcb_code.ach_transfer.deposited? ? "Transferred " : "Transferring " %> </span>
       <%= @hcb_code.ach_transfer.recipient_name %>
-      <span class="regular"><%= render_money @hcb_code.ach_transfer.amount %></span>
+      <span class="font-normal"><%= render_money @hcb_code.ach_transfer.amount %></span>
     </span>
     <span class="badge h4 md:float-right ml0 bg-<%= @hcb_code.ach_transfer.state %> nowrap">
       <%= @hcb_code.ach_transfer.status_text %>

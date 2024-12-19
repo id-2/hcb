@@ -14,7 +14,7 @@
                 data-navigation-location-param="<%= edit_hcb_code_path(@hcb_code) %>"
                 data-navigation-frame-param="<%= dom_id(@hcb_code) %>">
             <span data-memo-for="<%= dom_id(@hcb_code) %>"><%= @hcb_code.memo %></span>
-            <span class="regular muted"> for </span>
+            <span class="font-normal muted"> for </span>
             <%= number_to_currency(@hcb_code.amount) %>
           </span>
 

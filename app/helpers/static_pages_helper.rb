@@ -187,7 +187,7 @@ module StaticPagesHelper
               concat k
 
               if v[:_preface]
-                concat content_tag(:span, v[:_preface], class: "muted regular pl2 h5")
+                concat content_tag(:span, v[:_preface], class: "muted font-normal pl2 h5")
               end
             end
           end)
@@ -197,7 +197,7 @@ module StaticPagesHelper
         # Row for feature with permission icons
         elsif v.is_a?(Symbol)
           concat(content_tag(:tr) do
-            concat content_tag(:th, k, class: "regular", style: "padding-left: #{depth * 2}rem")
+            concat content_tag(:th, k, class: "font-normal", style: "padding-left: #{depth * 2}rem")
 
             needed_role_num = OrganizerPosition.roles[v]
 

@@ -8,7 +8,7 @@
   <h2 class="h2 mt0 border-none flex items-center justify-between" style="gap: 8px">
     <span style="flex-grow: 1">
       <%= @source.name %>
-      <span class="regular muted">
+      <span class="font-normal muted">
         <% if @hcb_code.disbursement.fulfilled? || (@destination.can_front_balance? && (@hcb_code.disbursement.processed? || @hcb_code.disbursement.pending?)) %>
           transferred
         <% elsif @hcb_code.disbursement.processed? || @hcb_code.disbursement.pending? %>
@@ -17,8 +17,8 @@
           transfer of
         <% end %>
       </span>
-      <span class="regular"><%= render_money @hcb_code.disbursement.amount %></span>
-      <span class="regular muted">to</span>
+      <span class="font-normal"><%= render_money @hcb_code.disbursement.amount %></span>
+      <span class="font-normal muted">to</span>
       <%= @destination.name %>
     </span>
     <span class="badge h4 md:float-right ml0 bg-<%= @hcb_code.disbursement.state %>">

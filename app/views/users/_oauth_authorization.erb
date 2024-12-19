@@ -8,7 +8,7 @@
     <% end %>
   </span>
 
-  <p class="regular italic muted text-sm m-0 mt-1">
+  <p class="font-normal italic muted text-sm m-0 mt-1">
     <%= authorization.authorization_count == 1 ? "Authorized" : "Last authorized" %> <%= local_time_ago authorization.created_at %>
   </p>
 </div>
