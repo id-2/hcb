@@ -1,4 +1,4 @@
-<h1 class="font-normal center h1">Receive your <strong><%= @grant.amount.format %></strong> grant from<br /><strong><%= @grant.event.name %></strong>:</h1>
+<h1 class="font-normal center text-2xl">Receive your <strong><%= @grant.amount.format %></strong> grant from<br /><strong><%= @grant.event.name %></strong>:</h1>
 
 <%= form_with model: @grant, url: activate_grant_path(@grant), method: :post do |form| %>
   <ul class="steps" x-data="{ recipient_org_type: null, receipt_method: '<%= @grant.receipt_method || "ach_transfer" %>' }">

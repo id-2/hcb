@@ -129,7 +129,7 @@ module ApplicationHelper
     content_tag :header, class: "pb2" do
       modal_close +
         (external_link ? modal_external_link(external_link) : "") +
-        content_tag(:h2, text.html_safe, class: "h1 mt0 mb0 pb0 border-none")
+        content_tag(:h2, text.html_safe, class: "text-2xl mt0 mb0 pb0 border-none")
     end
   end
 

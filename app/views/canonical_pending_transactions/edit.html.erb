@@ -3,7 +3,7 @@
 
 <%= render "events/nav" if @event %>
 
-<h1 class="h1">
+<h1 class="text-2xl">
   Rename <%= render_money @canonical_pending_transaction.amount_cents %> <%= @canonical_pending_transaction.fee_payment? ? "fee payment" : "transaction" %>
 </h1>
 
