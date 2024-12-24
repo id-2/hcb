@@ -1,7 +1,7 @@
 <% filter_applied = @user || @type || @start_date || @end_date || @minimum_amount || @maximum_amount || @tag || @missing_receipts %>
 
 <div class="filterbar flex flex-row justify-between items-center width-100" style="gap: 16px">
-  <%= form_with(model: nil, local: true, method: :get, class: "flex-auto") do |form| %>
+  <%= form_with(model: nil, local: true, method: :get, class: "min-w-0 min-h-0") do |form| %>
     <div class="input input-group max-w-none" tabindex="0">
       <%= inline_icon "search" %>
       <%= form.text_field :q, placeholder: "Type / to search...", data: { behavior: "search" }, value: params[:q] %>
@@ -75,7 +75,7 @@
       <div class="menu__content menu__content--2 menu__content--compact text-sm" data-menu-target="content">
         <% [10, 25, 50, 100, 200].each do |amount| %>
           <div class="flex items-center">
-            <%= link_to(upsert_query_params(per: amount), class: "flex-auto menu__action", data: { turbo_prefetch: "false" }) do %>
+            <%= link_to(upsert_query_params(per: amount), class: "min-w-0 min-h-0 menu__action", data: { turbo_prefetch: "false" }) do %>
               <%= amount %> Transactions Per Page
             <% end %>
           </div>

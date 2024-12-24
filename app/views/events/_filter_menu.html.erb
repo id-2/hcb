@@ -22,7 +22,7 @@
         <div data-tabs-target="tab" id="tags">
           <% @event.tags.order(label: :asc).each do |tag| %>
             <div class="flex items-center" data-tag="<%= tag.id %>">
-              <%= link_to upsert_query_params(tag: tag.label), class: "flex-auto menu__action", data: { turbo_prefetch: "false" } do %>
+              <%= link_to upsert_query_params(tag: tag.label), class: "min-w-0 min-h-0 menu__action", data: { turbo_prefetch: "false" } do %>
 
                 <div class="tag__preview tag-<%= tag.color || "muted" %>"></div>
                 <%= tag.label %>
@@ -39,7 +39,7 @@
       <div data-tabs-target="tab" id="user">
         <% @organizers.each do |position| %>
           <div class="flex items-center">
-            <%= link_to(upsert_query_params(user: position.user.id), class: "flex-auto flex items-center menu__action #{"menu__action--active" if @user&.id == position.user.id}", data: { turbo_prefetch: "false" }) do %>
+            <%= link_to(upsert_query_params(user: position.user.id), class: "min-w-0 min-h-0 flex items-center menu__action #{"menu__action--active" if @user&.id == position.user.id}", data: { turbo_prefetch: "false" }) do %>
 
               <div class="avatar-grow leading-[0] mr1">
                 <%= avatar_for position.user, 18 %>
@@ -52,14 +52,14 @@
       <div data-tabs-target="tab" id="type">
         <% ["ach_transfer", "card_charge", "check_deposit", "donation", "fiscal_sponsorship_fee", "hcb_transfer", "invoice", "mailed_check", "paypal_transfer", "refund", "reimbursement", "wire"].each do |type| %>
           <div class="flex items-center">
-            <%= link_to(upsert_query_params(type:), class: "flex-auto menu__action #{"menu__action--active" if @type == type}", data: { turbo_prefetch: "false" }) do %>
+            <%= link_to(upsert_query_params(type:), class: "min-w-0 min-h-0 menu__action #{"menu__action--active" if @type == type}", data: { turbo_prefetch: "false" }) do %>
               <%= type.humanize.gsub("Ach", "ACH").gsub("Paypal", "PayPal").gsub("Hcb", "HCB") %>
             <% end %>
           </div>
         <% end %>
       </div>
       <div data-tabs-target="tab" id="date">
-        <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
+        <%= form_with(model: nil, local: true, method: :get, class: "min-w-0 min-h-0 p1") do |form| %>
           <p class="font-bold mb0 mt0">Transactions after...</p>
           <%= form.date_field :start, class: "border mb1", value: @start_date %>
           <p class="font-bold mb0 mt0">Transactions before...</p>
@@ -75,7 +75,7 @@
         <% end %>
       </div>
       <div data-tabs-target="tab" id="amount">
-        <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
+        <%= form_with(model: nil, local: true, method: :get, class: "min-w-0 min-h-0 p1") do |form| %>
 
           <p class="font-bold mb0 mt0">Transactions more than...</p>
           <div class="flex mb1">
@@ -100,10 +100,10 @@
       </div>
       <div data-tabs-target="tab" id="receipts">
         <div class="flex items-center">
-          <%= link_to("Missing receipts", upsert_query_params(missing_receipts: true), class: "flex-auto menu__action #{"menu__action--active" if @missing_receipts}", data: { turbo_prefetch: "false" }) %>
+          <%= link_to("Missing receipts", upsert_query_params(missing_receipts: true), class: "min-w-0 min-h-0 menu__action #{"menu__action--active" if @missing_receipts}", data: { turbo_prefetch: "false" }) %>
         </div>
         <div>
-          <%= link_to("All transactions", upsert_query_params("missing_receipts" => nil), class: "flex-auto menu__action #{"menu__action--active" unless @missing_receipts}", data: { turbo_prefetch: "false" }) %>
+          <%= link_to("All transactions", upsert_query_params("missing_receipts" => nil), class: "min-w-0 min-h-0 menu__action #{"menu__action--active" unless @missing_receipts}", data: { turbo_prefetch: "false" }) %>
         </div>
       </div>
     </div>

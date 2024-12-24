@@ -42,22 +42,22 @@
     </div>
 
     <div class="flex">
-      <div class="field flex-auto mr1">
+      <div class="field min-w-0 min-h-0 mr1">
         <%= form.label :address_city, "City" %>
         <%= form.text_field :address_city, placeholder: "San Francisco", required: true, disabled: @event.demo_mode? %>
       </div>
-      <div class="field flex-auto ml1">
+      <div class="field min-w-0 min-h-0 ml1">
         <%= form.label :address_state, "State" %>
         <%= form.text_field :address_state, placeholder: "CA", required: true, disabled: @event.demo_mode? %>
       </div>
     </div>
 
     <div class="flex">
-      <div class="field flex-auto mr1">
+      <div class="field min-w-0 min-h-0 mr1">
         <%= form.label :address_postal_code, "ZIP" %>
         <%= form.text_field :address_postal_code, placeholder: "94129", required: true, disabled: @event.demo_mode? %>
       </div>
-      <div class="field flex-auto ml1">
+      <div class="field min-w-0 min-h-0 ml1">
         <%= form.label :address_country, "Country" %>
         <%= form.country_select :address_country, ["US"], priority_countries_divider: "", include_blank: "Select a country", required: true, disabled: @event.demo_mode? %>
       </div>

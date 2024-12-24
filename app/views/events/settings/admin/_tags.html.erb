@@ -21,7 +21,7 @@
         <div class="menu__content menu__content--2 menu__content--compact menu__content--left text-xs" data-menu-target="content">
           <% EventTag.find_each do |tag| %>
             <div class="flex items-center">
-              <%= button_to toggle_event_tag_event_path(id: @event.id, event_tag_id: tag.id), class: "menu__action", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
+              <%= button_to toggle_event_tag_event_path(id: @event.id, event_tag_id: tag.id), class: "menu__action", form_class: "min-w-0 min-h-0", form: { "data-turbo" => "true" } do %>
                 <%= "✓" if @event.event_tags.include?(tag) %>
 
                 <% if tag.purpose.present? %>

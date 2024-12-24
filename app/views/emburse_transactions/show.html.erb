@@ -21,9 +21,9 @@
   <section class="mb2">
     <h2 class="mt0 mb0 heading">
       <% if @emburse_card %>
-        <span class="flex-auto mb1"><%= "#{render_money @emburse_transaction.amount.abs} #{@emburse_transaction.amount > 0 ? 'credited from' : 'spent at' } #{@emburse_transaction.merchant_name}" %></span>
+        <span class="min-w-0 min-h-0 mb1"><%= "#{render_money @emburse_transaction.amount.abs} #{@emburse_transaction.amount > 0 ? 'credited from' : 'spent at' } #{@emburse_transaction.merchant_name}" %></span>
       <% else %>
-        <span class="flex-auto mb1">Transfer of <%= render_money @emburse_transaction.amount %></span>
+        <span class="min-w-0 min-h-0 mb1">Transfer of <%= render_money @emburse_transaction.amount %></span>
       <% end %>
       <span class="badge h4 md:float-right ml0 mb1 bg-<%= @emburse_transaction.status_badge_type %>">
         <%= @emburse_transaction.status_text %>

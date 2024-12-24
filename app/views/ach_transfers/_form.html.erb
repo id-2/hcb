@@ -50,7 +50,7 @@
           <div data-name="<%= payment_recipient.name %>" class="flex items-center" data-payment-recipient="<%= payment_recipient.id %>">
             <button
               type="button"
-              class="menu__action flex justify-between flex-auto mr1"
+              class="menu__action flex justify-between min-w-0 min-h-0 mr1"
               data-action="input#focus menu#close"
               data-recipient="<%= payment_recipient.to_safe_json %>"
               @click="payment_recipient = JSON.parse($el.dataset.recipient)">

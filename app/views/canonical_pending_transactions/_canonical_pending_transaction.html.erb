@@ -35,7 +35,7 @@
   </td>
   <td class="transaction__memo">
     <div>
-      <div class="flex-auto">
+      <div class="min-w-0 min-h-0">
         <div class="flex items-center justify-start">
           <% if pt.declined? %>
             <% if pt.local_hcb_code.stripe_reversed_by_merchant? %>
@@ -76,7 +76,7 @@
           <div class="menu__content menu__content--2 menu__content--compact menu__content--left text-xs" data-menu-target="content">
             <% (@event || pt.local_hcb_code.event).tags.each do |tag| %>
               <div class="flex items-center" data-tag="<%= tag.id %>">
-                <%= button_to toggle_tag_hcb_code_path(id: pt.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(pt.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
+                <%= button_to toggle_tag_hcb_code_path(id: pt.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(pt.local_hcb_code, tag, "_toggle")}", form_class: "min-w-0 min-h-0", form: { "data-turbo" => "true" } do %>
                   <div class="tag__preview tag-<%= tag.color || "muted" %>"></div>
                   <%= tag.label %>
                   <%= "✓" if tagged_with.include?(tag) %>
@@ -175,7 +175,7 @@
         <div class="shimmer__main">
           <article class="card pb0 h-100">
             <h2 class="h2 mt0 mx0 border-none flex items-center justify-between">
-              <span class="flex-auto">
+              <span class="min-w-0 min-h-0">
                 <%= pop_icon_to "edit",
                     my_inbox_path,
                     class: "mr2 align-middle", "aria-label": "Rename transaction",

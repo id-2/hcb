@@ -12,7 +12,7 @@
           <div class="menu__content menu__content--2 menu__content--compact menu__content--left text-xs" data-menu-target="content">
             <% @event.tags.each do |tag| %>
               <div class="flex items-center" data-tag="<%= tag.id %>">
-                <%= button_to toggle_tag_hcb_code_path(id: hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
+                <%= button_to toggle_tag_hcb_code_path(id: hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(hcb_code, tag, "_toggle")}", form_class: "min-w-0 min-h-0", form: { "data-turbo" => "true" } do %>
                   <div class="tag__preview tag-<%= tag.color || "muted" %>"></div>
                   <%= tag.label %>
                   <%= "✓" if hcb_code.tags.include?(tag) %>

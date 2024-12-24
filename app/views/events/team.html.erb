@@ -30,7 +30,7 @@
 </h1>
 
 <div class="filterbar flex flex-row justify-between items-center width-100" style="gap: 16px">
-  <%= form_with(model: nil, local: true, method: :get, class: "flex-auto md:mr-2") do |form| %>
+  <%= form_with(model: nil, local: true, method: :get, class: "min-w-0 min-h-0 md:mr-2") do |form| %>
     <div class="input input-group max-w-none" tabindex="0">
     <%= inline_icon "search" %>
       <%= form.text_field :q, placeholder: "Type / to search...", data: { behavior: "search" }, value: params[:q] %>
