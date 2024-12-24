@@ -53,7 +53,7 @@
 <% if comment.edited? %>
   <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="comment-modal-<%= comment.hashid %>">
     <%= modal_header "Edit History" %>
-    <ul class="list-reset">
+    <ul class="list-none pl-0">
       <% comment.versions.where(event: "update").reverse.each do |version| %>
         <% if version&.changeset&.[]("content_ciphertext")&.compact_blank&.any? %>
           <li class="mb2">

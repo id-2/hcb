@@ -1,10 +1,10 @@
 <%= turbo_frame_tag :audit_log do %>
-  <ul class="list-reset">
+  <ul class="list-none pl-0">
     <% @event.versions.select { |version| version.changeset.any? { |field, changes| changes.any?(&:present?) } }.map do |version| %>
       <li>
         <div><%= user_mention User.find_by(id: version.whodunnit), {}, "Unknown User" %> <%= version.event %>d <span class="muted tooltipped tooltipped--n" style="cursor: default" aria-label="<%= version.created_at.strftime("%b %e, %Y") %>"><%= time_ago_in_words version.created_at %> ago</span></div>
         <% if version.event == "update" %>
-          <ul class="list-reset">
+          <ul class="list-none pl-0">
             <% version.changeset.excluding("updated_at").select { |field, changes| changes.any?(&:present?) }.each do |field, changes| %>
               <li>
                 <%= render_audit_log_field(field) %>: <%= render_audit_log_value(field, changes[0], color: "primary") %> → <%= render_audit_log_value(field, changes[1], color: "success") %></li>

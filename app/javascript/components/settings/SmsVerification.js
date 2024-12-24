@@ -85,7 +85,7 @@ const SmsVerification = ({ phoneNumber, enrollSmsAuth = false }) => {
     <>
       {errors.length > 0 && (
         <ul
-          className="list-reset bg-error p1 rounded"
+          className="list-none pl-0 bg-error p1 rounded"
           style={{ color: 'white' }}
         >
           {errors.map((e, i) => (
