@@ -6,7 +6,7 @@
       <span class="font-normal"><%= render_money @hcb_code.amount.abs %></span>
       <span class="font-normal muted">via PayPal</span>
     </span>
-    <span class="badge h4 md:float-right ml0 bg-<%= @hcb_code.paypal_transfer.state %> nowrap">
+    <span class="badge h4 md:float-right ml0 bg-<%= @hcb_code.paypal_transfer.state %> whitespace-nowrap">
       <%= @hcb_code.paypal_transfer.state_text %>
     </span>
     <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: @hcb_code } %>

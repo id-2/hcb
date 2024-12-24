@@ -28,9 +28,9 @@
       <% end %>
     </div>
   </td>
-  <td class="nowrap"><%= render_money et.amount %></td>
+  <td class="whitespace-nowrap"><%= render_money et.amount %></td>
   <% if show_running_sum %>
-    <td class="nowrap"><%= render_money @sum %></td>
+    <td class="whitespace-nowrap"><%= render_money @sum %></td>
     <% @sum -= et.amount if et.undeclined? %>
   <% end %>
   <% if defined? show_card %>

@@ -10,14 +10,14 @@
             <%= inline_icon "rep", size: 24, style: "margin: -2px 0px -3px -2px" %>
             Recommended
           </span>
-          <strong>Start a new <span class="nowrap">501(c)(3)</span> with us</strong>
+          <strong>Start a new <span class="whitespace-nowrap">501(c)(3)</span> with us</strong>
           <small>Get set up with a nonprofit fund in minutes.<br />No fees, and no strings attached.</small>
         <% end %>
 
         <%= form.radio_button :recipient_org_type, "501c3", required: true, "x-model" => "recipient_org_type" %>
         <%= form.label :recipient_org_type, class: "pointer justify-center", value: "501c3" do %>
           <%= inline_icon "briefcase", size: 28 %>
-          <strong>Deposit into an existing <span class="nowrap">501(c)(3)</span> organization</strong>
+          <strong>Deposit into an existing <span class="whitespace-nowrap">501(c)(3)</span> organization</strong>
           <small>Available only in the US.</small>
         <% end %>
 

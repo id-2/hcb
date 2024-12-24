@@ -11,7 +11,7 @@
       <%= @hcb_code.ach_transfer.recipient_name %>
       <span class="font-normal"><%= render_money @hcb_code.ach_transfer.amount %></span>
     </span>
-    <span class="badge h4 md:float-right ml0 bg-<%= @hcb_code.ach_transfer.state %> nowrap">
+    <span class="badge h4 md:float-right ml0 bg-<%= @hcb_code.ach_transfer.state %> whitespace-nowrap">
       <%= @hcb_code.ach_transfer.status_text %>
       <%= inline_icon @hcb_code.ach_transfer.state_icon, size: 20 if @hcb_code.ach_transfer.state_icon %>
     </span>

@@ -41,7 +41,7 @@
   <% end %>
 
   <%= form.label :point_of_contact_id do %>
-    <span style="text-wrap: nowrap;">POC</span>
+    <span style="text-wrap: whitespace-nowrap;">POC</span>
     <%= form.collection_select :point_of_contact_id, User.admin.all, :id, :email, selected: @point_of_contact_id, include_blank: "all" %>
   <% end %>
 
@@ -61,7 +61,7 @@
   <% end %>
 
   <%= form.label :tagged_with do %>
-    <span style="text-wrap: nowrap;">Tagged with</span>
+    <span style="text-wrap: whitespace-nowrap;">Tagged with</span>
     <%= form.select :tagged_with, EventTag.all.map { |t| [t.full_name, t.id] }, { include_blank: "anything", selected: @tagged_with } %>
   <% end %>
 

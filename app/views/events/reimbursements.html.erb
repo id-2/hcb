@@ -29,7 +29,7 @@
 <div class="statset mt3 mb3 xs-hide">
   <div class="stat">
     <span class="stat__label">Total</span>
-    <span class="stat__value" style="text-wrap: nowrap"><%= render_money_amount(@event.reimbursement_reports.to_calculate_total.sum(&:amount_cents)) %></span>
+    <span class="stat__value" style="text-wrap: whitespace-nowrap"><%= render_money_amount(@event.reimbursement_reports.to_calculate_total.sum(&:amount_cents)) %></span>
   </div>
   <div class="stat stat--small">
     <span class="stat__label">Reimbursed</span>

@@ -48,11 +48,11 @@
   </tr>
   <% @transactions.reverse.each do |ct| %>
     <tr>
-      <td style="white-space: nowrap;"><%= ct.date %></td>
+      <td style="white-space: whitespace-nowrap;"><%= ct.date %></td>
       <td><%= transaction_memo(ct) %></td>
-      <td style="white-space: nowrap;"><%= ct.local_hcb_code.public_id %></td>
-      <td style="text-align: center; white-space: nowrap;"><%= number_to_currency ct.amount %></td>
-      <td style="text-align: center; white-space: nowrap;"><%= number_to_currency ct.running_balance %></td>
+      <td style="white-space: whitespace-nowrap;"><%= ct.local_hcb_code.public_id %></td>
+      <td style="text-align: center; white-space: whitespace-nowrap;"><%= number_to_currency ct.amount %></td>
+      <td style="text-align: center; white-space: whitespace-nowrap;"><%= number_to_currency ct.running_balance %></td>
     </tr>
   <% end %>
   <tr>

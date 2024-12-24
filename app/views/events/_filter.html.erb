@@ -70,7 +70,7 @@
         class="btn btn-small bg-info menu__toggle menu__toggle--arrowless overflow-visible z-10"
         data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
         <%= inline_icon "list", size: 16, style: "margin: 0" %>
-        <span class="xs-hide sm-hide md-hide nowrap">Count</span>
+        <span class="xs-hide sm-hide md-hide whitespace-nowrap">Count</span>
       </button>
       <div class="menu__content menu__content--2 menu__content--compact text-sm" data-menu-target="content">
         <% [10, 25, 50, 100, 200].each do |amount| %>
