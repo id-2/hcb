@@ -9,6 +9,7 @@
 #  birthday_ciphertext           :text
 #  charge_notifications          :integer          default("email_and_sms"), not null
 #  comment_notifications         :integer          default("all_threads"), not null
+#  creation_method               :integer
 #  email                         :text
 #  full_name                     :string
 #  locked_at                     :datetime
@@ -23,6 +24,7 @@
 #  session_duration_seconds      :integer          default(2592000), not null
 #  sessions_reported             :boolean          default(FALSE), not null
 #  slug                          :string
+#  teenager                      :boolean
 #  use_sms_auth                  :boolean          default(FALSE)
 #  use_two_factor_authentication :boolean          default(FALSE)
 #  created_at                    :datetime         not null
@@ -64,6 +66,14 @@ class User < ApplicationRecord
   }, prefix: :receipt_report, default: :weekly
 
   enum :access_level, { user: 0, admin: 1, superadmin: 2 }, scopes: false, default: :user
+
+  enum :creation_method, {
+    login: 0,
+    reimbursement_report: 1,
+    organizer_position_invite: 2,
+    card_grant: 3,
+    grant: 4
+  }
 
   has_many :logins
   has_many :login_codes
@@ -191,6 +201,10 @@ class User < ApplicationRecord
 
   def remove_admin!
     user!
+  end
+
+  def preferred_first_name
+    preferred_name&.split&.first
   end
 
   def first_name(legal: false)
