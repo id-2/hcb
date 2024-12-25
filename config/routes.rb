@@ -567,7 +567,7 @@ Rails.application.routes.draw do
 
         resources :transactions, only: [:show]
 
-        resources :stripe_cards, path: "cards", only: [:show, :update] do
+        resources :stripe_cards, path: "cards", only: [:show, :update, :create] do
           member do
             get "transactions"
             get "ephemeral_keys"
