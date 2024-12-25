@@ -30,31 +30,7 @@ module BreakdownEngine
         }
       end
 
-      total_amount = merchants.sum { |merchant| merchant[:value] }
-      threshold = total_amount * 0.05
-
-      if threshold > 0
-        # Update merchants to apply the threshold condition
-        merchants = merchants.map do |merchant|
-          {
-            name: merchant[:name],
-            truncated: merchant[:truncated],
-            value: (merchant[:value] >= threshold ? merchant[:value] : 0)
-          }
-        end
-
-        # Calculate "Other" amount
-        other_amount = total_amount - merchants.sum { |merchant| merchant[:value] }
-        if other_amount > 0
-          merchants << {
-            name: "Other",
-            truncated: "Other",
-            value: other_amount
-          }
-        end
-      end
-
-      merchants
+      merchants.first(7)
     end
 
   end
