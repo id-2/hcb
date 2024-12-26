@@ -75,6 +75,7 @@ module Api
         
         rescue => e
           notify_airbrake(e)
+          render json: { error: "internal_server_error" }, status: :internal_server_error
       end
 
       def update
