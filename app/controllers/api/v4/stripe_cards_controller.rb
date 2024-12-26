@@ -34,7 +34,6 @@ module Api
         sc = params.require(:stripe_card).permit(
           :event_id,
           :card_type,
-          :stripe_cardholder_id,
           :stripe_shipping_name,
           :stripe_shipping_address_city,
           :stripe_shipping_address_line1,
