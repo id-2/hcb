@@ -31,7 +31,7 @@ module Api
         event = authorize(Event.find(params[:stripe_card][:event_id]))
         authorize event, :create_stripe_card?, policy_class: EventPolicy
 
-        params.require(:stripe_card).permit(
+        sc = params.require(:stripe_card).permit(
           :event_id,
           :card_type,
           :stripe_cardholder_id,
@@ -45,8 +45,6 @@ module Api
           :stripe_card_personalization_design_id,
           :birthday
         )
-
-        sc = params[:stripe_card]
 
         if current_user.birthday.nil?
           user_params = sc.slice("birthday(1i)", "birthday(2i)", "birthday(3i)")
