@@ -71,6 +71,8 @@ module Api
           stripe_card_personalization_design_id: sc[:stripe_card_personalization_design_id] || StripeCard::PersonalizationDesign.common.first&.id
         ).run
 
+        return render json: { error: "internal_server_error" }, status: :internal_server_error if new_card.nil?
+
         @stripe_card = new_card
         render :show
         
