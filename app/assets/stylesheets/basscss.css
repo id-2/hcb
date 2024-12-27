@@ -10,9 +10,6 @@
 .right {
   float: right;
 }
-.fit {
-  max-width: 100%;
-}
 .hide {
   position: absolute !important;
   height: 1px;
