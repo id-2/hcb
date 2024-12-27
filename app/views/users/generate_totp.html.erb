@@ -15,7 +15,7 @@
       </qr-code>
     </div>
     <div class="relative block mt2" data-controller="clipboard" data-clipboard-text-value="<%= @totp.secret %>">
-      <input type="text" value="<%= @totp.secret %>" readonly style="cursor: text;" class="fit">
+      <input type="text" value="<%= @totp.secret %>" readonly style="cursor: text;" class="max-w-full">
       <button
         type="button"
         class="pointer pop mr2 align-middle tooltipped tooltipped--n"

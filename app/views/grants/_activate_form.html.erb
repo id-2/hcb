@@ -3,7 +3,7 @@
 <%= form_with model: @grant, url: activate_grant_path(@grant), method: :post do |form| %>
   <ul class="steps" x-data="{ recipient_org_type: null, receipt_method: '<%= @grant.receipt_method || "ach_transfer" %>' }">
     <li>
-      <div class="field field--options mx-auto fit">
+      <div class="field field--options mx-auto max-w-full">
         <%= form.radio_button :recipient_org_type, "fiscally_sponsored", required: true, "x-model" => "recipient_org_type" %>
         <%= form.label :recipient_org_type, class: "pointer", value: "fiscally_sponsored", style: "grid-area: 1 / 1 / 2 / 3" do %>
           <span class="badge m0 bg-info mb1">

@@ -45,7 +45,7 @@ export default class extends Controller {
       if (result.error.type != 'validation_error') {
         if (this.hasErrorsTarget) {
           const flash = document.createElement('p')
-          flash.classList.add('flash', 'error', 'fit', 'mt1', 'mb3')
+          flash.classList.add('flash', 'error', 'max-w-full', 'mt1', 'mb3')
           if (
             result.error.code == 'payment_intent_authentication_failure' ||
             result.error.code == 'card_declined'

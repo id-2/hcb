@@ -16,7 +16,7 @@
   </p>
   <%= form_with(model: nil, local: true, method: "get", url: transactions_exports_path(event: @event_slug, format: @file_extension)) do |form| %>
     <%= form.text_field :event, style: "display: none", value: @event_slug %>
-    <%= form.text_field :email, class: "w-100 fit my2", placeholder: "fiona@hackclub.com", required: true, type: "email" %>
+    <%= form.text_field :email, class: "w-100 max-w-full my2", placeholder: "fiona@hackclub.com", required: true, type: "email" %>
     <p>
       <%= form.submit "Submit" %>
     </p>

@@ -18,7 +18,7 @@
       </div>
       <div class="field">
         <%= form.label :public_reimbursement_page_message, "Message to show for public reimbursements" %>
-        <%= form.text_area :public_reimbursement_page_message, placeholder: "#{event.name} uses HCB to reimburse its volunteers…", class: "w-100 fit mt1", disabled: !policy(event).update? %>
+        <%= form.text_area :public_reimbursement_page_message, placeholder: "#{event.name} uses HCB to reimburse its volunteers…", class: "w-100 max-w-full mt1", disabled: !policy(event).update? %>
         <%= inline_icon "markdown", size: 32, class: "muted right" %>
       </div>
       <%= form.submit "Update", disabled: !policy(event).update?, data: { turbo_frame: @frame ? "_top" : "" } %>

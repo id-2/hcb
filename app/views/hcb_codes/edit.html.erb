@@ -21,7 +21,7 @@
                             defaultValue: @hcb_code.memo,
                             autofocus: true,
                             data: { controller: "input", input_target: "input", action: "focus->input#select blur->form#submit keydown->form#keydown" },
-                            class: "bg-transparent fit",
+                            class: "bg-transparent max-w-full",
                             style: "border-color: #338eda; min-height: 0; font-size: 1.5rem; padding: 0.125rem 0 0.125rem 4px; letter-spacing: -0.02em" %>
 
         <span class="font-normal muted ml1 mr1"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>

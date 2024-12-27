@@ -7,7 +7,7 @@
       } do |form| %>
     <p class="!hidden flash error max-w-full" data-webauthn-register-target="error">Something went wrong.</p>
 
-    <div class="field field--options fit">
+    <div class="field field--options max-w-full">
       <%= form.radio_button :type, "platform", required: true, disabled: true, data: { "webauthn-register-target" => "platformRadio", action: "webauthn-register#toggleNameField" } %>
       <%= form.label :type_platform do %>
         <%= inline_icon "fingerprint", size: "28px", style: "padding: 3px" %>

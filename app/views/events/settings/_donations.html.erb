@@ -19,17 +19,17 @@
           <div class="menu__divider m-0 mb-4"></div>
           <div class="field">
             <%= form.label :donation_page_message, "Message to show on donation page" %>
-            <%= form.text_area :donation_page_message, class: "w-100 fit", disabled: !policy(event).update? %>
+            <%= form.text_area :donation_page_message, class: "w-100 max-w-full", disabled: !policy(event).update? %>
             <%= inline_icon "markdown", size: 32, class: "muted right" %>
           </div>
           <div class="field">
             <%= form.label :donation_thank_you_message, "Thank you message to donors" %>
-            <%= form.text_area :donation_thank_you_message, class: "w-100 fit", disabled: !policy(event).update? %>
+            <%= form.text_area :donation_thank_you_message, class: "w-100 max-w-full", disabled: !policy(event).update? %>
             <%= inline_icon "markdown", size: 32, class: "muted right" %>
           </div>
           <div class="field">
             <%= form.label :donation_reply_to_email, "Reply-to email for donation receipts" %>
-            <%= form.text_field :donation_reply_to_email, type: "email", placeholder: "fiona@hackclub.com", class: "w-100 fit", disabled: !policy(event).update? %>
+            <%= form.text_field :donation_reply_to_email, type: "email", placeholder: "fiona@hackclub.com", class: "w-100 max-w-full", disabled: !policy(event).update? %>
           </div>
           <%= form.fields_for :config do |config| %>
             <div class="field field--checkbox">

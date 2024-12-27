@@ -123,7 +123,7 @@
       <div class="field mt-2">
         <%= inline_icon "markdown", size: 32, class: "muted right" %>
         <%= form.label :public_message, "Message to show visitors" %>
-        <%= form.text_area :public_message, class: "w-100 fit", disabled: !policy(@event).update? %>
+        <%= form.text_area :public_message, class: "w-100 max-w-full", disabled: !policy(@event).update? %>
       </div>
       <div class="field field--checkbox">
         <%= form.check_box :is_indexable, disabled: !policy(@event).update?, switch: true %>
