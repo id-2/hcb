@@ -31,9 +31,9 @@ export default class extends Controller {
 
   updateTaggerVisbility() {
     if (this.selectedValue.length == 0) {
-      this.taggerTarget.classList.add('display-none')
+      this.taggerTarget.classList.add('!hidden')
     } else {
-      this.taggerTarget.classList.remove('display-none')
+      this.taggerTarget.classList.remove('!hidden')
     }
   }
 

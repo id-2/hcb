@@ -52,7 +52,7 @@ export default class extends Controller {
 
     try {
       this.submitButtonTarget.disabled = true
-      this.errorTarget.classList.add('display-none')
+      this.errorTarget.classList.add('!hidden')
 
       const params = new URLSearchParams({
         type: this.platformRadioTarget.checked ? 'platform' : 'cross-platform',
@@ -67,7 +67,7 @@ export default class extends Controller {
       this.element.submit()
     } catch (e) {
       if (e instanceof DOMException && e.name != 'AbortError') {
-        this.errorTarget.classList.remove('display-none')
+        this.errorTarget.classList.remove('!hidden')
         console.error(e)
       }
     } finally {

@@ -3,7 +3,7 @@
     <div class="overflow-hidden" style="max-height: 270px;">
       <%= render "documents/preview", document: %>
     </div>
-    <strong class="font-brand h3 block mt1 leading-loose"><%= document.name %>
+    <strong class="font-brand text-xl block mt1 leading-loose"><%= document.name %>
       <% if document.archived? %>
         <span class="font-brand h4 mt1 leading-none" style="color: gray">(Archived)</span>
       <% end %>

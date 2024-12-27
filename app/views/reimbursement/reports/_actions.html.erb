@@ -23,7 +23,7 @@
                 include_hidden: false,
                 required: false,
                 accept: "image/*,image/heic,.pdf",
-                class: "display-none",
+                class: "!hidden",
                 data: { "file-drop-target" => "fileInput" } %>
           <% end %>
         <% elsif current_user == report.user && !admin_signed_in? %>

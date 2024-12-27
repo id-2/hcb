@@ -51,7 +51,7 @@ export default class extends Controller {
       const options = await this.fetchWebAuthnOptions(loginEmail)
 
       if (this.hasLoginCodeTarget) {
-        this.loginCodeTarget.classList.remove('display-none')
+        this.loginCodeTarget.classList.remove('!hidden')
       }
       this.continueButtonTarget.value = 'Waiting for security key...'
 
@@ -86,7 +86,7 @@ export default class extends Controller {
         this.enableForm()
         this.continueButtonTarget.value = 'Continue'
 
-        this.errorTarget.classList.remove('display-none')
+        this.errorTarget.classList.remove('!hidden')
 
         console.error(e)
         airbrake?.notify(e)

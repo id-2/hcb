@@ -6,7 +6,7 @@
           <%= inline_icon "view-close", size: 28, class: "pop modal__close muted  m0" %>
         </span>
         <div style="display: flex; padding-right: 32px;">
-          <h2 class="h2 mt0 mb0 pb0 border-none ai"><%= inline_icon "rep", size: 36, style: "margin: -8px; margin-right: 0px;" %> Suggested pairing</h2>
+          <h2 class="text-2xl mt0 mb0 pb0 border-none ai"><%= inline_icon "rep", size: 36, style: "margin: -8px; margin-right: 0px;" %> Suggested pairing</h2>
           <span style="flex-grow: 1;"></span>
           <span style="line-height: 0px; display: flex; align-items: center;">
             <span>
@@ -34,7 +34,7 @@
               <h2 class="heading dark:bg-dark leading-4] p1 pl2 mt0 ml0 flex justify-between items-center">
                 <%= pairing.hcb_code.stripe_card.event.name %>
 
-                <%= link_to pairing.hcb_code.stripe_card, class: "font-normal h3 mention flex items-center" do %>
+                <%= link_to pairing.hcb_code.stripe_card, class: "font-normal text-xl mention flex items-center" do %>
                   <%= inline_icon "card", class: "mr1", size: 25 %>
                   <%= pairing.hcb_code.stripe_card.last_four %>
                 <% end %>

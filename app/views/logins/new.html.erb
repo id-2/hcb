@@ -21,13 +21,13 @@
 
 <article class="center mt3" data-controller="webauthn-auth" data-webauthn-auth-return-to-value="<%= @return_to %>" data-webauthn-auth-require-webauthn-preference-value="true">
   <h1 class="mt2">
-    <span class="h3 caps secondary block">Hack Club</span>
+    <span class="text-xl caps secondary block">Hack Club</span>
     <span class="primary">Sign in to HCB</span>
   </h1>
   <%= render partial: "users/sms_auth_notice" %>
 
   <%= form_tag logins_path, 'data-action': "webauthn-auth#submit", 'data-webauthn-auth-target': "authForm" do %>
-    <div data-webauthn-auth-target="error" class="mb2 display-none">
+    <div data-webauthn-auth-target="error" class="mb2 !hidden">
       <p class="flash error mb1 mx-auto">Security key authentication failed.</p>
     </div>
 
@@ -38,7 +38,7 @@
       <%= submit_tag "Continue", data: { "webauthn-auth-target" => "continueButton" } %>
     </div>
 
-    <%= link_to "Sign in another way", choose_login_preference_logins_path(return_to: @return_to), class: "display-none block mt2", data: { "webauthn-auth-target" => "loginCode" } %>
+    <%= link_to "Sign in another way", choose_login_preference_logins_path(return_to: @return_to), class: "!hidden block mt2", data: { "webauthn-auth-target" => "loginCode" } %>
   <% end %>
   <p class="text-sm muted mt5">Need help? <%= help_email %></p>
   <p class="text-sm mt2"><a href="https://hackclub.com/hcb?ref=hcb_auth">What’s HCB?</a></p>

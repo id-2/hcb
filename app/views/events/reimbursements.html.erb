@@ -109,7 +109,7 @@
   </p>
 <% end %>
 
-<%= form_with(model: Reimbursement::Report, class: "display-none", method: :post, url: quick_expense_reimbursement_reports_path, data: { controller: "file-drop form", "file-drop-title-value": "Drop to start a report." }) do |form| %>
+<%= form_with(model: Reimbursement::Report, class: "!hidden", method: :post, url: quick_expense_reimbursement_reports_path, data: { controller: "file-drop form", "file-drop-title-value": "Drop to start a report." }) do |form| %>
   <%= form.hidden_field :event_id, value: @event.id %>
   <%= form.label :file, "Choose file", class: "field--fileupload__label", data: {
         action: "

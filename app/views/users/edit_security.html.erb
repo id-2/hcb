@@ -11,7 +11,7 @@
   <% unless @user.phone_number.blank? %>
     <%= turbo_frame_tag :sms_auth_card do %>
       <legend class="flex flex-row justify-start items-center mt0 pb2">
-        <span class="h2 font-bold">Login preferences</span>
+        <span class="text-2xl font-bold">Login preferences</span>
       </legend>
       <div class="card border b--info mt0 mb3">
         <% if @user.phone_number_verified %>
@@ -55,7 +55,7 @@
   <% end %>
   <div>
     <legend class="flex flex-row justify-start items-center mt3 pb2">
-      <span class="h2 bofont-boldld">Time-based one time passwords</span>
+      <span class="text-2xl bofont-boldld">Time-based one time passwords</span>
     </legend>
     <%= turbo_frame_tag :totp_auth_card do %>
       <div class="card border b--info mt0 mb3">
@@ -73,7 +73,7 @@
   </div>
   <div class="flex items-center justify-between flex-wrap gap-x-5 gap-y-2 mt3 pb2" id="security-keys">
     <legend class="flex flex-row justify-start items-center">
-      <span class="h2 font-bold">Security keys</span>
+      <span class="text-2xl font-bold">Security keys</span>
       <%= badge_for @user.webauthn_credentials.count, class: "bg-muted" %>
     </legend>
     <button class="btn px2 h4" data-behavior="modal_trigger" data-modal="webauthn_register">
@@ -94,7 +94,7 @@
   <% end %>
   <div class="flex items-center justify-between flex-wrap gap-x-5 gap-y-2 mt3 pb2">
     <legend class="flex flex-row justify-start items-center">
-      <span class="h2 font-bold">Sessions</span>
+      <span class="text-2xl font-bold">Sessions</span>
       <%= badge_for @all_sessions.count, class: "bg-muted" %>
     </legend>
     <%= link_to logout_all_user_path(@user), method: :delete,

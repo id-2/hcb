@@ -15,7 +15,7 @@
       Account details
     </a>
   </h1>
-  <div class="flex items-start justify-start h2 mb2" style="gap: 2rem">
+  <div class="flex items-start justify-start text-2xl mb2" style="gap: 2rem">
     <span class="flex flex-col" data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="<%= @event.account_number if organizer_signed_in? %>">
       <span class="h4 muted">
         Account
@@ -78,7 +78,7 @@
                           data: { turbo_confirm: "Are you sure you want to change this? Debits are usually disabled for account security." } %>
           <% end %>
 
-          <div class="flex items-start justify-around h2 mb2" style="gap: 1rem">
+          <div class="flex items-start justify-around text-2xl mb2" style="gap: 1rem">
             <span class="flex flex-col" data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="<%= @event.account_number if organizer_signed_in? %>">
               <span class="font-mono pointer tooltipped tooltipped--n fs-mask" aria-label="<%= organizer_signed_in? ? "Click to copy" : "Sign in to view" %>" data-action="click->clipboard#copy" data-controller="<%= "reveal-animation" if @animated %>">
                 <% if organizer_signed_in? %>
@@ -153,7 +153,7 @@
         <% end %>
       </div>
 
-      <div class="flex flex-col md:flex-row items-start justify-start gap-2 md:gap-12 h2 mb-2 md:mb-4">
+      <div class="flex flex-col md:flex-row items-start justify-start gap-2 md:gap-12 text-2xl mb-2 md:mb-4">
         <span class="flex flex-col" data-controller="<%= "clipboard" if organizer_signed_in? %>" data-clipboard-text-value="<%= @event.account_number if organizer_signed_in? %>">
           <span class="h4 muted font-medium">Account </span>
           <span class="font-mono pointer tooltipped tooltipped--n fs-mask" aria-label="<%= organizer_signed_in? ? "Click to copy" : "Sign in to view" %>" data-action="click->clipboard#copy">

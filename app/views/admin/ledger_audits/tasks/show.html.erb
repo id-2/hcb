@@ -38,12 +38,12 @@
           <% if event.logo.attached? %>
             <div style="display: flex; gap: 8px; align-items: center;">
               <%= image_tag event.logo, height: 24, width: 24, class: "rounded display-inline align-bottom" %>
-              <strong class="h3 leading-loose display-inline">
+              <strong class="text-xl leading-loose display-inline">
                 <%= event.name %>
               </strong>
             </div>
           <% else %>
-            <strong class="h3 leading-loose display-inline">
+            <strong class="text-xl leading-loose display-inline">
               <%= event.name %>
             </strong>
           <% end %>

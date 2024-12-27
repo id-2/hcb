@@ -1,6 +1,6 @@
 <%= form_with model: user do |form| %>
   <fieldset>
-    <legend class="heading h3 pb2 font-bold">How would you like to be reimbursed?</legend>
+    <legend class="heading text-xl pb2 font-bold">How would you like to be reimbursed?</legend>
     <div class="field field--options trio" style="max-width: none;">
       <%= form.radio_button :payout_method_type, "User::PayoutMethod::AchTransfer" %>
       <%= form.label :payout_method_type, value: "User::PayoutMethod::AchTransfer" do %>
@@ -27,7 +27,7 @@
       <%= user.payout_method.errors.full_messages.to_sentence %>.
     </p>
   <% end %>
-  <section data-behavior="check_payout_method_inputs" class="<%= "display-none-not-important" unless user.payout_method.instance_of?(User::PayoutMethod::Check) %>">
+  <section data-behavior="check_payout_method_inputs" class="<%= "hidden" unless user.payout_method.instance_of?(User::PayoutMethod::Check) %>">
     <%= form.fields_for :payout_method, user.payout_method.instance_of?(User::PayoutMethod::Check) ? user.payout_method : User::PayoutMethod::Check.new do |form| %>
       <div class="field">
         <%= form.label :address_line1, "Street address" %>
@@ -66,7 +66,7 @@
       </div>
     <% end %>
   </section>
-  <section data-behavior="paypal_transfer_payout_method_inputs" class="<%= "display-none-not-important" unless user.payout_method.instance_of?(User::PayoutMethod::PaypalTransfer) %>">
+  <section data-behavior="paypal_transfer_payout_method_inputs" class="<%= "hidden" unless user.payout_method.instance_of?(User::PayoutMethod::PaypalTransfer) %>">
     <%= render "callout",
         type: "info",
         title: "Important info about PayPal reimbursements" do %>

@@ -9,7 +9,7 @@
   <% if organizer_signed_in? %>
     <div class="flex items-center m2 absolute z-10 top-0 left-0">
       <%= form_with model: @event, class: "embedded-display-none", data: { "controller" => "form" } do |form| %>
-        <%= form.file_field :donation_header_image, required: true, class: "display-none", data: { action: "change->form#submit" } %>
+        <%= form.file_field :donation_header_image, required: true, class: "!hidden", data: { action: "change->form#submit" } %>
         <%= form.label :donation_header_image do %>
           <div
             role="button"
@@ -36,7 +36,7 @@
        <% if @has_header_image %> style="background: linear-gradient(rgba(23, 23, 29, 0.3), rgba(23, 23, 29, 0.9)),  url('<%= url_for @event.donation_header_image %>'); background-position: center; background-size: cover; background-repeat: no-repeat;"
        <% end %>>
     <h1 class="mt-0 mb0 border-none center <%= "smoke drop-shadow-lg" if @has_header_image %>">
-      <span class="h3 caps block <%= @has_header_image ? "muted" : "secondary" %>"><%= defined?(lead) ? lead : "Donate to" %></span>
+      <span class="text-xl caps block <%= @has_header_image ? "muted" : "secondary" %>"><%= defined?(lead) ? lead : "Donate to" %></span>
       <div class="flex justify-center items-center mt1">
         <%= render "donations/logo" %>
         <span class="ml2"><%= @event.name %></span>

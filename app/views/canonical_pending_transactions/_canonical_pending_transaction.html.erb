@@ -124,7 +124,7 @@
     <td style="width: 1%">
       <% if pt.local_hcb_code.missing_receipt? || !local_assigns[:updated_via_turbo_stream] %>
         <%= form_with url: receipts_path, data: { controller: "form", "file-drop-target" => "form", "turbo" => true } do |form| %>
-          <%= form.file_field :file, id: "file_#{pt.local_hcb_code.hashid}", multiple: true, include_hidden: false, required: true, class: "display-none", data: { action: "change->form#submit", "file-drop-target" => "fileInput" } %>
+          <%= form.file_field :file, id: "file_#{pt.local_hcb_code.hashid}", multiple: true, include_hidden: false, required: true, class: "!hidden", data: { action: "change->form#submit", "file-drop-target" => "fileInput" } %>
           <%= form.hidden_field :redirect_url, value: @card_grant ? card_grant_path(@card_grant) : my_inbox_path %>
           <% unless @card_grant.present? %>
             <%= form.hidden_field :show_link, value: true %>
@@ -174,7 +174,7 @@
         <div class="shimmer__border"></div>
         <div class="shimmer__main">
           <article class="card pb0 h-100">
-            <h2 class="h2 mt0 mx0 border-none flex items-center justify-between">
+            <h2 class="text-2xl mt0 mx0 border-none flex items-center justify-between">
               <span class="min-w-0 min-h-0">
                 <%= pop_icon_to "edit",
                     my_inbox_path,

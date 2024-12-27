@@ -9,9 +9,9 @@ function loadTextExpander() {
       count = 0
       for (const suggestion of suggestions.children) {
         if (!suggestion.dataset.search.toLowerCase().match(text.toLowerCase())) {
-          suggestion.classList.add("display-none")
+          suggestion.classList.add("!hidden")
         } else {
-          suggestion.classList.remove("display-none")
+          suggestion.classList.remove("!hidden")
           count++
         }
       }
