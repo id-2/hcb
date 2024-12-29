@@ -11,7 +11,23 @@
 
   <p>Enter your time-based one time password from your authenticator app.</p>
   <%= form_tag complete_login_path(@login) do %>
-    <%= telephone_field_tag :code, "", placeholder: "OTP code", autofocus: true, class: "center-align mb2", autocomplete: "one-time-code", required: true %>
+    <div class="card px-6 sm:px-4 py-6 mb-4 shadow-sm border" style="max-width: 450px;" data-controller="login-code">
+      <div class="block sm:hidden md:block">
+        <%= label_tag :login_code_1, "Enter your one time password code", class: "left-align mb-2" %>
+        <div class="flex font-mono transition-none items-center" data-login-code-target="wrapper">
+          <% 6.times do |i| %>
+            <%= number_field_tag "login_code_#{i + 1}".to_sym, "",
+               autofocus: true,
+               autocomplete: i != 0 ? "off" : "one-time-code",
+               data: { "login-code-target": "input" },
+               class: "text-center mb-0 text-lg font-bold dark:!border-gray-600 !rounded-none focus:z-10 -mr-[1px] first:!rounded-l-lg #{ (i == 5) && "!rounded-r-lg"}",
+               style: i != 0 ? "transform: translateX(-20px); width: 60px; z-index: 2" : "width: 80px; z-index: 1; padding-right: 28px;",
+               required: true %>
+          <% end %>
+        </div>
+      </div>
+      <%= hidden_field_tag :code, "", class: "left-align mb2 !max-w-full w-max", required: true, data: { "login-code-target": "composite", "1p-ignore": "true" } %>
+    </div>
     <%= hidden_field_tag :email, @email %>
     <%= hidden_field_tag :method, :totp %>
     <%= hidden_field_tag :fingerprint %>
@@ -19,7 +35,12 @@
     <%= hidden_field_tag :os_info %>
     <%= hidden_field_tag :timezone %>
     <%= hidden_field_tag :return_to, @return_to if @return_to %>
-    <%= submit_tag "Submit" %>
+    <div class="flex flex-row justify-between items-center mt-4">
+      <%= link_to "Sign in another way", choose_login_preference_logins_path(return_to: @return_to), class: "block mt0" %>
+      <button type="submit" class="gap-2 btn" data-1p-ignore>
+        Continue
+      </button>
+    </div>
   <% end %>
 
   <%= link_to "Sign in another way", choose_login_preference_logins_path(return_to: @return_to), class: "block mt2" %>
