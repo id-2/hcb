@@ -13,12 +13,30 @@
       <button id="to" data-tabs-target="btn" data-action="tabs#select">Recipient</button>
       <button id="amount" data-tabs-target="btn" data-action="tabs#select">Amount</button>
 
+      <div class="menu__divider"></div>
+
       <div data-tabs-target="tab" id="status">
-       status
+        <%= link_to "Paid", "?filter=paid", class: "menu__action !border-none", "aria-selected": params[:filter] == "paid" %>
+        <%= link_to "Unpaid", "?filter=unpaid", class: "menu__action !border-none", "aria-selected": params[:filter] == "unpaid" %>
+        <%= link_to "Archived", "?filter=archived", class: "menu__action !border-none", "aria-selected": params[:filter] == "archived" %>
+        <%= link_to "Voided", "?filter=voided", class: "menu__action !border-none", "aria-selected": params[:filter] == "voided" %>
       </div>
 
       <div data-tabs-target="tab" id="date">
-        date
+        <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
+          <p class="bold mb0 mt0">Donations after...</p>
+          <%= form.date_field :start, class: "border mb1", value: @start_date %>
+          <p class="bold mb0 mt0">Donations before...</p>
+          <%= form.date_field :end, class: "border mb1", value: @end_date %>
+
+          <% request.query_parameters.except(:start, :end).each do |key, value| %>
+            <%= hidden_field_tag key, value %>
+          <% end %>
+
+          <div class="flex justify-start">
+            <%= form.submit "Filter donations" %>
+          </div>
+        <% end %>
       </div>
 
       <div data-tabs-target="tab" id="to">
