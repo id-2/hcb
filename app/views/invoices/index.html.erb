@@ -53,6 +53,7 @@
       <% end %>
     </div>
   <% end %>
+  <%= render "filter_invoices_menu" %>
   <div>
     <%= link_to "All", "?filter=all", class: "filterbar__item", "aria-selected": !["paid", "unpaid", "overdue", "archived", "voided"].include?(params[:filter]), role: "tab" %>
     <%= link_to "Paid", "?filter=paid", class: "filterbar__item", "aria-selected": params[:filter] == "paid", role: "tab" %>
