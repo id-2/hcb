@@ -35,7 +35,9 @@ class InvoicesController < ApplicationController
       unpaid: relation.unpaid.sum(:item_amount) - archived_unpaid,
     }
 
-    case params[:filter]
+    @has_filter = params[:status].present?
+
+    case params[:status]
     when "paid"
       relation = relation.paid_v2
     when "unpaid"

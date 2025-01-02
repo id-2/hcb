@@ -43,8 +43,10 @@
       <% end %>
     </div>
   <% end %>
-  <%= render "filter_transfers_menu" %>
+  <%= render "filter_transfers_menu" unless @has_filter %>
 </div>
+
+<%= render "filter_transfers" if @has_filter %>
 
 <% if @transfers.size > 0 %>
 <article class="table-container">

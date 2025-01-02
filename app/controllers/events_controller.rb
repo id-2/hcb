@@ -289,7 +289,7 @@ class EventsController < ApplicationController
   def team
     authorize @event
 
-    case params[:filter]
+    case params[:type]
     when "members"
       @filter = "member"
     when "managers"
@@ -297,6 +297,8 @@ class EventsController < ApplicationController
     end
 
     @q = params[:q] || ""
+
+    @has_filter = @filter.present?
 
     cookies[:team_view] = params[:view] if params[:view]
     @view = cookies[:team_view] || "grid"
@@ -649,36 +651,38 @@ class EventsController < ApplicationController
       canceled: @ach_transfers.rejected.sum(:amount) + @checks.canceled.sum(:amount) + @increase_checks.canceled.sum(:amount) + @disbursements.rejected.sum(:amount) + @paypal_transfers.rejected.sum(:amount_cents) + @wires.rejected.sum(&:usd_amount_cents)
     }
 
-    @ach_transfers = @ach_transfers.in_transit if params[:filter] == "in_transit"
-    @ach_transfers = @ach_transfers.deposited if params[:filter] == "deposited"
-    @ach_transfers = @ach_transfers.rejected if params[:filter] == "canceled"
+    @has_filter = params[:status].present? || params[:type].present?
+
+    @ach_transfers = @ach_transfers.in_transit if params[:status] == "in_transit"
+    @ach_transfers = @ach_transfers.deposited if params[:status] == "deposited"
+    @ach_transfers = @ach_transfers.rejected if params[:status] == "canceled"
     @ach_transfers = @ach_transfers.search_recipient(params[:q]) if params[:q].present?
 
-    @checks = @checks.in_transit_or_in_transit_and_processed if params[:filter] == "in_transit"
-    @checks = @checks.deposited if params[:filter] == "deposited"
-    @checks = @checks.canceled if params[:filter] == "canceled"
+    @checks = @checks.in_transit_or_in_transit_and_processed if params[:status] == "in_transit"
+    @checks = @checks.deposited if params[:status] == "deposited"
+    @checks = @checks.canceled if params[:status] == "canceled"
     @checks = @checks.search_recipient(params[:q]) if params[:q].present?
 
-    @increase_checks = @increase_checks.in_transit if params[:filter] == "in_transit"
-    @increase_checks = @increase_checks.increase_deposited if params[:filter] == "deposited"
-    @increase_checks = @increase_checks.canceled if params[:filter] == "canceled"
+    @increase_checks = @increase_checks.in_transit if params[:status] == "in_transit"
+    @increase_checks = @increase_checks.increase_deposited if params[:status] == "deposited"
+    @increase_checks = @increase_checks.canceled if params[:status] == "canceled"
     @increase_checks = @increase_checks.search_recipient(params[:q]) if params[:q].present?
 
     @card_grants = @card_grants.search_recipient(params[:q]) if params[:q].present?
 
-    @disbursements = @disbursements.reviewing_or_processing if params[:filter] == "in_transit"
-    @disbursements = @disbursements.fulfilled if params[:filter] == "deposited"
-    @disbursements = @disbursements.rejected if params[:filter] == "canceled"
+    @disbursements = @disbursements.reviewing_or_processing if params[:status] == "in_transit"
+    @disbursements = @disbursements.fulfilled if params[:status] == "deposited"
+    @disbursements = @disbursements.rejected if params[:status] == "canceled"
     @disbursements = @disbursements.search_name(params[:q]) if params[:q].present?
 
-    @paypal_transfers = @paypal_transfers.approved.or(@paypal_transfers.pending) if params[:filter] == "in_transit"
-    @paypal_transfers = @paypal_transfers.deposited if params[:filter] == "deposited"
-    @paypal_transfers = @paypal_transfers.rejected if params[:filter] == "canceled"
+    @paypal_transfers = @paypal_transfers.approved.or(@paypal_transfers.pending) if params[:status] == "in_transit"
+    @paypal_transfers = @paypal_transfers.deposited if params[:status] == "deposited"
+    @paypal_transfers = @paypal_transfers.rejected if params[:status] == "canceled"
     @paypal_transfers = @paypal_transfers.search_recipient(params[:q]) if params[:q].present?
 
-    @wires = @wires.approved.or(@wires.pending) if params[:filter] == "in_transit"
-    @wires = @wires.deposited if params[:filter] == "deposited"
-    @wires = @wires.rejected if params[:filter] == "canceled"
+    @wires = @wires.approved.or(@wires.pending) if params[:status] == "in_transit"
+    @wires = @wires.deposited if params[:status] == "deposited"
+    @wires = @wires.rejected if params[:status] == "canceled"
     @wires = @wires.search_recipient(params[:q]) if params[:q].present?
 
     @transfers = Kaminari.paginate_array((@increase_checks + @checks + @ach_transfers + @disbursements + @card_grants + @paypal_transfers + @wires).sort_by { |o| o.created_at }.reverse!).page(params[:page]).per(100)
@@ -724,10 +728,11 @@ class EventsController < ApplicationController
 
   def reimbursements
     authorize @event
+    @has_filter = params[:status].present?
     @reports = @event.reimbursement_reports.visible
-    @reports = @reports.pending if params[:filter] == "pending"
-    @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:filter] == "reimbursed"
-    @reports = @reports.rejected if params[:filter] == "rejected"
+    @reports = @reports.pending if params[:status] == "pending"
+    @reports = @reports.where(aasm_state: ["reimbursement_approved", "reimbursed"]) if params[:status] == "reimbursed"
+    @reports = @reports.rejected if params[:status] == "rejected"
     @reports = @reports.search(params[:q]) if params[:q].present?
     @reports = @reports.order(created_at: :desc).page(params[:page] || 1).per(params[:per] || 25)
   end

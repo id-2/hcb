@@ -53,8 +53,10 @@
       <% end %>
     </div>
   <% end %>
-  <%= render "filter_invoices_menu" %>
+  <%= render "filter_invoices_menu" unless @has_filter %>
 </div>
+
+<%= render "filter_invoices" if @has_filter %>
 
 <% if @invoices.size > 0 %>
 <article class="table-container">

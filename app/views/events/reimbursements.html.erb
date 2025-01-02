@@ -53,8 +53,10 @@
       <% end %>
     </div>
   <% end %>
-  <%= render "filter_reimbursements_menu" %>
+  <%= render "filter_reimbursements_menu" unless @has_filter %>
 </div>
+
+<%= render "filter_reimbursements" if @has_filter %>
 
 <% if @reports.blank? %>
   <%= blankslate "No reports found!" %>
