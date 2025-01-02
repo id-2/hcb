@@ -16,8 +16,8 @@
       <div class="menu__divider"></div>
 
       <div data-tabs-target="tab" id="status">
-        <%= link_to "Deposited", "?filter=deposited", class: "menu__action !border-none", "aria-selected": !["refunded"].include?(params[:filter]), role: "tab" %>
-        <%= link_to "Refunded", "?filter=refunded", class: "menu__action !border-none", "aria-selected": params[:filter] == "refunded", role: "tab" %>
+        <%= link_to "Deposited", upsert_query_params(status: "deposited"), class: "menu__action !border-none" %>
+        <%= link_to "Refunded", upsert_query_params(status: "refunded"), class: "menu__action !border-none" %>
       </div>
 
       <div data-tabs-target="tab" id="date">
