@@ -210,8 +210,10 @@
       <% end %>
     </div>
   <% end %>
-  <%= render "filter_donations_menu" %>
+  <%= render "filter_donations_menu" unless @has_filter %>
 </div>
+
+<%= render "filter_donations" if @has_filter %>
 
 <% if @donations.size > 0 %>
 <article class="table-container">

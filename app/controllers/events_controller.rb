@@ -567,6 +567,8 @@ class EventsController < ApplicationController
     # to `q`. This following line retains backwards compatibility.
     params[:q] ||= params[:search]
 
+    @has_filter = params[:status].present?
+
     relation = @event.donations.not_pending.includes(:recurring_donation)
 
     @stats = {
@@ -575,7 +577,7 @@ class EventsController < ApplicationController
 
     @all_donations = relation.where(aasm_state: [:in_transit, :deposited])
 
-    if params[:filter] == "refunded"
+    if params[:status] == "refunded"
       relation = relation.refunded
     else
       relation = relation.where(aasm_state: [:in_transit, :deposited])
