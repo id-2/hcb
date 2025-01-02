@@ -34,7 +34,16 @@
       </div>
 
       <div data-tabs-target="tab" id="amount">
-        amount
+        <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
+          <p class="bold mb0 mt0">Less than...</p>
+          <%= form.number_field :amount_less_than, class: "border mb1", value: @start_date %>
+          <p class="bold mb0 mt0">Greater than...</p>
+          <%= form.number_field :amount_greater_than, class: "border mb1", value: @end_date %>
+          <% request.query_parameters.except(:start, :end).each do |key, value| %>
+            <%= hidden_field_tag key, value %>
+          <% end %>
+          <%= form.submit "Filter reimbursements" %>
+        <% end %>
       </div>
     </div>
   </div>
