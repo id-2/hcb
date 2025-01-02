@@ -210,10 +210,7 @@
       <% end %>
     </div>
   <% end %>
-  <div>
-    <%= link_to "Deposited", "?filter=deposited", class: "filterbar__item", "aria-selected": !["refunded"].include?(params[:filter]), role: "tab" %>
-    <%= link_to "Refunded", "?filter=refunded", class: "filterbar__item", "aria-selected": params[:filter] == "refunded", role: "tab" %>
-  </div>
+  <%= render "filter_donations_menu" %>
 </div>
 
 <% if @donations.size > 0 %>

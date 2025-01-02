@@ -1,0 +1,61 @@
+<div data-controller="menu" class="inline-flex items-center" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-start">
+  <button
+    type="button"
+    class="pop my-2 cursor-pointer tooltipped tooltipped--s"
+    aria-label="Add filters..."
+    data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
+    <%= inline_icon "filter", size: 28 %>
+  </button>
+  <div class="menu__content menu__content--2 menu__content--compact h5" style="width: 290px; padding: 0.5rem" data-menu-target="content">
+    <div data-controller="tabs" data-tabs-default-tab-value="type">
+      <button id="type" data-tabs-target="btn" data-action="tabs#select">Type</button>
+      <button id="status" data-tabs-target="btn" data-action="tabs#select">Status</button>
+      <button id="date" data-tabs-target="btn" data-action="tabs#select">Date</button>
+      <button id="to" data-tabs-target="btn" data-action="tabs#select">Recipient</button>
+      <button id="amount" data-tabs-target="btn" data-action="tabs#select">Amount</button>
+
+      <div class="menu__divider"></div>
+
+      <div data-tabs-target="tab" id="type">
+        <%= link_to "ACH transfer", upsert_query_params(type: "ach_transfer"), class: "menu__action !border-none", "aria-selected": !["deposited", "in_transit", "canceled"].include?(params[:filter]), role: "tab" %>
+        <%= link_to "Mailed check", upsert_query_params(type: "mailed_check"), class: "menu__action !border-none", "aria-selected": params[:filter] == "deposited", role: "tab" %>
+        <%= link_to "PayPal", upsert_query_params(type: "paypal"), class: "menu__action !border-none", "aria-selected": params[:filter] == "in_transit", role: "tab" %>
+        <%= link_to "HCB transfer", upsert_query_params(type: "hcb_transfer"), class: "menu__action !border-none", "aria-selected": params[:filter] == "canceled", role: "tab" %>
+        <%= link_to "Grant", upsert_query_params(type: "grant"), class: "menu__action !border-none", "aria-selected": params[:filter] == "canceled", role: "tab" if Flipper.enabled?(:card_grants_2023_05_25, @event) %>
+        <%= link_to "International Wire", upsert_query_params(type: "international_wire"), class: "menu__action !border-none", "aria-selected": params[:filter] == "canceled", role: "tab" if Flipper.enabled?(:international_wires_2024_09_22, @event) %>
+      </div>
+
+      <div data-tabs-target="tab" id="status">
+        <%= link_to "All", "?filter=all", class: "menu__action !border-none", "aria-selected": !["deposited", "in_transit", "canceled"].include?(params[:filter]), role: "tab" %>
+        <%= link_to "Deposited", "?filter=deposited", class: "menu__action !border-none", "aria-selected": params[:filter] == "deposited", role: "tab" %>
+        <%= link_to "In transit", "?filter=in_transit", class: "menu__action !border-none", "aria-selected": params[:filter] == "in_transit", role: "tab" %>
+        <%= link_to "Canceled", "?filter=canceled", class: "menu__action !border-none", "aria-selected": params[:filter] == "canceled", role: "tab" %>
+      </div>
+
+      <div data-tabs-target="tab" id="date">
+        <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
+          <p class="bold mb0 mt0">Donations after...</p>
+          <%= form.date_field :start, class: "border mb1", value: @start_date %>
+          <p class="bold mb0 mt0">Donations before...</p>
+          <%= form.date_field :end, class: "border mb1", value: @end_date %>
+
+          <% request.query_parameters.except(:start, :end).each do |key, value| %>
+            <%= hidden_field_tag key, value %>
+          <% end %>
+
+          <div class="flex justify-start">
+            <%= form.submit "Filter transfers" %>
+          </div>
+        <% end %>
+      </div>
+
+      <div data-tabs-target="tab" id="to">
+        to
+      </div>
+
+      <div data-tabs-target="tab" id="amount">
+        amount
+      </div>
+    </div>
+  </div>
+</div>

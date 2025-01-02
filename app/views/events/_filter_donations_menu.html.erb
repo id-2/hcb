@@ -1,0 +1,49 @@
+<div data-controller="menu" class="inline-flex items-center" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-start">
+  <button
+    type="button"
+    class="pop my-2 cursor-pointer tooltipped tooltipped--s"
+    aria-label="Add filters..."
+    data-menu-target="toggle" data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown">
+    <%= inline_icon "filter", size: 28 %>
+  </button>
+  <div class="menu__content menu__content--2 menu__content--compact h5" style="width: 290px; padding: 0.5rem" data-menu-target="content">
+    <div data-controller="tabs" data-tabs-default-tab-value="status">
+      <button id="status" data-tabs-target="btn" data-action="tabs#select">Status</button>
+      <button id="date" data-tabs-target="btn" data-action="tabs#select">Date</button>
+      <button id="from" data-tabs-target="btn" data-action="tabs#select">From</button>
+      <button id="amount" data-tabs-target="btn" data-action="tabs#select">Amount</button>
+
+      <div class="menu__divider"></div>
+
+      <div data-tabs-target="tab" id="status">
+        <%= link_to "Deposited", "?filter=deposited", class: "menu__action !border-none", "aria-selected": !["refunded"].include?(params[:filter]), role: "tab" %>
+        <%= link_to "Refunded", "?filter=refunded", class: "menu__action !border-none", "aria-selected": params[:filter] == "refunded", role: "tab" %>
+      </div>
+
+      <div data-tabs-target="tab" id="date">
+        <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
+          <p class="bold mb0 mt0">Donations after...</p>
+          <%= form.date_field :start, class: "border mb1", value: @start_date %>
+          <p class="bold mb0 mt0">Donations before...</p>
+          <%= form.date_field :end, class: "border mb1", value: @end_date %>
+
+          <% request.query_parameters.except(:start, :end).each do |key, value| %>
+            <%= hidden_field_tag key, value %>
+          <% end %>
+
+          <div class="flex justify-start">
+            <%= form.submit "Filter donations" %>
+          </div>
+        <% end %>
+      </div>
+
+      <div data-tabs-target="tab" id="from">
+        to
+      </div>
+
+      <div data-tabs-target="tab" id="amount">
+        amount
+      </div>
+    </div>
+  </div>
+</div>
