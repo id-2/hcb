@@ -46,7 +46,7 @@
   <%= render "filter_team_menu" unless @has_filter %>
 </div>
 
- <%= render "filter_team" if @has_filter %>
+<%= render "filter_team" if @has_filter %>
 
 <% if @view == "list" %>
   <% if @all_positions.any? %>
