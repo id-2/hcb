@@ -12,13 +12,6 @@
     <%= render partial: "hcb_codes/create_tag", locals: { button: false } %>
   <% end %>
 
-  <div>
-    <% admin_tool("m0 p0 badge my-2", "span") do %>
-      <span class="m0 badge bg-muted pointer" data-controller="clipboard" data-clipboard-text-value="<%= @event.name %>" data-action="click->clipboard#copy">
-        copy event name
-      </span>
-    <% end %>
-  </div>
   <nav class="dock hidden sm:flex mt-2 font-medium">
     <% events_mobile_nav(@event, selected: local_assigns[:selected]).each do |item| %>
       <%= dock_item item[:name],
