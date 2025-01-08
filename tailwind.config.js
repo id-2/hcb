@@ -47,6 +47,12 @@ module.exports = {
       medium: 500,
       bold: 600,
     },
+    borderWidth: {
+      DEFAULT: '0.5px',
+      0: '0',
+      1: '1px',
+      2: '2px',
+    },
     borderRadius: {
       none: '0',
       DEFAULT: 'var(--radius-md)',

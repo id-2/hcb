@@ -29,7 +29,8 @@
 .border-top,
 .border-right,
 .border-bottom,
-.border-left {
+.border-left,
+.border-color {
   border-color: map-get($palette, divider);
 }
 

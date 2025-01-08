@@ -30,7 +30,7 @@ module EventsHelper
         {
           name: "Activate",
           path: event_activation_flow_path(event_id: event.slug),
-          tooltip: "Activate This Organization",
+          tooltip: "Activate this organization",
           icon: "checkmark",
           selected: selected == :activation_flow,
           adminTool: true,
@@ -65,7 +65,7 @@ module EventsHelper
         selected: selected == :account_number
       }
     end
-    if policy(event.check_deposits.build).index?  && !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event)
+    if policy(event.check_deposits.build).index? && !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event)
       items << {
         name: "Check deposits",
         path: event_check_deposits_path(event),
@@ -122,24 +122,6 @@ module EventsHelper
         data: { tour_step: "perks" },
         disabled: !policy(@event).promotions?,
         selected: selected == :promotions,
-      }
-    end
-    if organizer_signed_in?
-      items << {
-        name: "Google Workspace",
-        path: event_g_suite_overview_path(event_id: event.slug),
-        tooltip: if !policy(event).g_suite_overview?
-                   "Your organization isn't eligible for Google Workspace."
-                 else
-                   if @event.g_suites.any?
-                     "Manage domain Google Workspace"
-                   else
-                     Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"
-                   end
-                 end,
-        icon: "google",
-        disabled: !policy(event).g_suite_overview?,
-        selected: selected == :google_workspace,
       }
     end
     if policy(event).documentation?
