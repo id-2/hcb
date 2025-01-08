@@ -20,7 +20,7 @@ module EventsHelper
     items << {
       name: "Transactions",
       path: event_transactions_path(event_id: event.slug),
-      tooltip: "View your transactions",
+      tooltip: "View detailed ledger",
       icon: "bank-account",
       selected: selected == :transactions,
     }

@@ -105,7 +105,7 @@
         <% end %>
       </div>
     </div>
-    <ul class="mt0 pl4 mb2 slate">
+    <ul class="mt0 pl4 mb2">
       <li>Unauthenticated users will be able to access a <strong>read-only</strong> version of your account.</li>
       <li>None of HCB’s pages will change for signed in team members.</li>
       <li>We’ll do our best to redact contact info, but we can’t guarantee it doesn't show up in these
@@ -164,9 +164,9 @@
   <div class="card mb3">
     <div class="field">
       <%= form.fields_for :config do |config| %>
-        <%= config.label :contact_email, "Your team's contact email" %>
+        <%= config.label :contact_email, "Organization contact email" %>
         <p class="h5 muted mt0 mb1">
-          If you'd prefer for the HCB operations team to reach out to a shared email, configure that here.
+          If you’d prefer for the HCB operations team to reach out to a shared email, configure that here.
         </p>
         <%= config.email_field :contact_email, placeholder: "team@lioncityhacks.com" %>
       <% end %>
@@ -184,7 +184,7 @@
       <%= inline_icon "important", size: 32, class: "mr1" %>
       <p class="bold mt0 mb0">If you change your URL, beware:</p>
     </div>
-    <ul class="mt1 mb2 slate">
+    <ul class="mt1 mb2">
       <li>
         We’ll automatically redirect most pages to your organization’s new URL, including:
         <ul>

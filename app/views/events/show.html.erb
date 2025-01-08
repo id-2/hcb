@@ -27,7 +27,7 @@
 <% end %>
 
 <h1 class="flex items-center">
-  <span class="flex-grow">Home</span>
+  <span class="flex-grow"><%= @event.name %></span>
   <% admin_tool("p0 badge", "span") do %>
     <span class="m0 badge bg-muted">
       #<%= @event.id %>
