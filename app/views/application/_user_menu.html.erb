@@ -1,54 +1,68 @@
-<div class="lg:w-72 pl-3 pr-1 py-4 lg:border-t lg:[border-top-style:solid] border-color flex flex-row-reverse lg:flex-row items-center gap-2">
-  <div data-controller="menu" class="flex flex-1 min-w-1" data-menu-placement-value="bottom-end">
-    <button
-      data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
-      data-menu-target="toggle"
-      class="user-menu-trigger max-w-full">
-      <%= avatar_for current_user, 32 %>
-      <div class="text-left flex-1 truncate hidden lg:block" style="flex:1;overflow: hidden;">
-        <span class="truncate"><%= @current_user.name %></span>
-        <span class="text-xs -mt-0.5 block text-muted truncate" style="font-weight: 400"><%= @current_user.email %></span>
+<div class="lg:w-72 p-3 pb-4 lg:border-t lg:[border-top-style:solid] border-color">
+  <button
+    class="btn h-[36px] bg-none bg-smoke text-sm font-medium shadow-none w-100 justify-start px-2 hover:shadow-none display-none-not-important md:flex mb-3"
+    style="border-radius: 8px"
+    data-behavior="command_bar_trigger">
+    <span class="text-left">Jump to...</span>
+    <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md mr-1 ml-auto" aria-hidden>
+      ⌘
+    </span>
+    <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md" aria-hidden>
+      K
+    </span>
+  </button>
+  <div class="flex flex-row-reverse lg:flex-row items-center gap-2 -mr-2">
+    <div data-controller="menu" class="flex flex-1 min-w-1" data-menu-placement-value="bottom-end">
+      <button
+        data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
+        data-menu-target="toggle"
+        class="user-menu-trigger max-w-full">
+        <%= avatar_for current_user, 32 %>
+        <div class="text-left flex-1 truncate hidden lg:block" style="flex:1;overflow: hidden;">
+          <span class="truncate"><%= @current_user.name %></span>
+          <span class="text-xs -mt-0.5 block text-muted truncate" style="font-weight: 400"><%= @current_user.email %></span>
+        </div>
+      </button>
+      <div class="menu__content menu__content--2 h5 menu__content--compact" data-menu-target="content" style="z-index: 999;">
+        <a
+          href="#!"
+          data-behavior="toggle_theme"
+          tabindex="0">
+          <%= inline_icon "moon", size: 23 %>
+          <%= inline_icon "moon-fill", size: 23, style: "display: none" %>
+          Toggle theme
+        </a>
+        <% if signed_in? %>
+          <%= link_to my_inbox_path do %>
+            <%= inline_icon "attachment", size: 23 %>
+            My receipts
+          <% end %>
+          <%= link_to logout_users_path, method: :delete do %>
+            <%= inline_icon "door-leave", size: 23 %>
+            Sign out
+          <% end %>
+        <% else %>
+          <%= link_to auth_users_path,
+                      class: "muted tooltipped tooltipped--s",
+                      'aria-label': "Sign in" do %>
+            <%= inline_icon "door-enter", size: 23 %>
+          <% end %>
+        <% end %>
       </div>
-    </button>
-    <div class="menu__content menu__content--2 h5 menu__content--compact" data-menu-target="content" style="z-index: 999;">
-      <a
-        href="#!"
-        data-behavior="toggle_theme"
-        tabindex="0">
-        <%= inline_icon "moon", size: 23 %>
-        <%= inline_icon "moon-fill", size: 23, style: "display: none" %>
-        Toggle theme
-      </a>
-      <% if signed_in? %>
-        <%= link_to my_inbox_path do %>
-          <%= inline_icon "attachment", size: 23 %>
-          My receipts
-        <% end %>
-        <%= link_to logout_users_path, method: :delete do %>
-          <%= inline_icon "door-leave", size: 23 %>
-          Sign out
-        <% end %>
-      <% else %>
-        <%= link_to auth_users_path,
-                    class: "muted tooltipped tooltipped--s",
-                    'aria-label': "Sign in" do %>
-          <%= inline_icon "door-enter", size: 23 %>
-        <% end %>
-      <% end %>
     </div>
+    <% if signed_in? %>
+      <a
+        href="https://changelog.hcb.hackclub.com"
+        target="_blank"
+        class="pop muted w-8 h-8 bg-transparent sm:-mr-2 tooltipped tooltipped--n"
+        aria-label="See what’s new with HCB"
+        style="box-shadow: none"
+        id="changelog-icon">
+        <%= inline_icon "rep", size: 23 %>
+      </a>
+    <% end %>
+    <%= render "application/support_button" unless @no_app_shell %>
   </div>
-  <% if signed_in? %>
-    <a
-      href="https://changelog.hcb.hackclub.com"
-      target="_blank"
-      class="pop muted w-8 h-8 bg-transparent sm:-mr-2 tooltipped tooltipped--n"
-      aria-label="See what’s new with HCB"
-      style="box-shadow: none"
-      id="changelog-icon">
-      <%= inline_icon "rep", size: 23 %>
-    </a>
-  <% end %>
-  <%= render "application/support_button" unless @no_app_shell %>
 </div>
 
 <%= render "application/command_bar" %>

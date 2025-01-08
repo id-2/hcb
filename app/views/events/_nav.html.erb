@@ -12,7 +12,7 @@
     <%= render partial: "hcb_codes/create_tag", locals: { button: false } %>
   <% end %>
 
-  <nav class="dock hidden sm:flex mt-2 font-medium">
+  <nav class="dock hidden sm:flex mt-4 font-medium">
     <% events_mobile_nav(@event, selected: local_assigns[:selected]).each do |item| %>
       <%= dock_item item[:name],
           item[:path],
