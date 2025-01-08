@@ -146,11 +146,25 @@
 
     <aside class="fixed w-screen overflow-x-visible h-[70px] lg:w-72 border border-t-0 border-x-0 lg:border-r z-6 lg:border-b-0 backdrop-blur-xl lg:border-l-0 lg:h-screen flex items-center lg:items-start lg:flex-col top-0 left-0">
       <%# we need a wrapper div with a large width to prevent the tooltips from being hidden %>
-      <div class="pl-2 flex-1 overflow-y-auto scrollbar-hidden pointer-events-none flex items-center lg:items-start w-full lg:w-[70vw]" id="sidebar-scroll-container">
-        <div class="w-full lg:w-72 p-3 lg:pr-5 lg:pt-5 pointer-events-auto">
+      <div class="flex-1 overflow-y-auto scrollbar-hidden pointer-events-none flex items-center lg:items-start w-full lg:w-[70vw]" id="sidebar-scroll-container">
+        <div class="w-full lg:w-72 p-3 lg:p-4 pointer-events-auto">
           <%= yield(:header) %>
           <%= render "application/flash" %>
           <div class="hidden lg:block flex-1">
+            <div class="my-4">
+              <button
+                class="btn h-[36px] bg-none bg-smoke text-sm font-medium shadow-none w-100 justify-start mt1 px-3 hover:shadow-none display-none-not-important md:flex"
+                style="border-radius: 8px"
+                data-behavior="command_bar_trigger">
+                <span class="text-left">Jump to...</span>
+                <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md mr-1 ml-auto" aria-hidden>
+                  ⌘
+                </span>
+                <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md" aria-hidden>
+                  K
+                </span>
+              </button>
+            </div>
             <%= yield(:nav) %>
           </div>
         </div>
