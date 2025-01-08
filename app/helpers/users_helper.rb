@@ -86,7 +86,10 @@ module UsersHelper
       "Yahoo!",
       "dats me!",
       "dats u!",
-      "byte me!"
+      "byte me!",
+      "despite everything, it's still you!",
+      "the person reading this :-)",
+      "our favorite user currently reading this text!"
     ]
   end
 

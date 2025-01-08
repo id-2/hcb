@@ -32,7 +32,7 @@ class EventsController < ApplicationController
 
         if admin_signed_in?
           events.concat(
-            Event.not_demo_mode.excluding(@current_user.events).with_attached_logo.select([:slug, :name, :category]).map { |e|
+            Event.not_demo_mode.excluding(@current_user.events).with_attached_logo.select([:slug, :name]).map { |e|
               {
                 slug: e.slug,
                 name: e.name,
@@ -56,7 +56,7 @@ class EventsController < ApplicationController
   def show
     authorize @event
 
-    if !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event) && !(params[:event_home_page_redesign_2024_09_21] && admin_signed_in?)
+    if !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event) && !(params[:event_home_page_redesign_2024_09_21] && admin_signed_in?) || @event.demo_mode?
       redirect_to event_transactions_path(@event.slug)
       return
     end
@@ -88,19 +88,13 @@ class EventsController < ApplicationController
     end
   end
 
-  def top_merchants
+  def merchants_categories
     authorize @event
     @merchants = BreakdownEngine::Merchants.new(@event).run
-    respond_to do |format|
-      format.html { render partial: "events/home/top_merchants", locals: { merchants: @merchants, event: @event } }
-    end
-  end
-
-  def top_categories
-    authorize @event
     @categories = BreakdownEngine::Categories.new(@event).run
+
     respond_to do |format|
-      format.html { render partial: "events/home/top_categories", locals: { categories: @categories, event: @event } }
+      format.html { render partial: "events/home/merchants_categories", locals: { merchants: @merchants, categories: @categories, event: @event } }
     end
   end
 
@@ -323,7 +317,8 @@ class EventsController < ApplicationController
     @settings_tab = params[:tab]
     @frame = params[:frame]
     authorize @event
-    @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25) if @settings_tab == "audit_log"
+    @activities_before = params[:activities_before] || Time.now
+    @activities = PublicActivity::Activity.for_event(@event).before(@activities_before).order(created_at: :desc).page(params[:page]).per(25) if @settings_tab == "audit_log"
 
     render :edit, layout: !@frame
   end
@@ -496,7 +491,7 @@ class EventsController < ApplicationController
                     end
 
     @paginated_stripe_cards = Kaminari.paginate_array(display_cards).page(page).per(per_page)
-    @all_unique_cardholders = @event.stripe_cards.map(&:stripe_cardholder).uniq
+    @all_unique_cardholders = @event.stripe_cards.on_main_ledger.map(&:stripe_cardholder).uniq
 
   end
 
@@ -727,10 +722,6 @@ class EventsController < ApplicationController
     authorize @event
   end
 
-  def expensify
-    authorize @event
-  end
-
   def reimbursements
     authorize @event
     @reports = @event.reimbursement_reports.visible
@@ -925,6 +916,7 @@ class EventsController < ApplicationController
       card_grant_setting_attributes: [
         :merchant_lock,
         :category_lock,
+        :keyword_lock,
         :invite_message,
         :expiration_preference
       ],
@@ -970,6 +962,7 @@ class EventsController < ApplicationController
       card_grant_setting_attributes: [
         :merchant_lock,
         :category_lock,
+        :keyword_lock,
         :invite_message,
         :expiration_preference
       ],
