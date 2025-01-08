@@ -179,8 +179,8 @@ module ApplicationHelper
       options[:height] ||= options[:size]
       options.delete :size
     end
-    unless options['aria-label']
-      options['aria-hidden'] = true
+    unless options["aria-label"]
+      options["aria-hidden"] = true
     end
     options.each { |key, value| svg[key.to_s] = value }
     doc.to_html.html_safe
