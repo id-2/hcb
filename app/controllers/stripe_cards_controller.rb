@@ -9,10 +9,9 @@ class StripeCardsController < ApplicationController
     authorize @cards
   end
 
-  # async frame for shipment tracking
   def shipping
     # Only show shipping for phyiscal cards if the eta is in the future (or 1 week after)
-    @stripe_cards = current_user.stripe_cards.physical_shipping.reject do |sc|
+    @stripe_cards = current_user.stripe_cards.where.not(stripe_status: "canceled").physical_shipping.reject do |sc|
       eta = sc.stripe_obj[:shipping][:eta]
       !eta || Time.at(eta) < 1.week.ago
     end
@@ -104,8 +103,7 @@ class StripeCardsController < ApplicationController
     end
 
     return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Birthday is required" } if current_user.birthday.nil?
-    return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Organization is in Playground Mode" } if event.demo_mode?
-    return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Invalid country" } unless %w(US CA).include? sc[:stripe_shipping_address_country]
+    return redirect_back fallback_location: event_cards_new_path(event), flash: { error: "Invalid country" } unless sc[:stripe_shipping_address_country] == "US"
 
     new_card = ::StripeCardService::Create.new(
       current_user:,

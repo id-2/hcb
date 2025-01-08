@@ -38,6 +38,8 @@
   <div class="container--xs">
     <h1 class="mt0">Send a check</h1>
     <%= form_with(model: [@event, @check], local: true) do |form| %>
+      <%= form_errors(@check, "check", "We couldn't send this") %>
+
       <div class="field">
         <%= form.label :memo %>
         <%= form.text_field :memo,
@@ -63,7 +65,7 @@
               step: 0.01,
               min: 1,
               required: true,
-              data: { behavior: "check_amount_field", controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
+              data: { behavior: "check_amount_field", controller: "truncate-decimal", action: "truncate-decimal#truncate blur->truncate-decimal#pad" } %>
           </div>
         </div>
         <% @check.errors.messages_for(:amount).each do |message| %>
@@ -77,7 +79,7 @@
       <div class="field">
         <%= form.label :payment_for, "What are you paying for with this check?" %>
         <%= form.text_field :payment_for, placeholder: "Event venue", required: true, disabled: %>
-        <span class="muted">This is to help HCB keep record of our transactions. The HCB team will see this.</span>
+        <span class="muted">This is to help HCB keep record of our transactions.</span>
       </div>
 
       <h2>Recipient details</h2>
@@ -206,6 +208,7 @@
               "file-drop-target" => "fileInput"
             },
             disabled: %>
+        <%= inline_icon "view-close", size: 24, class: "muted", "data-behavior": "clear_input" %>
       </div>
       <p class="muted mt0 mb2">Required for reimbursements / goods & services payments.</p>
 

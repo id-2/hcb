@@ -10,10 +10,17 @@
 
 <h1>Send a wire</h1>
 
+<% callout_footer = "This requirement is waived for organizations that have raised over $50,000 in the past year" %>
+<% callout_footer += " and events on plans with exemptions" if @event.plan.exempt_from_wire_minimum? %>
+<% callout_footer += "— including #{@event.name}!" unless @event.minimumn_wire_amount_cents > 100 %>
+<% callout_footer += " (admins can bypass this)" if current_user.admin? %>
+
 <%= render "callout",
     type: "info",
-    title: "Important information about wire transfers" do %>
-    <span class="font-bold">Each wire transfer incurs a <%= render_money Wire::ESTIMATED_FEE_CENTS_USD %> flat fee</span>, this will be added on to the amount entered below and is passed on from our partner bank. Additionally, <span class="font-bold">currency exchange rates may fluctuate</span> between a wire being requested and a wire being sent.
+    title: "Important information about wire transfers",
+    footer: callout_footer do %>
+    Unfortunately, wires are expensive to send. Our partner bank charges us $25 per wire; therefore, to keep HCB sustainable without passing this fee onto you,
+    <span class="font-bold">each wire sent must be at least $500</span> (after conversion to USD). Consider a <%= link_to "PayPal transfer", new_event_paypal_transfer_path(@event) %> for smaller amounts or reach out to <%= mail_to "hcb@hackclub.com" %>.
 <% end %>
 
 <%= form_with(model: [@event, @wire], local: true, html: {
@@ -86,9 +93,8 @@
           placeholder: "500.00",
           disabled: disabled || @event.balance <= 0,
           step: 0.01,
-          min: 1,
           required: true,
-          data: { controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
+          data: { controller: "truncate-decimal", action: "truncate-decimal#truncate blur->truncate-decimal#pad" } %>
       </div>
     </div>
     <% @wire.errors.messages_for(:amount).each do |message| %>
@@ -106,7 +112,7 @@
   </div>
 
   <div class="field">
-    <%= form.label :bic_code, "SWIFT / BIC code" %>
+    <%= form.label :bic_code, "Beneficiary bank SWIFT / BIC code" %>
     <%= form.text_field :bic_code,
         required: true,
         disabled:,
@@ -121,33 +127,27 @@
         placeholder: "123456789" %>
   </div>
 
-  <div x-show="country == null">
-    <% Wire.information_required_for(nil).each do |field| %>
-      <div class="field">
-        <%= form.label field[:key], field[:label], class: "mb1" %>
-        <%= form.send(field[:type], field[:key]) %>
-        <div class="muted mt1">
-          <%= field[:description] %>
-        </div>
-      </div>
-    <% end %>
-  </div>
-
-  <% Event.countries_for_select.each do |country| %>
-    <div x-show="country == '<%= country[0] %>'">
-      <% Wire.information_required_for(country[0]).each do |field| %>
-        <div class="field">
-          <%= form.label field[:key], field[:label], class: "mb1" %>
-          <%= form.send(field[:type], field[:key]) %>
-          <div class="muted mt1">
-            <%= field[:description] %>
-            <% if field[:refer_to] %>
-              <%= link_to "Refer to this document", field[:refer_to], target: "_blank" %>
+  <% (Event.countries_for_select + [nil]).each do |country| %>
+    <template x-if="country == '<%= country.nil? ? "null" : country[0] %>'">
+      <div>
+        <% Wire.information_required_for(country.nil? ? nil : country[0]).each do |field| %>
+          <div class="field">
+            <%= form.label field[:key], field[:label], class: "mb1" %>
+            <% if field[:type] == :select %>
+              <%= form.select field[:key], field[:options], required: true, disabled: "", prompt: "Please select..." %>
+            <% else %>
+              <%= form.send(field[:type], field[:key], required: true) %>
             <% end %>
+            <div class="muted mt1">
+              <%= field[:description] %>
+              <% if field[:refer_to] %>
+                <%= link_to "Refer to this document", field[:refer_to], target: "_blank" %>
+              <% end %>
+            </div>
           </div>
-        </div>
-      <% end %>
-    </div>
+        <% end %>
+      </div>
+    </template>
   <% end %>
 
   <%= form.label :file, "Attach a receipt / invoice", class: "mt2 semibold" %>
@@ -171,6 +171,7 @@
           "file-drop-target" => "fileInput"
         },
         disabled: %>
+    <%= inline_icon "view-close", size: 24, class: "muted", "data-behavior": "clear_input" %>
   </div>
 
   <p class="muted mt0 mb2">Required for reimbursements / goods & services payments.</p>

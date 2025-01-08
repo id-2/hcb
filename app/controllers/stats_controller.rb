@@ -26,7 +26,7 @@ class StatsController < ApplicationController
   end
 
   def stats
-    json = Rails.cache.fetch("stats", expires_in: 1.minute) do
+    json = Rails.cache.fetch("stats", expires_in: 15.minutes, race_condition_ttl: 30) do
       now = params[:date].present? ? Date.parse(params[:date]) : DateTime.current
       year_ago = now - 1.year
       qtr_ago = now - 3.months
@@ -34,7 +34,7 @@ class StatsController < ApplicationController
       week_ago = now - 1.week
 
       events_list = Event.not_omitted
-                         .where("created_at <= ?", now)
+                         .where("events.created_at <= ?", now)
                          .order(created_at: :desc)
                          .limit(10)
                          .pluck(:created_at)
@@ -56,7 +56,7 @@ class StatsController < ApplicationController
                            .not_hidden
                            .not_demo_mode
                            .approved
-                           .where("created_at <= ?", now)
+                           .where("events.created_at <= ?", now)
                            .count,
         last_transaction_date: tx_all.order(:date).last.date.to_time.to_i,
 
@@ -85,6 +85,7 @@ class StatsController < ApplicationController
 
   def admin_receipt_stats # secret api endpoint for the tv in the bank office
     users = [
+      # These users are on the list because they're in HQ
       2189, # Caleb
       2046, # Mel
       2455, # Liv
@@ -100,8 +101,6 @@ class StatsController < ApplicationController
       1328, # Sarthak
       7104, # Hunter
       8507, # Paul
-
-      # These users are on the list because they're in HQ
       5855, # Zoya Hussain
       4282, # Sahiti Dasari
       5991, # Dieter Schoening
@@ -130,7 +129,15 @@ class StatsController < ApplicationController
       5670, # Thomas Stubblefield
       7873, # Cody Flaherty
       595,  # Chris Walker
-      8823  # Lucy Tran
+      8823, # Lucy Tran
+      8903, # Rhys Panopio
+      3878, # Cheru
+      12246, # Nora
+      15136, # Zenab Hassan
+      18300, # Alex Ren
+      18746, # Jared Senesac
+      16849, # Acon Lin
+      21013, # Paolo Carino
     ]
 
     q = <<~SQL
@@ -146,7 +153,7 @@ class StatsController < ApplicationController
             INNER JOIN canonical_pending_event_mappings cpem ON cpem.canonical_pending_transaction_id = cpt.id
             INNER JOIN events ON events.id = cpem.event_id
             WHERE sc.user_id = users.id
-            AND   receipts.id IS NULL AND cpdm.id IS NULL AND hcb_codes.marked_no_or_lost_receipt_at IS NULL AND events.category != 10
+            AND   receipts.id IS NULL AND cpdm.id IS NULL AND hcb_codes.marked_no_or_lost_receipt_at IS NULL
         )
       FROM users
       WHERE id IN (?)

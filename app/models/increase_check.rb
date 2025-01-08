@@ -45,6 +45,10 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class IncreaseCheck < ApplicationRecord
+  # [@garyhtou] `IncreaseCheck` superseded `Check` starting March 2023.
+  # On January 2024, we switched check printing & mailing services from
+  # Increase to Column. This model, although still named `IncreaseCheck`, now
+  # handles Column check transfers.
   has_paper_trail
 
   include AASM
@@ -114,6 +118,12 @@ class IncreaseCheck < ApplicationRecord
   validate on: :create do
     if amount > event.balance_available_v2_cents
       errors.add(:amount, "You don't have enough money to send this transfer! Your balance is #{ApplicationController.helpers.render_money(event.balance_available_v2_cents)}.")
+    end
+  end
+
+  validate do
+    if (address_line1.length + address_line2.length) > 50
+      errors.add(:base, "Address line one and line two's combined length can not exceed 50 characters.")
     end
   end
 

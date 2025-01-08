@@ -25,12 +25,14 @@ Rails.application.routes.draw do
   end
 
   # API documentation
-  scope "docs/api" do
-
-    get "v3", to: "docs#v3"
-    get "v3/*path", to: "docs#v3"
-
-    get "/", to: redirect("/docs/api/v3")
+  namespace :docs do
+    resources :api, only: [] do
+      collection do
+        # This crazy nesting is to get Rails to generate meaningful route helpers
+        get "v3(/*path)", to: "api#v3"
+        get "/", to: redirect("/docs/api/v3")
+      end
+    end
   end
 
   # V3 API
@@ -112,7 +114,6 @@ Rails.application.routes.draw do
 
       # Logout
       delete "logout", to: "users#logout"
-      delete "logout_all", to: "users#logout_all"
       delete "logout_session", to: "users#logout_session"
       delete "revoke/:id", to: "users#revoke_oauth_application", as: "revoke_oauth_application"
 
@@ -130,6 +131,8 @@ Rails.application.routes.draw do
       get "security", to: "users#edit_security"
       get "notifications", to: "users#edit_notifications"
       get "admin", to: "users#edit_admin"
+
+      delete "logout_all", to: "users#logout_all"
 
       post "impersonate"
       post "unimpersonate"
@@ -197,7 +200,6 @@ Rails.application.routes.draw do
       get "stripe_card_personalization_designs", to: "admin#stripe_card_personalization_designs"
       get "stripe_card_personalization_design_new", to: "admin#stripe_card_personalization_design_new"
       post "stripe_card_personalization_design_create", to: "admin#stripe_card_personalization_design_create"
-      get "reimbursements_status", to: "admin#reimbursements_status"
       get "checks", to: "admin#checks"
       get "increase_checks", to: "admin#increase_checks"
       get "paypal_transfers", to: "admin#paypal_transfers"
@@ -215,7 +217,6 @@ Rails.application.routes.draw do
       post "google_workspaces_verify_all", to: "admin#google_workspaces_verify_all"
       get "balances", to: "admin#balances"
       get "grants", to: "admin#grants"
-      get "column_statements", to: "admin#column_statements"
       get "hq_receipts", to: "admin#hq_receipts"
       get "account_numbers", to: "admin#account_numbers"
       get "emails", to: "admin#emails"
@@ -268,6 +269,9 @@ Rails.application.routes.draw do
       post "submit", on: :member
       post "reject", on: :member
     end
+    resources :column_statements, only: :index do
+      get "bank_account_summary_report"
+    end
   end
 
   post "set_event", to: "admin#set_event_multiple_transactions", as: :set_event_multiple_transactions
@@ -279,9 +283,16 @@ Rails.application.routes.draw do
     post "accept"
     post "reject"
     post "cancel"
+    post "resend"
     member do
       post "toggle_signee_status"
       post "change_position_role"
+    end
+  end
+
+  resources :organizer_position_contracts, only: [:create], path: "contracts" do
+    member do
+      post "void"
     end
   end
 
@@ -304,6 +315,7 @@ Rails.application.routes.draw do
   resources :g_suite_accounts, only: [:index, :create, :update, :edit, :destroy], path: "g_suite_accounts" do
     put "reset_password"
     put "toggle_suspension"
+    resources :g_suite_aliases, only: [:create, :destroy], shallow: true
   end
 
   resources :g_suites, except: [:new, :create, :edit, :update] do
@@ -332,7 +344,7 @@ Rails.application.routes.draw do
     resources :personalization_designs, only: [:show] do
       member do
         post "make_common"
-        post "make_private"
+        post "make_unlisted"
       end
     end
   end
@@ -361,12 +373,14 @@ Rails.application.routes.draw do
     member do
       post "approve"
       post "reject"
+      post "mark_failed"
     end
   end
 
   resources :wires, only: [] do
     member do
       post "approve"
+      post "send", to: "wires#send_wire"
       post "reject"
     end
   end
@@ -476,15 +490,9 @@ Rails.application.routes.draw do
 
   get "brand_guidelines", to: redirect("branding")
   get "branding", to: "static_pages#branding"
-  get "faq", to: "static_pages#faq"
+  get "faq", to: redirect("https://help.hcb.hackclub.com")
   get "roles", to: "static_pages#roles"
   get "audit", to: "admin#audit"
-
-  resources :central, only: [:index] do
-    collection do
-      get "ledger"
-    end
-  end
 
   resources :emburse_card_requests, path: "emburse_card_requests", except: [:new, :create] do
     collection do
@@ -573,7 +581,12 @@ Rails.application.routes.draw do
           end
         end
 
-        resources :card_grants, only: [:show]
+        resources :card_grants, only: [:show, :update] do
+          member do
+            post "topup"
+            post "cancel"
+          end
+        end
 
         get "stripe_terminal_connection_token", to: "stripe_terminal#connection_token"
 
@@ -589,6 +602,7 @@ Rails.application.routes.draw do
   post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
   post "increase/webhook", to: "increase#webhook"
+  post "docuseal/webhook", to: "docuseal#webhook"
   post "webhooks/column", to: "column/webhooks#webhook"
 
   get "negative_events", to: "admin#negative_events"
@@ -633,10 +647,16 @@ Rails.application.routes.draw do
   get "/search" => "search#index"
 
   get "/events" => "events#index"
-  get "/event_by_airtable_id/:airtable_id" => "events#by_airtable_id"
   resources :events, except: [:new, :create, :edit], concerns: :commentable, path: "/" do
+
+    # Loaded as Turbo frames on the home page
+    get :merchants_categories
+    get :top_categories
+    get :tags_users
+    get :transaction_heatmap
+
     get "edit", to: redirect("/%{event_id}/settings")
-    get "breakdown"
+    get "transactions"
     put "toggle_hidden"
     post "claim_point_of_contact"
 
@@ -662,7 +682,6 @@ Rails.application.routes.draw do
     get "transfers"
     get "statements"
     get "promotions"
-    get "expensify"
     get "reimbursements"
     get "donations", to: "events#donation_overview", as: :donation_overview
     get "activation_flow", to: "events#activation_flow", as: :activation_flow
@@ -723,7 +742,6 @@ Rails.application.routes.draw do
     resources :payment_recipients, only: [:destroy]
 
     member do
-      post "test_ach_payment"
       get "account-number", to: "events#account_number"
       post "toggle_event_tag/:event_tag_id", to: "events#toggle_event_tag", as: :toggle_event_tag
       get "audit_log"

@@ -248,7 +248,6 @@ summary {
 @import 'components/shimmer';
 @import 'components/carousel';
 @import 'components/callout';
-@import 'components/breakdown';
 @import 'components/balance_chart';
 @import 'components/reimbursements/expenses';
 @import 'components/reimbursements/actions';
@@ -256,6 +255,8 @@ summary {
 @import 'components/reactions';
 @import 'components/tags';
 @import 'components/filter_tabs';
+@import 'components/filter_menu';
+@import 'components/home_page';
 
 .turbo-progress-bar {
   height: 0.125rem;
@@ -477,6 +478,35 @@ summary {
   font-style: italic;
 }
 
+.suggested_tag > a {
+  overflow: hidden;
+  max-width: 125px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
 .suggested_tag::after {
   transform: translateY(0px) translateX(-4px);
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+// Phone number input container
+.iti {
+  width: 100%;
+}
+
+@media (max-width: 56em) {
+  .snow_toggle {
+    bottom: 64px !important;
+  }
+}
+
+@media (min-width: 56em) and (max-width: 88rem) {
+  .snow_toggle {
+    display: none;
+  }
 }

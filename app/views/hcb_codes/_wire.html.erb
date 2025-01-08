@@ -1,3 +1,9 @@
+<% if @hcb_code.wire.column_id.present? %>
+  <% admin_tool("mt3") do %>
+    <%= link_to "View wire on Column", "https://dashboard.column.com/app/transfers/edit/intl-wire/#{@hcb_code.wire.column_id}", class: "btn bg-accent", target: "_blank" %>
+  <% end %>
+<% end %>
+
 <article class="card pb0 mt3 mb1">
   <h2 class="h2 mt0 border-none flex items-center justify-between" style="gap: 1ch">
     <span style="flex-grow: 1">
@@ -55,13 +61,12 @@
       </p>
 
       <p>
-        <strong>Amount (USD)</strong>
-        <%= render_money @hcb_code.wire.deposited? ? @hcb_code.amount_cents.abs : (@hcb_code.amount_cents.abs - Wire::ESTIMATED_FEE_CENTS_USD) %>
-      </p>
-
-      <p>
-        <strong>Wire fee</strong>
-        <%= Money.from_cents(Wire::ESTIMATED_FEE_CENTS_USD).format %>
+        <% if @hcb_code.ct.present? %>
+          <strong>Settled amount (USD)</strong>
+        <% else %>
+          <strong>Pending amount (USD)</strong>
+        <% end %>
+        <%= render_money @hcb_code.amount_cents.abs %>
       </p>
 
       <%= render "hcb_codes/tags", hcb_code: @hcb_code, event: @event || @hcb_code.event %>
@@ -71,7 +76,7 @@
   <% if admin_signed_in? && @hcb_code.wire.may_mark_rejected? %>
     <div class="card__banner card__darker border-top overflow-hidden">
       <% admin_tool "w-fit" do %>
-        <%= button_to "Process", wire_process_admin_path(@hcb_code.wire), class: "btn", method: :get %>
+        <%= button_to "Process", wire_process_admin_path(@hcb_code.wire), class: "btn", method: :get, data: { turbo_frame: "_top" } %>
       <% end %>
     </div>
   <% end %>

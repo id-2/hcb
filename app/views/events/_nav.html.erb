@@ -5,16 +5,16 @@
   <% end %>
 
   <nav class="dock dock--desktop mt1 font-medium">
-    <%= dock_item "Transactions",
+    <%= dock_item "Home",
       event_path(id: @event.slug),
+      tooltip: "See everything at-a-glance",
+      icon: "home",
+      selected: local_assigns[:selected] == :home if Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event) %>
+    <%= dock_item "Transactions",
+      event_transactions_path(event_id: @event.slug),
       tooltip: "View your transactions",
       icon: "transactions",
       selected: local_assigns[:selected] == :transactions %>
-    <%= dock_item "Breakdown",
-      event_breakdown_path(event_id: @event.slug),
-      tooltip: "Breakdown",
-      icon: "grid",
-      selected: local_assigns[:selected] == :breakdown if policy(@event).breakdown? %>
     <% if policy(@event).activation_flow? %>
       <% admin_tool("m0 p0 overflow-visible w-fit") do %>
         <%= dock_item "Activate",
@@ -42,7 +42,7 @@
       account_number_event_path(@event),
       tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
       icon: "bank-account",
-      selected: local_assigns[:selected] == :account_number if policy(@event).account_number? %>
+      selected: local_assigns[:selected] == :account_number if policy(@event).account_number? && !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event) %>
     <%= dock_item "Check deposits",
       event_check_deposits_path(@event),
       tooltip: "Deposit checks",
@@ -53,7 +53,7 @@
     <% end %>
     <%= dock_item "Cards",
       event_cards_overview_path(event_id: @event.slug),
-      tooltip: "Manage team debit cards",
+      tooltip: "Manage team HCB cards",
       icon: "card",
       data: { tour_step: "cards" },
       selected: local_assigns[:selected] == :cards if policy(@event).card_overview? %>
@@ -81,20 +81,20 @@
       selected: local_assigns[:selected] == :team %>
     <%= dock_item "Perks",
       event_promotions_path(event_id: @event.slug),
-      tooltip: (!policy(@event).promotions? ? "Your account isn't eligble for receive promos & discounts" : "Receive promos & discounts"),
+      tooltip: (!policy(@event).promotions? ? "Your organization isn't eligible for promos and discounts." : "Receive promos & discounts"),
       icon: "shirt",
       data: { tour_step: "perks" },
       disabled: !policy(@event).promotions?,
-      selected: local_assigns[:selected] == :promotions if @event.approved? %>
-    <%= dock_item "Google Workspace",
+      selected: local_assigns[:selected] == :promotions if organizer_signed_in? && @event.approved? %>
+    <%= dock_item "Google #{content_tag(:span, 'Workspace', class: 'sm-hide md-hide')}",
       event_g_suite_overview_path(event_id: @event.slug),
-      tooltip: (!policy(@event).g_suite_overview? ? "Your organization isn't eligble for Google Workspace." : @event.g_suites.any? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
+      tooltip: (!policy(@event).g_suite_overview? ? "Your organization isn't eligible for Google Workspace." : @event.g_suites.any? ? "Manage domain Google Workspace" : Flipper.enabled?(:google_workspace, @event) ? "Set up domain Google Workspace" : "Register for Google Workspace Waitlist"),
       icon: "google",
       disabled: !policy(@event).g_suite_overview?,
       selected: local_assigns[:selected] == :google_workspace if organizer_signed_in? %>
     <%= dock_item "Documents",
       event_documents_path(event_id: @event.slug),
-      tooltip: "View legal documents, financial statements, and FAQ",
+      tooltip: "View legal documents and financial statements",
       icon: "docs",
       selected: local_assigns[:selected] == :documentation if policy(@event).documentation? %>
     <%= dock_item "Settings",
@@ -119,7 +119,7 @@
           <div class="menu__divider"></div>
           <%= link_to "Donations", event_donation_overview_path(@event) if policy(@event).donation_overview? %>
           <%= link_to "Invoices", event_invoices_path(@event) if @event.approved? && @event.plan.invoices_enabled? %>
-          <%= link_to "Account numbers", account_number_event_path(@event) if policy(@event).account_number? %>
+          <%= link_to "Account numbers", account_number_event_path(@event) if policy(@event).account_number? && !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event) %>
           <%= link_to "Check deposits", event_check_deposits_path(@event) if policy(@event.check_deposits.build).index? %>
         </div>
       </button>

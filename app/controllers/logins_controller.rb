@@ -7,17 +7,19 @@ class LoginsController < ApplicationController
   before_action :set_user, except: [:new, :create]
   before_action :set_webauthn_available, except: [:new, :create]
   before_action :set_totp_available, except: [:new, :create]
-  before_action :set_return_to, except: [:new]
+  before_action :set_return_to
   before_action :set_force_use_email
 
   # view to log in
   def new
+    render "users/logout" if current_user
+
     @prefill_email = params[:email] if params[:email].present?
   end
 
   # when you submit your email
   def create
-    user = User.find_or_create_by!(email: params[:email])
+    user = User.create_with(creation_method: :login).find_or_create_by!(email: params[:email])
     login = user.logins.create
     cookies.signed["browser_token_#{login.hashid}"] = { value: login.browser_token, expires: Login::EXPIRATION.from_now }
 
@@ -25,9 +27,9 @@ class LoginsController < ApplicationController
     login_preference = session[:login_preference]
 
     if login_preference == "totp"
-      redirect_to totp_login_path(login), status: :temporary_redirect
+      redirect_to totp_login_path(login, return_to: params[:return_to]), status: :temporary_redirect
     elsif !has_webauthn_enabled || login_preference == "email"
-      redirect_to login_code_login_path(login), status: :temporary_redirect
+      redirect_to login_code_login_path(login, return_to: params[:return_to]), status: :temporary_redirect
     else
       session[:auth_email] = login.user.email
       redirect_to choose_login_preference_login_path(login, return_to: params[:return_to])

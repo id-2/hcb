@@ -26,13 +26,15 @@
 #  recipient_name            :string           not null
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
+#  column_id                 :text
 #  event_id                  :bigint           not null
 #  user_id                   :bigint           not null
 #
 # Indexes
 #
-#  index_wires_on_event_id  (event_id)
-#  index_wires_on_user_id   (user_id)
+#  index_wires_on_column_id  (column_id) UNIQUE
+#  index_wires_on_event_id   (event_id)
+#  index_wires_on_user_id    (user_id)
 #
 # Foreign Keys
 #
@@ -51,7 +53,7 @@ class Wire < ApplicationRecord
   include AASM
 
   include CountryEnumable
-  enum :recipient_country, self.country_enum_list, prefix: :recipient_country
+  has_country_enum(field: :recipient_country)
 
   belongs_to :event
   belongs_to :user
@@ -63,16 +65,19 @@ class Wire < ApplicationRecord
   include PublicActivity::Model
   tracked owner: proc{ |controller, record| controller&.current_user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
 
-  ESTIMATED_FEE_CENTS_USD = 25_00
-
   after_create do
     create_canonical_pending_transaction!(
       event:,
-      amount_cents: -1 * (usd_amount_cents + ESTIMATED_FEE_CENTS_USD),
-      memo: "OUTGOING WIRE",
+      amount_cents: -1 * usd_amount_cents,
+      memo: "Wire to #{recipient_name}".strip.upcase,
       date: created_at
     )
   end
+
+  validates_length_of :remittance_info, maximum: 140
+  validates_length_of :payment_for, maximum: 140
+
+  # IBAN & postal code formats sourced from https://column.com/docs/international-wires/country-specific-details
 
   IBAN_FORMATS = {
     "AD": /AD\d{2}\d{4}\d{4}[\dA-Za-z]{12}/,
@@ -193,11 +198,11 @@ class Wire < ApplicationRecord
   end
 
   POSTAL_CODE_FORMATS = {
-    "US": /^\d{5}(?:-\d{4})?$/,
-    "CN": /^\d{6}$/,
-    "JP": /^\d{3}-\d{4}$/,
-    "FR": /^\d{5}$/,
-    "DE": /^\d{5}$/
+    "US": /\A\d{5}(?:-\d{4})?\z/,
+    "CN": /\A\d{6}\z/,
+    "JP": /\A\d{3}-\d{4}\z/,
+    "FR": /\A\d{5}\z/,
+    "DE": /\A\d{5}\z/
   }.freeze
 
   validate do
@@ -218,11 +223,55 @@ class Wire < ApplicationRecord
     end
   end
 
+  # the SWIFT messaging system supports a very limited set of characters.
+  # https://column.com/docs/international-wires/#valid-characters-permitted
+
+  validate do
+    error = "contains invalid characters; the SWIFT system only supports the English alphabet and numbers."
+    regex = /[^A-Za-z0-9\-?:( ).,'+\/]/
+
+    errors.add(:address_line1, error) if address_line1.match(regex)
+    errors.add(:address_line2, error) if address_line2.present? && address_line2.match(regex)
+    errors.add(:address_postal_code, error) if address_postal_code.match(regex)
+    errors.add(:address_state, error) if address_state.match(regex)
+
+    Wire.recipient_information_accessors.excluding("legal_type", "email").each do |recipient_information_accessor|
+      errors.add(recipient_information_accessor, error) if recipient_information[recipient_information_accessor]&.match(regex)
+    end
+  end
+
+  # see https://column.com/docs/api/#counterparty/create for valid options, under "legal_type"
+
+  validate do
+    if recipient_information[:legal_type].present? && !LEGAL_TYPE_FIELD[:options].values.include?(recipient_information[:legal_type])
+      errors.add(:legal_type, "must be #{LEGAL_TYPE_FIELD[:options].keys.map(&:downcase).to_sentence(last_word_connector: ' or ')}.")
+    end
+  end
+
+  # View https://github.com/hackclub/hcb/issues/9037 for context. Limited in India only, at the moment.
+
+  RESTRICTED_PURPOSE_CODES = {
+    "IN": ["P1302", "P1303", "P1304", "P1499", "P0099", "P0001", "P1011", "P1099"]
+  }.freeze
+
+  validate on: :create do
+    if recipient_information[:purpose_code].present? && RESTRICTED_PURPOSE_CODES[recipient_country.to_sym]&.include?(recipient_information[:purpose_code])
+      errors.add(:purpose_code, "can not be used on HCB, please use a more specific purpose code or contact us.")
+    end
+  end
+
+  validate on: :create do
+    if !user.admin? && usd_amount_cents < (Event.find(event.id).minimumn_wire_amount_cents)
+      errors.add(:amount, " must be more than or equal to #{ApplicationController.helpers.render_money event.minimumn_wire_amount_cents} (USD).")
+    end
+  end
+
   aasm timestamps: true, whiny_persistence: true do
     state :pending, initial: true
     state :approved
     state :rejected
     state :deposited
+    state :failed
 
     event :mark_approved do
       transitions from: :pending, to: :approved
@@ -238,14 +287,13 @@ class Wire < ApplicationRecord
 
     event :mark_deposited do
       transitions from: :approved, to: :deposited
-      after do
-        DisbursementService::Create.new(
-          source_event_id: event_id,
-          destination_event_id: EventMappingEngine::EventIds::HACK_CLUB_BANK,
-          name: "Fee for international wire (#{id})",
-          amount: Wire::ESTIMATED_FEE_CENTS_USD / 100,
-          requested_by_id: User.find_by!(email: "bank@hackclub.com").id
-        ).run
+    end
+
+    event :mark_failed do
+      transitions from: [:deposited, :approved], to: :failed
+      after do |reason: nil|
+        WireMailer.with(wire: self, reason:).notify_failed.deliver_later
+        create_activity(key: "wire.failed", owner: nil)
       end
     end
   end
@@ -257,15 +305,15 @@ class Wire < ApplicationRecord
   validates_presence_of :memo, :payment_for, :recipient_name, :recipient_email
 
   validate on: :create do
-    if (usd_amount_cents + Wire::ESTIMATED_FEE_CENTS_USD) > event.balance_available_v2_cents
-      errors.add(:base, "You don't have enough money to send this transfer! Your balance is #{(event.balance_available_v2_cents / 100).to_money.format}. At current exchange rates, this transfer would cost #{((usd_amount_cents + Wire::ESTIMATED_FEE_CENTS_USD) / 100).to_money.format} (USD, including fees).")
+    if usd_amount_cents > event.balance_available_v2_cents
+      errors.add(:base, "You don't have enough money to send this transfer! Your balance is #{(event.balance_available_v2_cents / 100).to_money.format}. At current exchange rates, this transfer would cost #{(usd_amount_cents / 100).to_money.format} (USD).")
     end
   end
 
   def state
     if pending?
       :muted
-    elsif rejected?
+    elsif rejected? || failed?
       :error
     elsif deposited?
       :success
@@ -285,18 +333,34 @@ class Wire < ApplicationRecord
   end
 
   def admin_dropdown_description
-    "#{ApplicationController.helpers.render_money(amount_cents)} to #{recipient_email} from #{event.name}"
+    "#{Money.from_cents(amount_cents, currency).format} to #{recipient_email} from #{event.name}"
   end
 
   def local_hcb_code
+    return nil unless persisted? # don't access local_hcb_code before saving.
+
     @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 
   def usd_amount_cents
+    return -1 * local_hcb_code.amount_cents unless local_hcb_code.nil? || local_hcb_code.no_transactions?
+
     eu_bank = EuCentralBank.new
     eu_bank.update_rates
     eu_bank.exchange(amount_cents, currency, "USD").cents
   end
+
+  LEGAL_TYPE_FIELD = {
+    type: :select,
+    key: "legal_type",
+    label: "Legal status of receiving entity",
+    options: {
+      "Business": "business",
+      "Nonprofit": "non_profit",
+      "Individual": "individual",
+      "Sole proprietor": "sole_proprietor"
+    }
+  }.freeze
 
   def self.information_required_for(country) # country can be null, in which case, only the general fields will be returned.
     fields = []
@@ -304,7 +368,7 @@ class Wire < ApplicationRecord
     when "BR"
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
       fields << { type: :text_field, key: "email", label: "Email address associated with account" }
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "11-digit CPF for individuals, or 14-digit CNPJ for corporations/NGO/organizations" }
       fields << { type: :text_area, key: "remittance_info", label: "Remittance information", description: "Payment purpose must be clearly identified" }
     when "BH"
@@ -315,37 +379,38 @@ class Wire < ApplicationRecord
     when "CO"
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
       fields << { type: :text_field, key: "email", label: "Email address associated with account" }
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "7-11 digits Cédulas for individuals, or 10-digit NIT for corporations/NGO/organizations" }
       fields << { type: :text_area, key: "purpose_code", label: "Payment purpose", description: "A clearly identifiable purpose of payment (e.g., goods, services, capital, etc.)" }
     when "DO"
       fields << { type: :text_field, key: "account_type", label: "Account type" }
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "11-digit Cedula or passport number for individuals, or 7+ digits tax ID or 9+ digits Registro Mercantil for corporations/NGO/organizations" }
     when "HN"
       fields << { type: :text_field, key: "account_type", label: "Account type" }
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "13-digit Tarjeta de Identidad for individuals, or 14-digit Registro Tributario Nacional for corporations/NGO/organizations" }
       fields << { type: :text_area, key: "remittance_info", label: "Remittance information", description: "For payments from corporations/organizations to individuals, include a detailed purpose of payment (especially for salaries)" }
     when "KZ"
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "12-digit Business Identification Number (BIN) or Individual Identification Number (IIN)" }
       fields << { type: :text_area, key: "remittance_info", label: "Remittance information", description: "Payment purpose must be clearly identified" }
       fields << { type: :text_area, key: "purpose_code", label: "Payment purpose", description: "A 10-character EKNP purpose code" }
     when "MD"
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
     when "MY"
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_area, key: "purpose_code", label: "Purpose code", description: "A 5-digit purpose of payment code.", refer_to: "https://connect-content.us.hsbc.com/hsbc_pcm/onetime/17_july_my_pop_codes.pdf" }
     when "PK"
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "Should be prepended with CNIC, SNIC, Passport, or NTN depending on the ID type." }
+      fields << { type: :text_area, key: "remittance_info", label: "Remittance information", description: "Relationship between remitter and beneficiary must be clearly identified" }
       fields << { type: :text_area, key: "purpose_code", label: "Purpose code", description: "A 4-digit purpose of payment code.", refer_to: "https://www.sbp.org.pk/fe_returns/cod5.pdf" }
     when "PY"
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "Cedula de Identidad for individuals, or RUC for corporations" }
     when "AM"
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_area, key: "remittance_info", label: "Remittance information", description: "Payment purpose must be clearly identified" }
     when "AR"
       fields << { type: :text_field, key: "email", label: "Email address associated with account" }
@@ -392,7 +457,7 @@ class Wire < ApplicationRecord
     when "ID"
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
     when "IN"
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
       fields << { type: :text_field, key: "local_bank_code", label: "Local bank code", description: "11-character IFSC codes" }
       fields << { type: :text_area, key: "purpose_code", label: "Purpose code", description: "A 5-character purpose of payment code, beginning with 'P'.", refer_to: "https://rbidocs.rbi.org.in/rdocs/notification/PDFs/ASAP840212FL.pdf" }
@@ -404,7 +469,7 @@ class Wire < ApplicationRecord
       fields << { type: :text_area, key: "purpose_code", label: "Purpose code", description: "A 8-digit purpose of payment code" }
     when "KR"
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "10-digit Business Registration Number (for corporations)" }
       fields << { type: :text_area, key: "purpose_code", label: "Purpose code", description: "A 5-digit purpose of payment code.", refer_to: "https://www.jpmorgan.com/directdoc/list-of-payment-purpose-code-kr.pdf" }
     when "MU"
@@ -422,14 +487,14 @@ class Wire < ApplicationRecord
     when "NZ"
       fields << { type: :text_field, key: "local_bank_code", label: "Local bank code", description: "6-digit NZ Clearing Code" }
     when "PE"
-      fields << { type: :text_field, key: "legal_type", label: "Legal status of receiving entity" }
+      fields << LEGAL_TYPE_FIELD
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "11-digit RUC number for corporations, or 8-digit DNI for individuals" }
     when "TG"
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
     when "TW"
       fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
     when "UA"
-      fields << { type: :text_field, key: "type", label: "Type of entity" }
+      fields << { type: :text_field, key: "legal_type", label: "Type of entity" }
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "10-digit tax ID for individuals, or 8-digit tax ID for corporations/NGO/organizations" }
     when "UG"
       fields << { type: :text_field, key: "legal_id", label: "Legal ID of receiving entity", description: "13-digit PRN tax ID" }
@@ -452,5 +517,53 @@ class Wire < ApplicationRecord
   end
 
   store :recipient_information, accessors: self.recipient_information_accessors
+
+  def send_wire!
+    return unless may_mark_approved?
+
+    account_number_id = (event.column_account_number || event.create_column_account_number)&.column_id
+
+    column_counterparty = ColumnService.post("/counterparties", {
+      idempotency_key: self.id.to_s,
+      routing_number_type: "bic",
+      routing_number: bic_code,
+      account_number:,
+      wire: {
+        beneficiary_name: recipient_name,
+        beneficiary_email: recipient_email,
+        beneficiary_address: {
+          line_1: address_line1,
+          line_2: address_line2,
+          city: address_city,
+          state: address_state,
+          postal_code: address_postal_code,
+          country_code: recipient_country
+        },
+        beneficiary_legal_id: recipient_information[:legal_id],
+        beneficiary_type: recipient_information[:legal_type],
+        local_bank_code: recipient_information[:local_bank_code],
+        local_account_number: recipient_information[:local_account_number],
+        account_type: recipient_information[:account_type]
+      }.compact_blank
+    }.compact_blank)
+
+    column_wire_transfer = ColumnService.post("/transfers/international-wire", {
+      idempotency_key: self.id.to_s,
+      amount: amount_cents,
+      currency_code: currency,
+      counterparty_id: column_counterparty["id"],
+      description: payment_for,
+      account_number_id:,
+      message_to_beneficiary_bank: "please contact with the beneficiary",
+      remittance_info: {
+        general_info: recipient_information[:remittance_info]
+      },
+      purpose_code: recipient_information[:purpose_code]
+    }.compact_blank)
+
+    self.column_id = column_wire_transfer["id"]
+    mark_approved
+    save!
+  end
 
 end

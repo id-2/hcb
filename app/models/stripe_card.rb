@@ -5,6 +5,7 @@
 # Table name: stripe_cards
 #
 #  id                                    :bigint           not null, primary key
+#  canceled_at                           :datetime
 #  card_type                             :integer          default("virtual"), not null
 #  cash_withdrawal_enabled               :boolean          default(FALSE)
 #  initially_activated                   :boolean          default(FALSE), not null
@@ -49,7 +50,6 @@
 #  fk_rails_...  (stripe_cardholder_id => stripe_cardholders.id)
 #
 class StripeCard < ApplicationRecord
-  self.ignored_columns = ["activated"]
   include Hashid::Rails
   include PublicIdentifiable
   set_public_id_prefix :crd
@@ -60,9 +60,8 @@ class StripeCard < ApplicationRecord
   has_paper_trail
 
   after_create_commit :notify_user, unless: :skip_notify_user
-  after_create_commit :pay_for_issuing, unless: :skip_pay_for_issuing
 
-  attr_accessor :skip_pay_for_issuing, :skip_notify_user
+  attr_accessor :skip_notify_user
 
   scope :deactivated, -> { where.not(stripe_status: "active") }
   scope :canceled, -> { where(stripe_status: "canceled") }
@@ -90,8 +89,8 @@ class StripeCard < ApplicationRecord
 
   alias_attribute :last_four, :last4
 
-  enum card_type: { virtual: 0, physical: 1 }
-  enum spending_limit_interval: { daily: 0, weekly: 1, monthly: 2, yearly: 3, per_authorization: 4, all_time: 5 }
+  enum :card_type, { virtual: 0, physical: 1 }
+  enum :spending_limit_interval, { daily: 0, weekly: 1, monthly: 2, yearly: 3, per_authorization: 4, all_time: 5 }
 
   delegate :stripe_name, to: :stripe_cardholder
 
@@ -119,6 +118,10 @@ class StripeCard < ApplicationRecord
   validate :personalization_design_must_be_of_the_same_event
   validates_length_of :name, maximum: 40
 
+  before_save do
+    self.canceled_at = Time.now if stripe_status_changed?(to: "canceled")
+  end
+
   def full_card_number
     secret_details[:number]
   end
@@ -128,10 +131,11 @@ class StripeCard < ApplicationRecord
   end
 
   def url
+    Airbrake.notify("StripeCard#url used")
     "/stripe_cards/#{hashid}"
   end
 
-  def popover_url
+  def popover_path
     "/stripe_cards/#{hashid}?frame=true"
   end
 
@@ -164,8 +168,7 @@ class StripeCard < ApplicationRecord
   end
 
   def status_text
-    return "Inactive" if !initially_activated?
-    return "Frozen" if stripe_status == "inactive"
+    return "Frozen" if stripe_status == "inactive" && initially_activated?
 
     stripe_status.humanize
   end
@@ -315,37 +318,6 @@ class StripeCard < ApplicationRecord
     self
   end
 
-  def issuing_cost
-    # (@msw) Stripe's API doesn't provide issuing + shipping costs, so this
-    # method computes the cost of issuing a card based on Stripe's
-    # docs:
-    # https://stripe.com/docs/issuing/cards/physical#costs
-    # https://stripe.com/docs/issuing/cards/virtual#costs
-
-    # *all amounts in cents*
-
-    return 10 if virtual?
-
-    cost = 300
-    cost_type = [stripe_obj["shipping"]["type"], stripe_obj["shipping"]["service"]]
-    case cost_type
-    when ["individual", "standard"]
-      cost += 50
-    when ["individual", "express"]
-      cost += 1600
-    when ["individual", "priority"]
-      cost += 2200
-    when ["bulk", "standard"]
-      cost += 2500
-    when ["bulk", "express"]
-      cost += 3000
-    when ["bulk", "priority"]
-      cost += 4800
-    end
-
-    cost
-  end
-
   def canonical_transactions
     @canonical_transactions ||= CanonicalTransaction.stripe_transaction.where("raw_stripe_transactions.stripe_transaction->>'card' = ?", stripe_id)
   end
@@ -381,7 +353,7 @@ class StripeCard < ApplicationRecord
     if subledger.present?
       subledger.balance_cents
     elsif active_spending_control
-      active_spending_control.balance_cents
+      [active_spending_control.balance_cents, event.balance_available_v2_cents].min
     else
       event.balance_available_v2_cents
     end
@@ -403,10 +375,6 @@ class StripeCard < ApplicationRecord
 
   def issued?
     stripe_id.present?
-  end
-
-  def pay_for_issuing
-    PayForIssuedCardJob.perform_later(self)
   end
 
   def notify_user

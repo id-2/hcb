@@ -47,10 +47,11 @@ class DonationsController < ApplicationController
     tax_deductible = params[:goods].nil? ? true : params[:goods] == "0"
 
     @donation = Donation.new(
-      name: params[:name],
-      email: params[:email],
+      name: params[:name] || (organizer_signed_in? ? nil : current_user&.name),
+      email: params[:email] || (organizer_signed_in? ? nil : current_user&.email),
       amount: params[:amount],
       message: params[:message],
+      fee_covered: params[:fee_covered],
       event: @event,
       ip_address: request.ip,
       user_agent: request.user_agent,
@@ -67,11 +68,14 @@ class DonationsController < ApplicationController
         email: params[:email],
         amount: params[:amount],
         message: params[:message],
+        fee_covered: params[:fee_covered],
         tax_deductible:
       )
     end
 
     @placeholder_amount = "%.2f" % (DonationService::SuggestedAmount.new(@event, monthly: @monthly).run / 100.0)
+
+    @hide_flash = true
   end
 
   def make_donation
@@ -150,9 +154,12 @@ class DonationsController < ApplicationController
 
     authorize @donation
 
-    ::DonationService::Refund.new(donation_id: @donation.id, amount: Monetize.parse(params[:amount]).cents).run
-
-    redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "The refund process has been queued for this donation." }
+    if @donation.canonical_transactions.any?
+      ::DonationService::Refund.new(donation_id: @donation.id, amount: Monetize.parse(params[:amount]).cents).run
+      redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "The refund process has been queued for this donation." }
+    else
+      redirect_to hcb_code_path(@hcb_code.hashid), flash: { error: "This donation hasn't settled, only settled invoices can be refunded." }
+    end
   end
 
   def export

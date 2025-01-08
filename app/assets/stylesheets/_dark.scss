@@ -5,6 +5,8 @@ $darker: #121217;
 $darkless: #252429;
 
 html[data-dark='true'] {
+  color-scheme: dark;
+
   body {
     background-color: $dark;
     color: map-get($palette, smoke);
@@ -136,6 +138,7 @@ html[data-dark='true'] {
   .card,
   .menu__content,
   .modal {
+    --card-bg: #252429;
     background-color: $darkless;
   }
   .modal--scroll.bg-snow {
@@ -328,6 +331,7 @@ html[data-dark='true'] {
     color: map-get($palette, purple);
   }
   .badge.bg-error {
+    background-color: rgba(map-get($palette, error), 0.3);
     color: map-get($palette, primary);
   }
   .badge.archived {
@@ -346,7 +350,10 @@ html[data-dark='true'] {
     background-color: $darkless;
     color: map-get($palette, muted);
   }
-  .filterbar__item:active,
+  .list-badge.quick-action {
+    border: 1px solid darken(map-get($palette, muted), 20%);
+  }
+
   .filterbar__item[aria-selected='true'] {
     background-color: $darkless;
     color: map-get($palette, smoke);

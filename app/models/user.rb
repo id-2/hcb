@@ -9,6 +9,7 @@
 #  birthday_ciphertext           :text
 #  charge_notifications          :integer          default("email_and_sms"), not null
 #  comment_notifications         :integer          default("all_threads"), not null
+#  creation_method               :integer
 #  email                         :text
 #  full_name                     :string
 #  locked_at                     :datetime
@@ -17,12 +18,13 @@
 #  phone_number_verified         :boolean          default(FALSE)
 #  preferred_name                :string
 #  pretend_is_not_admin          :boolean          default(FALSE), not null
-#  receipt_report_option         :integer          default("none"), not null
+#  receipt_report_option         :integer          default("weekly"), not null
 #  running_balance_enabled       :boolean          default(FALSE), not null
 #  seasonal_themes_enabled       :boolean          default(TRUE), not null
 #  session_duration_seconds      :integer          default(2592000), not null
 #  sessions_reported             :boolean          default(FALSE), not null
 #  slug                          :string
+#  teenager                      :boolean
 #  use_sms_auth                  :boolean          default(FALSE)
 #  use_two_factor_authentication :boolean          default(FALSE)
 #  created_at                    :datetime         not null
@@ -36,6 +38,8 @@
 #  index_users_on_slug   (slug) UNIQUE
 #
 class User < ApplicationRecord
+  has_paper_trail skip: [:birthday] # ciphertext columns will still be tracked
+
   include PublicIdentifiable
   set_public_id_prefix :usr
 
@@ -45,8 +49,6 @@ class User < ApplicationRecord
   include Turbo::Broadcastable
 
   include ApplicationHelper
-
-  has_paper_trail only: [:access_level, :email]
 
   include PublicActivity::Model
   tracked owner: proc{ |controller, record| record }, recipient: proc { |controller, record| record }, only: [:create, :update]
@@ -61,14 +63,23 @@ class User < ApplicationRecord
     none: 0,
     weekly: 1,
     monthly: 2,
-  }, prefix: :receipt_report
+  }, prefix: :receipt_report, default: :weekly
 
   enum :access_level, { user: 0, admin: 1, superadmin: 2 }, scopes: false, default: :user
+
+  enum :creation_method, {
+    login: 0,
+    reimbursement_report: 1,
+    organizer_position_invite: 2,
+    card_grant: 3,
+    grant: 4
+  }
 
   has_many :logins
   has_many :login_codes
   has_many :user_sessions, dependent: :destroy
   has_many :organizer_position_invites, dependent: :destroy
+  has_many :organizer_position_contracts, through: :organizer_position_invites, class_name: "OrganizerPosition::Contract"
   has_many :organizer_positions
   has_many :organizer_position_deletion_requests, inverse_of: :submitted_by
   has_many :organizer_position_deletion_requests, inverse_of: :closed_by
@@ -149,9 +160,9 @@ class User < ApplicationRecord
 
   validate :profile_picture_format
 
-  enum comment_notifications: { all_threads: 0, my_threads: 1, no_threads: 2 }
+  enum :comment_notifications, { all_threads: 0, my_threads: 1, no_threads: 2 }
 
-  enum charge_notifications: { email_and_sms: 0, email: 1, sms: 2, nothing: 3 }, _prefix: :charge_notifications
+  enum :charge_notifications, { email_and_sms: 0, email: 1, sms: 2, nothing: 3 }, prefix: :charge_notifications
 
   comma do
     id
@@ -191,6 +202,10 @@ class User < ApplicationRecord
 
   def remove_admin!
     user!
+  end
+
+  def preferred_first_name
+    preferred_name&.split&.first
   end
 
   def first_name(legal: false)
@@ -262,7 +277,8 @@ class User < ApplicationRecord
   end
 
   def onboarding?
-    full_name.blank?
+    # in_database to prevent a blank name update attempt from triggering onboarding.
+    full_name_in_database.blank?
   end
 
   def active_mailbox_address
@@ -275,7 +291,7 @@ class User < ApplicationRecord
 
   def hcb_code_ids_missing_receipt
     @hcb_code_ids_missing_receipt ||= begin
-      user_cards = stripe_cards.includes(:event).where.not(event: { category: :salary }) + emburse_cards.includes(:emburse_transactions)
+      user_cards = stripe_cards.includes(event: :plan).where.not(plan: { type: Event::Plan::SalaryAccount.name }) + emburse_cards.includes(:emburse_transactions)
       user_cards.flat_map { |card| card.hcb_codes.missing_receipt.receipt_required.pluck(:id) }
     end
   end
@@ -309,7 +325,7 @@ class User < ApplicationRecord
   end
 
   def teenager?
-    birthday&.after?(19.years.ago) || events.high_school_hackathon.any? || events.organized_by_teenagers.any?
+    birthday&.after?(19.years.ago) || events.organized_by_teenagers.any?
   end
 
   def last_seen_at

@@ -5,6 +5,19 @@ class EventPolicy < ApplicationPolicy
     user.present?
   end
 
+  # Event homepage
+  def show?
+    is_public || admin_or_user?
+  end
+
+  # Turbo frames for the event homepage (show)
+  alias_method :merchants_categories?, :show?
+  alias_method :top_categories?, :show?
+  alias_method :tags_users?, :show?
+  alias_method :transaction_heatmap?, :show?
+
+  alias_method :transactions?, :show?
+
   def toggle_hidden?
     user&.admin?
   end
@@ -17,14 +30,6 @@ class EventPolicy < ApplicationPolicy
     user&.admin?
   end
 
-  def show?
-    is_public || admin_or_user?
-  end
-
-  def breakdown?
-    (admin_or_user? && Flipper.enabled?(:breakdown_2024_06_18, record)) || user&.admin?
-  end
-
   def balance_by_date?
     is_public || admin_or_user?
   end
@@ -34,10 +39,6 @@ class EventPolicy < ApplicationPolicy
   # card overview page. This should be moved out of here.
   def shipping?
     admin_or_user?
-  end
-
-  def by_airtable_id?
-    user&.admin?
   end
 
   def edit?
@@ -87,7 +88,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def documentation?
-    (is_public || admin_or_user?) && record.plan.documentation_enabled?
+    admin_or_user? && record.plan.documentation_enabled?
   end
 
   def statements?
@@ -123,7 +124,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def promotions?
-    (is_public || admin_or_user?) && record.plan.promotions_enabled?
+    admin_or_user? && record.plan.promotions_enabled?
   end
 
   def reimbursements_pending_review_icon?
@@ -132,10 +133,6 @@ class EventPolicy < ApplicationPolicy
 
   def reimbursements?
     admin_or_user? && record.plan.reimbursements_enabled?
-  end
-
-  def expensify?
-    admin_or_user?
   end
 
   def donation_overview?

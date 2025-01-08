@@ -26,7 +26,7 @@
                               max: @donation.amount.to_f / 100,
                               step: 0.01,
                               autofocus: true,
-                              data: { controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
+                              data: { controller: "truncate-decimal", action: "truncate-decimal#truncate blur->truncate-decimal#pad" } %>
       </div>
       <%= form.submit "Refund donation", class: "bg-error" %>
     <% end %>
@@ -139,7 +139,17 @@
   <% unless @donation.deposited? %>
     <section class="card__banner card__darker secondary border-top">
       <p class="my0 italic">
+        <% if @hcb_code.fee_waived? %>
+          Fees were waived on this transaction — enjoy!
+        <% end %>
         Incoming donations are immediately reflected in your account balance.
+      </p>
+    </section>
+  <% end %>
+  <% if @donation.deposited? && @hcb_code.fee_waived? %>
+    <section class="card__banner card__darker secondary border-top">
+      <p class="my0 italic">
+        Fees were waived on this transaction — enjoy!
       </p>
     </section>
   <% end %>

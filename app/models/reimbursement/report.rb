@@ -49,6 +49,8 @@ module Reimbursement
       end
     end
 
+    validates :name, no_urls: true, if: ->(report){ report.from_public_reimbursement_form? }
+
     belongs_to :inviter, class_name: "User", foreign_key: "invited_by_id", optional: true, inverse_of: :created_reimbursement_reports
     belongs_to :reviewer, class_name: "User", optional: true, inverse_of: :assigned_reimbursement_reports
 
@@ -63,9 +65,11 @@ module Reimbursement
     alias_attribute :report_name, :name
     attribute :name, :string, default: -> { "Expenses from #{Time.now.strftime("%B %e, %Y")}" }
 
-    scope :search, ->(q) { joins(:user).where("users.full_name ILIKE :query OR reimbursement_reports.name ILIKE :query", query: "%#{User.sanitize_sql_like(q)}%") }
+    scope :search, ->(q) { joins("LEFT JOIN users AS u2 on u2.id = reimbursement_reports.user_id").where("u2.full_name ILIKE :query OR reimbursement_reports.name ILIKE :query", query: "%#{User.sanitize_sql_like(q)}%") }
     scope :pending, -> { where(aasm_state: ["draft", "submitted", "reimbursement_requested"]) }
     scope :to_calculate_total, -> { where.not(aasm_state: ["rejected"]) }
+    scope :visible, -> { joins(:user).where.not(user: { full_name: nil }, invited_by_id: nil) }
+    # view https://github.com/hackclub/hcb/issues/8486 for context behind this scope
 
     include AASM
     include Commentable
@@ -74,7 +78,9 @@ module Reimbursement
     include PublicActivity::Model
     tracked owner: proc{ |controller, record| controller&.current_user }, recipient: proc { |controller, record| record.user }, event_id: proc { |controller, record| record.event&.id }, only: [:create]
 
-    broadcasts_refreshes_to ->(report) { report }
+    include TouchHistory
+
+    broadcasts_refreshes_to ->(report) { report.was_touched? ? :_noop : report }
 
     acts_as_paranoid
 
@@ -94,7 +100,8 @@ module Reimbursement
       event :mark_submitted do
         transitions from: [:draft, :reimbursement_requested], to: :submitted do
           guard do
-            user.payout_method.present? && event && !exceeds_maximum_amount? && expenses.any? && !missing_receipts?
+            user.payout_method.present? && event && !exceeds_maximum_amount? && expenses.any? && !missing_receipts? &&
+              user.payout_method.class != User::PayoutMethod::PaypalTransfer
           end
         end
         after do
@@ -252,6 +259,7 @@ module Reimbursement
       users += self.comments.map(&:user)
       users += self.comments.flat_map(&:mentioned_users)
       users << self.user
+      users += User.where(id: self.versions.pluck(:whodunnit))
 
       if comment.admin_only?
         users << self.event.point_of_contact if self.event
@@ -295,6 +303,10 @@ module Reimbursement
 
     def exceeds_maximum_amount?
       maximum_amount_cents && amount_cents > maximum_amount_cents
+    end
+
+    def from_public_reimbursement_form?
+      invited_by_id.nil?
     end
 
     private

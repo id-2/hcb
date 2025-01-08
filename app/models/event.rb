@@ -9,9 +9,7 @@
 #  activated_at                                 :datetime
 #  address                                      :text
 #  can_front_balance                            :boolean          default(TRUE), not null
-#  category                                     :integer
 #  country                                      :integer
-#  custom_css_url                               :string
 #  deleted_at                                   :datetime
 #  demo_mode                                    :boolean          default(FALSE), not null
 #  demo_mode_request_meeting_at                 :datetime
@@ -20,40 +18,30 @@
 #  donation_page_message                        :text
 #  donation_reply_to_email                      :text
 #  donation_thank_you_message                   :text
-#  expected_budget                              :integer
-#  has_fiscal_sponsorship_document              :boolean
 #  hidden_at                                    :datetime
 #  holiday_features                             :boolean          default(TRUE), not null
 #  is_indexable                                 :boolean          default(TRUE)
 #  is_public                                    :boolean          default(TRUE)
 #  last_fee_processed_at                        :datetime
 #  name                                         :text
-#  omit_stats                                   :boolean          default(FALSE)
-#  organization_identifier                      :string           not null
-#  pending_transaction_engine_at                :datetime         default(Sat, 13 Feb 2021 22:49:40.000000000 UTC +00:00)
 #  postal_code                                  :string
 #  public_message                               :text
 #  public_reimbursement_page_enabled            :boolean          default(FALSE), not null
 #  public_reimbursement_page_message            :text
-#  redirect_url                                 :string
 #  reimbursements_require_organizer_peer_review :boolean          default(FALSE), not null
+#  short_name                                   :string
 #  slug                                         :text
-#  sponsorship_fee                              :decimal(, )
 #  stripe_card_shipping_type                    :integer          default("standard"), not null
-#  transaction_engine_v2_at                     :datetime
-#  webhook_url                                  :string
 #  website                                      :string
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
-#  club_airtable_id                             :text
 #  emburse_department_id                        :string
 #  increase_account_id                          :string           not null
 #  point_of_contact_id                          :bigint
 #
 # Indexes
 #
-#  index_events_on_club_airtable_id                        (club_airtable_id) UNIQUE
-#  index_events_on_point_of_contact_id                     (point_of_contact_id)
+#  index_events_on_point_of_contact_id  (point_of_contact_id)
 #
 # Foreign Keys
 #
@@ -79,7 +67,8 @@ class Event < ApplicationRecord
 
   validates_email_format_of :donation_reply_to_email, allow_nil: true, allow_blank: true
   validates :donation_thank_you_message, length: { maximum: 500 }
-  validates :short_name, length: { maximum: 16 }, allow_blank: true
+  MAX_SHORT_NAME_LENGTH = 16
+  validates :short_name, length: { maximum: MAX_SHORT_NAME_LENGTH }, allow_blank: true
 
   include AASM
   include PgSearch::Model
@@ -101,8 +90,8 @@ class Event < ApplicationRecord
   scope :transparent, -> { where(is_public: true) }
   scope :not_transparent, -> { where(is_public: false) }
   scope :indexable, -> { where(is_public: true, is_indexable: true, demo_mode: false) }
-  scope :omitted, -> { where(omit_stats: true) }
-  scope :not_omitted, -> { where(omit_stats: false) }
+  scope :omitted, -> { includes(:plan).where(plan: { type: Event::Plan.that(:omit_stats).collect(&:name) }) }
+  scope :not_omitted, -> { includes(:plan).where.not(plan: { type: Event::Plan.that(:omit_stats).collect(&:name) }) }
   scope :hidden, -> { where("hidden_at is not null") }
   scope :hidden, -> { where.not(hidden_at: nil) }
   scope :not_hidden, -> { where(hidden_at: nil) }
@@ -116,6 +105,7 @@ class Event < ApplicationRecord
   scope :not_organized_by_hack_clubbers, -> { includes(:event_tags).where.not(event_tags: { name: EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS }).or(includes(:event_tags).where(event_tags: { name: nil })) }
   scope :organized_by_teenagers, -> { includes(:event_tags).where(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }) }
   scope :not_organized_by_teenagers, -> { includes(:event_tags).where.not(event_tags: { name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS] }).or(includes(:event_tags).where(event_tags: { name: nil })) }
+  scope :robotics_team, -> { includes(:event_tags).where(event_tags: { name: EventTag::Tags::ROBOTICS_TEAM }) }
   scope :flag_enabled, ->(flag) {
     joins("INNER JOIN flipper_gates ON CONCAT('Event;', events.id) = flipper_gates.value")
       .where("flipper_gates.feature_key = ? AND flipper_gates.key = ?", flag, "actors")
@@ -137,7 +127,6 @@ class Event < ApplicationRecord
           from canonical_event_mappings cem
           inner join fees f on cem.id = f.canonical_event_mapping_id
           inner join events e on e.id = cem.event_id
-          where e.transaction_engine_v2_at is not null
           group by cem.event_id
       ) as q1 left outer join (
           select
@@ -147,7 +136,6 @@ class Event < ApplicationRecord
           inner join fees f on cem.id = f.canonical_event_mapping_id
           inner join canonical_transactions ct on cem.canonical_transaction_id = ct.id
           inner join events e on e.id = cem.event_id
-          where e.transaction_engine_v2_at is not null
           and f.reason = 'HACK CLUB FEE'
           group by cem.event_id
       ) q2
@@ -164,8 +152,6 @@ class Event < ApplicationRecord
   scope :pending_fees_v2, -> do
     where("(last_fee_processed_at is null or last_fee_processed_at <= ?) and id in (?)", MIN_WAITING_TIME_BETWEEN_FEES.ago, self.event_ids_with_pending_fees.to_a.map { |a| a["event_id"] })
   end
-
-  self.ignored_columns = %w[start end sponsorship_fee redirect_url webhook_url]
 
   scope :demo_mode, -> { where(demo_mode: true) }
   scope :not_demo_mode, -> { where(demo_mode: false) }
@@ -198,11 +184,6 @@ class Event < ApplicationRecord
       qualifier: :demo_mode?,
       emoji: "🧪",
       description: "Demo Account"
-    },
-    winter_hardware_grant: {
-      qualifier: :hardware_grant?,
-      emoji: "❄️",
-      description: "Winter hardware grant"
     }
   }.freeze
 
@@ -244,6 +225,7 @@ class Event < ApplicationRecord
 
   has_many :organizer_position_invites, dependent: :destroy
   has_many :organizer_positions, dependent: :destroy
+  has_many :organizer_position_contracts, through: :organizer_position_invites, class_name: "OrganizerPosition::Contract"
   has_many :users, through: :organizer_positions
   has_many :signees, -> { where(organizer_positions: { is_signee: true }) }, through: :organizer_positions, source: :user
   has_many :g_suites
@@ -316,7 +298,6 @@ class Event < ApplicationRecord
   has_one :card_grant_setting
   accepts_nested_attributes_for :card_grant_setting, update_only: true
 
-  has_one :stripe_ach_payment_source
   has_one :increase_account_number
 
   has_one :column_account_number, class_name: "Column::AccountNumber"
@@ -339,8 +320,9 @@ class Event < ApplicationRecord
   attr_accessor :demo_mode_limit_email
 
   validate :demo_mode_limit, if: proc{ |e| e.demo_mode_limit_email }
+  validate :contract_signed, unless: :demo_mode?
 
-  validates :name, :organization_identifier, presence: true
+  validates :name, presence: true
   validates :slug, presence: true, format: { without: /\s/ }
   validates :slug, format: { without: /\A\d+\z/ }
   validates_uniqueness_of_without_deleted :slug
@@ -358,7 +340,7 @@ class Event < ApplicationRecord
   end
 
   before_validation do
-    build_plan(plan_type: Event::Plan::Standard) if plan.nil?
+    build_plan(type: Event::Plan::Standard) if plan.nil?
   end
 
   # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
@@ -373,7 +355,6 @@ class Event < ApplicationRecord
     slug "url" do |slug| "https://hcb.hackclub.com/#{slug}" end
     country
     is_public "transparent"
-    category
   end
 
   CUSTOM_SORT = Arel.sql(
@@ -386,23 +367,7 @@ class Event < ApplicationRecord
     "ELSE 'z' || name END ASC   "
   )
 
-  enum category: {
-    hackathon: 0,
-    'hack club': 1,
-    nonprofit: 2,
-    event: 3,
-    'high school hackathon': 4,
-    'robotics team': 5,
-    'hardware grant': 6, # winter event 2022
-    'hack club hq': 7,
-    'outernet guild': 8, # summer event 2023
-    'grant recipient': 9,
-    salary: 10, # e.g. Sam's Shillings
-    ai: 11,
-    'hcb internals': 12 # eg. https://hcb.hackclub.com/clearing
-  }
-
-  enum stripe_card_shipping_type: {
+  enum :stripe_card_shipping_type, {
     standard: 0,
     express: 1,
     priority: 2,
@@ -463,89 +428,67 @@ class Event < ApplicationRecord
   end
 
   def balance_v2_cents(start_date: nil, end_date: nil)
-    @balance_v2_cents ||=
-      begin
-        sum = settled_balance_cents(start_date:, end_date:)
-        sum += pending_outgoing_balance_v2_cents(start_date:, end_date:)
-        sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
-        sum
-      end
+    sum = settled_balance_cents(start_date:, end_date:)
+    sum += pending_outgoing_balance_v2_cents(start_date:, end_date:)
+    sum += fronted_incoming_balance_v2_cents(start_date:, end_date:) if can_front_balance?
+    sum
   end
 
   # This calculates v2 cents of settled (Canonical Transactions)
   # @return [Integer] Balance in cents (v2 transaction engine)
   def settled_balance_cents(start_date: nil, end_date: nil)
-    @settled_balance_cents ||=
-      settled_incoming_balance_cents(start_date:, end_date:) +
-      settled_outgoing_balance_cents(start_date:, end_date:)
+    settled_incoming_balance_cents(start_date:, end_date:) + settled_outgoing_balance_cents(start_date:, end_date:)
   end
 
   # v2 cents (v2 transaction engine)
   def settled_incoming_balance_cents(start_date: nil, end_date: nil)
-    @settled_incoming_balance_cents ||=
-      begin
-        ct = canonical_transactions.where("amount_cents > 0")
+    ct = canonical_transactions.where("amount_cents > 0")
 
-        ct = ct.where("date >= ?", start_date) if start_date
-        ct = ct.where("date <= ?", end_date) if end_date
+    ct = ct.where("date >= ?", start_date) if start_date
+    ct = ct.where("date <= ?", end_date) if end_date
 
-        ct.sum(:amount_cents)
-      end
+    ct.sum(:amount_cents)
   end
 
   # v2 cents (v2 transaction engine)
   def settled_outgoing_balance_cents(start_date: nil, end_date: nil)
-    @settled_outgoing_balance_cents ||=
-      begin
-        ct = canonical_transactions.where("amount_cents < 0")
+    ct = canonical_transactions.where("amount_cents < 0")
 
-        ct = ct.where("date >= ?", start_date) if start_date
-        ct = ct.where("date <= ?", end_date) if end_date
+    ct = ct.where("date >= ?", start_date) if start_date
+    ct = ct.where("date <= ?", end_date) if end_date
 
-        ct.sum(:amount_cents)
-      end
+    ct.sum(:amount_cents)
   end
 
   def fronted_incoming_balance_v2_cents(start_date: nil, end_date: nil)
-    @fronted_incoming_balance_v2_cents ||=
-      begin
-        pts = canonical_pending_transactions.incoming.fronted.not_declined
+    pts = canonical_pending_transactions.incoming.fronted.not_declined
 
-        pts = pts.where("date >= ?", @start_date) if @start_date
-        pts = pts.where("date <= ?", @end_date) if @end_date
+    pts = pts.where("date >= ?", @start_date) if @start_date
+    pts = pts.where("date <= ?", @end_date) if @end_date
 
-        sum_fronted_amount(pts)
-      end
+    sum_fronted_amount(pts)
   end
 
   def pending_balance_v2_cents(start_date: nil, end_date: nil)
-    @pending_balance_v2_cents ||=
-      pending_incoming_balance_v2_cents(start_date:, end_date:) +
-      pending_outgoing_balance_v2_cents(start_date:, end_date:)
+    pending_incoming_balance_v2_cents(start_date:, end_date:) + pending_outgoing_balance_v2_cents(start_date:, end_date:)
   end
 
   def pending_incoming_balance_v2_cents(start_date: nil, end_date: nil)
-    @pending_incoming_balance_v2_cents ||=
-      begin
-        cpt = canonical_pending_transactions.incoming.unsettled.not_fronted
+    cpt = canonical_pending_transactions.incoming.unsettled.not_fronted
 
-        cpt = cpt.where("date >= ?", start_date) if start_date
-        cpt = cpt.where("date <= ?", end_date) if end_date
+    cpt = cpt.where("date >= ?", start_date) if start_date
+    cpt = cpt.where("date <= ?", end_date) if end_date
 
-        cpt.sum(:amount_cents)
-      end
+    cpt.sum(:amount_cents)
   end
 
   def pending_outgoing_balance_v2_cents(start_date: nil, end_date: nil)
-    @pending_outgoing_balance_v2_cents ||=
-      begin
-        cpt = canonical_pending_transactions.outgoing.unsettled
+    cpt = canonical_pending_transactions.outgoing.unsettled
 
-        cpt = cpt.where("date >= ?", start_date) if start_date
-        cpt = cpt.where("date <= ?", end_date) if end_date
+    cpt = cpt.where("date >= ?", start_date) if start_date
+    cpt = cpt.where("date <= ?", end_date) if end_date
 
-        cpt.sum(:amount_cents)
-      end
+    cpt.sum(:amount_cents)
   end
 
   def balance_available_v2_cents
@@ -588,24 +531,6 @@ class Event < ApplicationRecord
 
   alias fee_balance fee_balance_v2_cents
 
-  def plan_name
-    if demo_mode?
-      "playground mode"
-    elsif plan.present?
-      plan.label
-    elsif unapproved?
-      "pending approval"
-    elsif hack_club_hq?
-      "Hack Club affiliated project"
-    elsif salary?
-      "salary account"
-    elsif revenue_fee == 0
-      "full fiscal sponsorship (fee waived)"
-    else
-      "full fiscal sponsorship"
-    end
-  end
-
   def used_emburse?
     emburse_cards.any?
   end
@@ -643,6 +568,14 @@ class Event < ApplicationRecord
     event_tags.where(name: [EventTag::Tags::ORGANIZED_BY_TEENAGERS, EventTag::Tags::ORGANIZED_BY_HACK_CLUBBERS]).exists?
   end
 
+  def robotics_team?
+    event_tags.where(name: EventTag::Tags::ROBOTICS_TEAM).exists?
+  end
+
+  def hackathon?
+    event_tags.where(name: EventTag::Tags::HACKATHON).exists?
+  end
+
   def reload
     @total_fee_payments_v2_cents = nil
     super
@@ -674,9 +607,9 @@ class Event < ApplicationRecord
 
   def service_level
     return 1 if robotics_team?
-    return 1 if hack_club_hq?
     return 1 if organized_by_hack_clubbers?
     return 1 if organized_by_teenagers?
+    return 1 if plan.is_a?(Event::Plan::HackClubAffiliate)
     return 1 if canonical_transactions.revenue.where("date >= ?", 1.year.ago).sum(:amount_cents) >= 50_000_00
     return 1 if balance_available_v2_cents > 50_000_00
 
@@ -691,15 +624,6 @@ class Event < ApplicationRecord
     !engaged?
   end
 
-  def sponsorship_fee
-    Airbrake.notify("Deprecated Event#sponsorship_fee used.")
-    revenue_fee
-  end
-
-  def plan
-    super&.becomes(super.plan_type&.constantize)
-  end
-
   def revenue_fee
     plan&.revenue_fee || (Airbrake.notify("#{id} is missing a plan!") && 0.07)
   end
@@ -708,11 +632,13 @@ class Event < ApplicationRecord
     raise ArgumentError.new("This method requires a stripe_card_logo to be attached.") unless stripe_card_logo.attached?
 
     ActiveRecord::Base.transaction do
+      (attachment_changes["stripe_card_logo"]&.attachable || stripe_card_logo.blob).open do |tempfile|
+        converted = ImageProcessing::MiniMagick.source(tempfile.path).convert!("png")
+        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(converted.read), color: :black, event: self).run
+        converted.rewind
+        ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(converted.read), color: :white, event: self).run
+      end
       stripe_card_personalization_designs.update(stale: true)
-      file = attachment_changes["stripe_card_logo"]&.attachable || StringIO.new(stripe_card_logo.blob.open { |f| f.read })
-      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :black, event: self).run
-      file.rewind
-      ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(file.read), color: :white, event: self).run
     end
   rescue Stripe::InvalidRequestError => e
     stripe_card_logo.delete
@@ -739,15 +665,29 @@ class Event < ApplicationRecord
     public_reimbursement_page_enabled && plan.reimbursements_enabled?
   end
 
-  def short_name(length: 16)
+  def short_name(length: MAX_SHORT_NAME_LENGTH)
     return name if length >= name.length
 
     self[:short_name] || name[0...length]
   end
 
+  monetize :minimumn_wire_amount_cents
+
+  def minimumn_wire_amount_cents
+    return 100 if canonical_transactions.where("amount_cents > 0").where("date >= ?", 1.year.ago).sum(:amount_cents) > 50_000_00
+    return 100 if plan.exempt_from_wire_minimum?
+
+    return 500_00
+  end
+
+  def omit_stats?
+    plan.omit_stats
+  end
+
   private
 
   def point_of_contact_is_admin
+    return unless point_of_contact_changed?
     return unless point_of_contact
     return if point_of_contact&.admin_override_pretend?
 
@@ -764,6 +704,12 @@ class Event < ApplicationRecord
     return if can_open_demo_mode? demo_mode_limit_email
 
     errors.add(:demo_mode, "limit reached for user")
+  end
+
+  def contract_signed
+    return if organizer_position_contracts.signed.any? || organizer_position_contracts.none?
+
+    errors.add(:base, "Missing a contract signee, non-demo mode organizations must have a contract signee.")
   end
 
   def sum_fronted_amount(pts)

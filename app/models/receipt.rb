@@ -53,7 +53,17 @@ class Receipt < ApplicationRecord
   has_many :suggested_pairings, dependent: :destroy
   has_many :suggested_transactions, source: :hcb_code, through: :suggested_pairings
 
-  has_one_attached :file
+  # add a size to this array for it to be preprocessed
+  # Receipt#preview first checks to see if a preprocessed
+  # variant exists before generating a new one.
+  # - @sampoder
+  PREPROCESSED_SIZES = ["1024x1024"].freeze
+
+  has_one_attached :file do |attachable|
+    PREPROCESSED_SIZES.each do |resize|
+      attachable.variant(resize.to_sym, resize:, preprocessed: true)
+    end
+  end
 
   validates :file, attached: true
 
@@ -77,7 +87,7 @@ class Receipt < ApplicationRecord
   end
   validate :has_owner
 
-  enum upload_method: {
+  enum :upload_method, {
     transaction_page: 0,
     transaction_page_drag_and_drop: 1,
     receipts_page: 2,
@@ -100,7 +110,7 @@ class Receipt < ApplicationRecord
     sms_reimbursement: 19
   }
 
-  enum textual_content_source: {
+  enum :textual_content_source, {
     pdf_text: 0,
     tesseract_ocr_text: 1
   }
@@ -115,10 +125,23 @@ class Receipt < ApplicationRecord
     if file.previewable?
       Rails.application.routes.url_helpers.rails_representation_url(file.preview(resize:).processed, only_path:)
     elsif file.variable?
-      Rails.application.routes.url_helpers.rails_representation_url(file.variant(resize:).processed, only_path:)
+      Rails.application.routes.url_helpers.rails_representation_url(
+        (resize.in?(PREPROCESSED_SIZES) ? file.variant(resize.to_sym) : file.variant(resize:)).processed, only_path:
+      )
     end
   rescue
-    nil
+    # Occasionally ImageMagick has issues that cause images to not be converted.
+    # In these cases, we can't guarantee that the browser can render these image types.
+    # But we can try? Because otherwise we render nothing.
+    # View https://github.com/hackclub/hcb/issues/8551 for more context.
+    # - @sampoder
+    if file.content_type.start_with?("image/")
+      begin
+        Rails.application.routes.url_helpers.rails_representation_url(file, only_path:)
+      rescue
+        nil
+      end
+    end
   end
 
   def extract_textual_content

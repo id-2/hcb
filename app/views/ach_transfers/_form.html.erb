@@ -69,7 +69,7 @@
   <div class="field">
     <%= form.label :payment_for, "What are you paying for with this deposit?" %>
     <%= form.text_field :payment_for, placeholder: "Shipment of potions", required: true, disabled:, data: { input_target: "input" } %>
-    <span class="muted">This is to help HCB keep record of our transactions. HCB team will see this.</span>
+    <span class="muted">This is to help HCB keep record of our transactions.</span>
   </div>
 
   <h3 class="mb-2">Payment details</h3>
@@ -120,7 +120,7 @@
   <div class="field">
     <div class="flex items-center">
       <span class="bold muted" style="width: 1rem;">$</span>
-      <%= form.number_field :amount_money, placeholder: "500.00", step: 0.01, min: 0.01, required: true, disabled:, data: { controller: "truncate-decimal", action: "truncate-decimal#truncate" } %>
+      <%= form.number_field :amount_money, placeholder: "500.00", step: 0.01, min: 0.01, required: true, disabled:, data: { controller: "truncate-decimal", action: "truncate-decimal#truncate blur->truncate-decimal#pad" } %>
     </div>
   </div>
 
@@ -150,6 +150,7 @@
           "file-drop-target" => "fileInput"
         },
         disabled: %>
+    <%= inline_icon "view-close", size: 24, class: "muted", "data-behavior": "clear_input" %>
   </div>
   <p class="muted mt0 mb2">Required for reimbursements / goods & services payments.</p>
 

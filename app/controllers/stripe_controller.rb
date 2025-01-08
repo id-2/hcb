@@ -68,8 +68,6 @@ class StripeController < ActionController::Base
     amount = tx[:amount]
     return unless amount < 0
 
-    TopupStripeJob.perform_later
-
     head :ok
   end
 
@@ -247,31 +245,6 @@ class StripeController < ActionController::Base
     donation.save!
   end
 
-  def handle_source_transaction_created(event)
-    stripe_source_transaction = event.data.object
-    source = StripeAchPaymentSource.find_by(stripe_source_id: stripe_source_transaction.source)
-
-    return unless source
-
-    charge = source.charge!(stripe_source_transaction.amount)
-
-    ach_payment = source.ach_payments.create(
-      stripe_source_transaction_id: stripe_source_transaction.id,
-      stripe_charge_id: charge.id,
-    )
-
-    ach_payment.create_stripe_payout!
-    ach_payment.create_fee_reimbursement!
-
-    CanonicalPendingTransaction.create(
-      date: Time.at(stripe_source_transaction.created).to_date,
-      event: source.event,
-      amount_cents: stripe_source_transaction.amount,
-      memo: "Bank transfer",
-      ach_payment:
-    )
-  end
-
   def handle_payout_updated(event)
     payout = DonationPayout.find_by(stripe_payout_id: event.data.object.id) || InvoicePayout.find_by(stripe_payout_id: event.data.object.id)
     return unless payout
@@ -311,7 +284,7 @@ class StripeController < ActionController::Base
     dispute = event.data.object
     transaction = Stripe::Issuing::Transaction.retrieve(dispute["transaction"])
     hcb_code = RawPendingStripeTransaction.find_by!(stripe_transaction_id: transaction["authorization"]).canonical_pending_transaction.local_hcb_code
-    if dispute["status"] == "won" && dispute["currency"] == "USD"
+    if dispute["status"] == "won" && dispute["currency"] == "usd"
       StripeService::Payout.create(
         amount: dispute["amount"],
         currency: dispute["currency"],
@@ -325,7 +298,7 @@ class StripeController < ActionController::Base
       )
     elsif dispute["status"] != "won"
       Airbrake.notify("Dispute with funds reinstated but without a win: #{dispute["id"]}")
-    elsif dispute["status"] != "USD"
+    elsif dispute["currency"] != "usd"
       Airbrake.notify("Dispute with funds reinstated but non-USD currency. Must be manually handled.")
     end
   end

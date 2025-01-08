@@ -3,6 +3,11 @@
 module ApplicationHelper
   include ActionView::Helpers
 
+  def upsert_query_params(**new_params)
+    params = request.query_parameters || {}
+    params.merge(new_params)
+  end
+
   def render_money(amount, opts = {})
     amount = amount.cents if amount.is_a?(Money)
 
@@ -53,17 +58,6 @@ module ApplicationHelper
     content_tag(:span, content.join.html_safe)
   end
 
-  def async_frame_to(url, options = { as: :div }, &block)
-    content_tag options[:as].to_sym,
-                block_given? ? capture(&block) : nil,
-                data: {
-                  src: url,
-                  behavior: "async_frame",
-                  loading: options[:lazy] ? "lazy" : nil
-                },
-                **options
-  end
-
   def blankslate(text, options = {})
     other_options = options.except(:class)
     content_tag(:p, text, class: "center mt0 mb0 pt4 pb4 muted font-medium h3 w-full rounded-lg border #{options[:class]}", **other_options)
@@ -94,7 +88,7 @@ module ApplicationHelper
 
   def pop_icon_to(icon, url, options = { class: "info" })
     link_to url, options.merge(class: "pop #{options[:class]}") do
-      inline_icon icon, size: 28
+      inline_icon icon, size: options[:icon_size] || 28
     end
   end
 
@@ -251,6 +245,10 @@ module ApplicationHelper
     content_for(:container_class) { "container--xl" }
   end
 
+  def page_full
+    content_for(:container_class) { "container--full" }
+  end
+
   def page_md
     content_for(:container_class) { "container--md" }
   end
@@ -310,8 +308,6 @@ module ApplicationHelper
       distance_of_time_in_words Time.at(commit_time), Time.now
     end
   end
-
-  module_function :commit_hash, :commit_time
 
   def admin_inspectable_attributes(record)
     stripe_obj = begin
@@ -397,6 +393,16 @@ module ApplicationHelper
 
   def possessive(name)
     name + (name.ends_with?("s") ? "'" : "'s")
+  end
+
+  def error_boundary(fallback: nil, fallback_text: nil, &block)
+    block.call
+  rescue => e
+    Rails.error.report(e)
+
+    return content_tag(:p, fallback_text || "That didn't work, sorry.") unless fallback
+
+    fallback
   end
 
 end

@@ -298,9 +298,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <%= javascript_include_tag "donation_qr_codes.js" %>
 
-<section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="donation_settings">
-  <%= modal_header("Settings", external_link: edit_event_path(@event, tab: "donations")) %>
-  <%= async_frame_to edit_event_path(@event, tab: "donations", params: { frame: true }), lazy: true, as: :div do %>
-    <strong>Loading...</strong>
-  <% end %>
-</section>
+<% if organizer_signed_in? %>
+  <section class="modal modal--scroll bg-snow" data-behavior="modal" role="dialog" id="donation_settings">
+    <%= modal_header("Settings", external_link: edit_event_path(@event, tab: "donations")) %>
+    <%= turbo_frame_tag :donations_settings, src: edit_event_path(@event, tab: "donations", params: { frame: true }), loading: "lazy" do %>
+      <strong>Loading...</strong>
+    <% end %>
+  </section>
+<% end %>
