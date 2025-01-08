@@ -8,10 +8,10 @@ module EventsHelper
 
     if Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event)
       items << {
-        name: "Home",
+        name: "Overview",
         path: event_path(id: event.slug),
         tooltip: "See everything at-a-glance",
-        icon: "home",
+        icon: "grid",
         selected: selected == :home,
         flipperEnabled: Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event),
       }
@@ -61,7 +61,7 @@ module EventsHelper
         name: "Account numbers",
         path: account_number_event_path(event),
         tooltip: "Receive payouts from GoFundMe, Shopify, Venmo, and more",
-        icon: "bank-account",
+        icon: "account-numbers",
         selected: selected == :account_number
       }
     end

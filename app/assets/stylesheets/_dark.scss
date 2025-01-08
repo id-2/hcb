@@ -355,9 +355,6 @@ html[data-dark='true'] {
     background-color: $darkless;
     color: map-get($palette, muted);
   }
-  .list-badge.quick-action {
-    border: 1px solid darken(map-get($palette, muted), 20%);
-  }
 
   .filterbar__item[aria-selected='true'] {
     background-color: $darkless;

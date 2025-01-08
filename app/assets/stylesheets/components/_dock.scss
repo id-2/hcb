@@ -126,6 +126,7 @@ details[open] > summary > .drawer-chevron {
     color: $black;
     line-height: 1.25;
     padding: 0.25rem 1rem 0.25rem 0.5rem;
+    margin-bottom: 2px;
     color: $black;
 
     @media (max-width: 768px) {
@@ -134,14 +135,6 @@ details[open] > summary > .drawer-chevron {
 
     &:hover {
       background-color: map-get($palette, white);
-
-      .dock__item--badge {
-        box-shadow: 0 0 0 2px mix(map-get($palette, primary), $snow, 25%);
-
-        html[data-dark='true'] & {
-          box-shadow: 0 0 0 2px mix(map-get($palette, primary), $dark, 25%);
-        }
-      }
     }
 
     &[aria-current='page'] {
