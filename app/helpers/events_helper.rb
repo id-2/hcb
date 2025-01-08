@@ -56,7 +56,7 @@ module EventsHelper
         selected: selected == :invoices,
       }
     end
-    if policy(event).account_number?
+    if policy(event).account_number? && !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event)
       items << {
         name: "Account numbers",
         path: account_number_event_path(event),
@@ -65,7 +65,7 @@ module EventsHelper
         selected: selected == :account_number
       }
     end
-    if policy(event.check_deposits.build).index?
+    if policy(event.check_deposits.build).index?  && !Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event)
       items << {
         name: "Check deposits",
         path: event_check_deposits_path(event),
@@ -113,14 +113,6 @@ module EventsHelper
         selected: selected == :grants,
       }
     end
-    items <<
-      {
-        name: "Team",
-        path: event_team_path(event_id: event.slug),
-        tooltip: "Manage your team",
-        icon: "people-2",
-        selected: selected == :team,
-      }
     if event.approved?
       items << {
         name: "Perks",
