@@ -133,6 +133,7 @@ class PreviewLink extends React.Component {
             type="checkbox"
             name="prefill-monthly"
             onChange={this.handleChange}
+            // eslint-disable-next-line react/no-unknown-property
             switch
           />
           <span style={{ fontWeight: 600 }}>Monthly charge</span>
@@ -142,6 +143,7 @@ class PreviewLink extends React.Component {
             type="checkbox"
             name="prefill-goods"
             onChange={this.handleChange}
+            // eslint-disable-next-line react/no-unknown-property
             switch
           />
           <span style={{ fontWeight: 600 }}>For goods or services</span>
