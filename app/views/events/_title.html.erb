@@ -1,4 +1,4 @@
-<header data-controller="menu">
+<header data-controller="menu" class="flex-1 min-w-0 w-full">
   <%= link_to @event, class: "#{"pointer-events-none" unless signed_in?} text-decoration-none h3 font-bold text-inherit line-height-2 text-balance tracking-tight -m-2 my-2 px-2 rounded-lg transition-colors flex items-center hover:text-primary", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
     <%= @event.name %>
     <%= inline_icon "sort-vertical", size: 28, class: "fill-muted" if show_org_switcher? %>
