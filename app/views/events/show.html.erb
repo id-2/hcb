@@ -58,41 +58,6 @@
   </div>
 <% end %>
 
-<h1 class="heading justify-between">
-  <div class="flex items-center flex-wrap">
-  Financials
-  <% if admin_signed_in? %>
-    <% admin_tool("p0 badge", "span") do %>
-      <span class="m0 badge bg-muted">
-        #<%= @event.id %>
-      </span>
-      <span class="m0 badge bg-muted ml1">
-        SL<%= @event.service_level %>
-      </span>
-    <% end %>
-  <% end %>
-  </div>
-
-  <% if @event.canonical_transactions.any? %>
-    <div data-controller="menu" data-menu-placement-value="bottom-end">
-      <button
-        type="button"
-        class="btn btn-small menu__toggle overflow-visible"
-        data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
-        data-menu-target="toggle">
-          <%= inline_icon "download", size: 16 %>
-          Export
-      </button>
-      <div class="menu__content menu__content--2" data-menu-target="content">
-        <%= link_to "All transactions (CSV)", transactions_exports_path(event: @event, format: :csv), target: :_blank %>
-        <%= link_to "All transactions (JSON)", transactions_exports_path(event: @event, format: :json), target: :_blank %>
-        <%= link_to "All transactions (Ledger)", transactions_exports_path(event: @event, format: :ledger), target: :_blank %>
-        <%= link_to "Monthly statements", event_statements_path(@event) %>
-      </div>
-    </div>
-  <% end %>
-</h1>
-
 <div class="flex flex-col gap-[20px]">
   <% if organizer_signed_in? %>
     <div class="flex max-w-full overflow-auto whitespace-nowrap scrollbar-hidden">
@@ -142,25 +107,25 @@
   </div>
 
   <%= turbo_frame_tag "merchants_categories", src: event_merchants_categories_path(@event), class: "homepage-row empty:hidden", loading: "lazy" do %>
-    <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
+    <div class="card card--breakdown p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
       <%= render partial: "application/loading_container" %>
     </div>
-    <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
+    <div class="card card--breakdown p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
       <%= render partial: "application/loading_container" %>
     </div>
   <% end %>
 
   <%= turbo_frame_tag "tags_users", src: event_tags_users_path(@event), class: "homepage-row empty:hidden", loading: "lazy" do %>
-    <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
+    <div class="card card--breakdown p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
       <%= render partial: "application/loading_container" %>
     </div>
-    <div class="card card--breakdown shadow-none p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
+    <div class="card card--breakdown p-0 min-h-96 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1">
       <%= render partial: "application/loading_container" %>
     </div>
   <% end %>
 
   <%= turbo_frame_tag "transaction_heatmap", src: event_transaction_heatmap_path(@event), class: "homepage-row", loading: "lazy" do %>
-    <div class="card card--breakdown shadow-none p-0 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1;height:223px">
+    <div class="card card--breakdown p-0 text-center flex-1 flex flex-col items-center justify-center" style="flex: 1;height:223px">
       <%= render partial: "application/loading_container" %>
     </div>
   <% end %>
