@@ -132,10 +132,9 @@
 </div>
 
 <%= render "events/public_message" %>
-
 <main data-controller="transactions">
   <h2 class="heading pb-0 border-b-0">
-    <span style="flex-grow: 1">Transactions</span>
+    Transactions
   </h2>
 
   <%= render "pinned_transactions" %>
@@ -148,23 +147,25 @@
       <div class="table-container" data-tour-step="transactions">
         <table>
           <thead>
-          <tr>
-            <th><%# icon %></th>
-            <th>Date</th>
-            <th>Description</th>
-            <th class="right-align">Amount</th>
-            <% if @show_running_balance %>
-              <th>Running Balance</th>
-            <% end %>
-            <th><%# user avatar %></th>
-          </tr>
+            <tr>
+              <th><%# icon %></th>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="right-align">Amount</th>
+              <% if @show_running_balance %>
+                <th>Running balance</th>
+              <% end %>
+              <th><%# user avatar %></th>
+            </tr>
           </thead>
           <tbody data-behavior="transactions">
-          <%= render "pending_fee_transaction" if @event.fronted_fee_balance_v2_cents > 0 %>
+            <% unless @tag || @user || (@type && @type != "fiscal_sponsorship_fee") || @start_date || @end_date || @missing_receipts || @event.fronted_fee_balance_v2_cents <= 0 %>
+              <%= render "pending_fee_transaction" %>
+            <% end %>
 
-          <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0, show_author_column: true } %>
+            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: @pending_transactions, as: :pt, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0, show_author_column: true } %>
 
-          <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0, show_author_column: true } %>
+            <%= render partial: "canonical_transactions/canonical_transaction", collection: @transactions, as: :ct, locals: { event: @event, show_amount: true, selectable: Flipper.enabled?(:transaction_tags_2022_07_29, @event) && @event.tags.size > 0, show_author_column: true } %>
           </tbody>
         </table>
       </div>
