@@ -61,15 +61,21 @@ ENV NODE_ENV=production \
 # Set up working directory
 WORKDIR /app
 
-# Create non-root user
+# Create non-root user and set up directories
 RUN groupadd -r app && useradd -r -g app app && \
-    chown -R app:app /app
+    chown -R app:app /app && \
+    mkdir -p /home/app/.cache/yarn /home/app/.yarn && \
+    chown -R app:app /home/app
 
 # Copy dependency files first
 COPY --chown=app:app .ruby-version Gemfile Gemfile.lock ./
 
 # Switch to non-root user
 USER app
+
+# Configure yarn cache directory
+RUN yarn config set cache-folder /home/app/.cache/yarn && \
+    yarn config set global-folder /home/app/.yarn
 
 # Install Ruby dependencies
 RUN gem install bundler:2.3.26 && \
