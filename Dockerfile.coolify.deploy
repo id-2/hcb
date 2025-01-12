@@ -8,18 +8,25 @@ RUN apt-get update -qq && \
     libpq-dev \
     curl \
     gnupg2 \
+    # GObject dependencies
     libgirepository1.0-dev \
     libcairo2-dev \
     libpoppler-glib-dev \
     gobject-introspection \
     python3-pkg-resources \
+    # Memory management
     libjemalloc2 \
+    # Image processing dependencies
     libgif7 \
-    liblept5 \
-    libtesseract4 \
+    libvips \
+    imagemagick \
+    libwebp-dev \
+    # OCR dependencies
     tesseract-ocr \
     tesseract-ocr-eng \
-    libwebp-dev \
+    libtesseract5 \
+    # PDF processing
+    wkhtmltopdf \
     && rm -rf /var/lib/apt/lists/*
 
 # Add Node.js and Yarn repositories
@@ -27,70 +34,78 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
-# Install remaining dependencies
+# Install Node.js and Yarn
 RUN apt-get update -qq && \
-    apt-get install -y \
-    nodejs \
-    yarn \
-    libvips \
-    imagemagick \
-    wkhtmltopdf \
-    && rm -rf /var/lib/apt/lists/*
+    apt-get install -y nodejs yarn && \
+    rm -rf /var/lib/apt/lists/*
 
-# Configure jemalloc
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+# Configure memory management
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 \
+    MALLOC_ARENA_MAX=2
 
-# Set environment variables
+# Set Rails environment variables
 ENV RAILS_ENV=production \
     RACK_ENV=production \
     RAILS_SERVE_STATIC_FILES=true \
     RAILS_LOG_TO_STDOUT=true \
-    NODE_ENV=production \
-    RAILS_GROUPS=assets \
+    RAILS_GROUPS=assets
+
+# Set Node environment variables
+ENV NODE_ENV=production \
     NODE_OPTIONS=--max-old-space-size=4096 \
-    MALLOC_ARENA_MAX=2 \
     NPM_CONFIG_LOGLEVEL=error \
     USE_YARN_CACHE=true \
     NODE_VERBOSE=false \
     NODE_MODULES_CACHE=true
 
-# Set the working directory
+# Set up working directory
 WORKDIR /app
 
-# Create a non-root user
+# Create non-root user
 RUN groupadd -r app && useradd -r -g app app && \
     chown -R app:app /app
 
-# Copy Ruby version file first
-COPY --chown=app:app .ruby-version ./
-
-# Copy Gemfile and Gemfile.lock
-COPY --chown=app:app Gemfile Gemfile.lock ./
+# Copy dependency files first
+COPY --chown=app:app .ruby-version Gemfile Gemfile.lock ./
 
 # Switch to non-root user
 USER app
 
-# Install Ruby gems
+# Install Ruby dependencies
 RUN gem install bundler:2.3.26 && \
     bundle config set --local without 'development test' && \
     bundle install --jobs 4
 
-# Copy the entire application
+# Copy the rest of the application
 COPY --chown=app:app . .
 
-# Setup asset directories with root
+# Create and set permissions for asset directories
 USER root
-RUN mkdir -p /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets && \
-    chown -R app:app /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets && \
-    chmod -R 755 /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets
+RUN mkdir -p \
+    /app/public/assets \
+    /app/public/packs \
+    /app/tmp/cache/assets/sprockets && \
+    chown -R app:app \
+    /app/public/assets \
+    /app/public/packs \
+    /app/tmp/cache/assets/sprockets && \
+    chmod -R 755 \
+    /app/public/assets \
+    /app/public/packs \
+    /app/tmp/cache/assets/sprockets
 
-# Switch back to app user for asset compilation
+# Switch back to app user for remaining operations
 USER app
 
+# Install JavaScript dependencies
 RUN yarn install
-RUN bundle exec rake assets:precompile
 
-# Expose port 3000 to the Docker host
+# Precompile assets
+RUN RAILS_ENV=production \
+    NODE_ENV=production \
+    bundle exec rake assets:precompile
+
+# Expose port 3000
 EXPOSE 3000
 
 # Start the Rails server
