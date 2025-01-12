@@ -80,12 +80,15 @@ COPY --chown=app:app . .
 
 # Install JavaScript dependencies and precompile assets with proper environment
 RUN yarn install && \
-    yarn build && \
     RAILS_ENV=production \
     NODE_ENV=production \
     SECRET_KEY_BASE=dummy \
     RAILS_SERVE_STATIC_FILES=true \
     bundle exec rake assets:clobber && \
+    RAILS_ENV=production \
+    NODE_ENV=production \
+    SECRET_KEY_BASE=dummy \
+    RAILS_SERVE_STATIC_FILES=true \
     bundle exec rake assets:precompile && \
     bundle exec rake assets:clean && \
     rm -rf node_modules tmp/cache vendor/bundle/ruby/*/cache
