@@ -11,6 +11,15 @@ RUN apt-get update -qq && \
     libgirepository1.0-dev \
     libcairo2-dev \
     libpoppler-glib-dev \
+    gobject-introspection \
+    python3-pkg-resources \
+    libjemalloc2 \
+    libgif7 \
+    liblept5 \
+    libtesseract4 \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Add Node.js and Yarn repositories
@@ -26,8 +35,10 @@ RUN apt-get update -qq && \
     libvips \
     imagemagick \
     wkhtmltopdf \
-    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure jemalloc
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 
 # Set environment variables
 ENV RAILS_ENV=production \
@@ -35,7 +46,13 @@ ENV RAILS_ENV=production \
     RAILS_SERVE_STATIC_FILES=true \
     RAILS_LOG_TO_STDOUT=true \
     NODE_ENV=production \
-    RAILS_GROUPS=assets
+    RAILS_GROUPS=assets \
+    NODE_OPTIONS=--max-old-space-size=4096 \
+    MALLOC_ARENA_MAX=2 \
+    NPM_CONFIG_LOGLEVEL=error \
+    USE_YARN_CACHE=true \
+    NODE_VERBOSE=false \
+    NODE_MODULES_CACHE=true
 
 # Set the working directory
 WORKDIR /app
@@ -61,9 +78,17 @@ RUN gem install bundler:2.3.26 && \
 # Copy the entire application
 COPY --chown=app:app . .
 
-# Install JavaScript dependencies and precompile assets
+# Install JavaScript dependencies and precompile assets with proper environment
 RUN yarn install && \
-    SECRET_KEY_BASE=dummy bundle exec rake assets:precompile
+    yarn build && \
+    RAILS_ENV=production \
+    NODE_ENV=production \
+    SECRET_KEY_BASE=dummy \
+    RAILS_SERVE_STATIC_FILES=true \
+    bundle exec rake assets:clobber && \
+    bundle exec rake assets:precompile && \
+    bundle exec rake assets:clean && \
+    rm -rf node_modules tmp/cache vendor/bundle/ruby/*/cache
 
 # Expose port 3000 to the Docker host
 EXPOSE 3000
