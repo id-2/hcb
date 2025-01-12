@@ -76,7 +76,8 @@ COPY . .
 RUN mkdir -p \
     /app/public/assets \
     /app/public/packs \
-    /app/tmp/cache/assets/sprockets
+    /app/tmp/cache/assets/sprockets \
+    /app/tmp/pids
 
 # Install JavaScript dependencies
 RUN yarn install
