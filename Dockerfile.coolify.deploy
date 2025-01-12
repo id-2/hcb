@@ -84,14 +84,22 @@ RUN yarn install && \
     NODE_ENV=production \
     SECRET_KEY_BASE=dummy \
     RAILS_SERVE_STATIC_FILES=true \
+    RAILS_GROUPS=assets \
+    RACK_ENV=production \
     bundle exec rake assets:clobber && \
     RAILS_ENV=production \
     NODE_ENV=production \
     SECRET_KEY_BASE=dummy \
     RAILS_SERVE_STATIC_FILES=true \
+    RAILS_GROUPS=assets \
+    RACK_ENV=production \
     bundle exec rake assets:precompile && \
     bundle exec rake assets:clean && \
     rm -rf node_modules tmp/cache vendor/bundle/ruby/*/cache
+
+# Keep the precompiled assets
+RUN mkdir -p /app/public/assets && \
+    chmod -R 755 /app/public/assets
 
 # Expose port 3000 to the Docker host
 EXPOSE 3000
