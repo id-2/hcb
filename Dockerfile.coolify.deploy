@@ -33,7 +33,9 @@ RUN apt-get update -qq && \
 ENV RAILS_ENV=production \
     RACK_ENV=production \
     RAILS_SERVE_STATIC_FILES=true \
-    RAILS_LOG_TO_STDOUT=true
+    RAILS_LOG_TO_STDOUT=true \
+    NODE_ENV=production \
+    RAILS_GROUPS=assets
 
 # Set the working directory
 WORKDIR /app
@@ -59,8 +61,9 @@ RUN gem install bundler:2.3.26 && \
 # Copy the entire application
 COPY --chown=app:app . .
 
-# Skip asset precompilation for now to get the app booting
-# RUN bundle exec rake assets:precompile
+# Install JavaScript dependencies and precompile assets
+RUN yarn install && \
+    SECRET_KEY_BASE=dummy bundle exec rake assets:precompile
 
 # Expose port 3000 to the Docker host
 EXPOSE 3000
