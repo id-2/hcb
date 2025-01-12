@@ -78,6 +78,10 @@ RUN gem install bundler:2.3.26 && \
 # Copy the entire application
 COPY --chown=app:app . .
 
+# Create necessary directories
+RUN mkdir -p /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets && \
+    chmod -R 755 /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets
+
 # Install JavaScript dependencies and precompile assets with proper environment
 RUN yarn install && \
     RAILS_ENV=production \
@@ -86,6 +90,7 @@ RUN yarn install && \
     RAILS_SERVE_STATIC_FILES=true \
     RAILS_GROUPS=assets \
     RACK_ENV=production \
+    RAILS_MASTER_KEY=$(cat config/master.key) \
     bundle exec rake assets:clobber && \
     RAILS_ENV=production \
     NODE_ENV=production \
@@ -93,13 +98,12 @@ RUN yarn install && \
     RAILS_SERVE_STATIC_FILES=true \
     RAILS_GROUPS=assets \
     RACK_ENV=production \
+    RAILS_MASTER_KEY=$(cat config/master.key) \
     bundle exec rake assets:precompile && \
+    cp -r public/assets/* /app/public/assets/ && \
+    cp -r public/packs/* /app/public/packs/ 2>/dev/null || true && \
     bundle exec rake assets:clean && \
     rm -rf node_modules tmp/cache vendor/bundle/ruby/*/cache
-
-# Keep the precompiled assets
-RUN mkdir -p /app/public/assets && \
-    chmod -R 755 /app/public/assets
 
 # Expose port 3000 to the Docker host
 EXPOSE 3000
