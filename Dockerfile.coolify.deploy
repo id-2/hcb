@@ -61,21 +61,8 @@ ENV NODE_ENV=production \
 # Set up working directory
 WORKDIR /app
 
-# Create non-root user and set up directories
-RUN groupadd -r app && useradd -r -g app app && \
-    chown -R app:app /app && \
-    mkdir -p /home/app/.cache/yarn /home/app/.yarn && \
-    chown -R app:app /home/app
-
 # Copy dependency files first
-COPY --chown=app:app .ruby-version Gemfile Gemfile.lock ./
-
-# Switch to non-root user
-USER app
-
-# Configure yarn cache directory
-RUN yarn config set cache-folder /home/app/.cache/yarn && \
-    yarn config set global-folder /home/app/.yarn
+COPY .ruby-version Gemfile Gemfile.lock ./
 
 # Install Ruby dependencies
 RUN gem install bundler:2.3.26 && \
@@ -83,25 +70,13 @@ RUN gem install bundler:2.3.26 && \
     bundle install --jobs 4
 
 # Copy the rest of the application
-COPY --chown=app:app . .
+COPY . .
 
-# Create and set permissions for asset directories
-USER root
+# Create asset directories
 RUN mkdir -p \
     /app/public/assets \
     /app/public/packs \
-    /app/tmp/cache/assets/sprockets && \
-    chown -R app:app \
-    /app/public/assets \
-    /app/public/packs \
-    /app/tmp/cache/assets/sprockets && \
-    chmod -R 755 \
-    /app/public/assets \
-    /app/public/packs \
     /app/tmp/cache/assets/sprockets
-
-# Switch back to app user for remaining operations
-USER app
 
 # Install JavaScript dependencies
 RUN yarn install
