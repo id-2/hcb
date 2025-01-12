@@ -78,32 +78,17 @@ RUN gem install bundler:2.3.26 && \
 # Copy the entire application
 COPY --chown=app:app . .
 
-# Create necessary directories
+# Setup asset directories with root
+USER root
 RUN mkdir -p /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets && \
+    chown -R app:app /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets && \
     chmod -R 755 /app/public/assets /app/public/packs /app/tmp/cache/assets/sprockets
 
-# Install JavaScript dependencies and precompile assets with proper environment
-RUN yarn install && \
-    RAILS_ENV=production \
-    NODE_ENV=production \
-    SECRET_KEY_BASE=dummy \
-    RAILS_SERVE_STATIC_FILES=true \
-    RAILS_GROUPS=assets \
-    RACK_ENV=production \
-    RAILS_MASTER_KEY=$(cat config/master.key) \
-    bundle exec rake assets:clobber && \
-    RAILS_ENV=production \
-    NODE_ENV=production \
-    SECRET_KEY_BASE=dummy \
-    RAILS_SERVE_STATIC_FILES=true \
-    RAILS_GROUPS=assets \
-    RACK_ENV=production \
-    RAILS_MASTER_KEY=$(cat config/master.key) \
-    bundle exec rake assets:precompile && \
-    cp -r public/assets/* /app/public/assets/ && \
-    cp -r public/packs/* /app/public/packs/ 2>/dev/null || true && \
-    bundle exec rake assets:clean && \
-    rm -rf node_modules tmp/cache vendor/bundle/ruby/*/cache
+# Switch back to app user for asset compilation
+USER app
+
+RUN yarn install
+RUN bundle exec rake assets:precompile
 
 # Expose port 3000 to the Docker host
 EXPOSE 3000
