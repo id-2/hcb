@@ -5,11 +5,11 @@
       Account numbers
       <% if @event.column_account_number&.deposit_only? %>
         <div class="badge bg-info ml0 self-end tooltipped tooltipped--s" aria-label="This account number can only receive funds. You can’t use it to send money.">
-          <%= inline_icon "info", size: 20, style: "margin-left: -0.25rem; margin-right: 0.25rem" %> Receive-only
+          <%= inline_icon "info", size: 20, style: "margin-left: -0.25rem;" %> Receive-only
         </div>
       <% else %>
         <div class="badge bg-success ml0 self-end tooltipped tooltipped--s" aria-label="This account number can be used to deposit and withdraw from your account.">
-          <%= inline_icon "info", size: 20, style: "margin-left: -0.25rem; margin-right: 0.25rem" %> Receive + send
+          <%= inline_icon "info", size: 20, style: "margin-left: -0.25rem;" %> Receive + send
         </div>
       <% end %>
     </h2>

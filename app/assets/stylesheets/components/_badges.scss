@@ -17,7 +17,7 @@
 
   &.bg-success {
     background-color: rgba(map-get($palette, success), 0.125);
-    color: map-get($palette, success);
+    color: map-get($palette, success-dark);
   }
   &.bg-pending {
     background-color: rgba(map-get($palette, pending), 0.125);

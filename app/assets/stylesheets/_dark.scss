@@ -384,6 +384,10 @@ html[data-dark='true'] {
     background-color: rgba(map-get($palette, success), 0.125);
   }
 
+  .success-dark {
+    color: map-get($palette, success);
+  }
+
   .flash.warning,
   .badge.bg-warning,
   .pop.warning {
@@ -402,6 +406,10 @@ html[data-dark='true'] {
   .badge.bg-error,
   .pop.error {
     background-color: rgba(map-get($palette, error), 0.125);
+  }
+
+  .error {
+    color: map-get($palette, error-light);
   }
 
   .banner--archived {
