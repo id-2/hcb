@@ -26,7 +26,7 @@
   <% if @event.approved? && !@event.demo_mode? %>
     <%= link_to event_verification_letter_path(event_id: @event.slug, format: "pdf") do %>
       <li class="card card--hover h-100 max-w-fit">
-        <%= image_tag event_verification_letter_url(event_id: @event.slug, format: "png"), width: 330, height: 250, class: "object-contain max-w-full" %>
+        <%= image_tag event_verification_letter_url(event_id: @event.slug, format: "png"), alt: "", width: 330, height: 250, class: "object-contain max-w-full" %>
         <strong class="h3 block my-2 text-blance line-height-2">Verification Letter</strong>
         <%= user_mention @event.point_of_contact %>
       </li>
@@ -34,7 +34,7 @@
 
     <%= link_to event_fiscal_sponsorship_letter_path(event_id: @event.slug, format: "pdf") do %>
       <li class="card card--hover h-100 max-w-fit">
-        <%= image_tag event_fiscal_sponsorship_letter_url(event_id: @event.slug, format: "png"), width: 330, height: 250, class: "object-contain max-w-full" %>
+        <%= image_tag event_fiscal_sponsorship_letter_url(event_id: @event.slug, format: "png"), alt: "", width: 330, height: 250, class: "object-contain max-w-full" %>
         <strong class="h3 block my-2 text-blance line-height-2">Fiscal Sponsorship Confirmation</strong>
         <%= user_mention @event.point_of_contact %>
       </li>
