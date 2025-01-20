@@ -36,10 +36,10 @@ html[data-dark='true'] {
       border-color: map-get($palette, info);
     }
 
-    ::placeholder {
+    &::placeholder {
       color: map-get($palette, muted);
     }
-    ::-moz-placeholder {
+    &::-moz-placeholder {
       color: map-get($palette, muted);
     }
   }
