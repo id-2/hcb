@@ -62,9 +62,9 @@
 
     <% if @paginated_stripe_cards.blank? %>
       <% if organizer_signed_in? %>
-        <%= blankslate "You don't have any #{@status} cards yet." %>
+        <%= blankslate "You don’t have any #{@status} cards yet" %>
       <% else %>
-        <%= blankslate "This organization doesn't have any #{@status} cards" %>
+        <%= blankslate "This organization doesn’t have any #{@status} cards" %>
       <% end %>
     <% end %>
 
