@@ -48,30 +48,6 @@ body {
   min-height: 100vh;
 }
 
-.activity {
-  display: none;
-}
-
-@media screen and (min-width: 56em) and (min-height: 640px) {
-  body:has(.activity) {
-    padding-bottom: 0rem;
-  }
-
-  .activity {
-    display: block;
-  }
-
-  .container:has(.activity) > .app__sidebar {
-    position: sticky;
-    position: -webkit-sticky;
-    top: 0;
-  }
-
-  .container:has(.activity) > .app__content {
-    padding-bottom: 2rem;
-  }
-}
-
 a {
   color: currentColor;
 }

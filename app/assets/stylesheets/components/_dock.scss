@@ -12,9 +12,6 @@
 
   @media (min-width: 768px) {
     flex-direction: column;
-    .dock__overflow {
-      display: none;
-    }
   }
 }
 
@@ -185,6 +182,26 @@ details[open] > summary > .drawer-chevron {
   }
 }
 
-.dock__overflow {
-  margin: 0 0.5rem;
+.activity {
+  display: none;
+}
+
+@media screen and (min-width: 56em) and (min-height: 640px) {
+  body:has(.activity) {
+    padding-bottom: 0rem;
+  }
+
+  .activity {
+    display: block;
+  }
+
+  .container:has(.activity) > .app__sidebar {
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+  }
+
+  .container:has(.activity) > .app__content {
+    padding-bottom: 2rem;
+  }
 }
