@@ -22,11 +22,6 @@ details.dock {
     flex-wrap: nowrap;
   }
 
-  & summary.dock__item {
-    background-color: unset !important;
-    cursor: pointer;
-  }
-
   & > a {
     margin-top: 2px;
     margin-left: 36px;
@@ -39,10 +34,6 @@ details.dock {
     padding-bottom: 2rem;
   }
 
-  summary:hover > .settings-icon {
-    transform: rotate(45deg);
-  }
-
   &::details-content {
     transition:
       content-visibility 0.125s allow-discrete,
@@ -51,11 +42,25 @@ details.dock {
   }
 }
 
-details > summary > .drawer-chevron {
-  transform: rotate(-90deg);
-}
-details[open] > summary > .drawer-chevron {
-  transform: rotate(0deg);
+summary.dock__item {
+  padding-right: 0.5rem;
+
+  &::marker {
+    content: '';
+  }
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:hover .settings-icon {
+    transform: rotate(45deg);
+  }
+  & .drawer-chevron {
+    transform: rotate(-90deg);
+  }
+  details[open] & .drawer-chevron {
+    transform: rotate(0deg);
+  }
 }
 
 .drawer-chevron,
