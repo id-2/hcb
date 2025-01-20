@@ -358,7 +358,7 @@ legend {
 
   input:checked + label {
     box-shadow:
-      0 0 0 1px white,
+      0 0 0 1px var(--bg-color),
       0 0 0 3px map-get($palette, info);
   }
 }
