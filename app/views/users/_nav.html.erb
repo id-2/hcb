@@ -6,13 +6,11 @@
 <% content_for(:nav) do %>
   <nav class="dock font-medium mt-4">
     <% users_mobile_nav(selected: local_assigns[:selected]).each do |item| %>
-      <div>
-        <%= dock_item item[:name],
-          item[:path],
-          tooltip: item[:tooltip],
-          icon: item[:icon],
-          selected: item[:selected] %>
-      </div>
+      <%= dock_item item[:name],
+        item[:path],
+        tooltip: item[:tooltip],
+        icon: item[:icon],
+        selected: item[:selected] %>
     <% end %>
     <div>
       <%= render "users/settings_dropdown", local_assigns: %>
