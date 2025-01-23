@@ -58,14 +58,13 @@ module StripeAuthorizationService
         allowed_categories = card&.card_grant&.allowed_categories
         allowed_merchants = card&.card_grant&.allowed_merchants
         keyword_lock = card&.card_grant&.keyword_lock
-        
-        if (allowed_categories.present? || allowed_merchants.present? || keyword_lock.present?)
-        	return decline_with_reason!("merchant_not_allowed") unless (
-        		(allowed_categories.present? && allowed_categories.include?(auth[:merchant_data][:category])) ||
-      			(allowed_merchants.present? && allowed_merchants.include?(auth[:merchant_data][:network_id])) ||
-      			(keyword_lock.present? && Regexp.new(keyword_lock).match?(auth[:merchant_data][:name]))
-  			)
-		end
+
+        if (allowed_categories.present? || allowed_merchants.present? || keyword_lock.present?) && !((allowed_categories.present? && allowed_categories.include?(auth[:merchant_data][:category])) ||
+              (allowed_merchants.present? && allowed_merchants.include?(auth[:merchant_data][:network_id])) ||
+              (keyword_lock.present? && Regexp.new(keyword_lock).match?(auth[:merchant_data][:name])))
+           return decline_with_reason!("merchant_not_allowed")
+
+        end
 
         return decline_with_reason!("inadequate_balance") if card_balance_available < amount_cents
 
