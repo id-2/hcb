@@ -62,7 +62,7 @@ module StripeAuthorizationService
         if (allowed_categories.present? || allowed_merchants.present? || keyword_lock.present?) && !((allowed_categories.present? && allowed_categories.include?(auth[:merchant_data][:category])) ||
               (allowed_merchants.present? && allowed_merchants.include?(auth[:merchant_data][:network_id])) ||
               (keyword_lock.present? && Regexp.new(keyword_lock).match?(auth[:merchant_data][:name])))
-           return decline_with_reason!("merchant_not_allowed")
+          return decline_with_reason!("merchant_not_allowed")
 
         end
 
