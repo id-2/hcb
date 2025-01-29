@@ -6,7 +6,7 @@ module.exports = {
     './app/assets/stylesheets/**/*.css',
     './app/javascript/**/*.js',
   ],
-  blocklist: ['container', 'border'],
+  blocklist: ['container', 'border', 'bg-black'],
   corePlugins: {
     preflight: false,
   },

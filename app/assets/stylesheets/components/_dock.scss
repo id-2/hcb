@@ -28,8 +28,10 @@ details.dock {
     font-weight: 400;
   }
 
-  &[open] {
-    padding-bottom: 2rem;
+  @media (min-width: 48em) {
+    &[open] {
+      padding-bottom: 2rem;
+    }
   }
 
   &::details-content {
@@ -102,6 +104,7 @@ summary.dock__item {
 }
 
 .dock__item {
+  color: inherit !important;
   font-size: 0.875rem;
   text-decoration: none;
   user-select: none;
