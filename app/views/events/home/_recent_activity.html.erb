@@ -1,20 +1,20 @@
 <% if @activities.length > 0 %>
   <div class="card relative w-100 flex-1 flex flex-col p-0">
     <div style="position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background: linear-gradient(transparent, var(--card-bg)); pointer-events: none; z-index: 1"></div>
-    <div class="flex items-center p-2 pl-0 sm:p-4 mt-auto justify-between">
-      <h3 class="m-0">Recent activity</h3>
-      <%= link_to edit_event_path(@event, tab: "audit_log"), class: "flex items-center shrink-0 no-underline" do %>
+    <header class="flex items-center justify-between pt-4 pl-4 pr-2 pb-2">
+      <h3 class="m-0 p-0">Recent activity</h3>
+      <%= link_to edit_event_path(@event, tab: "audit_log"), class: "flex items-center no-underline text-sm font-medium shrink-none" do %>
         See all
         <%= inline_icon "view-forward" %>
       <% end %>
-    </div>
+    </header>
 
     <% if @activities.none? %>
       <p class="m-0 p-4 pt-2 pb-0 mb-1">
         <i class="muted">Nothing has happened recently.</i>
       </p>
     <% end %>
-    <ul class="list-reset comments w-100 my-0 pb-2 px-4 pt-0 flex-1">
+    <ul class="list-reset comments w-100 pb-2 px-4 pt-0 flex-1 my-0">
       <%= render_activities(@activities.reject { |activity| activity.trackable.nil? && !activity.trackable_is_deletable? }) %>
     </ul>
   </div>
