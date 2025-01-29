@@ -145,7 +145,6 @@
       <%= yield %>
     </div>
 
-    <%= render "application/footer" unless @no_app_shell || @hide_footer %>
     <%= render "application/command_bar" %>
     <script>
       document.addEventListener("turbo:load", () => {

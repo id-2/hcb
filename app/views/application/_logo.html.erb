@@ -22,16 +22,16 @@
   <div data-menu-target="content" class="menu__content menu__content--2 menu__content--compact z-50">
     <% if fall? %>
       <a href="https://cloud-qmskqc293-hack-club-bot.vercel.app/0bank-pumpkin.png" download class="flex">
-        <%= image_tag "https://cloud-qmskqc293-hack-club-bot.vercel.app/0bank-pumpkin.png", class: "mr1", height: 24 %>
+        <%= image_tag "https://cloud-qmskqc293-hack-club-bot.vercel.app/0bank-pumpkin.png", height: 24 %>
         Download spooky icon
       </a>
     <% end %>
     <a href="/brand/hcb-icon-icon-original.png" download class="flex">
-      <%= image_tag "logo-production.svg", class: "mr1", size: 24 %>
+      <%= image_tag "logo-production.svg", size: 24 %>
       Download light PNG
     </a>
     <a href="/brand/hcb-icon-icon-dark.png" download class="flex">
-      <%= image_tag "logo-production-dark.svg", class: "mr1", size: 24 %>
+      <%= image_tag "logo-production-dark.svg", size: 24 %>
       Download dark PNG
     </a>
     <div class="menu__divider"></div>
@@ -48,6 +48,22 @@
         href="/letter_opener"
         target="_blank"
         class="menu__action dev-tools border-none"><%= "Open LetterOpener (#{LetterOpenerWeb::Letter.search.count})" %></a>
+        <p class="text-xs muted mt-2 mb-0">
+          <% if commit_hash.present? %>
+            Build <em><%= commit_name %></em>
+            <% if commit_duration.present? %>
+              from <%= commit_duration %> ago.
+            <% end %>
+            <br />
+          <% end %>
+          <% unless Rails.env.production? %>
+            <% @sql_count = QueryCount::Counter.counter %>
+            <% @sql_cached_count = QueryCount::Counter.counter_cache %>
+            Used <%= @sql_count %> unique SQL <%= "query".pluralize @sql_count %> (+<%= @sql_cached_count %> cached).
+            <br />
+            Running on Rails <%= Rails::VERSION::STRING %> with Ruby <%= RUBY_VERSION %>.
+          <% end %>
+        </p>
     <% end %>
   </div>
 </div>

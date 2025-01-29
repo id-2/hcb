@@ -163,7 +163,6 @@
         <%= yield(:container) %>
 
         <%= yield %>
-        <%= render "application/footer" unless @no_app_shell || @hide_footer %>
       </div>
     </article>
   </main>
@@ -177,7 +176,6 @@
   <main class="container <%= content_for :container_class %>" style="<%= content_for :container_style %>">
     <%= render "application/flash" unless @hide_flash %>
     <%= yield %>
-    <%= render "application/footer" unless @no_app_shell || @hide_footer %>
   </main>
 <% end %>
 

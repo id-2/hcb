@@ -1,18 +1,21 @@
 <div class="lg:w-72 p-3 pb-4 lg:border-t lg:[border-top-style:solid] border-color">
-  <button
-    class="btn h-[36px] bg-none bg-smoke text-sm font-medium shadow-none w-100 justify-start px-2 hover:shadow-none display-none-not-important md:flex mb-3"
-    style="border-radius: 8px"
-    data-behavior="command_bar_trigger">
-    <span class="text-left">Jump to...</span>
-    <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md mr-1 ml-auto" aria-hidden="true">
-      ⌘
-    </span>
-    <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md" aria-hidden="true">
-      K
-    </span>
-  </button>
+  <% if signed_in? %>
+    <button
+      class="btn h-[36px] bg-none bg-smoke text-sm font-medium shadow-none w-100 justify-start px-2 hover:shadow-none display-none-not-important md:flex mb-3"
+      style="border-radius: 8px"
+      data-behavior="command_bar_trigger">
+      <span class="text-left">Jump to...</span>
+      <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md mr-1 ml-auto" aria-hidden="true">
+        ⌘
+      </span>
+      <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-[20px] inline-block rounded-md" aria-hidden="true">
+        K
+      </span>
+    </button>
+  <% end %>
   <div class="flex flex-row-reverse lg:flex-row items-center gap-2 -mr-2">
     <div data-controller="menu" class="flex flex-1 min-w-1" data-menu-placement-value="bottom-end">
+      <% if signed_in? %>
       <button
         data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
         data-menu-target="toggle"
@@ -49,6 +52,7 @@
           <% end %>
         <% end %>
       </div>
+      <% end %>
     </div>
     <% if signed_in? %>
       <a

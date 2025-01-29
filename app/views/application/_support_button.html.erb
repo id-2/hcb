@@ -11,26 +11,12 @@
   </button>
   <div data-menu-target="content" class="menu__content menu__content--2 menu__content--compact" style="padding: 0.5rem;z-index:999">
     <a href="mailto:hcb@hackclub.com" target="_blank">
-      <%= inline_icon "email", size: 24 %> Contact us
+      <%= inline_icon "email", size: 24 %> Email us
     </a>
-    <% if current_user&.events&.not_demo_mode&.any? %>
-      <% routing = begin
-           Rails.application.routes.recognize_path(request.original_fullpath, method: request.env["REQUEST_METHOD"])
-         rescue
-           {}
-         end %>
-
-      <% url_params = {
-           name: current_user&.name,
-           email: current_user&.email,
-           url: "#{request.base_url}#{request.original_fullpath}",
-           location: "#{routing[:controller]}##{routing[:action]} #{routing[:id]}".strip,
-         } %>
-
-      <%= link_to "https://forms.hackclub.com/hcb-feedback?#{url_params.to_query}", target: "_blank" do %>
-        <%= inline_icon "message-simple", size: 24 %> Share feedback
-      <% end %>
-    <% end %>
+    <a href="tel:1-844-237-2290">
+      <%= inline_icon "phone", size: 24 %> Call us: +1 (844) 237-2290
+    </a>
+    <hr />
     <a href="https://help.hcb.hackclub.com/" target="_blank">
       <%= inline_icon "docs", size: 24 %> Help Center
     </a>
