@@ -138,20 +138,16 @@ module EventsHelper
   end
 
   def dock_item(name, url = nil, icon: nil, tooltip: nil, async_badge: nil, disabled: false, selected: false, admin: false, **options)
-    link_to (disabled ? "javascript:" : url), options.merge(
+    icon_tag = icon.present? ? inline_icon(icon, size: 32) : nil
+    badge_tag = async_badge.present? ? turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" }) : nil
+    prefix = icon_tag || badge_tag ? content_tag(:div, icon_tag || badge_tag, class: "line-height-0 relative") : ''
+    children = prefix + name.html_safe
+    link_to children, (disabled ? "javascript:" : url), options.merge(
       class: "dock__item #{"tooltipped tooltipped--e" if tooltip} #{"disabled" if disabled}",
       'aria-label': tooltip,
       'aria-current': selected ? "page" : "false",
-    ) do
-      (content_tag :div, class: "line-height-0 relative" do
-        if async_badge
-          inline_icon(icon, size: 32) +
-            turbo_frame_tag(async_badge, src: async_badge, data: { controller: "cached-frame", action: "turbo:frame-render->cached-frame#cache" })
-        elsif icon.present?
-          inline_icon(icon, size: 32)
-        end
-      end) + name.html_safe
-    end
+      'aria-disabled': disabled ? "true" : "false",
+    )
   end
 
   def show_mock_data?(event = @event)

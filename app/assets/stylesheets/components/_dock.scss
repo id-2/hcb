@@ -16,10 +16,8 @@
 }
 
 details.dock {
-  & summary,
-  & a {
+  & summary {
     display: flex;
-    flex-wrap: nowrap;
   }
 
   & > a {
