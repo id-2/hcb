@@ -835,7 +835,6 @@ GEM
     wicked_pdf (2.8.2)
       activesupport
       ostruct
-    wkhtmltopdf-binary (0.12.6.8)
     xxhash (0.5.0)
     yard (0.9.36)
     zeitwerk (2.7.1)
@@ -968,7 +967,6 @@ DEPENDENCIES
   webauthn (~> 3.1)
   whitesimilarity
   wicked_pdf
-  wkhtmltopdf-binary (= 0.12.6.8)
   xxhash
   yellow_pages!
 
