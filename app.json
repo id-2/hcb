@@ -69,9 +69,6 @@
       "url": "https://github.com/nickrivadeneira/heroku-buildpack-apt#gobject-introspection-support"
     },
     {
-      "url": "https://github.com/dscout/wkhtmltopdf-buildpack"
-    },
-    {
       "url": "heroku/nodejs"
     },
     {
