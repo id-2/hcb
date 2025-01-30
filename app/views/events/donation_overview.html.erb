@@ -134,7 +134,7 @@
   </div>
 </div>
 
-<% if @recurring_donations.size > 0 %>
+<% if @recurring_donations.size > 0 && @donations.current_page == 1 %>
   <h2 class="heading mt4 pb1" style="margin-bottom: 16px;">
     Recurring donations
   </h2>
@@ -217,7 +217,6 @@
 
 <% if @donations.size > 0 %>
 <article class="table-container">
-
   <table>
     <thead>
       <tr>
@@ -265,7 +264,7 @@
       <% end %>
     </tbody>
   </table>
-
+  <%= paginate @donations %>
 </article>
 
 <% else %>

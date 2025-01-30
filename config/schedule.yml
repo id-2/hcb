@@ -120,6 +120,10 @@ calculate_app_wide_metrics:
   cron: "0 */12 * * *" # run twice a day
   class: "MetricJobs::CalculateAppWide"
 
+calculate_stats_metric:
+  cron: "0 * * * *" # run every hour
+  class: "MetricJobs::CalculateStats"
+
 calculate_subjects_metrics:
   cron: "0 */12 * * *" # run twice a day
   class: "MetricJobs::CalculateSubjects"
@@ -167,3 +171,7 @@ stripe_service_fee_job:
 user_seen_at_history_snapshot_job:
   cron: "0,30 * * * *" # twice every hour
   class: "User::SeenAtHistory::SnapshotJob"
+
+column_sweep_job:
+  cron: "0 0 * * MON" # run first day of each week
+  class: "Column::SweepJob"

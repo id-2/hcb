@@ -51,6 +51,8 @@ class IncreaseCheck < ApplicationRecord
   # handles Column check transfers.
   has_paper_trail
 
+  self.ignored_columns = ["increase_state"]
+
   include AASM
 
   include PgSearch::Model
@@ -114,6 +116,7 @@ class IncreaseCheck < ApplicationRecord
 
   validates :recipient_email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }, allow_nil: true
   validates_presence_of :recipient_email, on: :create
+  normalizes :recipient_email, with: ->(recipient_email) { recipient_email.strip.downcase }
 
   validate on: :create do
     if amount > event.balance_available_v2_cents

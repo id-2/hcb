@@ -306,9 +306,16 @@ class Event < ApplicationRecord
   has_many :grants
 
   has_one_attached :donation_header_image
+  validates :donation_header_image, content_type: [:png, :jpg, :jpeg]
+
   has_one_attached :background_image
+  validates :background_image, content_type: [:png, :jpg, :jpeg]
+
   has_one_attached :logo
+  validates :logo, content_type: [:png, :jpg, :jpeg]
+
   has_one_attached :stripe_card_logo
+  validates :stripe_card_logo, content_type: [:png, :jpg, :jpeg]
 
   include HasMetrics
 
@@ -323,6 +330,8 @@ class Event < ApplicationRecord
   validate :contract_signed, unless: :demo_mode?
 
   validates :name, presence: true
+  before_validation { self.name = name.gsub(/\s/, " ").strip unless name.nil? }
+
   validates :slug, presence: true, format: { without: /\s/ }
   validates :slug, format: { without: /\A\d+\z/ }
   validates_uniqueness_of_without_deleted :slug
@@ -346,7 +355,7 @@ class Event < ApplicationRecord
   # Explanation: https://github.com/norman/friendly_id/blob/0500b488c5f0066951c92726ee8c3dcef9f98813/lib/friendly_id/reserved.rb#L13-L28
   after_validation :move_friendly_id_error_to_slug
 
-  after_commit :generate_stripe_card_designs, if: -> { stripe_card_logo&.blob&.saved_changes? && stripe_card_logo.attached? && !Rails.env.test? }
+  after_update :generate_stripe_card_designs, if: -> { attachment_changes["stripe_card_logo"].present? && stripe_card_logo.attached? && !Rails.env.test? }
 
   comma do
     id
@@ -632,13 +641,13 @@ class Event < ApplicationRecord
     raise ArgumentError.new("This method requires a stripe_card_logo to be attached.") unless stripe_card_logo.attached?
 
     ActiveRecord::Base.transaction do
-      (attachment_changes["stripe_card_logo"]&.attachable || stripe_card_logo.blob).open do |tempfile|
+      stripe_card_personalization_designs.update(stale: true)
+      stripe_card_logo.blob.open do |tempfile|
         converted = ImageProcessing::MiniMagick.source(tempfile.path).convert!("png")
         ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(converted.read), color: :black, event: self).run
         converted.rewind
         ::StripeCardService::PersonalizationDesign::Create.new(file: StringIO.new(converted.read), color: :white, event: self).run
       end
-      stripe_card_personalization_designs.update(stale: true)
     end
   rescue Stripe::InvalidRequestError => e
     stripe_card_logo.delete
