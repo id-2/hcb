@@ -71,6 +71,7 @@ gem "business_time"
 
 gem "poppler" # PDF parsing
 gem "wicked_pdf" # HTML to PDF conversion
+gem "wkhtmltopdf-binary", "0.12.6.8" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
 
 
 gem "rack-cors" # manage CORS
