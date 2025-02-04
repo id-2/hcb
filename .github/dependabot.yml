@@ -17,6 +17,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "10:00"
+      timezone: "America/New_York"
     allow:
       - dependency-name: "yellow_pages"
     open-pull-requests-limit: 15
