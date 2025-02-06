@@ -46,6 +46,10 @@ class PaypalTransfer < ApplicationRecord
   include PublicActivity::Model
   tracked owner: proc{ |controller, record| controller&.current_user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
 
+  validate on: :create do
+    errors.add(:base, "Due to integration issues, transfers via PayPal are currently unavailable.")
+  end
+
   after_create do
     create_canonical_pending_transaction!(event:, amount_cents: -amount_cents, memo: "PayPal transfer to #{recipient_name}".strip.upcase, date: created_at)
   end
@@ -93,6 +97,7 @@ class PaypalTransfer < ApplicationRecord
   validates :amount_cents, numericality: { greater_than: 0, message: "must be positive!" }
 
   validates :recipient_email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }
+  normalizes :recipient_email, with: ->(recipient_email) { recipient_email.strip.downcase }
 
   validates_presence_of :memo, :payment_for, :recipient_name, :recipient_email
 

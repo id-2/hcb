@@ -45,6 +45,11 @@ class EventPolicy < ApplicationPolicy
     admin_or_user?
   end
 
+  # pinning a transaction to an event
+  def pin?
+    admin_or_user?
+  end
+
   def update?
     admin_or_manager?
   end
@@ -88,7 +93,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def documentation?
-    (is_public || admin_or_user?) && record.plan.documentation_enabled?
+    admin_or_user? && record.plan.documentation_enabled?
   end
 
   def statements?
@@ -124,7 +129,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def promotions?
-    (is_public || admin_or_user?) && record.plan.promotions_enabled?
+    admin_or_user? && record.plan.promotions_enabled?
   end
 
   def reimbursements_pending_review_icon?
@@ -133,10 +138,6 @@ class EventPolicy < ApplicationPolicy
 
   def reimbursements?
     admin_or_user? && record.plan.reimbursements_enabled?
-  end
-
-  def expensify?
-    admin_or_user?
   end
 
   def donation_overview?

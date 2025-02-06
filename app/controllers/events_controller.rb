@@ -2,6 +2,7 @@
 
 class EventsController < ApplicationController
   TRANSACTIONS_PER_PAGE = 75
+  DONATIONS_PER_PAGE = 25
 
   include SetEvent
 
@@ -317,7 +318,8 @@ class EventsController < ApplicationController
     @settings_tab = params[:tab]
     @frame = params[:frame]
     authorize @event
-    @activities = PublicActivity::Activity.for_event(@event).order(created_at: :desc).page(params[:page]).per(25) if @settings_tab == "audit_log"
+    @activities_before = params[:activities_before] || Time.now
+    @activities = PublicActivity::Activity.for_event(@event).before(@activities_before).order(created_at: :desc).page(params[:page]).per(25) if @settings_tab == "audit_log"
 
     render :edit, layout: !@frame
   end
@@ -580,12 +582,15 @@ class EventsController < ApplicationController
 
     relation = relation.search_name(params[:q]) if params[:q].present?
 
-    @donations = relation.order(created_at: :desc)
+    page = (params[:page] || 1).to_i
+    per_page = (params[:per] || DONATIONS_PER_PAGE).to_i
+
+    @all_donations = relation.order(created_at: :desc)
 
     @recurring_donations = @event.recurring_donations.includes(:donations).active.order(created_at: :desc)
 
     if helpers.show_mock_data?
-      @donations = []
+      @all_donations = []
       @recurring_donations = []
       @stats = { deposited: 0, in_transit: 0, refunded: 0 }
 
@@ -609,17 +614,19 @@ class EventsController < ApplicationController
         )
         @stats[:deposited] += amount unless refunded
         @stats[:refunded] += amount if refunded
-        @donations << donation
+        @all_donations << donation
       end
-      @donations.each do |donation|
+      @all_donations.each do |donation|
         if donation[:recurring]
           @recurring_donations << donation
         end
       end
       # Sort by date descending
       @recurring_donations.sort_by! { |invoice| invoice[:created_at] }.reverse!
-      @donations.sort_by! { |invoice| invoice[:created_at] }.reverse!
+      @all_donations.sort_by! { |invoice| invoice[:created_at] }.reverse!
     end
+
+    @donations = Kaminari.paginate_array(@all_donations).page(page).per(per_page)
 
     @recurring_donations_monthly_sum = @recurring_donations.sum(0) { |donation| donation[:amount] }
 
@@ -718,10 +725,6 @@ class EventsController < ApplicationController
   end
 
   def promotions
-    authorize @event
-  end
-
-  def expensify
     authorize @event
   end
 
@@ -1007,7 +1010,7 @@ class EventsController < ApplicationController
     return false if @tag.present?
     return false if params[:q].present?
 
-    @show_running_balance = current_user&.admin? && current_user&.running_balance_enabled?
+    @show_running_balance = current_user&.admin? && current_user.running_balance_enabled?
   end
 
   def set_mock_data
