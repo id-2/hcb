@@ -12,10 +12,6 @@
 #  updated_at                 :datetime         not null
 #  canonical_event_mapping_id :bigint           not null
 #
-# Indexes
-#
-#  index_fees_on_canonical_event_mapping_id  (canonical_event_mapping_id)
-#
 # Foreign Keys
 #
 #  fk_rails_...  (canonical_event_mapping_id => canonical_event_mappings.id)
