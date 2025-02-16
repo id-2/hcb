@@ -22,6 +22,11 @@ export default class extends Controller {
         e.preventDefault()
         const text =
           e.clipboardData.getData('text')?.replace(/[^0-9]/g, '') || ''
+        if (text.length == 0) {
+          this.wrapperTarget.style.animation = this.wrapperTarget.style.animation ? 
+            this.wrapperTarget.style.animation + ",0.5s linear shake" : // shake multiple times!
+            "0.5s linear shake";
+        }
         if (text.length <= 6) {
           this.inputTargets.forEach((input, i) => {
             input.value = text[i]
