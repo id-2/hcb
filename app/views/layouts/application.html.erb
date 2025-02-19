@@ -69,7 +69,9 @@
 
   <meta name="format-detection" content="telephone=no">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <% if user_birthday? %>
+  <% if content_for?(:favicon) %>
+    <%= yield :favicon %>
+  <% elsif user_birthday? %>
     <link rel="icon" type="image/png" href="/favicon-party.gif">
   <% else %>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-<%= Rails.env %>-32x32.png">
@@ -91,8 +93,8 @@
 <% if current_session&.impersonated? %>
   <div class="w-100 px4 bg-white transparency-banner">
     <p class="h5 medium center mt1 mb1">
-      <%= link_to "← Exit Impersonation", unimpersonate_user_path(current_user&.id, return_to: request.url), data: { turbo_method: "post", turbo_frame: "_top" } %>
-      | You're currently impersonating <%= user_mention User.find(current_user&.id) %>
+      <%= link_to "← Exit impersonation", unimpersonate_user_path(current_user&.id, return_to: request.url), data: { turbo_method: "post", turbo_frame: "_top" } %>
+      | You’re currently impersonating <%= user_mention User.find(current_user&.id) %>
     </p>
   </div>
 <% end %>
@@ -118,7 +120,7 @@
 <% end %>
 
 <% if content_for?(:nav) %>
-  <main class="app flex-col lg:flex-row" style="gap:0;display:flex;width:100%">
+  <main class="app flex flex-col lg:flex-row gap-0 w-full">
     <% if @event && @first_time %>
       <div class="welcome" data-controller="welcome" data-welcome-organizer-position-value="<%= @organizer_position&.id %>">
         <div class="welcome__image mb3">
@@ -126,13 +128,11 @@
           <%= image_tag "logo-production-dark.svg", width: 100, class: "logo-dark" %>
           <%= image_tag "logo-production.svg", width: 100, class: "logo" %>
         </div>
-
         <div class="welcome__content">
           <div class="center">
             <h3 class="h3 caps secondary block m0">Welcome to</h3>
             <h1 class="primary mt0 border-none"><%= @organizer_position&.initial? ? "HCB" : @event.name %></h1>
           </div>
-
           <div class="mb2">
             <button class="btn" data-action="welcome#tour">Show me around</button>
           </div>
@@ -140,9 +140,6 @@
         </div>
       </div>
     <% end %>
-
-    <%= render "application/native_changelog" if @latest_changelog_post %>
-    <%= render "application/the_bin" if @the_bin %>
 
     <aside class="fixed w-screen overflow-x-visible h-[70px] lg:w-72 border border-t-0 border-x-0 lg:border-r z-10 lg:border-b-0 backdrop-blur-xl lg:border-l-0 lg:h-screen flex items-center lg:items-start lg:flex-col top-0 left-0">
       <%# we need a wrapper div with a large width to prevent the tooltips from being hidden %>
