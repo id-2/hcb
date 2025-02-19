@@ -18,7 +18,7 @@
           </button>
         <% end if organizer_signed_in? %>
 
-        <p class="block font-bold m0 flex items-center g2">
+        <p class="font-bold m0 flex items-center g2">
           <%= format_date pin.hcb_code.date %>
           <% if pin.hcb_code.canonical_transactions.none? %>
             <% if pin.hcb_code.pt&.declined? %>

@@ -1,4 +1,4 @@
-<% if @activities.length > 0 %>
+<%= turbo_frame_tag "recent_activity" do %>
   <div class="card relative w-100 flex-1 flex flex-col p-0">
     <div style="position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background: linear-gradient(transparent, var(--card-bg)); pointer-events: none; z-index: 1"></div>
     <header class="flex items-center justify-between pt-4 pl-4 pr-2 pb-2">
@@ -8,20 +8,14 @@
         <%= inline_icon "view-forward" %>
       <% end %>
     </header>
-
     <% if @activities.none? %>
-      <p class="m-0 p-4 pt-2 pb-0 mb-1">
-        <i class="muted">Nothing has happened recently.</i>
+      <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
+        You’ll see recent activity from your team here.
       </p>
+    <% else %>
+      <ul class="list-reset comments w-100 pb-2 px-4 pt-0 flex-1 my-0">
+        <%= render_activities(@activities.reject { |activity| activity.trackable.nil? && !activity.trackable_is_deletable? }) %>
+      </ul>
     <% end %>
-    <ul class="list-reset comments w-100 pb-2 px-4 pt-0 flex-1 my-0">
-      <%= render_activities(@activities.reject { |activity| activity.trackable.nil? && !activity.trackable_is_deletable? }) %>
-    </ul>
-  </div>
-<% else %>
-  <div class="card w-100 p-0 text-center flex-1 flex flex-col items-center justify-center" style="height: <%= [(@cards.length + 1.5) * 45, 320].max %>px">
-    <p class="m-0 p-4 pt-2 pb-0 mb-1 muted max-w-xs">
-      You’ll see recent activity from your team here.
-    </p>
   </div>
 <% end %>
