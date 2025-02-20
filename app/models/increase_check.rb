@@ -18,7 +18,6 @@
 #  column_object           :jsonb
 #  column_status           :string
 #  increase_object         :jsonb
-#  increase_state          :string
 #  increase_status         :string
 #  memo                    :string
 #  payment_for             :string
@@ -51,9 +50,8 @@ class IncreaseCheck < ApplicationRecord
   # handles Column check transfers.
   has_paper_trail
 
-  self.ignored_columns = ["increase_state"]
-
   include AASM
+  include Payoutable
 
   include PgSearch::Model
   pg_search_scope :search_recipient, against: [:recipient_name, :memo], using: { tsearch: { prefix: true, dictionary: "english" } }, ranked_by: "increase_checks.created_at"
@@ -66,6 +64,7 @@ class IncreaseCheck < ApplicationRecord
 
   has_one :canonical_pending_transaction
   has_one :grant, required: false
+  has_one :employee_payment, class_name: "Employee::Payment", as: :payout
   has_one :reimbursement_payout_holding, class_name: "Reimbursement::PayoutHolding", inverse_of: :increase_check, required: false
 
   after_create do
@@ -94,6 +93,7 @@ class IncreaseCheck < ApplicationRecord
 
       after_commit do
         IncreaseCheckMailer.with(check: self).notify_recipient.deliver_later
+        employee_payment.mark_admin_approved! if employee_payment.present?
       end
     end
 
@@ -101,6 +101,7 @@ class IncreaseCheck < ApplicationRecord
       after do
         canonical_pending_transaction.decline!
         create_activity(key: "increase_check.rejected")
+        employee_payment&.mark_rejected!(send_email: false) # Operations will manually reach out
       end
       transitions from: :pending, to: :rejected
     end
@@ -149,7 +150,7 @@ class IncreaseCheck < ApplicationRecord
   }, prefix: :increase
 
   enum :column_status, %w(initiated issued manual_review rejected pending_deposit pending_stop deposited stopped pending_first_return pending_second_return first_return pending_reclear recleared second_return settled returned pending_user_initiated_return user_initiated_return_submitted user_initiated_returned pending_user_initiated_return_dishonored).index_with(&:itself), prefix: :column
-  enum :column_delivery_status, %w(created mailed in_transit in_local_area processed_for_delivery delivered failed rerouted returned_to_sender).index_with(&:itself), prefix: :column_delivery
+  enum :column_delivery_status, %w(created mailed rendered_pdf in_transit in_local_area processed_for_delivery delivered failed rerouted returned_to_sender).index_with(&:itself), prefix: :column_delivery
 
   VALID_DURATION = 180.days
 

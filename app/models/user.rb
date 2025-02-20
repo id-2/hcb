@@ -116,9 +116,14 @@ class User < ApplicationRecord
   has_many :assigned_reimbursement_reports, class_name: "Reimbursement::Report", foreign_key: "reviewer_id", inverse_of: :reviewer
   has_many :approved_expenses, class_name: "Reimbursement::Expense", inverse_of: :approved_by
 
+  has_many :jobs, as: :entity, class_name: "Employee"
+  has_many :job_payments, through: :jobs, source: :payments, class_name: "Employee::Payment"
+
   has_many :card_grants
 
   has_one_attached :profile_picture
+
+  has_many :w9s, class_name: "W9", as: :entity
 
   has_one :unverified_totp, -> { where(aasm_state: :unverified) }, class_name: "User::Totp", inverse_of: :user
   has_one :totp, -> { where(aasm_state: :verified) }, class_name: "User::Totp", inverse_of: :user
@@ -159,6 +164,12 @@ class User < ApplicationRecord
   validates :preferred_name, length: { maximum: 30 }
 
   validate :profile_picture_format
+
+  validate on: :update do
+    if Rails.env.production? && admin_override_pretend? && !use_two_factor_authentication?
+      errors.add(:access_level, "two factor authentication is required for this access level")
+    end
+  end
 
   enum :comment_notifications, { all_threads: 0, my_threads: 1, no_threads: 2 }
 

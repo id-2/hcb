@@ -53,9 +53,15 @@ class DonationsController < ApplicationController
       message: params[:message],
       fee_covered: params[:fee_covered],
       event: @event,
-      ip_address: request.ip,
+      ip_address: request.remote_ip,
       user_agent: request.user_agent,
-      tax_deductible:
+      tax_deductible:,
+      referrer: request.referrer,
+      utm_source: params[:utm_source],
+      utm_medium: params[:utm_medium],
+      utm_campaign: params[:utm_campaign],
+      utm_term: params[:utm_term],
+      utm_content: params[:utm_content]
     )
 
     authorize @donation
@@ -91,7 +97,7 @@ class DonationsController < ApplicationController
       redirect_to root_url and return
     end
 
-    d_params[:ip_address] = request.ip
+    d_params[:ip_address] = request.remote_ip
     d_params[:user_agent] = request.user_agent
 
     tax_deductible = d_params[:goods].nil? ? true : d_params[:goods] == "0"
@@ -254,7 +260,7 @@ class DonationsController < ApplicationController
   end
 
   def donation_params
-    params.require(:donation).permit(:email, :name, :amount, :message, :anonymous, :goods, :fee_covered)
+    params.require(:donation).permit(:email, :name, :amount, :message, :anonymous, :goods, :fee_covered, :referrer, :utm_source, :utm_medium, :utm_campaign, :utm_term, :utm_content)
   end
 
   def redirect_to_404

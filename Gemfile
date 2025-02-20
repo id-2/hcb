@@ -12,8 +12,8 @@ gem "puma", "~> 6.5" # app server
 
 gem "pg", ">= 0.18", "< 2.0" # database
 gem "redis", "~> 5.3" # for caching, jobs, etc.
-gem "sidekiq", "~> 7.3.7" # background jobs
-gem "sidekiq-cron", "~> 2.0" # run Sidekiq jobs at scheduled intervals
+gem "sidekiq", "~> 7.3.8" # background jobs
+gem "sidekiq-cron", "~> 2.1" # run Sidekiq jobs at scheduled intervals
 
 gem "image_processing", "~> 1.2"
 gem "mini_magick"
@@ -35,7 +35,8 @@ gem "faraday" # web requests
 gem "increase", "~> 0.3.3"
 gem "stripe", "11.7.0"
 gem "plaid", "~> 34.0"
-gem "yellow_pages", github: "hackclub/yellow_pages", ref: "5827da4"
+gem "yellow_pages", github: "hackclub/yellow_pages"
+gem "recursive-open-struct" # for stubbing stripe api objects
 
 gem "aws-sdk-s3", require: false
 
@@ -109,7 +110,7 @@ gem "xxhash" # fast hashing
 
 gem "diffy" # rendering diffs (comments)
 
-gem "webauthn", "~> 3.1"
+gem "webauthn", "~> 3.2"
 
 gem "ahoy_matey" # analytics
 gem "airbrake" # exception tracking
@@ -156,7 +157,7 @@ end
 group :development, :test do
   gem "erb_lint", require: false
   gem "rubocop"
-  gem "rubocop-rails", "~> 2.27"
+  gem "rubocop-rails", "~> 2.29"
   gem "relaxed-rubocop"
 
   gem "rspec-rails", "~> 7.1.0"
