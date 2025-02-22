@@ -69,13 +69,26 @@ class Document < ApplicationRecord
   end
 
   def preview_url(resize: "500x500")
-    return nil unless file
+    return nil unless file&.attached?
 
     case file.content_type
     when "application/pdf"
       return nil unless file.previewable?
 
-      file.preview(resize:)
+      file.preview(resize: resize)
+    when "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+         "application/msword"
+      if Rails.env.staging?
+        heroku_app_name = ENV["HEROKU_APP_NAME"]
+        production_host = "https://#{heroku_app_name}.herokuapp.com"
+      else
+        production_host = Rails.application.routes.default_url_options[:host]
+      end
+      file_url = Rails.application.routes.url_helpers.rails_blob_url(file, host: production_host, only_path: false)
+      preview = "https://drive.google.com/viewer?embedded=true&url=https%3A%2F%2Fcdn.discordapp.com%2Fattachments%2F1078317804148768849%2F1342744655326089217%2F6776b676dfd69_CAPTURE_THE_FLAG_RB.docx%3Fex%3D67babfe8%26is%3D67b96e68%26hm%3D78952181789677bdc9ec82053c394b3bcae4883e39d89be808f960926d518a68%26"
+      Rails.logger.info "Preview URL: #{preview}"
+      Rails.logger.info "File URL: #{file_url}"
+      preview
     else
     end
   end
