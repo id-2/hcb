@@ -1,5 +1,7 @@
 <% if document.file.content_type.in?(["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/msword"]) %>
-  <iframe loading="lazy" src="<%= document.preview_url %>" width="330" height="460" max-widht="100%" frameborder="0" style="pointer-events: none;"></iframe>
+  <div style="height: 400px; overflow: hidden;">
+    <iframe loading="lazy" src="<%= document.preview_url %>" width="330" height="450" max-widht="100%" frameborder="0" style="pointer-events: none;"></iframe>
+  </div>
 <% elsif document.file.content_type == "application/pdf" %>
   <%= image_tag(document.preview_url, width: "330", style: "max-width: 100%;") %>
 <% else %>
