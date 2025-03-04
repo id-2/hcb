@@ -9,7 +9,7 @@
   <div class="menu__content menu__content--2 menu__content--compact h5" style="width: 290px; padding: 0.5rem" data-menu-target="content">
     <div data-controller="tabs" data-tabs-default-tab-value="status">
       <button id="status" data-tabs-target="btn" data-action="tabs#select">Status</button>
-      <button id="date" data-tabs-target="btn" data-action="tabs#select">Date started</button>
+      <button id="date" data-tabs-target="btn" data-action="tabs#select">Date</button>
       <button id="amount" data-tabs-target="btn" data-action="tabs#select">Amount</button>
 
       <div class="menu__divider"></div>
@@ -21,9 +21,9 @@
 
       <div data-tabs-target="tab" id="date">
         <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
-          <p class="bold mb0 mt0">Donations started after...</p>
+          <p class="bold mb0 mt0">After...</p>
           <%= form.date_field :start, class: "border mb1", value: @start_date %>
-          <p class="bold mb0 mt0">Donations started before...</p>
+          <p class="bold mb0 mt0">Before...</p>
           <%= form.date_field :end, class: "border mb1", value: @end_date %>
           <% request.query_parameters.except(:start, :end).each do |key, value| %>
             <%= hidden_field_tag key, value %>
