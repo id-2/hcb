@@ -7,18 +7,23 @@
     <%= inline_icon "filter", size: 28 %>
   </button>
   <div class="menu__content menu__content--2 menu__content--compact h5" style="width: 290px; padding: 0.5rem" data-menu-target="content">
-    <div data-controller="tabs" data-tabs-default-tab-value="type">
-      <button id="type" data-tabs-target="btn" data-action="tabs#select">Type</button>
-      <button id="status" data-tabs-target="btn" data-action="tabs#select">Status</button>
-      <button id="users" data-tabs-target="btn" data-action="tabs#select">Users</button>
-      <div data-tabs-target="tab" id="type">
-        <% unless show_mock_data? %>
-          <div class="menu__divider"></div>
-          <% %w[virtual physical].each do |type| %>
-            <%= link_to type.humanize, upsert_query_params(type:), class: "flex-auto menu__action !border-t-0 #{"menu__action--active" if @type == type}", data: { turbo_prefetch: "false" } %>
+    <div data-controller="tabs" data-tabs-default-tab-value="<%= filters[0][:label]%>">
+      <% filters.each do |filter| %>
+        <button id="<%= filter[:label] %>" data-tabs-target="btn" data-action="tabs#select"><%= filter[:label].humanize %></button>
+      <% end %>
+      <% filters.each do |filter| %>
+        <div data-tabs-target="tab" id="<%= filter[:label] %>">
+          <% if filter[:type] == "select" %>
+            <% filter[:options].each do |option| %>
+              <% if option.is_a?(Array) %>
+                <%= link_to option[0], upsert_query_params(filter[:label].downcase => option[1]), class: "menu__action !border-none" %>
+              <% else %>
+                <%= link_to option.humanize, upsert_query_params(filter[:label].downcase => option), class: "menu__action !border-none" %>
+              <% end %>
+            <% end %>
           <% end %>
-        <% end %>
-      </div>
+        </div>
+      <% end %>
       <div data-tabs-target="tab" id="status">
         <% unless show_mock_data? %>
           <div class="menu__divider"></div>
@@ -41,3 +46,4 @@
     </div>
   </div>
 </div>
+<%= yield %>
