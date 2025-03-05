@@ -1,7 +1,5 @@
 <div class="flex items-center filter-menu">
-  <%= render partial: "filters/menu" do %>
-    hi
-  <% end %>
+  <%= render "events/filters/menu", filters: @filter_options %>
   <% if @status || @user_id %>
     <%= link_to nil, class: "-ml-2 pop muted tooltipped tooltipped--s", aria: { label: "Clear filters" }, data: { turbo_prefetch: "false" } do %>
       <%= inline_icon "view-close", size: 28 %>

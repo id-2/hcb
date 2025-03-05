@@ -509,6 +509,11 @@ class EventsController < ApplicationController
     @paginated_stripe_cards = Kaminari.paginate_array(display_cards).page(page).per(per_page)
     @all_unique_cardholders = @event.stripe_cards.on_main_ledger.map(&:stripe_cardholder).uniq
 
+    @filter_options = [
+      { label: "Type", type: "select", options: %w[virtual physical] },
+      { label: "Status", type: "select", options: %w[active frozen canceled] },
+      { label: "Users", type: "select", options: @all_unique_cardholders.map { |cardholder| [cardholder.user.id, cardholder.user.name] } }
+    ]
   end
 
   def documentation
@@ -737,6 +742,13 @@ class EventsController < ApplicationController
 
       @transfers = Kaminari.paginate_array(@transfers).page(params[:page]).per(100)
     end
+
+    @filter_options = [
+      { label: "Type", type: "select", options: ["ACH transfer", "Mailed check", "PayPal", "HCB Transfer"] },
+      { label: "Status", type: "select", options: ["Fulfilled", "Deposited", "In transit", "Canceled"] },
+      { label: "Date", type: "date_range" },
+      { label: "Amount", type: "amount_range" }
+    ]
   end
 
   def new_transfer

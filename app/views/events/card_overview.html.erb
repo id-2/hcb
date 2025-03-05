@@ -15,13 +15,7 @@
       Cards
       <%= badge_for @event.stripe_cards.on_main_ledger.count, class: "bg-muted" %>
     </span>
-    <%= render "events/filters/menu",  
-        filters: [
-        { label: "Type", type: "select", options: %w[virtual physical] },
-        { label: "Status", type: "select", options: %w[active frozen canceled] },
-        { label: "Users", type: "select", options: @all_unique_cardholders.map { |cardholder| [cardholder.user.name, cardholder.user.id] } }
-      ] 
-    %>
+    <%= render "events/filters/menu", filters: @filter_options %>
     <%= pop_icon_to @view == "list" ? "grid" : "list",
                     "?view=#{@view == 'list' ? 'grid' : 'list'}#{"&q=#{@q}" if @q}#{"&status=#{@status}" if @status}" %>
     <% if organizer_signed_in? %>

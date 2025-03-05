@@ -43,7 +43,7 @@
       <% end %>
     </div>
   <% end %>
-  <%= render "filter_transfers_menu" unless @has_filter %>
+  <%= render "events/filters/menu", filters: @filter_options unless @has_filter %>
 </div>
 
 <%= render "filter_transfers" if @has_filter %>
