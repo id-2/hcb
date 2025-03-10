@@ -102,9 +102,9 @@ class InvoicesController < ApplicationController
 
     @invoices = @invoices.select do |invoice|
       (filter_params[:amount_less_than].nil? || invoice.item_amount < filter_params[:amount_less_than]) &&
-      (filter_params[:amount_greater_than].nil? || invoice.item_amount > filter_params[:amount_greater_than]) &&
-      (filter_params[:date_after].nil? || invoice.created_at > filter_params[:date_after]) &&
-      (filter_params[:date_before].nil? || invoice.created_at < filter_params[:date_before])
+        (filter_params[:amount_greater_than].nil? || invoice.item_amount > filter_params[:amount_greater_than]) &&
+        (filter_params[:date_after].nil? || invoice.created_at > filter_params[:date_after]) &&
+        (filter_params[:date_before].nil? || invoice.created_at < filter_params[:date_before])
     end
 
     @filter_options = [
