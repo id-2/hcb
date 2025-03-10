@@ -30,9 +30,9 @@
           <% elsif filter[:type] == "date_range" %>
             <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
               <p class="bold mb0 mt0">After...</p>
-              <%= form.date_field :start, class: "border mb1", value: @start_date %>
+              <%= form.date_field :date_after, class: "border mb1", value: @start_date %>
               <p class="bold mb0 mt0">Before...</p>
-              <%= form.date_field :end, class: "border mb1", value: @end_date %>
+              <%= form.date_field :date_before, class: "border mb1", value: @end_date %>
               <% request.query_parameters.except(:start, :end).each do |key, value| %>
                 <%= hidden_field_tag key, value %>
               <% end %>

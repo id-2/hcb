@@ -1,9 +1,7 @@
 <div class="flex items-center filter-menu">
   <%= render "events/filters/menu", filters: %>
-  <% if filters.any? { |filter| params[filter[:label].downcase].present? } %>
-    <%= link_to nil, class: "-ml-2 pop muted tooltipped tooltipped--s", aria: { label: "Clear filters" }, data: { turbo_prefetch: "false" } do %>
-      <%= inline_icon "view-close", size: 28 %>
-    <% end %>
+  <%= link_to nil, class: "-ml-2 pop muted tooltipped tooltipped--s", aria: { label: "Clear filters" }, data: { turbo_prefetch: "false" } do %>
+    <%= inline_icon "view-close", size: 28 %>
   <% end %>
 
   <div class="filter-menu__chips">
@@ -16,6 +14,24 @@
           <% end %>
         </div>
       <% end %>
+    <% end %>
+
+    <% if params[:amount_less_than] %>
+      <div class="badge badge-large bg-muted">
+        Less than <%= render_money params[:amount_less_than].to_i %>
+        <%= link_to upsert_query_params("amount_less_than" => nil), class: "flex items-center", data: { turbo_prefetch: "false" } do %>
+          <%= inline_icon "view-close", size: 20 %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if params[:amount_greater_than_than] %>
+      <div class="badge badge-large bg-muted">
+        Less than <%= render_money params[:amount_greater_than_than].to_i %>
+        <%= link_to upsert_query_params("amount_greater_than_than" => nil), class: "flex items-center", data: { turbo_prefetch: "false" } do %>
+          <%= inline_icon "view-close", size: 20 %>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>
