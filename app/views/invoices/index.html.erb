@@ -56,7 +56,7 @@
   <%= render "events/filters/menu", filters: @filter_options unless @has_filter %>
 </div>
 
-<%= render "filter_invoices" if @has_filter %>
+<%= render "events/filters/bar", filters: @filter_options if @has_filter %>
 
 <% if @invoices.size > 0 %>
 <article class="table-container">

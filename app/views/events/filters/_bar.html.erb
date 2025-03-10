@@ -1,0 +1,21 @@
+<div class="flex items-center filter-menu">
+  <%= render "events/filters/menu", filters: %>
+  <% if filters.any? { |filter| params[filter[:label].downcase].present? } %>
+    <%= link_to nil, class: "-ml-2 pop muted tooltipped tooltipped--s", aria: { label: "Clear filters" }, data: { turbo_prefetch: "false" } do %>
+      <%= inline_icon "view-close", size: 28 %>
+    <% end %>
+  <% end %>
+
+  <div class="filter-menu__chips">
+    <% filters.each do |filter| %> 
+      <% if params[filter[:label].downcase] %>
+        <div class="badge badge-large bg-muted">
+          <%= params[filter[:label].downcase].humanize %>
+          <%= link_to upsert_query_params(filter[:label].downcase => nil), class: "flex items-center", data: { turbo_prefetch: "false" } do %>
+            <%= inline_icon "view-close", size: 20 %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

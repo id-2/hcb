@@ -334,6 +334,11 @@ class EventsController < ApplicationController
     @positions = Kaminari.paginate_array(@all_positions).page(params[:page]).per(params[:per] || @view == "list" ? 20 : 10)
 
     @pending = @event.organizer_position_invites.pending.includes(:sender)
+
+    @filter_options = [
+      { label: "Type", type: "select", options: %w[members managers] },
+      { label: "Date invited", type: "date_range" }
+    ]
   end
 
   # GET /events/1/edit
@@ -652,6 +657,9 @@ class EventsController < ApplicationController
 
     @recurring_donations_monthly_sum = @recurring_donations.sum(0) { |donation| donation[:amount] }
 
+    @filter_options = [
+      { label: "Status", type: "select", options: %w[deposited refunded] }
+    ]
   end
 
   def transfers
@@ -744,7 +752,18 @@ class EventsController < ApplicationController
     end
 
     @filter_options = [
-      { label: "Type", type: "select", options: ["ACH transfer", "Mailed check", "PayPal", "HCB Transfer"] },
+      { 
+        label: "Type", 
+        type: "select", 
+        options: [
+          ["ACH transfer", "ach_transfer"],
+          ["Mailed check", "mailed_check"],
+          ["PayPal", "paypal"],
+          ["HCB Transfer", "hcb_transfer"],
+          (["Grant", "grant"] if Flipper.enabled?(:card_grants_2023_05_25, @event)),
+          (["International Wire", "international_wire"] if Flipper.enabled?(:international_wires_2024_09_22, @event))
+        ].compact
+      },
       { label: "Status", type: "select", options: ["Fulfilled", "Deposited", "In transit", "Canceled"] },
       { label: "Date", type: "date_range" },
       { label: "Amount", type: "amount_range" }
@@ -768,6 +787,12 @@ class EventsController < ApplicationController
     @reports = @reports.rejected if params[:status] == "rejected"
     @reports = @reports.search(params[:q]) if params[:q].present?
     @reports = @reports.order(created_at: :desc).page(params[:page] || 1).per(params[:per] || 25)
+
+    @filter_options = [
+      { label: "Status", type: "select", options: %w[pending reimbursed rejected] },
+      { label: "Date", type: "date_range" },
+      { label: "Amount", type: "amount_range" }
+    ]
   end
 
   def reimbursements_pending_review_icon

@@ -15,7 +15,7 @@
       Cards
       <%= badge_for @event.stripe_cards.on_main_ledger.count, class: "bg-muted" %>
     </span>
-    <%= render "events/filters/menu", filters: @filter_options %>
+    <%= render "events/filters/menu", filters: @filter_options unless @has_filter %>
     <%= pop_icon_to @view == "list" ? "grid" : "list",
                     "?view=#{@view == 'list' ? 'grid' : 'list'}#{"&q=#{@q}" if @q}#{"&status=#{@status}" if @status}" %>
     <% if organizer_signed_in? %>
@@ -25,7 +25,7 @@
       <% end %>
     <% end %>
   </h1>
-  <%= render "filter_cards" if @has_filter %>
+  <%= render "events/filters/bar", filters: @filter_options if @has_filter %>
   <% if control = @organizer_position&.active_spending_control %>
     <% title = control.balance_cents.zero? ? "You are not authorized to spend any money at the moment." : "You currently have a spending limit of #{render_money control.balance_cents}" %>
     <%= render "callout", type: control.balance_cents.zero? ? "warning" : "info", title: do %>

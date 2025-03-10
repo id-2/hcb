@@ -43,10 +43,10 @@
     <%= form.hidden_field :filter, value: params[:filter] if params[:filter] %>
     <%= form.hidden_field :view, value: @view if @view %>
   <% end %>
-  <%= render "filter_team_menu" unless @has_filter %>
+  <%= render "events/filters/menu", filters: @filter_options unless @has_filter %>
 </div>
 
-<%= render "filter_team" if @has_filter %>
+<%= render "events/filters/bar", filters: @filter_options if @has_filter %>
 
 <% if @view == "list" %>
   <% if @all_positions.any? %>
