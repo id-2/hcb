@@ -93,6 +93,20 @@ class InvoicesController < ApplicationController
       end
     end
 
+    filter_params = {
+      amount_less_than: params[:amount_less_than]&.to_i,
+      amount_greater_than: params[:amount_greater_than]&.to_i,
+      date_after: params[:date_after]&.to_date,
+      date_before: params[:date_before]&.to_date
+    }
+
+    @invoices = @invoices.select do |invoice|
+      (filter_params[:amount_less_than].nil? || invoice.item_amount < filter_params[:amount_less_than]) &&
+      (filter_params[:amount_greater_than].nil? || invoice.item_amount > filter_params[:amount_greater_than]) &&
+      (filter_params[:date_after].nil? || invoice.created_at > filter_params[:date_after]) &&
+      (filter_params[:date_before].nil? || invoice.created_at < filter_params[:date_before])
+    end
+
     @filter_options = [
       { label: "Status", type: "select", options: %w[paid unpaid archived voided] },
       { label: "Date", type: "date_range" },

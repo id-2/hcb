@@ -16,22 +16,15 @@
       <% end %>
     <% end %>
 
-    <% if params[:amount_less_than] %>
+    <% [:amount_less_than, :amount_greater_than].each do |amount_filter| %>
+      <% if params[amount_filter] %>
       <div class="badge badge-large bg-muted">
-        Less than <%= render_money params[:amount_less_than].to_i %>
-        <%= link_to upsert_query_params("amount_less_than" => nil), class: "flex items-center", data: { turbo_prefetch: "false" } do %>
-          <%= inline_icon "view-close", size: 20 %>
+        <%= amount_filter.to_s.humanize %> <%= render_money params[amount_filter].to_i %>
+        <%= link_to upsert_query_params(amount_filter => nil), class: "flex items-center", data: { turbo_prefetch: "false" } do %>
+        <%= inline_icon "view-close", size: 20 %>
         <% end %>
       </div>
-    <% end %>
-
-    <% if params[:amount_greater_than_than] %>
-      <div class="badge badge-large bg-muted">
-        Less than <%= render_money params[:amount_greater_than_than].to_i %>
-        <%= link_to upsert_query_params("amount_greater_than_than" => nil), class: "flex items-center", data: { turbo_prefetch: "false" } do %>
-          <%= inline_icon "view-close", size: 20 %>
-        <% end %>
-      </div>
+      <% end %>
     <% end %>
   </div>
 </div>
