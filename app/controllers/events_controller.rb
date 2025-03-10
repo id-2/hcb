@@ -752,9 +752,9 @@ class EventsController < ApplicationController
     end
 
     @filter_options = [
-      { 
-        label: "Type", 
-        type: "select", 
+      {
+        label: "Type",
+        type: "select",
         options: [
           ["ACH transfer", "ach_transfer"],
           ["Mailed check", "mailed_check"],
