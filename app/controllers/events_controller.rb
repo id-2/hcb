@@ -510,9 +510,9 @@ class EventsController < ApplicationController
     @all_unique_cardholders = @event.stripe_cards.on_main_ledger.map(&:stripe_cardholder).uniq
 
     @filter_options = [
-      { label: "Type", type: "select", options: %w[virtual physical] },
+      { label: "Type", type: "select", options: %w[virtual physical canceled] },
       { label: "Status", type: "select", options: %w[active frozen canceled] },
-      { label: "Users", type: "select", options: @all_unique_cardholders.map { |cardholder| [cardholder.user.id, cardholder.user.name] } }
+      { label: "Users", type: "select", options: @all_unique_cardholders.map { |cardholder| [cardholder.user.name.humanize, cardholder.user.id] } }
     ]
   end
 

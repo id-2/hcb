@@ -92,6 +92,12 @@ class InvoicesController < ApplicationController
         @stats[:pending] += @invoices[i].item_amount
       end
     end
+
+    @filter_options = [
+      { label: "Status", type: "select", options: %w[paid unpaid archived voided] },
+      { label: "Date", type: "date_range" },
+      { label: "Amount", type: "amount_range" }
+    ]
   end
 
   def new
