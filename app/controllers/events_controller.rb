@@ -132,7 +132,8 @@ class EventsController < ApplicationController
     authorize @event
     @users = BreakdownEngine::Users.new(@event).run
     @tags = BreakdownEngine::Tags.new(@event).run
-    @empty_tags = @users.empty? || !Flipper.enabled?(:transaction_tags_2022_07_29, @event)
+
+    @empty_tags = @tags.empty? || !Flipper.enabled?(:transaction_tags_2022_07_29, @event)
     @empty_users = @users.empty?
 
     render partial: "events/home/tags_users", locals: { users: @users, tags: @tags, event: @event }
@@ -384,16 +385,6 @@ class EventsController < ApplicationController
       flash[:error] = e.message
       redirect_back fallback_location: edit_event_path(@event.slug)
     end
-  end
-
-  def finish_signee_backfill
-    authorize @event
-    if @event.organizer_positions.where(is_signee: nil).update(is_signee: false)
-      flash[:success] = "Wow-e! It's done... the signee backfill that is."
-    else
-      flash[:error] = "WHAT?! An error. Go pester @sampoder."
-    end
-    redirect_back fallback_location: event_team_path(@event.slug)
   end
 
   # DELETE /events/1
