@@ -22,17 +22,17 @@
             <% end %>
             <% filter[:options].each do |option| %>
               <% if option.is_a?(Array) %>
-                <%= link_to option[0], upsert_query_params(filter[:label].downcase => option[1]), class: "menu__action !border-none" %>
+                <%= link_to option[0], upsert_query_params(filter[:label].downcase => option[1]), class: "menu__action !border-none #{"menu__action--active" if params[filter[:label].downcase] == option[1].to_s}" %>
               <% else %>
-                <%= link_to option.humanize, upsert_query_params(filter[:label].downcase => option), class: "menu__action !border-none" %>
+                <%= link_to option.humanize, upsert_query_params(filter[:label].downcase => option), class: "menu__action !border-none #{"menu__action--active" if params[filter[:label].downcase] == option.to_s}" %>
               <% end %>
             <% end %>
           <% elsif filter[:type] == "date_range" %>
             <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
               <p class="bold mb0 mt0">After...</p>
-              <%= form.date_field :date_after, class: "border mb1", value: @start_date %>
+                <%= form.date_field :date_after, class: "border mb1" %>
               <p class="bold mb0 mt0">Before...</p>
-              <%= form.date_field :date_before, class: "border mb1", value: @end_date %>
+              <%= form.date_field :date_before, class: "border mb1" %>
               <% request.query_parameters.except(:start, :end).each do |key, value| %>
                 <%= hidden_field_tag key, value %>
               <% end %>
@@ -41,9 +41,9 @@
           <% elsif filter[:type] == "amount_range" %>
             <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
               <p class="bold mb0 mt0">Less than...</p>
-              <%= form.number_field :amount_less_than, class: "border mb1", value: @start_date %>
+              <%= form.number_field :amount_less_than, class: "border mb1" %>
               <p class="bold mb0 mt0">Greater than...</p>
-              <%= form.number_field :amount_greater_than, class: "border mb1", value: @end_date %>
+              <%= form.number_field :amount_greater_than, class: "border mb1" %>
               <% request.query_parameters.except(:start, :end).each do |key, value| %>
                 <%= hidden_field_tag key, value %>
               <% end %>
