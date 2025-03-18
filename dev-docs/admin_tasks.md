@@ -36,11 +36,3 @@ heroku console -a bank-hackclub
 ```
 
 We can also replace `bank-hackclub` with any other app name (like a review app) to get the console for that app instead.
-
-### Restart periodic / repeating jobs
-
-For example, for the `SyncTransactionsJob`:
-
-```ruby
-SyncTransactionsJob.perform_now(repeat: true)
-```
