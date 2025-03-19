@@ -13,13 +13,13 @@ module Column
         handle_ach_incoming_transfer_scheduled
       elsif type == "ach.outgoing_transfer.returned"
         handle_ach_outgoing_transfer_returned
-      elsif type == "check.outgoing_debit.deposited"
+      elsif type == "check.incoming_debit.deposited"
         handle_check_deposit_deposited
-      elsif type == "check.outgoing_debit.returned"
+      elsif type == "check.incoming_debit.returned"
         handle_check_deposit_returned
       elsif type == "swift.outgoing_transfer.returned"
         handle_swift_outgoing_transfer_returned
-      elsif type.start_with?("check.incoming_debit")
+      elsif type.start_with?("check.outgoing_debit")
         handle_outgoing_check_update
       end
     rescue => e
