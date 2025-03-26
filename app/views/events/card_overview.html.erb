@@ -13,7 +13,7 @@
   <h1 class="flex heading items-center">
     <span class="flex-grow flex items-center flex-1">
       Cards
-      <%= badge_for @event.stripe_cards.on_main_ledger.count, class: "bg-muted" %>
+      <%= badge_for @event.stripe_cards.active.on_main_ledger.count, class: "bg-muted" %>
     </span>
     <%= render "events/filters/menu", filters: @filter_options unless @has_filter %>
     <%= pop_icon_to @view == "list" ? "grid" : "list",

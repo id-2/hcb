@@ -222,7 +222,7 @@ class InvoicesController < ApplicationController
     @invoice.sync_remote!
     @invoice.reload
 
-    redirect_to @invoice.hosted_invoice_url, allow_other_host: true
+    redirect_to URI.parse(@invoice.hosted_invoice_url).to_s, allow_other_host: true
   end
 
   def pdf
@@ -233,7 +233,7 @@ class InvoicesController < ApplicationController
     @invoice.sync_remote!
     @invoice.reload
 
-    redirect_to @invoice.invoice_pdf, allow_other_host: true
+    redirect_to URI.parse(@invoice.invoice_pdf).to_s, allow_other_host: true
   end
 
   def refund

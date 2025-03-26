@@ -29,6 +29,7 @@
 #  public_reimbursement_page_enabled            :boolean          default(FALSE), not null
 #  public_reimbursement_page_message            :text
 #  reimbursements_require_organizer_peer_review :boolean          default(FALSE), not null
+#  risk_level                                   :integer
 #  short_name                                   :string
 #  slug                                         :text
 #  stripe_card_shipping_type                    :integer          default("standard"), not null
@@ -252,6 +253,7 @@ class Event < ApplicationRecord
   has_many :donations
   has_many :donation_payouts, through: :donations, source: :payout
   has_many :recurring_donations
+  has_one :donation_goal, dependent: :destroy, class_name: "Donation::Goal"
 
   has_many :lob_addresses
   has_many :checks, through: :lob_addresses
@@ -346,7 +348,7 @@ class Event < ApplicationRecord
 
   validates :postal_code, zipcode: { country_code_attribute: :country, message: "is not valid" }, allow_blank: true
 
-  before_create { self.increase_account_id ||= IncreaseService::AccountIds::FS_MAIN }
+  before_create { self.increase_account_id ||= "account_phqksuhybmwhepzeyjcb" }
 
   before_update if: -> { demo_mode_changed?(to: false) } do
     self.activated_at = Time.now
@@ -385,6 +387,13 @@ class Event < ApplicationRecord
     express: 1,
     priority: 2,
   }
+
+  enum :risk_level, {
+    zero: 0,
+    slight: 1,
+    moderate: 2,
+    high: 3,
+  }, suffix: :risk_level
 
   include PublicActivity::Model
   tracked owner: proc{ |controller, record| controller&.current_user }, event_id: proc { |controller, record| record.id }, only: [:create]
@@ -689,6 +698,7 @@ class Event < ApplicationRecord
   def minimum_wire_amount_cents
     return 100 if canonical_transactions.where("amount_cents > 0").where("date >= ?", 1.year.ago).sum(:amount_cents) > 50_000_00
     return 100 if plan.exempt_from_wire_minimum?
+    return 100 if Flipper.enabled?(:exempt_from_wire_minimum, self)
 
     return 500_00
   end
