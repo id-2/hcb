@@ -280,6 +280,13 @@ class EventsController < ApplicationController
 
     @pending = @event.organizer_position_invites.pending.includes(:sender)
 
+    if params[:date_after]
+      @positions = @positions.where("organizer_positions.created_at >= ?", params[:date_after].to_date)
+    end
+    if params[:date_before]
+      @positions = @positions.where("organizer_positions.created_at <= ?", params[:date_before].to_date)
+    end
+
     @filter_options = [
       { label: "Type", type: "select", options: %w[members managers] },
       { label: "Date invited", type: "date_range" }
