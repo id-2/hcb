@@ -142,7 +142,14 @@ class Receipt < ApplicationRecord
   def preview(resize: "1024x1024", only_path: true)
     if file.previewable? || file.content_type == "text/csv"
       if file.content_type == "text/csv"
-        preview_csv(file)
+        t = preview_csv(file)
+        t = MiniMagick::Image.read(t)
+        t.format("png")
+        t.resize(resize)
+        t.write("preview.png")
+        t = Rails.application.routes.url_helpers.rails_blob_url(t, only_path:)
+        puts "Preview URL: #{t}"
+        t
       else
         Rails.application.routes.url_helpers.rails_representation_url(file.preview(resize:).processed, only_path:)
       end
