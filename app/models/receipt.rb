@@ -125,7 +125,7 @@ class Receipt < ApplicationRecord
   def preview_csv(file)
     csv_content = file.download
     rows = CSV.parse(csv_content, headers: true).first(5)
-  
+
     <<~HTML
       <table>
         <thead>
