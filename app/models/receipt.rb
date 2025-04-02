@@ -137,7 +137,7 @@ class Receipt < ApplicationRecord
       </table>
     HTML
   end
-  
+
 
   def preview(resize: "1024x1024", only_path: true)
     if file.previewable? || file.content_type == "text/csv"
