@@ -155,6 +155,8 @@ class InvoicesController < ApplicationController
     end
 
     redirect_to @invoice
+  rescue Pundit::NotAuthorizedError
+    raise
   rescue => e
     Rails.error.report(e)
 
