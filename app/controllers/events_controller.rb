@@ -257,6 +257,8 @@ class EventsController < ApplicationController
     authorize @event
 
     case params[:type]
+    when "readers"
+      @filter = "reader"
     when "members"
       @filter = "member"
     when "managers"
@@ -288,7 +290,7 @@ class EventsController < ApplicationController
     end
 
     @filter_options = [
-      { label: "Type", type: "select", options: %w[members managers] },
+      { label: "Type", type: "select", options: %w[readers members managers] },
       { label: "Date invited", type: "date_range" }
     ]
   end
