@@ -22,19 +22,12 @@
   <h2 class="h2 mt0 mx0 border-none flex items-center justify-between" style="gap: 8px">
     <span class="flex-auto">
       <%= turbo_frame_tag @hcb_code, class: "flex items-center flex-wrap" do %>
-        <%= @hcb_code.stripe_card.user.initial_name %>
-        <span class="regular muted"> 
-          &nbsp;made a&nbsp;
-        </span>
         <% if @hcb_code.stripe_cash_withdrawal? && @hcb_code.custom_memo.nil? %>
-          <span class="regular">
-            <%= render_money(renderable_amount_cents) %>
-          </span>
           <span class="regular muted">
-            withdrawal from
+            Withdrawal from
           </span>
         <% else %>
-          <span class="regular muted"> purchase at </span>
+          <span class="regular muted">Purchase at </span>
           &nbsp;<%= humanized_merchant_name @hcb_code.stripe_merchant %>&nbsp;
           <span class="regular muted"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
           <span class="regular"><%= render_money(renderable_amount_cents) %></span>
