@@ -22,9 +22,9 @@
   <h2 class="h2 mt0 border-none">
     <div class="flex items-center justify-between" style="gap: 8px">
       <span class="flex-auto mr1">
-        <span class="regular muted"><%= @hcb_code.increase_check.sent? ? "Sent" : "Sending" %></span>
+        <span class="regular muted">Check to</span>
         <%= @hcb_code.increase_check.recipient_name %>
-        <span class="regular muted"> a&nbsp;check for </span>
+        <span class="regular muted">for</span>
         <span class="regular"><%= render_money @hcb_code.increase_check.amount %></span>
       </span>
       <span class="badge h4 ml2 nowrap bg-<%= @hcb_code.increase_check.state %>">
