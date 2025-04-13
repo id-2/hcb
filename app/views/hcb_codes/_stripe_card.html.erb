@@ -27,7 +27,7 @@
           &nbsp;made a&nbsp;
         </span>
         <% if @hcb_code.stripe_cash_withdrawal? && @hcb_code.custom_memo.nil? %>
-          <span>
+          <span class="regular">
             <%= render_money(renderable_amount_cents) %>
           </span>
           <span class="regular muted">
@@ -37,7 +37,7 @@
           <span class="regular muted"> purchase at </span>
           &nbsp;<%= humanized_merchant_name @hcb_code.stripe_merchant %>&nbsp;
           <span class="regular muted"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
-          <%= render_money(renderable_amount_cents) %>
+          <span class="regular"><%= render_money(renderable_amount_cents) %></span>
         <% end %>
       <% end %>
     </span>
