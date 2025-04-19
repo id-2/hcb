@@ -2,6 +2,10 @@
 
 <div class="card mt2">
   <h2 class="h2 mt0 border-none">
+    <%= pop_icon_to "edit",
+        edit_hcb_code_path(card_grant.disbursement.local_hcb_code),
+        class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
+        data: { turbo: false } %>
     <span class="regular muted"> 
       Grant to
     </span>
