@@ -2149,7 +2149,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_20_003243) do
     t.boolean "use_two_factor_authentication", default: false
     t.boolean "teenager"
     t.integer "creation_method"
-    t.integer "donation_summary_option", default: 0, null: false
+    t.integer "donation_summary_option", default: 1, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
