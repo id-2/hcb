@@ -8,7 +8,7 @@
 <div class="md:mt-12">
   <h3 class="mt2 mb1 muted flex items-center" style="font-weight: 400; gap: 8px;">
     <span style="flex-grow: 1;">
-      <%= user_mention @user, { class: "tooltipped--s align-top" } %>
+      <%= user_mention @user, class: "tooltipped--s align-top" %>
       <%= "will be reimbursed " if @report.reimbursement_approved? || @report.reimbursed? && !@report.payout_holding.sent? %>
       <%= "was reimbursed " if @report.reimbursed? && @report.payout_holding.sent? %>
       <%= "requested " if @report.rejected? || @report.reversed? %>
@@ -89,7 +89,7 @@
 
 <% if @report.event&.public_reimbursement_page_message&.present? && policy(@event).reimbursements? %>
   <article class="card mt2 pt0">
-    <%== MarkdownService.instance.renderer.render @report.event.public_reimbursement_page_message %>
+    <%= sanitize(MarkdownService.instance.renderer.render(@report.event.public_reimbursement_page_message), scrubber: MarkdownScrubber.new) %>
     <section class="card__banner card__banner--bottom card__darker pt2 pb2">
       <p class="muted mt0 mb0">
         Information from <%= @report.event.name %>
@@ -100,7 +100,7 @@
 
 <% if @report.invite_message.presence %>
   <article class="card mt2 pt0">
-    <%== MarkdownService.instance.renderer.render @report.invite_message %>
+    <%= sanitize(MarkdownService.instance.renderer.render(@report.invite_message), scrubber: MarkdownScrubber.new) %>
     <section class="card__banner card__banner--bottom card__darker pt2 pb2">
       <p class="muted mt0 mb0">
         Message from <%= @report.event.name %>
@@ -166,6 +166,11 @@
 <section data-behavior="modal" role="dialog" id="edit_payout" class="modal modal--scroll bg-snow">
   <%= modal_header "Add Payout Information" %>
   <%= render "/users/payout_form", user: @report.user, report: @report %>
+</section>
+
+<section data-behavior="modal" role="dialog" id="wire_requirements" class="modal modal--scroll bg-snow">
+  <%= modal_header "Wire transfer requirements" %>
+  <%= render partial: "/wires/requirements", locals: { event: @report.event, class: "mb-0" } %>
 </section>
 
 <style>
