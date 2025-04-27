@@ -2,6 +2,8 @@
 
 <%= render "events/nav" if @event %>
 
+<%= render "edit_modal" %>
+
 <%= turbo_frame_tag @hcb_code.public_id, target: "_top" do %>
   <%= render partial: "hcb_codes/admin_tools" %>
   <div id="rich_metadata">
