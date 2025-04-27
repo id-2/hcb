@@ -1,11 +1,12 @@
 <%# locals: (card_grant:) %>
+<%= render "hcb_codes/edit_modal" %>
 
 <div class="card mt2">
   <h2 class="h2 mt0 border-none">
     <%= pop_icon_to "edit",
         edit_hcb_code_path(card_grant.disbursement.local_hcb_code),
         class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
-        data: { turbo: false } %>
+        data: { turbo: "_top", behavior: "modal_trigger", modal: "rename_transaction" } %>
     <span class="regular muted"> 
       Grant to
     </span>
