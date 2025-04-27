@@ -1,0 +1,6 @@
+<%# locals: (task:) -%>
+<% type = task.class.name.underscore %>
+
+<div class="task">
+    <%= render partial: "admin/tasks/#{type}", locals: { task: task } %>
+</div>

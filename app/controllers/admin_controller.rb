@@ -71,6 +71,21 @@ class AdminController < ApplicationController
   def event_new
   end
 
+  def tasks
+    # icon: payment-transfer
+    @ach_transfers = AchTransfer.pending.includes(:event).order("created_at desc")
+    # icon: attachment
+    @reimbursements = Reimbursement::Report.includes(:event).visible.reimbursement_requested
+    # icon: check
+    @checks = IncreaseCheck.pending.order("created_at desc")
+    # icon: web"
+    @wires = Wire.includes(:event).pending.order("created_at desc")
+    # icon: door-leave
+    @disbursements = Disbursement.includes(:event).reviewing.order("created_at desc")
+
+    @tasks = (@ach_transfers + @reimbursements + @checks + @wires + @disbursements).sort_by(&:created_at).reverse
+  end
+
   def event_create
     emails = [params[:organizer_email]].reject(&:empty?)
 
@@ -1321,6 +1336,8 @@ class AdminController < ApplicationController
     @pending_tasks ||= {}
     @pending_tasks[task_name] ||= begin
       case task_name
+      when :all_tasks
+        0
       when :pending_hackathons_airtable
         hackathons_task_size
       when :pending_grant_airtable

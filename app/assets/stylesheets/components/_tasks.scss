@@ -1,0 +1,68 @@
+.task {
+    border-radius: 12px;
+    border: 2px solid $smoke;
+
+    & .task__header {
+        padding: 0.8rem;
+        border-bottom: 2px solid $smoke;
+        background-color: $snow;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        align-items: center;
+        gap: 0.6rem;
+
+        & .task__icon {
+            transform: scale(1.2);
+        }
+
+        & h3 {
+            margin: 0px;
+            padding: 0px;
+            font-size: 1.2rem;
+            border: none;
+            font-weight: 300;
+
+            & strong {
+                &:first-child {
+                    font-weight: 600;
+                    margin-left: 0px;
+                }
+
+                font-weight: 500;
+                margin-left: 0.1rem;
+                margin-right: 0.1rem;
+            }
+        }
+    }
+
+    & .task__body {
+        padding: 0.8rem;
+        background-color: $white;
+        border-radius: 0 0 12px 12px;
+    }
+
+    & .avatar-row img {
+        margin: 0px;
+    }
+
+    & kbd {
+        background-color: #c3c6cb36;
+        border: none;
+        border-radius: 6px;
+        padding: 0rem 0.4rem;
+        font-size: 1rem;
+        font-weight: 400;
+        font-family: inherit;
+        margin: 0rem 0.3rem;
+
+        &:last-child {
+            margin: 0px;
+        }
+
+        &:first-child {
+            margin-left: 0px;
+        }
+    }
+}
