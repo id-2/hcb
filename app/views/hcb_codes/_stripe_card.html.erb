@@ -34,7 +34,7 @@
           <span class="regular muted">Purchase at </span>
           &nbsp;<%= humanized_merchant_name @hcb_code.stripe_merchant %>&nbsp;
           <span class="regular muted"> <%= @hcb_code.stripe_refund? ? "refunded" : "for" %> </span>
-          <span class="regular"><%= render_money(renderable_amount_cents) %></span>
+          <span class="regular">&nbsp;<%= render_money(renderable_amount_cents) %></span>
         <% end %>
       <% end %>
     </span>
