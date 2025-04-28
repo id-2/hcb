@@ -23,7 +23,7 @@
     <%= pop_icon_to "edit",
         edit_hcb_code_path(@hcb_code),
         class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
-        data: { turbo: "_top", behavior: "modal_trigger", modal: "rename_transaction" } %>
+        data: { turbo: false } %>
     <span class="flex-auto">
       <%= turbo_frame_tag @hcb_code, class: "flex items-center flex-wrap" do %>
         <% if @hcb_code.stripe_cash_withdrawal? && @hcb_code.custom_memo.nil? %>
