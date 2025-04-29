@@ -1,19 +1,29 @@
 <%# locals: (card_grant:) %>
+<% hcb_code=card_grant.disbursement.local_hcb_code %>
 
 <div class="card mt2">
-  <h2 class="h2 mt0 border-none">
-    <%= pop_icon_to "edit",
-        edit_hcb_code_path(card_grant.disbursement.local_hcb_code),
-        class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
-        data: { turbo: false } %>
-    <span class="regular muted"> 
-      Grant to
-    </span>
-    <%= card_grant.user.initial_name %>
-    <span class="regular muted">
-      for
-    </span>
-    <span class="regular"><%= render_money card_grant.amount %></span>
+  <h2 class="h2 mt0 mx0 border-none flex items-center justify-between" style="gap: 8px">
+    <%= turbo_frame_tag hcb_code, class: "flex items-center" do %>
+      <%= pop_icon_to "edit",
+          edit_hcb_code_path(hcb_code),
+          class: "mr2 align-middle tooltipped tooltipped--e", "aria-label": "Rename transaction",
+          data: { turbo: true } %>
+      <span class="flex-auto">
+        <span class="regular muted"> 
+          Grant to
+        </span>
+        <%= card_grant.user.initial_name %>
+        <span class="regular muted">
+          for
+        </span>
+        <span class="regular"><%= render_money card_grant.amount %></span>
+  
+        <%= render "hcb_codes/memo_stream", hcb_code: hcb_code %>
+        <span style="flex-grow: 1;"></span>
+        <%= render partial: "hcb_codes/ai_memo", locals: { hcb_code: hcb_code } %>
+      </span>
+    <% end %>
+    <%= render partial: "hcb_codes/meatballs", locals: { hcb_code: hcb_code } %>
   </h2>
   <section class="card__banner card__darker details-horiz border-top border-bottom">
     <p>
