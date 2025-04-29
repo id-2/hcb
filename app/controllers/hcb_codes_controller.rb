@@ -125,7 +125,11 @@ class HcbCodesController < ApplicationController
       return render partial: "hcb_codes/memo", locals: { hcb_code: @hcb_code, form: false, prepended_to_memo: params[:hcb_code][:prepended_to_memo], location: params[:hcb_code][:location], ledger_instance: params[:hcb_code][:ledger_instance], renamed: true }
     end
 
-    redirect_to @hcb_code
+    if @hcb_code.card_grant?
+      redirect_to @hcb_code.card_grant, heading: true
+    else
+      redirect_to @hcb_code
+    end
   end
 
   def comment
