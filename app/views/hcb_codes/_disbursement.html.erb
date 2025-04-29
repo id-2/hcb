@@ -113,7 +113,7 @@
 
     <p>
       <strong>Transaction memo</strong>
-      <%= render "hcb_codes/memo", hcb_code: @hcb_code %>
+      <%= @hcb_code.memo %>
     </p>
 
     <%= render "hcb_codes/tags", hcb_code: @hcb_code, event: @event || @hcb_code.event %>

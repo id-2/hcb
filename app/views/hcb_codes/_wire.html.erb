@@ -70,7 +70,7 @@
 
       <p>
         <strong>Transaction memo</strong>
-        <%= render "hcb_codes/memo", hcb_code: @hcb_code %>
+        <%= @hcb_code.memo %>
       </p>
 
       <% if @hcb_code.wire.return_reason.present? %>

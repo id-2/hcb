@@ -132,7 +132,7 @@
       <% if @hcb_code.pt&.unsettled? %>
       <p>
         <strong>Transaction memo</strong>
-        <%= render "hcb_codes/memo", hcb_code: @hcb_code %>
+        <%= @hcb_code.memo %>
       </p>
       <p>
         <strong>Pending</strong>
