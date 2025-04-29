@@ -6,6 +6,7 @@ class ReceiptsController < ApplicationController
   before_action :set_paper_trail_whodunnit, only: :create
   before_action :find_receiptable, only: [:create, :link, :link_modal]
   before_action :set_event, only: [:create, :link]
+  before_action :set_transaction_display_data
 
   def destroy
     @receipt = Receipt.find(params[:id])
@@ -13,6 +14,8 @@ class ReceiptsController < ApplicationController
     authorize @receipt
 
     success = @receipt.destroy
+
+    @destroyed = success
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: generate_streams }
@@ -45,9 +48,6 @@ class ReceiptsController < ApplicationController
     @frame = params[:popover].present?
 
     @receipt.update!(receiptable: @receiptable)
-
-    @show_receipt_button = params[:show_receipt_button] == "true"
-    @show_author_img = params[:show_author_img] == "true"
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: generate_streams }
@@ -82,9 +82,6 @@ class ReceiptsController < ApplicationController
     if params[:popover].present?
       @popover = params[:popover]
     end
-
-    @show_author_img = params[:show_author_img]
-    @show_receipt_button = params[:show_receipt_button]
 
     if @receiptable.instance_of?(HcbCode)
       pairings_sql = <<~SQL
@@ -132,9 +129,6 @@ class ReceiptsController < ApplicationController
                        locals: { receipt:, show_delete_button: true, show_reimbursements_button: true, link_to_file: true }
                      ))
     end
-
-    @show_receipt_button = params[:show_receipt_button] == "true"
-    @show_author_img = params[:show_author_img] == "true"
 
     if %w[transaction_popover transaction_popover_drag_and_drop].include?(params[:upload_method])
       @frame = true
@@ -295,14 +289,22 @@ class ReceiptsController < ApplicationController
       )
     end
 
-    if @receipt && on_transaction_page?
-      streams.append(turbo_stream.append(
-                       :receipts_list,
-                       partial: "receipts/receipt",
-                       locals: { receipt: @receipt, show_delete_button: true, link_to_file: true }
-                     ))
-    elsif @receipt
+    if @receipt && @destroyed && on_transaction_page?
       streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
+    end
+
+    if @receipt
+      if @destroyed && on_transaction_page?
+        streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
+      elsif on_transaction_page?
+        streams.append(turbo_stream.append(
+                         :receipts_list,
+                         partial: "receipts/receipt",
+                         locals: { receipt: @receipt, show_delete_button: true, link_to_file: true }
+                       ))
+      else
+        streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
+      end
     end
 
     if @receipt
@@ -330,6 +332,11 @@ class ReceiptsController < ApplicationController
   def on_transaction_page?
     route = Rails.application.routes.recognize_path(request.referrer)
     return route[:controller].classify == "HcbCode"
+  end
+
+  def set_transaction_display_data
+    @show_receipt_button = params[:show_receipt_button] == "true"
+    @show_author_img = params[:show_author_img] == "true"
   end
 
 end
