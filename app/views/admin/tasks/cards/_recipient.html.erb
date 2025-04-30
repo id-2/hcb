@@ -1,0 +1,15 @@
+<%# locals: (recipient:) -%>
+
+<div class="border border-smoke rounded-lg p-4 w-full flex flex-col gap-2 box-border">
+    <div class="flex flex-row items-center justify-between gap-3">
+        <%= recipient[:name] %>
+    </div>
+
+    <div>
+        <%= recipient[:email] %>
+    </div>
+
+    <div>
+        <%= recipient[:address_line1] %>
+    </div>
+</div>

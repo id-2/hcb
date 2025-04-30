@@ -198,6 +198,7 @@ Rails.application.routes.draw do
       get "pending_ledger", to: "admin#pending_ledger"
       get "ach", to: "admin#ach"
       get "reimbursements", to: "admin#reimbursements"
+      get "tasks", to: "admin#tasks"
       get "payroll", to: "admin#payroll"
       get "stripe_card_personalization_designs", to: "admin#stripe_card_personalization_designs"
       get "stripe_card_personalization_design_new", to: "admin#stripe_card_personalization_design_new"

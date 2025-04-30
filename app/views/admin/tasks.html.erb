@@ -2,6 +2,10 @@
 
 <h3 class="mb-5 pt-0 font-medium">There are <%= @tasks.count %> tasks awaiting completion</h3>
 
-<div class="flex flex-col gap-6 max-w-4xl">
-<%= render partial: "admin/tasks/task", collection: @tasks %>
-</div>
+    <div id="tasks-parent" class="flex flex-col gap-6 max-w-4xl" x-data="{ shifted: false }" 
+     @keydown.window="shifted = true" 
+     @keyup.window="shifted = false" 
+     x-bind:class="{ shifted }">
+        <%= render partial: "admin/tasks/task", collection: @tasks %>
+    </div>
+

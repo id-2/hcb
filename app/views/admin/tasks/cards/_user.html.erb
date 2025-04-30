@@ -1,0 +1,15 @@
+<%# locals: (user:) -%>
+
+<div class="border border-smoke rounded-lg p-4 w-full flex flex-col gap-2 box-border">
+    <div class="flex flex-row items-center justify-between gap-3">
+        <div class="flex flex-row items-center justify-start gap-3 max-w-[65%]">
+          <%= user_mention(user, { class: "mx-2", avatar: { class: "m-0" } }) %>
+        </div>
+        <h4 class="text-base m-0 p-0 font-normal"><%= user.stripe_cards.count %> cards</h4>
+        <h4 class="text-base m-0 p-0 font-normal"><%= user.events.count %> orgs</h4>
+    </div>
+
+    <div>
+        <%= user.email %>
+    </div>
+</div>

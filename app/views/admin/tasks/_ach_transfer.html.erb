@@ -1,5 +1,24 @@
 <%# locals: (task:) -%>
-<div>
+
+<% ach = task %>
+
+<summary class="task__header">
+    <%= inline_icon "payment-transfer", size: 24, class: "task__icon" %>
+    <h3>
+        <strong>ACH transfer</strong>
+        form
+        <strong><%= tooltipped_text(ach.event.name, :e, render_event(ach.event)) %></strong>
+        to
+        <strong><%= ach.recipient_name %></strong>
+        for
+        <strong><%= render_money(ach.amount) %></strong>
+
+    </h3>
+    <div class="flex-grow"></div>
+    <%= inline_icon "down-caret", size: 24, class: "task__icon task__icon--caret" %>
+</summary>
+
+<div class="task__body">
 yo! I'm an ach transfer :D
 
 <%= (ap task).html_safe %>

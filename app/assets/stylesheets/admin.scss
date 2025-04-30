@@ -188,7 +188,7 @@ aside,
 audio,
 blockquote,
 datalist,
-details,
+details:not(.task),
 dl,
 fieldset,
 figure,
@@ -445,7 +445,7 @@ code pre {
   margin: 0;
 }
 
-details {
+details:not(.task) {
   /* Make the <details> look more "clickable" */
   padding: 0.6rem 1rem;
   background: var(--hcb-bg-2);
@@ -459,17 +459,17 @@ summary {
   font-weight: bold;
 }
 
-details[open] {
+details[open]:not(.task) {
   /* Adjust the <details> padding while open */
   padding-bottom: 0.75rem;
 }
 
-details[open] summary {
+details[open]:not(.task) summary {
   /* Adjust the <details> padding while open */
   margin-bottom: 6px;
 }
 
-details[open] > *:last-child {
+details[open]:not(.task) > *:last-child {
   /* Resets the bottom margin of the last element in the <details> while <details> is opened. This prevents double margins/paddings. */
   margin-bottom: 0;
 }

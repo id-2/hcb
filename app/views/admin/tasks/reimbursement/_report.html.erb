@@ -1,16 +1,21 @@
 <%# locals: (task:) -%>
-<div class="task__header">
-    <%= inline_icon "door-leave", size: 24, class: "task__icon" %>
+
+<% report = task %>
+
+<summary class="task__header">
+    <%= inline_icon "attachment", size: 24, class: "task__icon" %>
     <h3>
         <strong>Reimbursement</strong>
+        from
+        <strong><%= tooltipped_text(report.event.name, :e, render_event(report.event)) %></strong>
         to
-        <strong><%= task.user.name %></strong>
+        <strong><%= tooltipped_text(report.user.name, :e, render_user(report.user)) %></strong>
         for
-        <strong><%= render_money(task.amount) %></strong>
+        <strong><%= render_money(report.amount) %></strong>
     </h3>
     <div class="flex-grow"></div>
-    <%= inline_icon "down-caret", size: 24, class: "task__icon" %>
-</div>
+    <%= inline_icon "down-caret", size: 24, class: "task__icon task__icon--caret" %>
+</summary>
 
 <div class="task__body">
     <h4 class="font-normal flex flex-row items-center m-0 p-0"><%= task.name %></h4>
@@ -18,7 +23,7 @@
     <div class="flex flex-row justify-space-between items-center gap-6 max-w-md">
         <div class="flex flex-col items-center w-full gap-1">
             Organization
-            <%= render partial: "admin/tasks/event", locals: { event: task.event } %>
+            <%= render_event(report.event) %>
         </div>
     </div>
 

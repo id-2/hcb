@@ -1,17 +1,17 @@
 <%# locals: (task:) -%>
 
-<% disbursement = task %>
+<% check = task %>
 
 <summary class="task__header">
-    <%= inline_icon "door-leave", size: 24, class: "task__icon" %>
+    <%= inline_icon "cheque", size: 24, class: "task__icon" %>
     <h3>
-        <strong>Disbursement</strong>
+        <strong>Check</strong>
         form
-        <strong><%= tooltipped_text(disbursement.source_event.name, :e, render_event(disbursement.source_event)) %></strong>
+        <strong><%= tooltipped_text(check.event.name, :e, render_event(check.event)) %></strong>
         to
-        <strong><%= tooltipped_text(disbursement.destination_event.name, :e, render_event(disbursement.destination_event)) %></strong>
+        <strong><%= check.recipient_name %></strong>
         for
-        <strong><%= render_money(disbursement.amount) %></strong>
+        <strong><%= render_money(check.amount) %></strong>
 
     </h3>
     <div class="flex-grow"></div>
@@ -22,26 +22,32 @@
     <div class="flex flex-row justify-space-between items-center gap-6">
         <div class="flex flex-col items-center w-full gap-1">
             Source
-            <%= render_event(task.source_event) %>
+            <%= render_event(check.event) %>
         </div>
         <div class="flex flex-col items-center gap-2">
             <span class="whitespace-nowrap"><%= render_money(task.amount) %></span>
             <%= image_tag asset_path("link-arrow.svg"), width: 100, height: 50, style: "object-fit: contain; width: 3rem; max-width: 3rem; margin: 0px;" %>
         </div>
         <div class="flex flex-col items-center w-full gap-1">
-            Destination
-            <%= render_event(task.destination_event) %>
+            Recipient
+            <%= render_recipient({
+                name: check.recipient_name,
+                email: check.recipient_email,
+                address_city: check.address_city,
+                address_state: check.address_state,
+                address_line1: check.address_line1,
+                address_line2: check.address_line2,
+                address_zip: check.address_zip,
+            }) %>
         </div>
     </div>
 
-        
-
-
+    <%= (ap task).html_safe %>
 
     <div class="h-9"></div>
 
     <div class="flex flex-row items-center gap-3">
-    <h4 class="font-normal flex flex-row items-center m-0 p-0">Requested by <%= user_mention(task.requested_by, { class: "mx-2", avatar: { class: "m-0" } }) %> on <%= task.created_at.strftime("%B %d") %></h4>
+    <h4 class="font-normal flex flex-row items-center m-0 p-0">Requested by <%= user_mention(task.user, { class: "mx-2", avatar: { class: "m-0" } }) %> on <%= task.created_at.strftime("%B %d") %></h4>
         <div class="flex-grow"></div>
 
         <button class="bg-snow border border-smoke black hover:!bg-smoke"><span>Open</span> <kbd>⇧</kbd><kbd>o</kbd></button>

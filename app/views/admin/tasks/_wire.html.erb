@@ -1,6 +1,44 @@
 <%# locals: (task:) -%>
-<div>
+
+<% wire = task %>
+
+<summary class="task__header">
+    <%= inline_icon "web", size: 24, class: "task__icon" %>
+    <h3>
+        <strong>Wire transfer</strong>
+        form
+        <strong><%= tooltipped_text(wire.event.name, :e, render_event(wire.event)) %></strong>
+        to
+        <strong><%= tooltipped_text(wire.user.name, :e, render_user(wire.user)) %></strong>
+        for
+        <strong><%= render_money(wire.amount) %></strong>
+    </h3>
+    <div class="flex-grow"></div>
+    <%= inline_icon "down-caret", size: 24, class: "task__icon task__icon--caret" %>
+</summary>
+
+
+
+<div class="task__body">
 yo! I'm a wire :D
+
+<span>
+    this is tooltipped
+    <span class="task__tooltip task__tooltip--e">
+        <%= render_event(wire.event) %>
+    </span>
+</span>
+
+
+<span>
+    this is tooltipped
+    <%= tooltip(:e, render_event(task.event)) %>
+</span>
+
+<%= tooltipped_text "hello", :e, render_event(task.event) %>
+
+
+
 
 <%= (ap task).html_safe %>
 

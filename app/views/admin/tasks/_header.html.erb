@@ -1,0 +1,23 @@
+<%# locals: (icon:, name:, event:, amount:, recipient: nil) -%>
+<summary class="task__header">
+    <%= inline_icon icon, size: 24, class: "task__icon" %>
+    <h3>
+        <strong><%= name %></strong>
+        form
+        <strong class="task__tooltipped">
+            <%= event.name %>
+            <span class="task__tooltip task__tooltip--e">
+                <%= render partial: "admin/tasks/event", locals: { event: event } %>
+            </span>
+        </strong>
+        <% if recipient.present? %>
+            to
+            <strong><%= recipient.name %></strong>
+        <% end %>
+        for
+        <strong><%= render_money(amount) %></strong>
+
+    </h3>
+    <div class="flex-grow"></div>
+    <%= inline_icon "down-caret", size: 24, class: "task__icon task__icon--caret" %>
+</summary>
