@@ -289,10 +289,6 @@ class ReceiptsController < ApplicationController
       )
     end
 
-    if @receipt && @destroyed && on_transaction_page?
-      streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
-    end
-
     if @receipt
       if @destroyed && on_transaction_page?
         streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
