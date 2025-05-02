@@ -145,15 +145,17 @@ class ReceiptsController < ApplicationController
         global_paste: !@receiptable,
         turbo: true
       }
-      if @receiptable && !@frame
+      if @receiptable
         receipt_upload_form_config[:enable_linking] = true
         receipt_upload_form_config[:receiptable] = @receiptable
       end
-      if @receiptable && @frame && @event
+      if @receiptable && @frame && on_transaction_page?
         receipt_upload_form_config[:restricted_dropzone] = true
         receipt_upload_form_config[:inline_linking] = true
         receipt_upload_form_config[:upload_method] = "transaction_popover"
         receipt_upload_form_config[:popover] = "HcbCode:#{@receiptable.hashid}"
+        receipt_upload_form_config[:show_receipt_button] = @show_receipt_button
+        receipt_upload_form_config[:show_author_img] = @show_author_img
       end
       streams.append(
         turbo_stream.replace(:receipt_upload_form, partial: "receipts/form_v3", locals: receipt_upload_form_config)
