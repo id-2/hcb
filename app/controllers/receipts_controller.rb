@@ -242,13 +242,15 @@ class ReceiptsController < ApplicationController
     end
 
     if @receiptable.is_a?(HcbCode)
+      @hcb_code = @receiptable
+
       if @receiptable.canonical_transactions&.any?
         @receiptable.canonical_transactions.each do |ct|
           streams.append(turbo_stream.remove("transaction_details_#{ct.__id__}"))
           streams.append(turbo_stream.replace(
                            ct.local_hcb_code.hashid,
                            partial: "canonical_transactions/canonical_transaction",
-                           locals: @frame && @event ? { ct:, event: @event, show_amount: true, updated_via_turbo_stream: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, } : { ct:, force_display_details: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, show_event_name: true, updated_via_turbo_stream: true }
+                           locals: @frame && @event ? { ct:, event: @event, show_amount: true, updated_via_turbo_stream: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, } : { ct:, event: @hcb_code.event, force_display_details: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, show_event_name: true, updated_via_turbo_stream: true }
                          ))
         end
       else
@@ -257,7 +259,7 @@ class ReceiptsController < ApplicationController
           streams.append(turbo_stream.replace(
                            pt.local_hcb_code.hashid,
                            partial: "canonical_pending_transactions/canonical_pending_transaction",
-                           locals: @frame && @event ? { pt:, event: @event, show_amount: true, updated_via_turbo_stream: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, } : { pt:, force_display_details: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, show_event_name: true, updated_via_turbo_stream: true }
+                           locals: @frame && @event ? { pt:, event: @event, show_amount: true, updated_via_turbo_stream: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, } : { pt:, event: @hcb_code.event, force_display_details: true, show_author_column: @show_author_img, receipt_upload_button: @show_receipt_button, show_event_name: true, updated_via_turbo_stream: true }
                          ))
         end
       end
@@ -282,7 +284,6 @@ class ReceiptsController < ApplicationController
     end
 
     if @receiptable.is_a?(HcbCode) && on_transaction_page? && !@receiptable.stripe_refund?
-      @hcb_code = @receiptable
       streams.append(
         turbo_stream.replace(
           :stripe_card_receipts,
