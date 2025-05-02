@@ -109,7 +109,7 @@ module UsersHelper
                 avi + name
               end
 
-    unless user.nil?
+    unless user.nil? || options[:hide_links]
       link = content_tag :a, (inline_icon "link", size: 16), href: admin_user_path(user), target: "_blank"
       email = content_tag :a, (inline_icon "email", size: 16), href: "mailto:#{user.email}", target: "_blank"
 
