@@ -287,20 +287,14 @@ class ReceiptsController < ApplicationController
           partial: "hcb_codes/stripe_card_receipts"
         )
       )
-    end
 
-    if @receipt
-      if @destroyed && on_transaction_page?
-        streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
-      elsif on_transaction_page?
-        streams.append(turbo_stream.append(
-                         :receipts_list,
-                         partial: "receipts/receipt",
-                         locals: { receipt: @receipt, show_delete_button: true, link_to_file: true }
-                       ))
-      else
-        streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
-      end
+      streams.append(
+        turbo_stream.replace(
+          :receipts_list,
+          partial: "receipts/list_v2",
+          locals: { hcb_code: @hcb_code, frame: @frame, transaction_show_receipt_button: @show_receipt_button, transaction_show_author_img: @show_author_img }
+        )
+      )
     end
 
     if @receipt
