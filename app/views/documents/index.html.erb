@@ -31,7 +31,7 @@
         </div>
 
         <strong class="h3 block mt1 line-height-2">Verification Letter</strong>
-        <%= user_mention @event.point_of_contact %>
+        <%= user_mention @event.point_of_contact, hide_links: true  %>
       </li>
     <% end if @event.account_number %>
 
@@ -42,7 +42,7 @@
         </div>
 
         <strong class="h3 block mt1 line-height-2">Fiscal Sponsorship Confirmation</strong>
-        <%= user_mention @event.point_of_contact %>
+        <%= user_mention @event.point_of_contact, hide_links: true %>
       </li>
     <% end %>
   <% end %>
