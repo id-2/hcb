@@ -131,6 +131,11 @@ class HcbCode < ApplicationRecord
     end
   end
 
+  def display_amount
+    return disbursement.amount.abs if disbursement?
+    return amount.abs
+  end
+
   def amount_cents_by_event(event)
     if canonical_transactions.any?
       return canonical_transactions
