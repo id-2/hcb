@@ -126,7 +126,8 @@ class HcbCodesController < ApplicationController
     end
 
     if @hcb_code.card_grant?
-      redirect_to @hcb_code.card_grant, heading: true
+      @card_grant = @hcb_code.card_grant
+      return render partial: "card_grants/details"
     else
       redirect_to @hcb_code
     end
