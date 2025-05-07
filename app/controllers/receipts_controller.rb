@@ -45,8 +45,6 @@ class ReceiptsController < ApplicationController
     authorize @receipt
     authorize @receiptable, policy_class: ReceiptablePolicy
 
-    @frame = params[:popover].present?
-
     @receipt.update!(receiptable: @receiptable)
 
     respond_to do |format|
@@ -328,6 +326,7 @@ class ReceiptsController < ApplicationController
   end
 
   def set_transaction_display_data
+    @frame = params[:popover].present?
     @show_receipt_button = params[:show_receipt_button] == "true"
     @show_author_img = params[:show_author_img] == "true"
   end
