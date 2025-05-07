@@ -359,7 +359,7 @@ class HcbCode < ApplicationRecord
   end
 
   def card_grant
-    @card_grant ||= CardGrant.find_by(id: hcb_i2) if card_grant?
+    @card_grant ||= CardGrant.find_by(disbursement_id: hcb_i2) if card_grant?
   end
 
   def bank_fee
