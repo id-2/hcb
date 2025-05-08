@@ -242,6 +242,12 @@ $(document).on('turbo:load', function () {
     },
   })
 
+  $(document).on('input', '[data-behavior~=extract_slug]', function (event) {
+    try {
+      event.target.value = (new URL(event.target.value)).pathname.split("/")[1]
+    } catch {}
+  })
+
   $('textarea:not([data-behavior~=no_autosize])')
     .each(function () {
       $(this).css({
@@ -463,7 +469,8 @@ $(document).on('turbo:frame-load', function () {
   if (
     BK.thereIs('check_payout_method_inputs') &&
     BK.thereIs('ach_transfer_payout_method_inputs') &&
-    BK.thereIs('paypal_transfer_payout_method_inputs')
+    BK.thereIs('paypal_transfer_payout_method_inputs') &&
+    BK.thereIs('wire_payout_method_inputs')
   ) {
     const checkPayoutMethodInputs = BK.s('check_payout_method_inputs')
     const achTransferPayoutMethodInputs = BK.s(
@@ -472,6 +479,7 @@ $(document).on('turbo:frame-load', function () {
     const paypalTransferPayoutMethodInputs = BK.s(
       'paypal_transfer_payout_method_inputs'
     )
+    const wirePayoutMethodInputs = BK.s('wire_payout_method_inputs')
     $(document).on(
       'change',
       '#user_payout_method_type_userpayoutmethodcheck',
@@ -479,7 +487,8 @@ $(document).on('turbo:frame-load', function () {
         if (e.target.checked)
           checkPayoutMethodInputs.slideDown() &&
             achTransferPayoutMethodInputs.slideUp() &&
-            paypalTransferPayoutMethodInputs.slideUp()
+            paypalTransferPayoutMethodInputs.slideUp() &&
+            wirePayoutMethodInputs.slideUp()
       }
     )
     $(document).on(
@@ -489,7 +498,8 @@ $(document).on('turbo:frame-load', function () {
         if (e.target.checked)
           achTransferPayoutMethodInputs.slideDown() &&
             checkPayoutMethodInputs.slideUp() &&
-            paypalTransferPayoutMethodInputs.slideUp()
+            paypalTransferPayoutMethodInputs.slideUp() &&
+            wirePayoutMethodInputs.slideUp()
       }
     )
     $(document).on(
@@ -499,7 +509,19 @@ $(document).on('turbo:frame-load', function () {
         if (e.target.checked)
           paypalTransferPayoutMethodInputs.slideDown() &&
             checkPayoutMethodInputs.slideUp() &&
-            achTransferPayoutMethodInputs.slideUp()
+            achTransferPayoutMethodInputs.slideUp() &&
+            wirePayoutMethodInputs.slideUp()
+      }
+    )
+    $(document).on(
+      'change',
+      '#user_payout_method_type_userpayoutmethodwire',
+      e => {
+        if (e.target.checked)
+          paypalTransferPayoutMethodInputs.slideUp() &&
+            checkPayoutMethodInputs.slideUp() &&
+            achTransferPayoutMethodInputs.slideUp() &&
+            wirePayoutMethodInputs.slideDown()
       }
     )
   }

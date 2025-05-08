@@ -8,7 +8,7 @@ class DonationsController < ApplicationController
 
   skip_after_action :verify_authorized, only: [:export, :show, :qr_code, :finish_donation, :finished]
   skip_before_action :signed_in_user
-  before_action :set_donation, only: [:show]
+  before_action :set_donation, only: [:show, :update]
   before_action :set_event, only: [:start_donation, :make_donation, :qr_code, :export, :export_donors]
   before_action :check_dark_param
   before_action :check_background_param
@@ -171,7 +171,7 @@ class DonationsController < ApplicationController
       ::DonationService::Refund.new(donation_id: @donation.id, amount: Monetize.parse(params[:amount]).cents).run
       redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "The refund process has been queued for this donation." }
     else
-      DonationJob::Refund.set(wait: 1.day).perform_later(@donation, Monetize.parse(params[:amount]).cents, current_user)
+      Donation::RefundJob.set(wait: 1.day).perform_later(@donation, Monetize.parse(params[:amount]).cents, current_user)
       redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "This donation hasn't settled, it's being queued to refund when it settles." }
     end
   end
@@ -190,6 +190,17 @@ class DonationsController < ApplicationController
 
     respond_to do |format|
       format.csv { stream_donors_csv }
+    end
+  end
+
+  def update
+    authorize @donation
+    @hcb_code = HcbCode.find_or_create_by(hcb_code: @donation.hcb_code)
+
+    if @donation.update(params.require(:donation).permit(:anonymous, :name))
+      redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "Edited the donor's details." }
+    else
+      redirect_to hcb_code_path(@hcb_code.hashid), flash: { error: @donation.errors.full_messages.to_sentence }
     end
   end
 

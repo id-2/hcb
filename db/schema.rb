@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
+ActiveRecord::Schema[7.2].define(version: 2025_04_30_082411) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1028,6 +1028,19 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
     t.index ["g_suite_account_id"], name: "index_g_suite_aliases_on_g_suite_account_id"
   end
 
+  create_table "g_suite_revocations", force: :cascade do |t|
+    t.integer "reason", default: 0, null: false
+    t.text "other_reason"
+    t.bigint "g_suite_id", null: false
+    t.string "aasm_state"
+    t.datetime "scheduled_at", null: false
+    t.datetime "deleted_at"
+    t.boolean "one_week_notice_sent", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["g_suite_id"], name: "index_g_suite_revocations_on_g_suite_id"
+  end
+
   create_table "g_suites", force: :cascade do |t|
     t.citext "domain"
     t.bigint "event_id"
@@ -1040,6 +1053,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
     t.bigint "created_by_id"
     t.text "remote_org_unit_id"
     t.text "remote_org_unit_path"
+    t.boolean "immune_to_revocation", default: false, null: false
     t.index ["created_by_id"], name: "index_g_suites_on_created_by_id"
     t.index ["event_id"], name: "index_g_suites_on_event_id"
   end
@@ -1295,6 +1309,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "browser_token"
+    t.text "browser_token_ciphertext"
     t.index ["user_id"], name: "index_logins_on_user_id"
     t.index ["user_session_id"], name: "index_logins_on_user_session_id"
   end
@@ -1477,6 +1492,14 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_paypal_transfers_on_event_id"
     t.index ["user_id"], name: "index_paypal_transfers_on_user_id"
+  end
+
+  create_table "raffles", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "program", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_raffles_on_user_id"
   end
 
   create_table "raw_column_transactions", force: :cascade do |t|
@@ -1731,10 +1754,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
     t.bigint "paypal_transfer_id"
     t.bigint "increase_check_id"
     t.bigint "ach_transfer_id"
+    t.bigint "wire_id"
     t.index ["ach_transfer_id"], name: "index_reimbursement_payout_holdings_on_ach_transfer_id"
     t.index ["increase_check_id"], name: "index_reimbursement_payout_holdings_on_increase_check_id"
     t.index ["paypal_transfer_id"], name: "index_reimbursement_payout_holdings_on_paypal_transfer_id"
     t.index ["reimbursement_reports_id"], name: "index_reimbursement_payout_holdings_on_reimbursement_reports_id"
+    t.index ["wire_id"], name: "index_reimbursement_payout_holdings_on_wire_id"
   end
 
   create_table "reimbursement_reports", force: :cascade do |t|
@@ -2052,6 +2077,22 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "user_payout_method_wires", force: :cascade do |t|
+    t.string "account_number_ciphertext", null: false
+    t.string "account_number_bidx", null: false
+    t.string "bic_code_ciphertext", null: false
+    t.string "bic_code_bidx", null: false
+    t.integer "recipient_country"
+    t.jsonb "recipient_information"
+    t.string "address_city"
+    t.string "address_line1"
+    t.string "address_line2"
+    t.string "address_state"
+    t.string "address_postal_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "user_seen_at_histories", force: :cascade do |t|
     t.bigint "user_id"
     t.datetime "period_start_at", null: false
@@ -2261,6 +2302,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
   add_foreign_key "g_suite_accounts", "g_suites"
   add_foreign_key "g_suite_accounts", "users", column: "creator_id"
   add_foreign_key "g_suite_aliases", "g_suite_accounts"
+  add_foreign_key "g_suite_revocations", "g_suites"
   add_foreign_key "g_suites", "events"
   add_foreign_key "g_suites", "users", column: "created_by_id"
   add_foreign_key "hashed_transactions", "raw_plaid_transactions"
@@ -2299,6 +2341,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_07_060157) do
   add_foreign_key "payment_recipients", "events"
   add_foreign_key "paypal_transfers", "events"
   add_foreign_key "paypal_transfers", "users"
+  add_foreign_key "raffles", "users"
   add_foreign_key "raw_pending_incoming_disbursement_transactions", "disbursements"
   add_foreign_key "raw_pending_outgoing_disbursement_transactions", "disbursements"
   add_foreign_key "receipts", "users"
