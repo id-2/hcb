@@ -1,6 +1,5 @@
 <% @donation = @hcb_code.donation %>
 
-<% title "#{render_money(@donation.amount)} donation to #{@donation.event.name}" %>
 <% instance = @hcb_code.hashid %>
 
 <%= render partial: "admin_viewer", locals: { record: @donation } %>

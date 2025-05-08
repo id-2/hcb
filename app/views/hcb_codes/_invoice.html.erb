@@ -1,8 +1,6 @@
 <% @invoice = @hcb_code.invoice %>
 <% @sponsor = @invoice.sponsor %>
 
-<% title "#{render_money @invoice.item_amount} invoice from #{@invoice.event.name}" %>
-
 <%= render partial: "admin_viewer", locals: { record: @invoice } %>
 
 <% admin_tool("mt3") do %>

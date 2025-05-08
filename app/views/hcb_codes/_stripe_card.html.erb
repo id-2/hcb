@@ -1,6 +1,5 @@
 <% renderable_amount_cents = @hcb_code.stripe_atm_fee ? @hcb_code.amount_cents.abs - @hcb_code.stripe_atm_fee : @hcb_code.amount_cents.abs %>
 
-<% title "#{render_money(renderable_amount_cents)} #{@hcb_code.stripe_refund? ? "refund" : @hcb_code.stripe_cash_withdrawal? ? "withdrawal" : "charge"} for #{@hcb_code.memo}" %>
 <% instance = @hcb_code.hashid %>
 
 <% admin_tool("mt1") do %>
