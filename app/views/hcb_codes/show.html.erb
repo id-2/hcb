@@ -50,4 +50,4 @@
   <% end %>
 <% end %>
 
-<% title "Transaction for #{number_to_currency(@hcb_code.amount)}" unless content_for :title %>
+<% title "Transaction for #{render_money(@hcb_code.amount_cents.abs)}" unless content_for :title %>

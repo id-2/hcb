@@ -204,7 +204,7 @@ class HcbCode < ApplicationRecord
     amount_preposition = "refunded" if stripe_refund?
 
     title = [humanized_type]
-    title << amount_preposition << ApplicationController.helpers.render_money(stripe_card? ? amount_cents.abs : amount_cents) if show_amount
+    title << amount_preposition << ApplicationController.helpers.render_money(amount_cents.abs) if show_amount
     title << event_preposition << event_name if show_event_name && event_name
 
     title.join(" ")
