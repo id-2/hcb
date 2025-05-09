@@ -42,10 +42,12 @@
             <%= inline_icon :info, size: 20 %>
           </span>
         <% elsif @hcb_code.pt.declined? %>
-          <span class="badge h4 md-right bg-accent">
-            Declined
-            <%= inline_icon :info, size: 20 %>
-          </span>
+          <action data-behavior="modal_trigger" data-modal="declined_information_<%= instance %>" class="pointer" tabindex="0">
+            <span class="badge h4 md-right bg-accent">
+              Declined
+              <%= inline_icon :info, size: 20 %>
+            </span>
+          </action>
         <% else %>
           <span class="badge h4 md-right bg-muted">
             Pending
