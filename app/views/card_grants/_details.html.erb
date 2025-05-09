@@ -1,5 +1,5 @@
 <%# locals: (card_grant:) %>
-<% hcb_code ||= @card_grant&.disbursement.local_hcb_code %>
+<% hcb_code ||= card_grant&.disbursement.local_hcb_code %>
 
 <div class="card mt2">
   <h2 class="h2 mt0 mx0 border-none flex items-center justify-between" style="gap: 8px">
@@ -12,7 +12,7 @@
         <span class="regular muted"> 
           Grant to
         </span>
-        <%= @card_grant.user.initial_name %>
+        <%= card_grant.user.initial_name %>
         <span class="regular muted">
           for
         </span>
@@ -28,25 +28,25 @@
   <section class="card__banner card__darker details-horiz border-top border-bottom">
     <p>
       <strong>Sent by</strong>
-      <%= user_mention @card_grant.sent_by %>
+      <%= user_mention card_grant.sent_by %>
     </p>
     <p>
       <strong>Funded by</strong>
-      <%= link_to @card_grant.event.name, @card_grant.event %>
+      <%= link_to card_grant.event.name, card_grant.event %>
     </p>
     <p>
       <strong>Sent</strong>
-      <span class="tooltipped" aria-label="<%= @card_grant.created_at.to_formatted_s(:long) %>">
-        <%= time_ago_in_words @card_grant.created_at %> ago
+      <span class="tooltipped" aria-label="<%= card_grant.created_at.to_formatted_s(:long) %>">
+        <%= time_ago_in_words card_grant.created_at %> ago
       </span>
     </p>
   </section>
   <section class="details details--wide pt2 pb2 details--tall">
     <p>
       <strong>Grant status</strong>
-      <span><%= @card_grant.state_text %></span>
+      <span><%= card_grant.state_text %></span>
     </p>
-    <% if (stripe_card = @card_grant.stripe_card).present? %>
+    <% if (stripe_card = card_grant.stripe_card).present? %>
       <p>
         <strong>Card status</strong>
         <span>
@@ -54,33 +54,33 @@
 
           <% if stripe_card.frozen? %>
             <%# The condition above is written this way because `frozen?` is a method on `nil` %>
-            by <%= user_mention @card_grant.stripe_card.last_frozen_by %>
+            by <%= user_mention card_grant.stripe_card.last_frozen_by %>
           <% end %>
         </span>
       </p>
     <% end %>
     <p>
       <strong>Grant amount</strong>
-      <span><%= render_money @card_grant.amount %></span>
+      <span><%= render_money card_grant.amount %></span>
     </p>
     <p>
       <strong>Balance remaining</strong>
-      <span><%= render_money @card_grant.balance %></span>
+      <span><%= render_money card_grant.balance %></span>
     </p>
     <p>
       <strong>Expires on</strong>
-      <span><%= format_date @card_grant.expires_on %></span>
+      <span><%= format_date card_grant.expires_on %></span>
     </p>
     <p>
       <strong>Grant sent to</strong>
-      <span><%= mail_to @card_grant.user.email %></span>
+      <span><%= mail_to card_grant.user.email %></span>
     </p>
 
     <p>
       <strong>Allowed merchants</strong>
-      <% if @card_grant.allowed_merchants.any? %>
-        <span class="font-mono h5"><%= @card_grant.allowed_merchant_names.join(", ") %><br>
-          (IDs: <%= @card_grant.allowed_merchants.join(", ") %>)</span>
+      <% if card_grant.allowed_merchants.any? %>
+        <span class="font-mono h5"><%= card_grant.allowed_merchant_names.join(", ") %><br>
+          (IDs: <%= card_grant.allowed_merchants.join(", ") %>)</span>
     <% else %>
         <span>All merchants allowed</span>
       <% end %>
@@ -88,29 +88,29 @@
 
     <p>
       <strong>Allowed categories</strong>
-      <% if (allowed_categories = @card_grant.allowed_category_names.join(", ").presence) %>
+      <% if (allowed_categories = card_grant.allowed_category_names.join(", ").presence) %>
         <span class="font-mono h5"><%= allowed_categories %></span>
       <% else %>
         <span>All categories allowed</span>
       <% end %>
     </p>
-    <% if @card_grant.purpose.present? %>
+    <% if card_grant.purpose.present? %>
       <p>
         <strong>Purpose</strong>
-        <span><%= @card_grant.purpose %></span>
+        <span><%= card_grant.purpose %></span>
       </p>
     <% end %>
-    <% if @card_grant.keyword_lock.present? %>
+    <% if card_grant.keyword_lock.present? %>
       <p>
         <strong>Merchant keyword lock</strong>
-        <span class="font-mono h5"><%= @card_grant.keyword_lock %></span>
+        <span class="font-mono h5"><%= card_grant.keyword_lock %></span>
       </p>
     <% end %>
   </section>
-  <% if @card_grant.pending_invite? %>
+  <% if card_grant.pending_invite? %>
     <%# Once the user has accepted the invite, these action buttons are shown elsewhere %>
     <section>
-      <%= render partial: "actions", locals: { card_grant: @card_grant } %>
+      <%= render partial: "actions", locals: { card_grant: } %>
     </section>
   <% end %>
 </div>
