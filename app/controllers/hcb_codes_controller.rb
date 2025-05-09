@@ -130,7 +130,7 @@ class HcbCodesController < ApplicationController
 
     if @hcb_code.card_grant?
       @card_grant = @hcb_code.card_grant
-      return render partial: "card_grants/details"
+      return render partial: "card_grants/details", locals: { card_grant: @card_grant }
     else
       redirect_to @hcb_code
     end
