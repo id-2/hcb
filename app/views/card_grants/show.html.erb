@@ -38,7 +38,7 @@
     <% end %>
 
     <div class="flex flex-col g2">
-      <%= render partial: "details" %>
+      <%= render partial: "details", locals: { card_grant: @card_grant } %>
 
       <% if @card_grant.active? && @card_grant.stripe_card %>
         <% admin_tool do %>
