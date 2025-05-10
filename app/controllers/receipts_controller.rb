@@ -122,7 +122,7 @@ class ReceiptsController < ApplicationController
       next if @receiptable && !on_transaction_page?
 
       streams.append(turbo_stream.prepend(
-                       :receipts_list,
+                       "#{@ledger_instance}_receipts_list",
                        partial: "receipts/receipt",
                        locals: { receipt:, show_delete_button: true, show_reimbursements_button: true, link_to_file: true }
                      ))
@@ -284,14 +284,14 @@ class ReceiptsController < ApplicationController
     if @receiptable.is_a?(HcbCode) && on_transaction_page? && !@receiptable.stripe_refund?
       streams.append(
         turbo_stream.replace(
-          :stripe_card_receipts,
-          partial: "hcb_codes/stripe_card_receipts"
+          "#{@ledger_instance}_stripe_card_receipts",
+          partial: "hcb_codes/stripe_card_receipts",
         )
       )
 
       streams.append(
         turbo_stream.replace(
-          :receipts_list,
+          "#{@ledger_instance}_receipts_list",
           partial: "receipts/list_v2",
           locals: { hcb_code: @hcb_code, frame: @frame, transaction_show_receipt_button: @show_receipt_button, transaction_show_author_img: @show_author_img }
         )
@@ -329,6 +329,7 @@ class ReceiptsController < ApplicationController
     @frame = params[:popover].present?
     @show_receipt_button = params[:show_receipt_button] == "true"
     @show_author_img = params[:show_author_img] == "true"
+    @ledger_instance = params[:ledger_instance]
   end
 
 end
