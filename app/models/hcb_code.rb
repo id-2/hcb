@@ -133,16 +133,11 @@ class HcbCode < ApplicationRecord
     end
   end
 
-  def display_amount
-    return disbursement.amount.abs if disbursement?
-    return amount.abs
-  end
-
   def amount_cents_by_event(event)
     if canonical_transactions.any?
       return canonical_transactions
              .includes(:canonical_event_mapping)
-             .where(canonical_event_mapping: { event_id: event.id })
+             .where(canonical_event_mapping: { event_id: event.id, subledger_id: nil })
              .sum(:amount_cents)
     end
 
@@ -151,7 +146,7 @@ class HcbCode < ApplicationRecord
 
     canonical_pending_transactions
       .includes(:canonical_pending_event_mapping)
-      .where(canonical_pending_event_mapping: { event_id: event.id })
+      .where(canonical_pending_event_mapping: { event_id: event.id, subledger_id: nil })
       .sum(:amount_cents)
   end
 
