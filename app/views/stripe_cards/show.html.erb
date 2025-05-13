@@ -23,7 +23,7 @@
           <% end %>
         <% end %>
 
-        <%= render @card, headless: true %>
+        <%= render @card, event: @event %>
 
         <%= render "actions", stripe_card: @card %>
       </section>
