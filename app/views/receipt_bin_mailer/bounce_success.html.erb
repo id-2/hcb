@@ -1,6 +1,18 @@
 <p>
-We got your <%= "receipt".pluralize(@receipts_count) %>, thanks! You can find <%= @receipts_count == 1 ? "it" : "them" %> in your <%= link_to "Receipt Bin", my_inbox_url %>.
+We got your <%= "receipt".pluralize(@receipts_count) %>, thanks! <%= "You can find #{@receipts_count == 1 ? "it" : "them"} in your #{link_to "Receipt Bin", my_inbox_url}.".html_safe unless @receipts_count == @pairs.size %>
 </p>
+
+<% if @pairs.size > 0 %>
+  <p>We also automatically matched <%= @pairs.size == 1 ? "it" : "#{@pairs.size} receipts"%> to the following <%= "transaction".pluralize(@pairs.size) %>:</p>
+
+  <ul>
+    <% @pairs.map do |pair| %>
+      <li><%= link_to pair.memo, hcb_code_url(pair) %> from <%= time_ago_in_words pair.pt&.raw_pending_stripe_transaction&.created_at || Time.at(pair.raw_stripe_transaction.stripe_transaction["created"]) %> ago</li>
+    <% end %>
+  </ul>
+
+  <p>Did we get something wrong? You can remove an incorrect receipt on the transaction's page.</p>
+<% end %>
 
 <p>
   From,<br>
