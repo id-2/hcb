@@ -57,9 +57,7 @@
     <%= render "event_cards_table", stripe_cards: @paginated_stripe_cards, status: @status %>
   <% else %>
     <article class="mixed-grid grid--spacious">
-      <% @paginated_stripe_cards.each do |card| %>
-        <%= render "stripe_cards/stripe_card", event: @event, stripe_card: card %>
-      <% end %>
+      <%= render partial: "stripe_cards/stripe_card", collection: @paginated_stripe_cards, locals: { event: @event } %>
     </article>
 
     <% if @paginated_stripe_cards.blank? %>

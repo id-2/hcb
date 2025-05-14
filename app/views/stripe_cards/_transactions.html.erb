@@ -29,7 +29,7 @@
           <% if hcb_code.canonical_transactions.any? %>
             <%= render "canonical_transactions/canonical_transaction", ct: hcb_code, force_display_details: true %>
           <% else %>
-            <%= render "canonical_pending_transactions/canonical_pending_transaction", collection: hcb_code.canonical_pending_transactions, as: :pt %>
+            <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: hcb_code.canonical_pending_transactions, as: :pt %>
           <% end %>
         <% end %>
       </tbody>
