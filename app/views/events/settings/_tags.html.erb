@@ -4,13 +4,21 @@
   <h3 class="mb1" id="cards_heading">Create a new tag</h3>
   <div class="card mb3">
     <%= form_with(url: event_tags_path(@event)) do |form| %>
-      <div class="field">
-        <%= form.label :label, "Tag name", class: "mb-1" %>
-        <%= form.text_field :label, placeholder: ["🧃 Food & drinks", "🧋 Bubble tea", "🚕 Transportation", "🛬 Flights", "🔨 Supplies"].sample, disabled: %>
+      <div class="flex gap-5">
+        <% placeholder = ["🧃 Food & drinks", "🧋 Bubble tea", "🚕 Transportation", "🛬 Flights", "🔨 Supplies"].sample %>
+        <div class="field">
+          <%= form.label :emoji, "Emoji", class: "mb-1" %>
+          <%= form.text_field :emoji, placeholder: placeholder[0], class: "!w-10", disabled: %>
+        </div>
+
+        <div class="field">
+          <%= form.label :label, "Name", class: "mb-1" %>
+          <%= form.text_field :label, placeholder: placeholder[1..], disabled: %>
+        </div>
       </div>
 
       <div class="field">
-        <%= form.label :tag_name, "Tag color", class: "mb-1" %>
+        <%= form.label :tag_name, "Color", class: "mb-1" %>
 
         <% Tag::COLORS.each do |color| %>
           <label class="tags__radio w-8 mt-[2px] mx-1">
@@ -30,7 +38,12 @@
   <% @event.tags.each do |tag| %>
     <div class="card mb2 flex justify-between items-center">
       <div class="flex items-center">
-        <div class="tag__preview tag-<%= tag.color || "muted" %>"></div>
+        <div class="relative w-7 mr-2">
+          <div class="tag__preview tag-<%= tag.color || "muted" %>"></div>
+          <% if tag.emoji != "" %>
+            <p class="absolute top-0 left-0 my-[2px] mx-1"><%= tag.emoji %></p>
+          <% end %>
+        </div>
         <p class="bold mb0 mt0"><%= tag.label %></p>
       </div>
       <div class="flex items-center justify-center">
@@ -44,7 +57,10 @@
             <%= modal_header("Edit tag") %>
             <%= form_with url: event_tag_path(@event, tag.id), method: "patch", id: "edit_tag_form" do |form| %>
               <div class="flex flex-col gap-3 mb-2">
-                <%= form.text_field :label, autofocus: true, placeholder: "Tag name", value: tag.label, style: "max-width: 100%", autocomplete: "off", required: true %>
+                <div class="flex gap-5">
+                  <%= form.text_field :emoji, placeholder: "🏦", value: tag.emoji, class: "!w-10", autocomplete: "off", required: true %>
+                  <%= form.text_field :label, autofocus: true, placeholder: "Tag name", value: tag.label, style: "max-width: 100%", autocomplete: "off", required: true %>
+                </div>
                 <div class="flex gap-3">
                   <% Tag::COLORS.each do |color| %>
                     <label class="tags__radio">
