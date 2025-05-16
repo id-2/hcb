@@ -121,6 +121,19 @@
 
   </section>
 
+
+    <% if @hcb_code.disbursement.needs_manager_approval? && OrganizerPosition.role_at_least?(current_user, @hcb_code.disbursement.source_event, :manager) %>
+      <% if @hcb_code.disbursement.approved_by_manager %>
+          <p>Approved by <%= user_mention @hcb_code.disbursement.manager_approved_by %></p>
+
+      <% else %>
+      <p>This transfer requires manager approval.</p>
+        <%= button_to "Approve as manager", disbursement_manager_approve_path(@hcb_code.disbursement), method: :post, class: "btn bg-success mb-2" %>
+      <% end %>
+
+    <% end %>
+
+
   <% if @event.can_front_balance? %>
     <section class="card__banner card__darker secondary border-top flex items-center g2">
       <% if @hcb_code.disbursement.may_mark_rejected? %>

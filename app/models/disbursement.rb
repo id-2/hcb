@@ -7,6 +7,7 @@
 #  id                       :bigint           not null, primary key
 #  aasm_state               :string
 #  amount                   :integer
+#  approval_methods         :jsonb
 #  deposited_at             :datetime
 #  errored_at               :datetime
 #  in_transit_at            :datetime
@@ -20,6 +21,7 @@
 #  destination_subledger_id :bigint
 #  event_id                 :bigint
 #  fulfilled_by_id          :bigint
+#  manager_approved_by_id   :bigint
 #  requested_by_id          :bigint
 #  source_event_id          :bigint
 #  source_subledger_id      :bigint
@@ -29,6 +31,7 @@
 #  index_disbursements_on_destination_subledger_id  (destination_subledger_id)
 #  index_disbursements_on_event_id                  (event_id)
 #  index_disbursements_on_fulfilled_by_id           (fulfilled_by_id)
+#  index_disbursements_on_manager_approved_by_id    (manager_approved_by_id)
 #  index_disbursements_on_requested_by_id           (requested_by_id)
 #  index_disbursements_on_source_event_id           (source_event_id)
 #  index_disbursements_on_source_subledger_id       (source_subledger_id)
@@ -37,6 +40,7 @@
 #
 #  fk_rails_...  (event_id => events.id)
 #  fk_rails_...  (fulfilled_by_id => users.id)
+#  fk_rails_...  (manager_approved_by_id => users.id)
 #  fk_rails_...  (requested_by_id => users.id)
 #  fk_rails_...  (source_event_id => events.id)
 #
@@ -48,6 +52,8 @@ class Disbursement < ApplicationRecord
   include Commentable
 
   include Freezable
+
+  store_accessor :approval_methods, :manager, :hcb, prefix: :approved_by
 
   validate on: :create do
     if source_event.financially_frozen?
@@ -62,6 +68,7 @@ class Disbursement < ApplicationRecord
 
   belongs_to :fulfilled_by, class_name: "User", optional: true
   belongs_to :requested_by, class_name: "User", optional: true
+  belongs_to :manager_approved_by, class_name: "User", optional: true
 
   belongs_to :destination_event, foreign_key: "event_id", class_name: "Event", inverse_of: "incoming_disbursements"
   belongs_to :source_event, class_name: "Event", inverse_of: "outgoing_disbursements"
@@ -142,7 +149,11 @@ class Disbursement < ApplicationRecord
         update(fulfilled_by:)
         canonical_pending_transactions.update_all(fronted: true)
       end
-      transitions from: [:reviewing, :scheduled], to: :pending
+      transitions from: [:reviewing, :scheduled], to: :pending do
+        guard do
+          can_approve?
+        end
+      end
     end
 
     event :mark_in_transit do
@@ -179,6 +190,22 @@ class Disbursement < ApplicationRecord
   end
 
   def approve_by_admin(user)
+    update(approved_by_hcb: true)
+
+    return unless can_approve? # In case admin approves before manager
+
+    if scheduled_on.present?
+      mark_scheduled!(user)
+    else
+      mark_approved!(user)
+    end
+  end
+
+  def approve_by_manager(user)
+    update(approved_by_manager: true, manager_approved_by: user)
+
+    return unless can_approve? # In case admin approves before manager
+
     if scheduled_on.present?
       mark_scheduled!(user)
     else
@@ -294,7 +321,7 @@ class Disbursement < ApplicationRecord
     elsif errored?
       "errored"
     elsif reviewing?
-      "pending"
+      approved_by_manager || !needs_manager_approval? ? "pending" : "awaiting manager review"
     else
       "pending"
     end
@@ -338,6 +365,11 @@ class Disbursement < ApplicationRecord
     !should_charge_fee?
   end
 
+  def needs_manager_approval?
+    source_event.organizer_positions.find_by(user: requested_by).member?
+  end
+
+
   private
 
   def events_are_different
@@ -353,6 +385,10 @@ class Disbursement < ApplicationRecord
     if scheduled_on.present? && scheduled_on.before?(Time.now.end_of_day)
       self.errors.add(:scheduled_on, "must be in the future")
     end
+  end
+
+  def can_approve?
+    approved_by_hcb && (needs_manager_approval? ? approved_by_manager : true)
   end
 
 end

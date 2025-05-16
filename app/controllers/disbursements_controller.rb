@@ -4,10 +4,14 @@ class DisbursementsController < ApplicationController
   before_action :set_disbursement, only: [:show, :edit, :update, :transfer_confirmation_letter]
 
   def show
-    authorize @disbursement
-
     # Comments
     @hcb_code = HcbCode.find_or_create_by(hcb_code: @disbursement.hcb_code)
+
+    authorize @hcb_code, :show?, policy_class: HcbCodePolicy
+
+    redirect_to @hcb_code unless current_user.auditor?
+
+    authorize @disbursement
   end
 
   def transfer_confirmation_letter
@@ -154,6 +158,19 @@ class DisbursementsController < ApplicationController
     end
 
     redirect_to disbursement_path(@disbursement)
+  end
+
+  def manager_approve
+    @disbursement = Disbursement.find(params[:disbursement_id])
+    authorize @disbursement
+
+    return redirect_to disbursement_path(@disbursement), flash: { error: "Already approved" } if @disbursement.approved_by_manager || !@disbursement.reviewing?
+
+    @disbursement.approve_by_manager(current_user)
+
+    flash[:success] = "Disbursement approved by manager"
+
+    redirect_back_or_to disbursement_path(@disbursement)
   end
 
   private
