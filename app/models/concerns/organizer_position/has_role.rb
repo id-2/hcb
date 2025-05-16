@@ -16,9 +16,9 @@ class OrganizerPosition
 
     def at_least_one_manager_or_supervisor
       if event&.plan&.supervisor_required?
-        errors.add(:base, "A supervisor is required for this event.") unless event&.organizer_positions&.where(role: :supervisor).where.not(id: self.id)&.any? || role == "supervisor"
+        errors.add(:base, "A supervisor is required for this event.") unless event&.organizer_positions&.where(role: :supervisor)&.where&.not(id: self.id)&.any? || role == "supervisor"
       else
-        errors.add(:base, "A manager is required for this event.") unless event&.organizer_positions.where(role: :manager).where.not(id: self.id)&.any? || role == "manager"
+        errors.add(:base, "A manager is required for this event.") unless event&.organizer_positions&.where(role: :manager)&.where&.not(id: self.id)&.any? || role == "manager"
       end
     end
 
