@@ -18,29 +18,29 @@
 #  should_charge_fee        :boolean          default(FALSE)
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
+#  authorized_by_id         :bigint
 #  destination_subledger_id :bigint
 #  event_id                 :bigint
 #  fulfilled_by_id          :bigint
-#  manager_approved_by_id   :bigint
 #  requested_by_id          :bigint
 #  source_event_id          :bigint
 #  source_subledger_id      :bigint
 #
 # Indexes
 #
+#  index_disbursements_on_authorized_by_id          (authorized_by_id)
 #  index_disbursements_on_destination_subledger_id  (destination_subledger_id)
 #  index_disbursements_on_event_id                  (event_id)
 #  index_disbursements_on_fulfilled_by_id           (fulfilled_by_id)
-#  index_disbursements_on_manager_approved_by_id    (manager_approved_by_id)
 #  index_disbursements_on_requested_by_id           (requested_by_id)
 #  index_disbursements_on_source_event_id           (source_event_id)
 #  index_disbursements_on_source_subledger_id       (source_subledger_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (authorized_by_id => users.id)
 #  fk_rails_...  (event_id => events.id)
 #  fk_rails_...  (fulfilled_by_id => users.id)
-#  fk_rails_...  (manager_approved_by_id => users.id)
 #  fk_rails_...  (requested_by_id => users.id)
 #  fk_rails_...  (source_event_id => events.id)
 #
@@ -68,7 +68,7 @@ class Disbursement < ApplicationRecord
 
   belongs_to :fulfilled_by, class_name: "User", optional: true
   belongs_to :requested_by, class_name: "User", optional: true
-  belongs_to :manager_approved_by, class_name: "User", optional: true
+  belongs_to :authorized_by, class_name: "User", optional: true
 
   belongs_to :destination_event, foreign_key: "event_id", class_name: "Event", inverse_of: "incoming_disbursements"
   belongs_to :source_event, class_name: "Event", inverse_of: "outgoing_disbursements"
@@ -145,8 +145,7 @@ class Disbursement < ApplicationRecord
     state :errored                  # oh no! an error!
 
     event :mark_approved do
-      after do |fulfilled_by|
-        update(fulfilled_by:)
+      after do
         canonical_pending_transactions.update_all(fronted: true)
       end
       transitions from: [:reviewing, :scheduled], to: :pending do
@@ -173,7 +172,6 @@ class Disbursement < ApplicationRecord
 
     event :mark_rejected do
       after do |fulfilled_by|
-        update(fulfilled_by:)
         canonical_pending_transactions.each { |cpt| cpt.decline! }
         create_activity(key: "disbursement.rejected", owner: fulfilled_by)
       end
@@ -181,35 +179,33 @@ class Disbursement < ApplicationRecord
     end
 
     event :mark_scheduled do
-      after do |fulfilled_by|
-        update(fulfilled_by:)
-      end
       transitions from: [:pending, :reviewing, :in_review], to: :scheduled
     end
 
   end
 
   def approve_by_admin(user)
-    update(approved_by_hcb: true)
+    update(approved_by_hcb: true, fulfilled_by: user)
 
     return unless can_approve? # In case admin approves before manager
 
     if scheduled_on.present?
-      mark_scheduled!(user)
+      mark_scheduled!
     else
-      mark_approved!(user)
+      mark_approved!
     end
+
   end
 
   def approve_by_manager(user)
-    update(approved_by_manager: true, manager_approved_by: user)
+    update(approved_by_manager: true, authorized_by: user)
 
     return unless can_approve? # In case admin approves before manager
 
     if scheduled_on.present?
-      mark_scheduled!(user)
+      mark_scheduled!
     else
-      mark_approved!(user)
+      mark_approved!
     end
   end
 
@@ -321,7 +317,7 @@ class Disbursement < ApplicationRecord
     elsif errored?
       "errored"
     elsif reviewing?
-      approved_by_manager || !needs_manager_approval? ? "pending" : "awaiting manager review"
+      approved_by_manager || !needs_manager_review? ? "pending" : "awaiting manager review"
     else
       "pending"
     end
@@ -365,7 +361,7 @@ class Disbursement < ApplicationRecord
     !should_charge_fee?
   end
 
-  def needs_manager_approval?
+  def needs_manager_review?
     source_event.organizer_positions.find_by(user: requested_by).member?
   end
 
@@ -388,7 +384,7 @@ class Disbursement < ApplicationRecord
   end
 
   def can_approve?
-    approved_by_hcb && (needs_manager_approval? ? approved_by_manager : true)
+    approved_by_hcb && (needs_manager_review? ? approved_by_manager : true)
   end
 
 end

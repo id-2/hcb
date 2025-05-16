@@ -603,11 +603,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_16_180923) do
     t.boolean "should_charge_fee", default: false
     t.date "scheduled_on"
     t.jsonb "approval_methods"
-    t.bigint "manager_approved_by_id"
+    t.bigint "authorized_by_id"
+    t.index ["authorized_by_id"], name: "index_disbursements_on_authorized_by_id"
     t.index ["destination_subledger_id"], name: "index_disbursements_on_destination_subledger_id"
     t.index ["event_id"], name: "index_disbursements_on_event_id"
     t.index ["fulfilled_by_id"], name: "index_disbursements_on_fulfilled_by_id"
-    t.index ["manager_approved_by_id"], name: "index_disbursements_on_manager_approved_by_id"
     t.index ["requested_by_id"], name: "index_disbursements_on_requested_by_id"
     t.index ["source_event_id"], name: "index_disbursements_on_source_event_id"
     t.index ["source_subledger_id"], name: "index_disbursements_on_source_subledger_id"

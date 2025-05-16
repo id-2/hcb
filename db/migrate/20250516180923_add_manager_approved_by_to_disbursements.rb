@@ -3,7 +3,7 @@ class AddManagerApprovedByToDisbursements < ActiveRecord::Migration[7.2]
 
   def change
     safety_assured do
-      add_reference :disbursements, :manager_approved_by,
+      add_reference :disbursements, :authorized_by,
                     null: true,
                     foreign_key: { to_table: :users },
                     index: { algorithm: :concurrently }
