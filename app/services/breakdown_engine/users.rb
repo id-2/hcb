@@ -23,9 +23,8 @@ module BreakdownEngine
         array << { name: position.user.initial_name, truncated: position.user.initial_name, value: amount, position: }
       end
 
-        array.sort_by! { |user| user[:value] }.reverse!
-        array.first(7)
-      end
+      users.sort_by! { |user| user[:value] }.reverse!
+      users.first(7)
     end
 
   end
