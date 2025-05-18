@@ -57,18 +57,16 @@ class HcbCode < ApplicationRecord
     hcb_code "HCB Code"
     created_at "Created at"
     date "Transaction date"
-    url "URL" do |url| "https://hcb.hackclub.com#{url}" end
+    hashid "URL" do |hashid| "https://hcb.hackclub.com/hcb/#{hashid}" end
     memo
     receipts size: "Receipt count"
     receipts "Has receipt?" do |receipts| receipts.exists? end
   end
 
-  def url
-    "/hcb/#{hashid}"
-  end
-
-  def popover_url
-    "/hcb/#{hashid}?frame=true"
+  def popover_path(**params)
+    author_img_param = "&transaction_show_author_img=#{params[:transaction_show_author_img]}" if params[:transaction_show_author_img]
+    receipt_button_param = "&transaction_show_receipt_button=#{params[:transaction_show_receipt_button]}" if params[:transaction_show_receipt_button]
+    "/hcb/#{hashid}?frame=true#{author_img_param}#{receipt_button_param}"
   end
 
   def receipt_upload_email
@@ -189,7 +187,7 @@ class HcbCode < ApplicationRecord
         ].compact.uniq)
 
         ids << EventMappingEngine::EventIds::INCOMING_FEES if incoming_bank_fee?
-        ids << EventMappingEngine::EventIds::HACK_CLUB_BANK if fee_revenue? || stripe_service_fee?
+        ids << EventMappingEngine::EventIds::HACK_CLUB_BANK if fee_revenue? || stripe_service_fee? || outgoing_fee_reimbursement?
         ids << EventMappingEngine::EventIds::REIMBURSEMENT_CLEARING if reimbursement_payout_holding?
 
         Event.where(id: ids)
@@ -310,7 +308,7 @@ class HcbCode < ApplicationRecord
   end
 
   def grant?
-    canonical_pending_transactions.first&.grant.present?
+    false
   end
 
   def stripe_card?
@@ -392,6 +390,8 @@ class HcbCode < ApplicationRecord
       ach_transfer
     elsif paypal_transfer? && paypal_transfer&.reimbursement_payout_holding.present?
       paypal_transfer
+    elsif wire? && wire&.reimbursement_payout_holding.present?
+      wire
     else
       nil
     end
@@ -454,7 +454,7 @@ class HcbCode < ApplicationRecord
   # HCB-300: ACH Transfers (receipts required starting from Feb. 2024)
   # HCB-310: Wires
   # HCB-350: PayPal Transfers
-  # HCB-400 & HCB-402: Checks & Increase Checks (receipts required starting from Feb. 2024)
+  # HCB-400 & HCB-401: Checks & Increase Checks (receipts required starting from Feb. 2024)
   # HCB-600: Stripe card charges (always required)
   # @sampoder
 
@@ -464,7 +464,7 @@ class HcbCode < ApplicationRecord
       .where("(hcb_codes.hcb_code LIKE 'HCB-600%' AND canonical_pending_declined_mappings.id IS NULL)
               OR (hcb_codes.hcb_code LIKE 'HCB-300%' AND hcb_codes.created_at >= '2024-02-01' AND canonical_pending_declined_mappings.id IS NULL)
               OR (hcb_codes.hcb_code LIKE 'HCB-400%' AND hcb_codes.created_at >= '2024-02-01' AND canonical_pending_declined_mappings.id IS NULL)
-              OR (hcb_codes.hcb_code LIKE 'HCB-402%' AND hcb_codes.created_at >= '2024-02-01' AND canonical_pending_declined_mappings.id IS NULL)
+              OR (hcb_codes.hcb_code LIKE 'HCB-401%' AND hcb_codes.created_at >= '2024-02-01' AND canonical_pending_declined_mappings.id IS NULL)
               OR (hcb_codes.hcb_code LIKE 'HCB-350%' AND canonical_pending_declined_mappings.id IS NULL)
               OR (hcb_codes.hcb_code LIKE 'HCB-310%' AND canonical_pending_declined_mappings.id IS NULL)
               ")
@@ -505,7 +505,7 @@ class HcbCode < ApplicationRecord
 
     if comment.admin_only?
       users += self.events.map(&:point_of_contact)
-      return users.uniq.select(&:admin?).reject(&:no_threads?).excluding(comment.user).collect(&:email_address_with_name)
+      return users.uniq.select(&:auditor?).reject(&:no_threads?).excluding(comment.user).collect(&:email_address_with_name)
     end
 
     users.uniq.excluding(comment.user).reject(&:no_threads?).collect(&:email_address_with_name)
@@ -541,7 +541,7 @@ class HcbCode < ApplicationRecord
   end
 
   def fee_waived?
-    pt&.fee_waived? || ct&.fee&.waived? || false
+    (pt&.fee_waived? || ct&.fee&.waived? || false) && canonical_transactions.all? { |ct| ct.fee&.waived? }
   end
 
   def accepts_receipts?

@@ -61,6 +61,7 @@
         <th>Status</th>
         <th>Date</th>
         <th>To</th>
+        <th>For</th>
         <th class="text-right">Amount</th>
         <th></th>
       </tr>
@@ -69,9 +70,9 @@
     <tbody>
       <% @transfers.each do |d| %>
         <% if (Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) || !organizer_signed_in?) && !d.is_a?(CardGrant) && !show_mock_data? %>
-          <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transfer_modal_<%= d.hcb_code %>" data-state-url="<%= hcb_code_url(d.hcb_code) %>" data-state-title="<%= render_money(d.local_hcb_code.amount) %>">
-            <%= modal_header("Transfer of #{render_money(d.local_hcb_code.amount)}", external_link: hcb_code_url(d.hcb_code)) %>
-            <%= turbo_frame_tag d.local_hcb_code.public_id, src: d.local_hcb_code.popover_url, loading: :lazy do %>
+          <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transfer_modal_<%= d.hcb_code %>" data-state-url="<%= hcb_code_url(d.hcb_code) %>" data-state-title="Transfer of <%= render_money(d.local_hcb_code.amount_cents_by_event(@event).abs) %>">
+            <%= modal_header("Transfer of #{render_money(d.local_hcb_code.amount_cents_by_event(@event).abs)}", external_link: hcb_code_url(d.hcb_code)) %>
+            <%= turbo_frame_tag d.local_hcb_code.public_id, src: d.local_hcb_code.popover_path, loading: :lazy do %>
               <%= render partial: "application/loading_container" %>
             <% end %>
           </section>
@@ -87,15 +88,15 @@
                 <%= inline_icon "bank-account" %>
               </span>
             <% elsif d.is_a?(CardGrant) %>
-              <span class="tooltipped tooltipped--e inline-block" aria-label="Card Grant">
+              <span class="tooltipped tooltipped--e inline-block" aria-label="Card grant">
                 <%= inline_icon "bag" %>
               </span>
             <% elsif d.is_a?(PaypalTransfer) %>
-              <span class="tooltipped tooltipped--e inline-block" aria-label="PayPal Transfer">
+              <span class="tooltipped tooltipped--e inline-block" aria-label="PayPal transfer">
                 <%= inline_icon "paypal" %>
               </span>
             <% elsif d.is_a?(Wire) %>
-              <span class="tooltipped tooltipped--e inline-block" aria-label="Wire">
+              <span class="tooltipped tooltipped--e inline-block" aria-label="International wire">
                 <%= inline_icon "web" %>
               </span>
             <% else %>
@@ -110,7 +111,7 @@
           <td>
             <%= format_date d.created_at %>
           </td>
-          <td style="max-width: 40ch;" class="overflow-hidden truncate" title="<%= d.name %>">
+          <td style="max-width: 15ch;" class="overflow-hidden truncate" title="<%= d.name %>">
             <% if d.is_a?(Disbursement) %>
               <strong>
                 <% if d.destination_event.is_public? || organizer_signed_in?(d.destination_event) %>
@@ -119,14 +120,21 @@
                   <%= d.destination_event.name %>
                 <% end %>
               </strong>
-              for
-              <%= d.name %>
             <% elsif d.is_a? CardGrant %>
               <strong>
                 <%= link_to d.user.name, organizer_signed_in? ? d : spending_card_grant_path(d) %>
               </strong>
             <% else %>
               <%= d.name %>
+            <% end %>
+          </td>
+          <td style="max-width: 25ch;" class="overflow-hidden truncate">
+            <% if d.is_a?(Disbursement) %>
+              <%= d.name %>
+            <% elsif d.is_a?(CardGrant) %>
+              <%= d.purpose.presence || d.disbursement.local_hcb_code.memo %>
+            <% else %>
+              <%= d.try(:payment_for) %>
             <% end %>
           </td>
           <td style="text-align: right;">

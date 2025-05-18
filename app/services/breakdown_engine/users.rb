@@ -8,8 +8,8 @@ module BreakdownEngine
     end
 
     def run
-      @event.organizer_positions.includes(:user)
-            .each_with_object([]) do |position, array|
+      users = @event.organizer_positions.includes(:user)
+                    .each_with_object([]) do |position, array|
         amount = @event.canonical_transactions
                        .stripe_transaction
                        .joins("JOIN stripe_cardholders ON raw_stripe_transactions.stripe_transaction->>'cardholder' = stripe_cardholders.stripe_id")
@@ -18,9 +18,10 @@ module BreakdownEngine
                               })
                        .sum(:amount_cents).to_f / 100 * -1
 
-        next unless !@show_all && amount > (0)
+        next unless !@show_all && amount > 0
 
         array << { name: position.user.initial_name, truncated: position.user.initial_name, value: amount, position: }
+      end
 
         array.sort_by! { |user| user[:value] }.reverse!
         array.first(7)

@@ -14,7 +14,8 @@
 #
 # Indexes
 #
-#  index_metrics_on_subject  (subject_type,subject_id)
+#  index_metrics_on_subject                               (subject_type,subject_id)
+#  index_metrics_on_subject_type_and_subject_id_and_type  (subject_type,subject_id,type) UNIQUE
 #
 class Metric
   module User
@@ -27,7 +28,7 @@ class Metric
           JOIN "hcb_codes" on commentable_type = 'HcbCode' and hcb_codes.id = commentable_id
           LEFT JOIN "ach_transfers" on hcb_codes.hcb_code = CONCAT('HCB-300-', ach_transfers.id)
           LEFT JOIN "checks" on hcb_codes.hcb_code = CONCAT('HCB-400-', checks.id)
-          LEFT JOIN "increase_checks" on hcb_codes.hcb_code = CONCAT('HCB-402-', increase_checks.id)
+          LEFT JOIN "increase_checks" on hcb_codes.hcb_code = CONCAT('HCB-401-', increase_checks.id)
           LEFT JOIN "disbursements" on hcb_codes.hcb_code = CONCAT('HCB-500-', disbursements.id)
           LEFT JOIN "canonical_transactions" on hcb_codes.hcb_code = canonical_transactions.hcb_code
           LEFT JOIN "raw_stripe_transactions" on canonical_transactions.transaction_source_type = 'RawStripeTransaction' and canonical_transactions.transaction_source_id = raw_stripe_transactions.id

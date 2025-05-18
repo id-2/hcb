@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 class MyController < ApplicationController
-  skip_after_action :verify_authorized, only: [:activities, :toggle_admin_activities, :cards, :missing_receipts_list, :missing_receipts_icon, :inbox, :reimbursements, :reimbursements_icon, :tasks] # do not force pundit
+  skip_after_action :verify_authorized, only: [:activities, :toggle_admin_activities, :cards, :missing_receipts_list, :missing_receipts_icon, :inbox, :reimbursements, :reimbursements_icon, :tasks, :payroll] # do not force pundit
 
   def activities
     @before = params[:before] || Time.now
-    if admin_signed_in? && cookies[:admin_activities] == "everyone"
+    if auditor_signed_in? && cookies[:admin_activities] == "everyone"
       @activities = PublicActivity::Activity.all.before(@before).order(created_at: :desc).page(params[:page]).per(25)
     else
       @activities = PublicActivity::Activity.for_user(current_user).before(@before).order(created_at: :desc).page(params[:page]).per(25)
@@ -18,15 +18,47 @@ class MyController < ApplicationController
   end
 
   def cards
-    @stripe_cards = current_user.stripe_cards.includes(:event).order(
+    @stripe_cards = current_user.stripe_cards.includes(:event)
+    @emburse_cards = current_user.emburse_cards.includes(:event)
+
+    @status = params[:status].presence_in(%w[active inactive frozen canceled]) || nil
+    @type = params[:type].presence_in(%w[virtual physical]) || nil
+    @filter_applied = @status || @type
+
+    @stripe_cards = case @status
+                    when "active"
+                      @stripe_cards.active
+                    when "inactive"
+                      @stripe_cards.inactive
+                    when "frozen"
+                      @stripe_cards.frozen
+                    when "canceled"
+                      @stripe_cards.canceled
+                    else
+                      @stripe_cards
+                    end
+
+    @stripe_cards = case @type
+                    when "virtual"
+                      @stripe_cards.virtual
+                    when "physical"
+                      @stripe_cards.physical
+                    else
+                      @stripe_cards
+                    end
+
+    @stripe_cards = @stripe_cards.order(
       Arel.sql("stripe_status = 'active' DESC"),
       Arel.sql("stripe_status = 'inactive' DESC")
     )
-    @emburse_cards = current_user.emburse_cards.includes(:event)
   end
 
   def tasks
     @tasks = current_user.tasks
+    respond_to do |format|
+      format.html
+      format.json { render json: { count: @tasks.count } }
+    end
   end
 
   def missing_receipts_list
@@ -45,10 +77,11 @@ class MyController < ApplicationController
     emojis = {
       "🤡": 300,
       "💀": 200,
-      "😱": 100,
+      "😱": 100
     }
 
-    @missing_receipt_count = emojis.find { |emoji, value| count >= value }&.first || count
+    @missing_receipt_count = count
+    @missing_receipt_emoji = emojis.find { |emoji, value| count >= value }&.first
 
     render :missing_receipts_icon, layout: false
   end
@@ -90,6 +123,11 @@ class MyController < ApplicationController
     @review_requested_reimbursements_count = current_user.assigned_reimbursement_reports.submitted.count
 
     render :reimbursements_icon, layout: false
+  end
+
+  def payroll
+    @jobs = current_user.jobs
+    @payout_method = current_user.payout_method
   end
 
 end

@@ -14,7 +14,8 @@
 #
 # Indexes
 #
-#  index_metrics_on_subject  (subject_type,subject_id)
+#  index_metrics_on_subject                               (subject_type,subject_id)
+#  index_metrics_on_subject_type_and_subject_id_and_type  (subject_type,subject_id,type) UNIQUE
 #
 class Metric
   module Hcb
@@ -30,10 +31,7 @@ class Metric
           LEFT JOIN "disbursements" ON canonical_transactions.hcb_code = CONCAT('HCB-500-', disbursements.id)
           WHERE amount_cents > 0
           AND date_part('year', date) = 2024
-          AND event_plans.type != 'Event::Plan::HackClubAffiliate'
-          AND event_plans.type != 'Event::Plan::Internal'
-          AND event_plans.type != 'Event::Plan::CardsOnly'
-          AND event_plans.type != 'Event::Plan::SalaryAccount'
+          #{Event::Plan.that(:omit_stats).map(&:name).map { |p| "AND event_plans.type != '#{p}'" }.join(' ')}
           AND (disbursements.id IS NULL or disbursements.should_charge_fee = true)
           AND NOT (
             canonical_transactions.hcb_code ILIKE 'HCB-300%' OR

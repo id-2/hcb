@@ -25,7 +25,7 @@
       </div>
     </h2>
 
-    <section class="card__banner card__darker details-horiz border-top <%= "border-bottom" if Flipper.enabled?(:transaction_tags_2022_07_29, (@event || @hcb_code.event)) %>">
+    <section class="card__banner card__darker details-horiz border-top <%= "border-bottom" if Flipper.enabled?(:transaction_tags_2022_07_29, @event || @hcb_code.event) %>">
       <p>
         <strong>Date</strong>
         <%= format_date @hcb_code.date %>
@@ -56,7 +56,7 @@
               <tr>
                 <td><%= link_to fee.event.name, fee.event %></td>
                 <td><%= render_money fee.amount_cents %></td>
-                <td><%= link_to "Details", fee.local_hcb_code.url %></td>
+                <td><%= link_to "Details", url_for(fee.local_hcb_code) %></td>
               </tr>
             <% end %>
           </tbody>

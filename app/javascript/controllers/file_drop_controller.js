@@ -90,11 +90,13 @@ export default class extends Controller {
           receiptable_type: receiptableType,
           receiptable_id: receiptableId,
           show_link: true,
+          show_receipt_button: true,
         })
       }
     }
 
     this.fileInputTarget.files = e.dataTransfer.files
+    this.fileInputTarget.dispatchEvent(new Event('change'))
     if (!this.fileInputTarget.files.length) return
 
     if (this.hasUploadMethodTarget && !this.submitting) {

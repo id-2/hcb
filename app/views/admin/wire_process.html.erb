@@ -13,6 +13,13 @@
 <table class="table--autosize">
   <tbody>
     <tr>
+      <td>Event:</td>
+      <td>
+        <%= @wire.event.name %>
+        <%= "(❄️ ⚠️ CURRENTLY FINANCIALLY FROZEN)" if @wire.event.financially_frozen? %>
+      </td>
+    </tr>
+    <tr>
       <td>Requested at:</td>
       <td><%= format_datetime @wire.created_at %></td>
     </tr>
@@ -76,7 +83,7 @@
       <td>Balance available:</td>
       <td><%= render_money @wire.event.balance_available_v2_cents %></td>
     </tr>
-    <% @wire.recipient_information.keys.each do |key| %>
+    <% @wire.recipient_information&.keys&.each do |key| %>
       <% if @wire.recipient_information[key].presence != nil %>
         <tr>
           <td><%= key.humanize %></td>
@@ -94,6 +101,7 @@
 <% if @wire.pending? %>
   <%= button_to "💸 Approve and automatically send transfer", send_wire_path(@wire), method: :post, data: { confirm: "This will automatically send the wire. You don't need to send it manually!" } %>
   <%= button_to "💸 Approve and manually send transfer", approve_wire_path(@wire), method: :post, data: { confirm: "Have you manually sent this wire? This option requires you send this wire." } %>
+  <%= button_to "✏️ Edit wire", edit_wire_path(@wire), method: :get %>
   <%= form_with(model: nil, local: true, url: reject_wire_path(@wire), method: :post) do |form| %>
     <div class="field">
       <%= form.label "Reject with a comment", class: "bold mb1" %> <br>
@@ -103,6 +111,8 @@
     <small>(This requires you to communicate to the organizer about the reason why.)</small>
   <% end %>
 <% else %>
-  <p>This transfer has been <b><%= @wire.aasm.current_state.to_s.humanize(capitalize: false) %></b>.</p>
-  <%= button_to "Reject as failed", reject_wire_path(@wire) %>
+  <p>This wire <%= @wire.failed? ? "" : "is " %><b><%= @wire.aasm.current_state.to_s.humanize(capitalize: false) %></b><%= @wire.failed? ? @wire.return_reason.present? ? " with the following failure reason: #{@wire.return_reason}" : " for an unknown reason" : "" %>.</p>
+  <% unless @wire.failed? %>
+    <%= button_to "Reject as failed", reject_wire_path(@wire) %>
+  <% end %>
 <% end %>

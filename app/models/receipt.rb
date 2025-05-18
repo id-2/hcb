@@ -65,7 +65,7 @@ class Receipt < ApplicationRecord
     end
   end
 
-  validates :file, attached: true
+  validates :file, attached: true, content_type: /(\Aimage\/.*\z|application\/pdf|text\/csv)/
 
   before_create do
     if receiptable&.has_attribute?(:marked_no_or_lost_receipt_at)
@@ -73,16 +73,16 @@ class Receipt < ApplicationRecord
     end
   end
 
-  SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS = %w[quick_expense email_receipt_bin email_hcb_code email_reimbursement sms_reimbursement].freeze
+  SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS = %w[quick_expense].freeze
 
   after_create_commit do
     # Queue async job to extract text from newly upload receipt
     # and to suggest pairings
     unless Receipt::SYNCHRONOUS_SUGGESTION_UPLOAD_METHODS.include?(upload_method.to_s)
       # certain interfaces run suggestions synchronously
-      # ReceiptJob::ExtractTextualContent.perform_later(self)
+      # Receipt::ExtractTextualContentJob.perform_later(self)
       # see https://github.com/hackclub/hcb/issues/7123
-      ReceiptJob::SuggestPairings.perform_later(self)
+      Receipt::SuggestPairingsJob.perform_later(self)
     end
   end
   validate :has_owner
@@ -107,7 +107,8 @@ class Receipt < ApplicationRecord
     transaction_popover: 16,
     transaction_popover_drag_and_drop: 17,
     email_reimbursement: 18,
-    sms_reimbursement: 19
+    sms_reimbursement: 19,
+    employee_payment: 20
   }
 
   enum :textual_content_source, {
@@ -159,7 +160,7 @@ class Receipt < ApplicationRecord
   rescue => e
     # "ArgumentError: string contains null byte" is a known error
     unless e.is_a?(ArgumentError) && e.message.include?("string contains null byte")
-      Airbrake.notify(e, receipt_id: id)
+      Rails.error.report(e, context: { receipt_id: id })
     end
 
     # Since text extraction can be a resource intensive operation, saving an

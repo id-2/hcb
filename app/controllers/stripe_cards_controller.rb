@@ -11,9 +11,8 @@ class StripeCardsController < ApplicationController
 
   def shipping
     # Only show shipping for phyiscal cards if the eta is in the future (or 1 week after)
-    @stripe_cards = current_user.stripe_cards.where.not(stripe_status: "canceled").physical_shipping.reject do |sc|
-      eta = sc.stripe_obj[:shipping][:eta]
-      !eta || Time.at(eta) < 1.week.ago
+    @stripe_cards = current_user.stripe_cards.where.not(stripe_status: "canceled").physical_shipping.filter do |sc|
+      sc.shipping_eta&.after?(1.week.ago)
     end
     skip_authorization # do not force pundit
 
@@ -26,22 +25,23 @@ class StripeCardsController < ApplicationController
 
     if @card.freeze!
       flash[:success] = "Card frozen"
-      redirect_back_or_to @card
     else
-      render :show, status: :unprocessable_entity
+      flash[:error] = "Card could not be frozen"
     end
+
+    redirect_back_or_to stripe_card_path(@card)
   end
 
   def cancel
     @card = StripeCard.find(params[:id])
     authorize @card
-
-    @card.cancel!
-    flash[:success] = "Card cancelled"
-    redirect_back_or_to @card
-  rescue => e
-    flash[:error] = e.message
-    render :show, status: :unprocessable_entity
+    begin
+      @card.cancel!
+      flash[:success] = "Card cancelled"
+    rescue => e
+      flash[:error] = "Card could not be canceled"
+    end
+    redirect_back_or_to stripe_card_path(@card)
   end
 
   def defrost
@@ -59,7 +59,7 @@ class StripeCardsController < ApplicationController
   def show
     @card = StripeCard.includes(:event, :user).find(params[:id])
 
-    if @card.card_grant.present? && !current_user&.admin?
+    if @card.card_grant.present? && !current_user&.auditor?
       authorize @card.card_grant
       return redirect_to card_grant_path(@card.card_grant, frame: params[:frame])
     end
@@ -122,7 +122,7 @@ class StripeCardsController < ApplicationController
 
     redirect_to new_card, flash: { success: "Card was successfully created." }
   rescue => e
-    notify_airbrake(e)
+    Rails.error.report(e)
 
     redirect_to event_cards_new_path(event), flash: { error: e.message }
   end
