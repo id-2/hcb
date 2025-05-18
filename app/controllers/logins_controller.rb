@@ -145,7 +145,7 @@ class LoginsController < ApplicationController
     if @login.complete? && @login.user_session.nil?
       @login.update(user_session: sign_in(user: @login.user, fingerprint_info:))
       if @user.full_name.blank? || @user.phone_number.blank?
-        redirect_to edit_user_path(@user.slug)
+        redirect_to edit_user_path(@user.slug, return_to: params[:return_to])
       else
         redirect_to(params[:return_to] || root_path)
       end
@@ -173,23 +173,24 @@ class LoginsController < ApplicationController
   private
 
   def set_login
-    if params[:id]
-      begin
+    begin
+      if params[:id]
         @login = Login.incomplete.active.find_by_hashid!(params[:id])
-      rescue ActiveRecord::RecordNotFound
-        return redirect_to auth_users_path, flash: { error: "Please start again." }
-      end
-      unless valid_browser_token?
-        # error! browser token doesn't match the cookie.
-        flash[:error] = "This doesn't seem to be the browser who began this login; please ensure cookies are enabled."
+        unless valid_browser_token?
+          # error! browser token doesn't match the cookie.
+          flash[:error] = "This doesn't seem to be the browser who began this login; please ensure cookies are enabled."
+          redirect_to auth_users_path
+        end
+      elsif session[:auth_email]
+        @login = User.find_by_email(session[:auth_email]).logins.create
+        cookies.signed["browser_token_#{@login.hashid}"] = { value: @login.browser_token, expires: Login::EXPIRATION.from_now }
+      else
+        flash[:error] = "Please try again."
         redirect_to auth_users_path
       end
-    elsif session[:auth_email]
-      @login = User.find_by_email(session[:auth_email]).logins.create
-      cookies.signed["browser_token_#{@login.hashid}"] = { value: @login.browser_token, expires: Login::EXPIRATION.from_now }
-    else
-      flash[:error] = "Please try again."
-      redirect_to auth_users_path
+    rescue ActiveRecord::RecordNotFound
+      flash[:error] = "Please start again."
+      redirect_to auth_users_path, flash: { error: "Please start again." }
     end
   end
 

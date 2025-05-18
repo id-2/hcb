@@ -40,10 +40,24 @@ class ApplicationController < ActionController::Base
     params[:return_to] = url_from(params[:return_to])
   end
 
+  # Enable Rack::MiniProfiler for admins
+  before_action do
+    if current_user&.admin?
+      Rack::MiniProfiler.authorize_request
+    end
+  end
+
   # Force usage of Pundit on actions
   after_action :verify_authorized, unless: -> { controller_path.starts_with?("doorkeeper/") || controller_path.starts_with?("audits1984/") }
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+
+  rescue_from Rack::Timeout::RequestTimeoutException do
+    respond_to do |format|
+      format.html { render "errors/timeout" }
+      format.all { render text: "This request timed out, sorry." }
+    end
+  end
 
   def hide_footer
     @hide_footer = true

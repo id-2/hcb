@@ -109,6 +109,8 @@ class AdminController < ApplicationController
       demo_mode: true
     ).run
 
+    Flipper.enable_actor(:organizer_position_contracts_2025_01_03, event)
+
     record["HCB account URL"] = "https://hcb.hackclub.com/#{event.slug}"
     record["HCB ID"] = event.id
 
@@ -252,6 +254,54 @@ class AdminController < ApplicationController
     redirect_to raw_transactions_admin_index_path, flash: { success: "Success" }
   rescue => e
     redirect_to raw_transaction_new_admin_index_path, flash: { error: e.message }
+  end
+
+  def raw_intrafi_transactions
+    @page = params[:page] || 1
+    @per = params[:per] || 100
+
+    @count = RawIntrafiTransaction.count
+    @imported = flash[:imported_transactions] || []
+    @raw_imported_file = flash[:file]
+
+    @raw_intrafi_transactions = RawIntrafiTransaction.page(@page).per(@per).order("date_posted desc")
+  end
+
+  def raw_intrafi_transactions_import
+    file = params[:file].read.force_encoding("UTF-8")
+
+    transactions = []
+
+    CSV.parse(file, headers: true) do |row|
+      date_posted, memo, amount = row.to_h.values
+      transactions << {
+        date_posted: Date.strptime(date_posted, "%m/%d/%Y"),
+        memo:,
+        amount_cents: (amount.to_f * 100).to_i
+      }
+    end
+
+    raw_intrafi_transactions = []
+
+    ActiveRecord::Base.transaction do
+      transactions.each do |tx|
+        date_posted, memo, amount_cents = tx.values_at(:date_posted, :memo, :amount_cents)
+
+        unless RawIntrafiTransaction.where(date_posted:, memo:, amount_cents:).count > 0
+          raw_intrafi_transactions << RawIntrafiTransaction.create!(date_posted:, memo:, amount_cents:)
+        end
+      end
+    end
+
+    duplicates = transactions.count - raw_intrafi_transactions.count
+
+    redirect_to raw_intrafi_transactions_admin_index_path, flash: {
+      success: "Successfully imported #{raw_intrafi_transactions.count} transactions (#{duplicates} duplicates)",
+      imported_transactions: raw_intrafi_transactions.pluck(:id),
+      file:
+    }
+  rescue => e
+    redirect_to raw_intrafi_transactions_admin_index_path, flash: { error: e.message }
   end
 
   def ledger
@@ -867,6 +917,9 @@ class AdminController < ApplicationController
     @q = params[:q].present? ? params[:q] : nil
     @needs_ops_review = params[:needs_ops_review] == "1" ? true : nil
     @configuring = params[:configuring] == "1" ? true : nil
+    @verification_error = params[:verification_error] == "1" ? true : nil
+    @revocation_present = params[:revocation_present] == "1" ? true : nil
+    @pending_deletion = params[:pending_deletion] == "1" ? true : nil
 
     @event_id = params[:event_id].present? ? params[:event_id] : nil
 
@@ -881,15 +934,17 @@ class AdminController < ApplicationController
     relation = relation.search_domain(@q) if @q
     relation = relation.needs_ops_review if @needs_ops_review
     relation = relation.configuring if @configuring
+    relation = relation.verification_error if @verification_error
+    relation = relation.where.associated(:revocation) if @revocation_present
+    relation = relation.joins(:revocation).where(revocation: { aasm_state: "revoked" }) if @pending_deletion
 
     @count = relation.count
-    @g_suites = relation.page(@page).per(@per).order("created_at desc")
+    @g_suites = relation.page(@page).per(@per).order("g_suites.created_at desc")
 
   end
 
   def google_workspace_process
     @g_suite = GSuite.find(params[:id])
-
   end
 
   def google_workspace_approve
@@ -897,7 +952,7 @@ class AdminController < ApplicationController
 
     has_existing_key = @g_suite.verification_key.present?
 
-    GSuiteJob::SetVerificationKey.perform_later(@g_suite.id)
+    GSuite::SetVerificationKeyJob.perform_later(@g_suite.id)
 
     redirect_to google_workspace_process_admin_path(@g_suite), flash: { success: "#{has_existing_key ? 'Updated verification key' : 'Approved'} (it may take a few seconds for the dashboard to reflect this change)" }
   end
@@ -911,7 +966,7 @@ class AdminController < ApplicationController
   end
 
   def google_workspaces_verify_all
-    GSuiteJob::VerifyAll.perform_later
+    GSuite::VerifyAllJob.perform_later
 
     redirect_to google_workspaces_admin_index_path, flash: { success: "Verification in progress. It may take a few minutes for domains to reflect updated verification statuses." }
   end
@@ -927,6 +982,17 @@ class AdminController < ApplicationController
     ).run
 
     redirect_to google_workspace_process_admin_path(@g_suite), flash: { success: "Success" }
+  end
+
+  def google_workspace_toggle_revocation_immunity
+    @g_suite = GSuite.find(params[:id])
+
+    if @g_suite.update(immune_to_revocation: !@g_suite.immune_to_revocation)
+      flash[:success] = "Revocation immunity was successfully updated."
+    else
+      flash[:error] = "Revocation immunity could not be updated."
+    end
+    redirect_to google_workspace_process_admin_path(@g_suite)
   end
 
   def set_event
@@ -1013,6 +1079,12 @@ class AdminController < ApplicationController
   end
 
   def bookkeeping
+  end
+
+  def request_balance_export
+    ExportJob.perform_later(export_id: Export::Event::Balances.create(requested_by: current_user).id)
+    flash[:success] = "We've emailed you an export of all HCB organizations' balances."
+    redirect_back(fallback_location: root_path)
   end
 
   def balances
@@ -1120,18 +1192,6 @@ class AdminController < ApplicationController
     end
   end
 
-  def grants
-    @page = params[:page] || 1
-    @per = params[:per] || 20
-    @grants = Grant.includes(:event, :recipient).page(@page).per(@per).order(created_at: :desc)
-
-  end
-
-  def grant_process
-    @grant = Grant.find(params[:id])
-
-  end
-
   def hq_receipts
     @page = params[:page] || 1
     @per = params[:per] || 20
@@ -1189,6 +1249,32 @@ class AdminController < ApplicationController
 
     @messages = messages.page(@page).per(@per).order(sent_at: :desc)
 
+  end
+
+  def unknown_merchants
+    @merchants = Rails.cache.fetch("admin_unknown_merchants", expires_in: 12.hours) do
+      RawStripeTransaction.all.group_by { |rst| rst.stripe_transaction["merchant_data"]["network_id"] }.map do |network_id, rsts|
+        memos = rsts.map do |rst|
+          {
+            memo: rst.stripe_transaction["merchant_data"]["name"],
+            url: rst.stripe_transaction["merchant_data"]["url"],
+            authorization: rst.stripe_authorization_id
+          }
+        end.uniq { |memo| memo[:memo] }
+
+        memos = memos.map do |memo|
+          memo[:occurrences] = memos.count { |m| m[:memo] == memo[:memo] }
+
+          memo
+        end.sort_by{ |memo| memo[:occurrences] }
+
+        {
+          network_id:,
+          memos:,
+          total_transactions: rsts.count,
+        }
+      end.reject { |data| data[:total_transactions] < 30 || YellowPages::Merchant.lookup(network_id: data[:network_id]).in_dataset? }.sort_by { |data| data[:total_transactions] }.reverse
+    end
   end
 
   def merchant_memo_check
@@ -1349,7 +1435,8 @@ class AdminController < ApplicationController
                  .body
 
     hackathons.dig("status", "pending", "meta", "count")
-  rescue Faraday::Error
+  rescue => e
+    Rails.error.report(e)
     9999
   end
 
@@ -1359,20 +1446,12 @@ class AdminController < ApplicationController
       case task_name
       when :pending_hackathons_airtable
         hackathons_task_size
-      when :pending_grant_airtable
-        airtable_task_size :grant
       when :pending_bank_applications_airtable
         airtable_task_size :bank_applications
       when :pending_onboard_id_airtable
         airtable_task_size :onboard_id
-      when :pending_stickermule_airtable
-        airtable_task_size :stickermule
       when :pending_stickers_airtable
         airtable_task_size :stickers
-      when :pending_wallets_airtable
-        airtable_task_size :wallets
-      when :pending_replit_airtable
-        airtable_task_size :replit
       when :pending_onepassword_airtable
         airtable_task_size :onepassword
       when :pending_domains_airtable
@@ -1427,13 +1506,9 @@ class AdminController < ApplicationController
   def pending_tasks
     # This method could take upwards of 10 seconds. USE IT SPARINGLY
     pending_task :pending_hackathons_airtable
-    pending_task :pending_grant_airtable
     pending_task :pending_bank_applications_airtable
     pending_task :pending_onboard_id_airtable
-    pending_task :pending_stickermule_airtable
     pending_task :pending_stickers_airtable
-    pending_task :pending_wallets_airtable
-    pending_task :pending_replit_airtable
     pending_task :pending_onepassword_airtable
     pending_task :pending_domains_airtable
     pending_task :pending_pvsa_airtable

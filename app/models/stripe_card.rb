@@ -52,6 +52,7 @@
 class StripeCard < ApplicationRecord
   include Hashid::Rails
   include PublicIdentifiable
+  include Freezable
   set_public_id_prefix :crd
 
   include HasStripeDashboardUrl
@@ -67,8 +68,9 @@ class StripeCard < ApplicationRecord
 
   scope :deactivated, -> { where.not(stripe_status: "active") }
   scope :canceled, -> { where(stripe_status: "canceled") }
-  scope :frozen, -> { where(stripe_status: "inactive") }
+  scope :frozen, -> { where(stripe_status: "inactive", initially_activated: true) }
   scope :active, -> { where(stripe_status: "active") }
+  scope :inactive, -> { where(stripe_status: "inactive", initially_activated: false) }
   scope :physical_shipping, -> { physical.includes(:user, :event).reject { |c| c.stripe_obj[:shipping][:status] == "delivered" } }
   scope :platinum, -> { where(is_platinum_april_fools_2023: true) }
 
@@ -224,8 +226,8 @@ class StripeCard < ApplicationRecord
     stripe_status == "active"
   end
 
-  def deactivated?
-    stripe_status != "active"
+  def inactive?
+    !initially_activated? && stripe_status == "inactive"
   end
 
   def canceled?
@@ -425,15 +427,17 @@ class StripeCard < ApplicationRecord
   end
 
   def within_card_limit
-    user_cards_today = user.stripe_cards.where(created_at: 1.day.ago..).count
-    event_cards_today = event.stripe_cards.where(created_at: 1.day.ago..).count
-    event_card_grants_today = event.card_grants.where(created_at: 1.day.ago..).count
+    return if subledger.present?
+
+    # card grants don't count against the limit, hence the subledger_id: nil check
+    user_cards_today = user.stripe_cards.where(subledger_id: nil, created_at: 1.day.ago..).count
+    event_cards_today = event.stripe_cards.where(subledger_id: nil, created_at: 1.day.ago..).count
 
     if user_cards_today > 20
       errors.add(:base, "Your account has been rate-limited from creating new cards. Please try again tomorrow; for help, email hcb@hackclub.com.")
     end
 
-    if (event_cards_today - event_card_grants_today) > 20 # card grants don't count against the limit
+    if event_cards_today > 20
       errors.add(:base, "Your organization has been rate-limited from creating new cards. Please try again tomorrow; for help, email hcb@hackclub.com.")
     end
   end
