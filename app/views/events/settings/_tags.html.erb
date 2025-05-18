@@ -7,8 +7,11 @@
       <div class="flex gap-5">
         <% placeholder = ["🧃 Food & drinks", "🧋 Bubble tea", "🚕 Transportation", "🛬 Flights", "🔨 Supplies"].sample %>
         <div class="field">
-          <%= form.label :emoji, "Emoji", class: "mb-1" %>
-          <%= form.text_field :emoji, placeholder: placeholder[0], class: "!w-10", disabled: %>
+          <div data-controller="emoji-picker" class="relative" data-emoji-picker-target="container">
+            <%= form.label :emoji, "Emoji", class: "mb-1" %>
+            <%= form.text_field :emoji, placeholder: placeholder[0], class: "!w-10", disabled:, data: { "emoji-picker-target": "input", "action": "focus->emoji-picker#togglePicker" } %>
+            <emoji-picker data-emoji-picker-target="picker" data-action="emoji-click->emoji-picker#addEmoji" class="fixed mt-3 z-[300]" style="display: none;"></emoji-picker>
+          </div>
         </div>
 
         <div class="field">
@@ -58,7 +61,11 @@
             <%= form_with url: event_tag_path(@event, tag.id), method: "patch", id: "edit_tag_form" do |form| %>
               <div class="flex flex-col gap-3 mb-2">
                 <div class="flex gap-5">
-                  <%= form.text_field :emoji, placeholder: "🏦", value: tag.emoji, class: "!w-10", autocomplete: "off", required: true %>
+                  <div data-controller="emoji-picker" class="relative" data-emoji-picker-target="container">
+                    <%= form.text_field :emoji, placeholder: "🏦", value: tag.emoji, class: "!w-10", autocomplete: "off", required: true, data: { "emoji-picker-target": "input", "action": "focus->emoji-picker#togglePicker" } %>
+                    <emoji-picker data-emoji-picker-target="picker" data-action="emoji-click->emoji-picker#addEmoji" class="fixed mt-3 z-[300]" style="display: none;"></emoji-picker>
+                  </div>
+                  
                   <%= form.text_field :label, autofocus: true, placeholder: "Tag name", value: tag.label, style: "max-width: 100%", autocomplete: "off", required: true %>
                 </div>
                 <div class="flex gap-3">
