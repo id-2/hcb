@@ -362,7 +362,7 @@ class Disbursement < ApplicationRecord
   end
 
   def needs_manager_review?
-    source_event.organizer_positions.find_by(user: requested_by).member?
+    source_event.organizer_positions.find_by(user: requested_by)&.member?
   end
 
 
