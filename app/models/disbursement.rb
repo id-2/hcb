@@ -150,7 +150,7 @@ class Disbursement < ApplicationRecord
       end
       transitions from: [:reviewing, :scheduled], to: :pending do
         guard do
-          can_approve?
+          approved_by_hcb && (needs_manager_review? ? approved_by_manager : true)
         end
       end
     end
@@ -187,7 +187,7 @@ class Disbursement < ApplicationRecord
   def approve_by_admin(user)
     update(approved_by_hcb: true, fulfilled_by: user)
 
-    return unless can_approve? # In case admin approves before manager
+    return unless may_mark_approved? # In case admin approves before manager
 
     if scheduled_on.present?
       mark_scheduled!
@@ -200,7 +200,7 @@ class Disbursement < ApplicationRecord
   def approve_by_manager(user)
     update(approved_by_manager: true, authorized_by: user)
 
-    return unless can_approve? # In case admin approves before manager
+    return unless may_mark_approved? # In case admin approves before manager
 
     if scheduled_on.present?
       mark_scheduled!
@@ -381,10 +381,6 @@ class Disbursement < ApplicationRecord
     if scheduled_on.present? && scheduled_on.before?(Time.now.end_of_day)
       self.errors.add(:scheduled_on, "must be in the future")
     end
-  end
-
-  def can_approve?
-    approved_by_hcb && (needs_manager_review? ? approved_by_manager : true)
   end
 
 end
