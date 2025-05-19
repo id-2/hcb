@@ -63,7 +63,7 @@
     </div>
   <% end %>
 
-  <%= pop_icon_to "view-fill", upsert_query_params(compact: true) %>
+  <%= pop_icon_to "view-fill", upsert_query_params(compact: !local_assigns[:compact]), data: { turbo_prefetch: "false", "turbo-frame": "_top" } %>
 
   <% admin_tool(@show_running_balance ? "" : "display-none") do %>
     <div data-controller="menu" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-end">
