@@ -602,7 +602,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_16_180923) do
     t.bigint "source_subledger_id"
     t.boolean "should_charge_fee", default: false
     t.date "scheduled_on"
-    t.jsonb "approval_methods"
+    t.jsonb "approved_by"
     t.bigint "authorized_by_id"
     t.index ["authorized_by_id"], name: "index_disbursements_on_authorized_by_id"
     t.index ["destination_subledger_id"], name: "index_disbursements_on_destination_subledger_id"
@@ -2287,8 +2287,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_16_180923) do
   add_foreign_key "comment_reactions", "users", column: "reactor_id"
   add_foreign_key "disbursements", "events"
   add_foreign_key "disbursements", "events", column: "source_event_id"
+  add_foreign_key "disbursements", "users", column: "authorized_by_id"
   add_foreign_key "disbursements", "users", column: "fulfilled_by_id"
-  add_foreign_key "disbursements", "users", column: "manager_approved_by_id"
   add_foreign_key "disbursements", "users", column: "requested_by_id"
   add_foreign_key "document_downloads", "documents"
   add_foreign_key "document_downloads", "users"

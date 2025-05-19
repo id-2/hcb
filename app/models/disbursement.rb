@@ -7,7 +7,7 @@
 #  id                       :bigint           not null, primary key
 #  aasm_state               :string
 #  amount                   :integer
-#  approval_methods         :jsonb
+#  approved_by              :jsonb
 #  deposited_at             :datetime
 #  errored_at               :datetime
 #  in_transit_at            :datetime
@@ -53,7 +53,7 @@ class Disbursement < ApplicationRecord
 
   include Freezable
 
-  store_accessor :approval_methods, :manager, :hcb, prefix: :approved_by
+  store_accessor :approved_by, :manager, :hcb, prefix: true
 
   validate on: :create do
     if source_event.financially_frozen?
