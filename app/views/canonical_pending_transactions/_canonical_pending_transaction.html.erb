@@ -91,7 +91,7 @@
           <div class="menu__content menu__content--2 menu__content--compact menu__content--left text-sm" data-menu-target="content">
             <% (@event || pt.local_hcb_code.event).tags.each do |tag| %>
               <div class="flex items-center" data-tag="<%= tag.id %>">
-                <%= button_to toggle_tag_hcb_code_path(id: pt.local_hcb_code.hashid, tag_id: tag.id), class: "menu__action #{tag_dom_id(pt.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
+                <%= button_to toggle_tag_hcb_code_path(id: pt.local_hcb_code.hashid, tag_id: tag.id, compact:), class: "menu__action #{tag_dom_id(pt.local_hcb_code, tag, "_toggle")}", form_class: "flex-auto", form: { "data-turbo" => "true" } do %>
                   <div class="relative w-7 mr-2">
                     <div class="tag__preview tag-<%= tag.color || "muted" %>"></div>
                     <% if tag.emoji != "" %>

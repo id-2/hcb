@@ -49,7 +49,7 @@
       <% end %>
       <%= ledger_instance ? link_to(contents, details_link, style: "color: inherit; min-width: 0;", data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && !@force_no_popover ? { turbo_frame: "_top", behavior: "modal_trigger", modal: } : { turbo_frame: "_top" }) : content_tag(:span) { contents } %>
       <% if compact %>
-        <div class="inline-flex gap-1">
+        <div class="inline-flex gap-1" id="hcb_code_<%= hcb_code.hashid %>_tags">
           <%= render partial: "canonical_transactions/tag", collection: tagged_with, locals: { hcb_code:, compact: } %>
         </div>
       <% end %>

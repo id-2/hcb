@@ -196,6 +196,7 @@ class HcbCodesController < ApplicationController
   def toggle_tag
     hcb_code = HcbCode.find(params[:id])
     tag = Tag.find(params[:tag_id])
+    compact = params[:compact]
     @event = tag.event
 
     authorize hcb_code
@@ -217,7 +218,7 @@ class HcbCodesController < ApplicationController
         if removed
           render partial: "tags/destroy", locals: { hcb_code:, tag: }
         else
-          render partial: "tags/create", locals: { hcb_code:, tag: }
+          render partial: "tags/create", locals: { hcb_code:, tag:, compact: }
         end
       end
       format.any { redirect_back fallback_location: @event }
