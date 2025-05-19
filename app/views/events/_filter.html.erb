@@ -63,6 +63,8 @@
     </div>
   <% end %>
 
+  <%= pop_icon_to "view-fill", upsert_query_params(compact: true) %>
+
   <% admin_tool(@show_running_balance ? "" : "display-none") do %>
     <div data-controller="menu" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-end">
       <button

@@ -225,6 +225,8 @@ class EventsController < ApplicationController
       @mock_total = @transactions.sum(&:amount_cents)
     end
 
+    @compact = params[:compact]
+
     render layout: false
   end
 

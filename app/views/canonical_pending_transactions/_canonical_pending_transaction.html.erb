@@ -1,5 +1,6 @@
 <% instance = pt.__id__ %>
 <% tagged_with = pt.local_hcb_code.tags.filter { |tag| !@event || tag.event == @event } %>
+<% compact = local_assigns[:compact] == "true" %>
 <tr
   class="transaction muted <%= unless current_user && Flipper.enabled?(:transactions_background_2024_06_05, current_user)
                                  pt.amount.negative? ? "transaction--negative" : pt.amount.positive? ? "transaction--positive" : "transaction--zero"
@@ -63,13 +64,13 @@
           <%= turbo_frame_tag "#{pt.local_hcb_code.hashid}:memo_frame", class: "memo-frame flex", style: "width:100%; overflow:hidden; text-overflow:ellipsis; flex-grow: 1" do %>
             <span title="<%= transaction_memo(pt) %>" style="flex-grow: 1;">
               <%= pt.local_hcb_code.card_grant? && !organizer_signed_in? ? link_to(transaction_memo(pt), spending_card_grant_path(pt.local_hcb_code.disbursement.card_grant), data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "card_grant_details_#{instance}" }) : content_tag(:span) do %>
-                <%= render "hcb_codes/memo", hcb_code: pt.local_hcb_code, location: "ledger", ledger_instance: instance, force_display_details: defined?(force_display_details) %>
+                <%= render "hcb_codes/memo", hcb_code: pt.local_hcb_code, location: "ledger", ledger_instance: instance, force_display_details: defined?(force_display_details), compact:, tagged_with: %>
               <% end %>
             </span>
           <% end %>
         </div>
 
-        <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && !@event&.demo_mode? %>
+        <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && !@event&.demo_mode? && !compact %>
           <div class="flex flex-wrap pending_transactions_tags tags" style="gap: 0.25rem" id="hcb_code_<%= pt.local_hcb_code.hashid %>_tags">
             <%= render partial: "canonical_transactions/tag", collection: tagged_with, locals: { hcb_code: pt.local_hcb_code } %>
           </div>
