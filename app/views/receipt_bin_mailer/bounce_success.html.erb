@@ -3,7 +3,7 @@ We got your <%= "receipt".pluralize(@receipts_count) %>, thanks! <%= "You can fi
 </p>
 
 <% if @pairs.size > 0 %>
-  <p>We also automatically matched <%= @pairs.size == 1 ? "it" : "#{@pairs.size} receipts"%> to the following <%= "transaction".pluralize(@pairs.size) %>:</p>
+  <p>We also automatically matched <%= @receipts_count == 1 ? "it" : "#{@pairs.size} #{"receipt".pluralize(@pairs.size)}"%> to the following <%= "transaction".pluralize(@pairs.size) %>:</p>
 
   <ul>
     <% @pairs.map do |pair| %>
