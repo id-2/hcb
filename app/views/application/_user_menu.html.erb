@@ -20,7 +20,7 @@
         data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
         data-menu-target="toggle"
         class="user-menu-trigger max-w-full">
-        <%= avatar_for current_user, 32 %>
+        <%= avatar_for(current_user, size: 32) %>
         <div class="text-left flex-1 truncate hidden lg:block" style="flex:1;overflow: hidden;">
           <span class="truncate"><%= @current_user.name %></span>
           <span class="text-xs -mt-0.5 block text-muted truncate" style="font-weight: 400"><%= @current_user.email %></span>
@@ -37,7 +37,7 @@
         </a>
         <% if signed_in? %>
           <%= link_to my_inbox_path do %>
-            <%= inline_icon "attachment", size: 23 %>
+            <%= inline_icon "receipt", size: 23 %>
             My receipts
           <% end %>
           <%= link_to logout_users_path, method: :delete do %>

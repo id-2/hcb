@@ -25,7 +25,7 @@ input[type='submit'],
   &:hover,
   &:focus,
   &[aria-expanded='true'] {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-border-md), inset 0 0 0px 0.5px rgba(0, 0, 0, 0.1);
   }
 
   &:not([class*='bg-']):not([type='submit']) {
@@ -34,7 +34,7 @@ input[type='submit'],
     &:hover,
     &:focus,
     &[aria-expanded='true'] {
-      box-shadow: var(--shadow-border-md);
+      box-shadow: var(--shadow-border-md), inset 0 0 0px 0.5px rgba(0, 0, 0, 0.15);
     }
   }
 
@@ -101,6 +101,10 @@ input[type='submit'],
   &.bg-success {
     background-color: map-get($palette, success);
     color: darken(map-get($palette, success), 40%) !important;
+
+    &:hover {
+      box-shadow: var(--shadow-border-lg), inset 0 0 0px 0.5px darken(map-get($palette, success), 10%)!important;
+    }
   }
 
   &.bg-accent {

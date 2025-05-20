@@ -67,17 +67,7 @@
       </div>
     </action>
   <% end %>
-  <%= pop_icon_to "settings",
-      edit_event_path(@event, tab: "donations"),
-      data: { turbo_frame: "_top", behavior: "modal_trigger", modal: "donation_settings" },
-      class: "tooltipped tooltipped--s", "aria-label": "Donations settings" if organizer_signed_in?(as: :member) %>
-  <% if @event.donation_page_available? %>
-    <%= link_to start_donation_donations_path(@event), target: "_blank", class: "btn" do %>
-      <%= inline_icon "external" %>
-      Donate page
-    <% end %>
-    </div>
-  <% end %>
+  </div>
 </h1>
 
 <% if @event.donation_page_available? %>
@@ -291,7 +281,7 @@
 
     <tbody>
       <% @donations.each do |d| %>
-        <tr>
+        <tr class="clickable">
           <td>
             <span class="ml0 badge bg-<%= d.state %>"><%= d.state_text %></span>
           </td>
@@ -319,7 +309,7 @@
           </td>
           <td>
             <%# the link below can be changed back to `d.local_hcb_code.hashid` after hcb_codes are converted into proper associations and are preloaded in the controller %>
-            <%= link_to "Details", hcb_code_url(d.hcb_code) if organizer_signed_in? %>
+            <%= link_to "Details", hcb_code_url(d.hcb_code), class: "stretched-link" if organizer_signed_in? %>
           </td>
         </tr>
       <% end %>

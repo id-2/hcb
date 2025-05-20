@@ -28,16 +28,21 @@
     background-color 0.125s ease-in-out,
     box-shadow 0.125s ease-in-out;
 
-  &:hover {
+  &:hover, &:focus {
     color: map-get($palette, slate);
     background-color: map-get($palette, white);
+    box-shadow: var(--shadow-border-xs);
   }
 
   &[aria-current='page'],
   &[aria-selected='true'] {
     color: map-get($palette, slate);
     background-color: map-get($palette, white);
-    box-shadow: var(--shadow-border-sm);
+    box-shadow: var(--shadow-border-md);
     z-index: 1;
+
+    &:hover, &:focus {
+      box-shadow: var(--shadow-border-lg), inset 0 0 0px 0.5px rgba(0, 0, 0, 0.1);
+    }
   }
 }

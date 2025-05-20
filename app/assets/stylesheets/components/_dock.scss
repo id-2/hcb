@@ -21,11 +21,12 @@ details.dock {
   }
 
   & > a {
-    margin-top: 2px;
     margin-left: 36px;
     width: calc(100% - 36px);
     border-radius: var(--radius-sm);
     font-weight: 400;
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
 
   @media (min-width: 48em) {
@@ -145,6 +146,7 @@ summary.dock__item {
 
     &:hover {
       background-color: map-get($palette, white);
+      box-shadow: var(--shadow-border-xs);
     }
 
     &[aria-current='page'] {
