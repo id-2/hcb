@@ -68,7 +68,7 @@ module Reimbursement
       authorize @report
       @commentable = @report
       @comments = @commentable.comments
-      @use_user_nav = @event.nil? || current_user == @user && !@event.users.include?(@user) && !admin_signed_in?
+      @use_user_nav = @event.nil? || current_user == @user && !@event.users.include?(@user) && !auditor_signed_in?
       @editing = params[:edit].to_i
 
     end
@@ -172,7 +172,7 @@ module Reimbursement
         flash[:error] = e.message
       end
 
-      # ReimbursementJob::Nightly.perform_later
+      # Reimbursement::NightlyJob.perform_later
 
       redirect_to @report
     end
@@ -189,7 +189,7 @@ module Reimbursement
         flash[:error] = e.message
       end
 
-      # ReimbursementJob::Nightly.perform_later
+      # Reimbursement::NightlyJob.perform_later
 
       redirect_to @report
     end
@@ -203,6 +203,24 @@ module Reimbursement
         flash[:success] = "Rejected & closed the report; no further changes can be made."
       rescue => e
         flash[:error] = e.message
+      end
+
+      redirect_to @report
+    end
+
+    def reverse
+
+      authorize @report
+
+      if @report.payout_holding.nil?
+        flash[:error] = "This report can't be reversed yet."
+      else
+        begin
+          @report.payout_holding.reverse!
+          flash[:success] = "Reversed the report."
+        rescue => e
+          flash[:error] = e.message
+        end
       end
 
       redirect_to @report
