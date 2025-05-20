@@ -1,4 +1,4 @@
-<%# locals: (card_grant:) %>
+<%# locals: (card_grant:, label: "Create reimbursement report") %>
 
 <% if card_grant.active? && policy(card_grant).convert_to_reimbursement_report? %>
 
@@ -6,7 +6,7 @@
               method: :post,
               data: { confirm: "Are you sure? This will cancel your card grant and convert it into a reimbursement report." },
               class: "btn bg-purple" do %>
-    <%= inline_icon "attachment", size: 20 %> Create reimbursement report
+    <%= inline_icon "attachment", size: 20 %> <%= label %>
   <% end %>
 
 <% end %>
