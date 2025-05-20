@@ -147,10 +147,9 @@ tr.clickable {
     left: 0;
     z-index: 1;
     pointer-events: auto;
-    content: "";
+    content: '';
     background-color: rgba(0, 0, 0, 0);
   }
-
 
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -176,7 +175,7 @@ tr.clickable {
       fill: map-get($palette, primary);
     }
   }
-  
+
   &.disabled {
     color: map-get($palette, muted);
     cursor: not-allowed;

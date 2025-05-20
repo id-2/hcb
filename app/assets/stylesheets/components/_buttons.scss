@@ -25,7 +25,9 @@ input[type='submit'],
   &:hover,
   &:focus,
   &[aria-expanded='true'] {
-    box-shadow: var(--shadow-border-md), inset 0 0 0px 0.5px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      var(--shadow-border-md),
+      inset 0 0 0px 0.5px rgba(0, 0, 0, 0.1);
   }
 
   &:not([class*='bg-']):not([type='submit']) {
@@ -34,7 +36,9 @@ input[type='submit'],
     &:hover,
     &:focus,
     &[aria-expanded='true'] {
-      box-shadow: var(--shadow-border-md), inset 0 0 0px 0.5px rgba(0, 0, 0, 0.15);
+      box-shadow:
+        var(--shadow-border-md),
+        inset 0 0 0px 0.5px rgba(0, 0, 0, 0.15);
     }
   }
 
@@ -103,7 +107,9 @@ input[type='submit'],
     color: darken(map-get($palette, success), 40%) !important;
 
     &:hover {
-      box-shadow: var(--shadow-border-lg), inset 0 0 0px 0.5px darken(map-get($palette, success), 10%)!important;
+      box-shadow:
+        var(--shadow-border-lg),
+        inset 0 0 0px 0.5px darken(map-get($palette, success), 10%) !important;
     }
   }
 
