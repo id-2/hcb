@@ -1,9 +1,12 @@
 <p>
-We got your <%= "receipt".pluralize(@receipts_count) %>, thanks! <%= "You can find #{@receipts_count == 1 ? "it" : "them"} in your #{link_to "Receipt Bin", my_inbox_url}.".html_safe unless @receipts_count == @pairs.size %>
+We got your <%= "receipt".pluralize(@receipts_count) %>, thanks!
+<% unless @receipts_count == @pairs.size %>
+You can find <%= @receipts_count == 1 ? "it" : "them" %> in your <%= link_to("Receipt Bin", my_inbox_url) %>.
+<% end %>
 </p>
 
 <% if @pairs.size > 0 %>
-  <p>We also automatically matched <%= @receipts_count == 1 ? "it" : "#{@pairs.size} #{"receipt".pluralize(@pairs.size)}"%> to the following <%= "transaction".pluralize(@pairs.size) %>:</p>
+  <p>We also automatically matched <%= @receipts_count == 1 ? "it" : "#{@pairs.size} #{"receipt".pluralize(@pairs.size)}" %> to the following <%= "transaction".pluralize(@pairs.size) %>:</p>
 
   <ul>
     <% @pairs.map do |pair| %>
