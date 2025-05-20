@@ -87,6 +87,10 @@ input[type='submit'],
   &.bg-warning {
     background-color: map-get($palette, warning);
     color: $white;
+
+    html[data-dark='true'] & {
+      color: darken(map-get($palette, warning), 33.3%) !important;
+    }
   }
 
   &.bg-purple {

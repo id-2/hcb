@@ -6,6 +6,7 @@ require "sidekiq/cron/web"
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
   get "up" => "rails/health#show", as: :rails_health_check
+  get "/my_ip", to: "admin#my_ip"
 
   constraints AdminConstraint do
     mount Audits1984::Engine => "/console"
@@ -45,6 +46,8 @@ Rails.application.routes.draw do
   get "project_stats", to: "stats#project_stats"
   get "bookkeeping", to: "admin#bookkeeping"
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
+
+  resources :raffles, only: [:new, :create]
 
   resources :receipts, only: [:create, :destroy] do
     collection do
@@ -193,6 +196,8 @@ Rails.application.routes.draw do
       get "raw_transactions", to: "admin#raw_transactions"
       get "raw_transaction_new", to: "admin#raw_transaction_new"
       post "raw_transaction_create", to: "admin#raw_transaction_create"
+      get "raw_intrafi_transactions", to: "admin#raw_intrafi_transactions"
+      post "raw_intrafi_transactions_import", to: "admin#raw_intrafi_transactions_import"
       get "ledger", to: "admin#ledger"
       get "stripe_cards", to: "admin#stripe_cards"
       get "pending_ledger", to: "admin#pending_ledger"
@@ -208,7 +213,9 @@ Rails.application.routes.draw do
       get "wires", to: "admin#wires"
       get "events", to: "admin#events"
       get "event_new", to: "admin#event_new"
+      get "event_new_from_airtable", to: "admin#event_new_from_airtable"
       post "event_create", to: "admin#event_create"
+      post "event_create_from_airtable", to: "admin#event_create_from_airtable"
       get "donations", to: "admin#donations"
       get "recurring_donations", to: "admin#recurring_donations"
       get "disbursements", to: "admin#disbursements"
@@ -218,7 +225,6 @@ Rails.application.routes.draw do
       get "google_workspaces", to: "admin#google_workspaces"
       post "google_workspaces_verify_all", to: "admin#google_workspaces_verify_all"
       get "balances", to: "admin#balances"
-      get "grants", to: "admin#grants"
       get "hq_receipts", to: "admin#hq_receipts"
       get "account_numbers", to: "admin#account_numbers"
       get "employees", to: "admin#employees"
@@ -226,13 +232,8 @@ Rails.application.routes.draw do
       get "emails", to: "admin#emails"
       get "email", to: "admin#email"
       get "merchant_memo_check", to: "admin#merchant_memo_check"
-
-      resources :grants, only: [] do
-        post "approve"
-        post "additional_info_needed"
-        post "reject"
-        post "mark_fulfilled"
-      end
+      get "unknown_merchants", to: "admin#unknown_merchants"
+      post "request_balance_export", to: "admin#request_balance_export"
     end
 
     member do
@@ -244,6 +245,7 @@ Rails.application.routes.draw do
       put "event_reject", to: "admin#event_reject"
       get "ach_start_approval", to: "admin#ach_start_approval"
       post "ach_approve", to: "admin#ach_approve"
+      post "ach_send_realtime", to: "admin#ach_send_realtime"
       post "ach_reject", to: "admin#ach_reject"
       get "disbursement_process", to: "admin#disbursement_process"
       post "disbursement_approve", to: "admin#disbursement_approve"
@@ -255,9 +257,9 @@ Rails.application.routes.draw do
       post "google_workspace_approve", to: "admin#google_workspace_approve"
       post "google_workspace_verify", to: "admin#google_workspace_verify"
       post "google_workspace_update", to: "admin#google_workspace_update"
+      post "google_workspace_toggle_revocation_immunity", to: "admin#google_workspace_toggle_revocation_immunity"
       get "invoice_process", to: "admin#invoice_process"
       post "invoice_mark_paid", to: "admin#invoice_mark_paid"
-      get "grant_process", to: "admin#grant_process"
     end
   end
 
@@ -325,6 +327,7 @@ Rails.application.routes.draw do
 
   resources :g_suites, except: [:new, :create, :edit, :update] do
     resources :g_suite_accounts, only: [:create]
+    resources :revocations, only: [:create, :destroy], controller: "g_suite/revocations"
   end
 
   resources :sponsors
@@ -382,7 +385,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :wires, only: [] do
+  resources :wires, only: [:edit, :update] do
     member do
       post "approve"
       post "send", to: "wires#send_wire"
@@ -463,6 +466,7 @@ Rails.application.routes.draw do
     collection do
       get "collect_email", to: "exports#collect_email", as: "collect_email"
       get ":event", to: "exports#transactions", as: "transactions"
+      get "reimbursements/:event", to: "exports#reimbursements", as: "reimbursements"
     end
   end
 
@@ -472,6 +476,7 @@ Rails.application.routes.draw do
     resources :reports, only: [:show, :create, :edit, :update, :destroy] do
       post "request_reimbursement"
       post "admin_approve"
+      post "reverse"
       post "approve_all_expenses"
       post "request_changes"
       post "reject"
@@ -501,11 +506,13 @@ Rails.application.routes.draw do
   namespace :employee do
     resources :payments do
       post "review"
+      get "stub"
     end
   end
 
   get "brand_guidelines", to: redirect("branding")
   get "branding", to: "static_pages#branding"
+  get "security", to: "static_pages#security"
   get "faq", to: redirect("https://help.hcb.hackclub.com")
   get "roles", to: "static_pages#roles"
   get "audit", to: "admin#audit"
@@ -529,7 +536,7 @@ Rails.application.routes.draw do
 
   resources :emburse_transactions, only: [:index, :edit, :update, :show]
 
-  resources :donations, only: [:show] do
+  resources :donations, only: [:show, :update] do
     collection do
       get "start/:event_name", to: "donations#start_donation", as: "start_donation"
       post "start/:event_name", to: "donations#make_donation", as: "make_donation"
@@ -590,7 +597,7 @@ Rails.application.routes.draw do
 
         resources :transactions, only: [:show]
 
-        resources :stripe_cards, path: "cards", only: [:show, :update] do
+        resources :stripe_cards, path: "cards", only: [:show, :update, :create] do
           member do
             get "transactions"
             get "ephemeral_keys"
@@ -600,6 +607,7 @@ Rails.application.routes.draw do
         resources :card_grants, only: [:show, :update] do
           member do
             post "topup"
+            post "withdraw"
             post "cancel"
           end
         end
@@ -614,10 +622,10 @@ Rails.application.routes.draw do
   post "api/v1/users/find", to: "api#user_find"
   post "api/v1/events/create_demo", to: "api#create_demo_event"
   get "api/current_user", to: "api#the_current_user"
+  get "api/flags", to: "api#flags"
 
   post "twilio/webhook", to: "twilio#webhook"
   post "stripe/webhook", to: "stripe#webhook"
-  post "increase/webhook", to: "increase#webhook"
   post "docuseal/webhook", to: "docuseal#webhook"
   post "webhooks/column", to: "column/webhooks#webhook"
 
@@ -642,21 +650,19 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :card_grants, only: [:show], path: "grants" do
+  resources :card_grants, only: [:show, :edit, :update], path: "grants", concerns: :commentable do
     member do
       post "activate"
       get "spending"
+      post "clear_purpose"
     end
   end
 
-  resources :grants, only: [:show], path: "grants_v2" do
-    member do
-      post "activate"
-    end
-  end
-
+  match "/400", to: "errors#bad_request", via: :all
   match "/404", to: "errors#not_found", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
+  match "/504", to: "errors#timeout", via: :all
+  get "timeout", to: "errors#timeout", via: :all
 
   Rack::Utils::HTTP_STATUS_CODES.keys.select { |c| c >= 400 }.each do |code|
     match "/#{code}", to: "errors#error", via: :all, code:
@@ -710,9 +716,9 @@ Rails.application.routes.draw do
     get "donations", to: "events#donation_overview", as: :donation_overview
     get "activation_flow", to: "events#activation_flow", as: :activation_flow
     post "activate", to: "events#activate", as: :activate
-    post "finish_signee_backfill"
     resources :disbursements, only: [:new, :create]
     resources :increase_checks, only: [:new, :create], path: "checks"
+    resources :fees, only: [:create]
     resources :paypal_transfers, only: [:new, :create]
     resources :wires, only: [:new, :create]
     resources :ach_transfers, only: [:new, :create]
@@ -724,8 +730,12 @@ Rails.application.routes.draw do
     get "fiscal_sponsorship_letter", to: "documents#fiscal_sponsorship_letter"
     get "verification_letter", to: "documents#verification_letter"
     resources :invoices, only: [:new, :create, :index]
-    resources :tags, only: [:create, :destroy]
+    resources :tags, only: [:create, :update, :destroy]
     resources :event_tags, only: [:create, :destroy]
+
+    namespace :donation do
+      resource :goals, only: [:create, :update]
+    end
 
     resources :recurring_donations, only: [:create], path: "recurring" do
       member do
@@ -742,12 +752,12 @@ Rails.application.routes.draw do
 
     resources :card_grants, only: [:new, :create], path: "card-grants" do
       member do
-        post "cancel"
         post "topup"
+        post "withdraw"
+        post "cancel"
+        post "convert_to_reimbursement_report"
       end
     end
-
-    resources :grants, only: [:index, :new, :create]
 
     resource :column_account_number, controller: "column/account_number", only: [:create, :update], path: "account-number"
 
@@ -776,6 +786,10 @@ Rails.application.routes.draw do
     end
 
     get "balance_by_date"
+  end
+
+  scope module: "referral" do
+    resources :programs, only: [:show], path: "referrals"
   end
 
   # rewrite old event urls to the new ones not prefixed by /events/
