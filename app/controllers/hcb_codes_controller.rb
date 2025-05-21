@@ -193,6 +193,14 @@ class HcbCodesController < ApplicationController
     end
   end
 
+  def receipt_status
+    @hcb_code = HcbCode.find(params[:id])
+
+    skip_authorization
+
+    render "receipt_status"
+  end
+
   def toggle_tag
     hcb_code = HcbCode.find(params[:id])
     tag = Tag.find(params[:tag_id])
