@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module GSuiteJob
-  class SendOneWeekRevocationWarning < ApplicationJob
+class GSuite
+  class SendOneWeekRevocationWarningJob < ApplicationJob
     queue_as :low
 
     def perform
@@ -10,10 +10,15 @@ module GSuiteJob
           revocation.destroy!
           next
         end
-        GSuiteMailer.with(revocation: revocation).revocation_one_week_warning.deliver_later
+        GSuite::RevocationMailer.with(g_suite_revocation_id: revocation.id).revocation_one_week_warning.deliver_later
         revocation.update!(one_week_notice_sent: true)
       end
     end
 
   end
+
+end
+
+module GSuiteJob
+  SendOneWeekRevocationWarning = GSuite::SendOneWeekRevocationWarningJob
 end
