@@ -14,7 +14,7 @@ class CanonicalPendingTransactionMailer < ApplicationMailer
     @receipt_status_url = Rails.application.routes.url_helpers.receipt_status_hcb_code_url(
       id: @cpt.local_hcb_code.hashid,
       format: :svg,
-      s: @cpt.local_hcb_code.signed_id(purpose: :receipt_upload)
+      s: @cpt.local_hcb_code.signed_id(purpose: :receipt_status)
     )
 
     to = @cpt.stripe_card.user.email_address_with_name

@@ -200,7 +200,7 @@ class HcbCodesController < ApplicationController
     authorize @hcb_code
 
   rescue Pundit::NotAuthorizedError
-    raise unless HcbCode.find_signed(@secret, purpose: :receipt_upload) == @hcb_code
+    raise unless HcbCode.find_signed(@secret, purpose: :receipt_status) == @hcb_code
   end
 
   def toggle_tag
