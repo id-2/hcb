@@ -7,7 +7,7 @@ module ActiveStorage
       blob.content_type == "text/csv"
     end
 
-    def preview
+    def preview(**options)
       download_blob_to_tempfile do |file|
         rows = CSV.read(file.path).first(5)
 
@@ -15,7 +15,7 @@ module ActiveStorage
         tempfile = Tempfile.new(["preview", ".png"])
         png.save(tempfile.path)
 
-        yield tempfile, format: :png
+        yield io: tempfile, filename: "preview.png", content_type: "image/png", **options
       end
     end
 
