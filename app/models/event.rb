@@ -58,6 +58,7 @@ class Event < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix :org
 
+  include CountryEnumable
   before_save :set_country_alpha2
 
   include Commentable
@@ -743,7 +744,8 @@ class Event < ApplicationRecord
   private
 
   def set_country_alpha2
-    self.country_alpha2 = ISO3166::Country[country]&.alpha2
+    reverse_enum = CountryEnumable::country_enum_list.invert
+    self.country_alpha2 = reverse_enum[country]&.to_s
   end
 
 
