@@ -60,6 +60,7 @@ class Event < ApplicationRecord
 
   include CountryEnumable
   has_country_enum
+  before_save :set_country_alpha2
 
   include Commentable
 
@@ -742,6 +743,11 @@ class Event < ApplicationRecord
   end
 
   private
+  
+  def set_country_alpha2
+    self.country_alpha2 = ISO3166::Country[country]&.alpha2
+  end
+
 
   def point_of_contact_is_admin
     return unless point_of_contact_changed?
