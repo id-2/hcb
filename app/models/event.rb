@@ -58,8 +58,6 @@ class Event < ApplicationRecord
   include PublicIdentifiable
   set_public_id_prefix :org
 
-  include CountryEnumable
-  has_country_enum
   before_save :set_country_alpha2
 
   include Commentable
