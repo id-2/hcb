@@ -234,7 +234,8 @@ class Wire < ApplicationRecord
   private
 
   def set_country_alpha2
-    self.country_alpha2 = ISO3166::Country[recipient_country]&.alpha2
+    reverse_enum = CountryEnumable.country_enum_list.invert
+    self.country_alpha2 = reverse_enum[recipient_country]&.to_s
   end
 
 end
