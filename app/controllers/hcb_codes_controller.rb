@@ -195,10 +195,12 @@ class HcbCodesController < ApplicationController
 
   def receipt_status
     @hcb_code = HcbCode.find(params[:id])
+    @secret = params[:s]
 
-    skip_authorization
+    authorize @hcb_code
 
-    render "receipt_status"
+  rescue Pundit::NotAuthorizedError
+    raise unless HcbCode.find_signed(@secret, purpose: :receipt_upload) == @hcb_code
   end
 
   def toggle_tag
