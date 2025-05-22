@@ -741,7 +741,7 @@ class Event < ApplicationRecord
   end
 
   private
-  
+
   def set_country_alpha2
     self.country_alpha2 = ISO3166::Country[country]&.alpha2
   end
