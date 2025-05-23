@@ -9,7 +9,7 @@ function extractId(dataTransfer) {
 
   try {
     const elementId = dataTransfer.getData('text/plain')
-    receiptId = elementId.split("_")[1]
+    receiptId = elementId.split('_')[1]
   } catch (err) {
     console.error(err)
     // airbrake?.notify(err)
