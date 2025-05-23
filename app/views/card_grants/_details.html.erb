@@ -2,19 +2,18 @@
 <% hcb_code ||= card_grant.disbursement.local_hcb_code %>
 
 <div class="card mt2">
-  <% content_for :heading do %>
-      <span class="flex-auto">
-        <span class="regular muted">
-          Grant to
-        </span>
-        <%= card_grant.user.initial_name %>
-        <span class="regular muted">
-          for
-        </span>
-        <span class="regular"><%= render_money hcb_code.amount_cents_by_event(card_grant.event).abs %></span>
+  <%= render partial: "hcb_codes/heading", locals: { hcb_code: } do %>
+    <span class="flex-auto">
+      <span class="regular muted">
+        Grant to
       </span>
-    <% end %>
-  <%= render partial: "hcb_codes/heading", locals: { hcb_code: } %>
+      <%= card_grant.user.initial_name %>
+      <span class="regular muted">
+        for
+      </span>
+      <span class="regular"><%= render_money hcb_code.amount_cents_by_event(card_grant.event).abs %></span>
+    </span>
+  <% end %>
   </h2>
   <section class="card__banner card__darker details-horiz border-top border-bottom">
     <p>
