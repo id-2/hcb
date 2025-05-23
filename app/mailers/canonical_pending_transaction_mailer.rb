@@ -11,11 +11,6 @@ class CanonicalPendingTransactionMailer < ApplicationMailer
       id: @cpt.local_hcb_code.hashid,
       s: @cpt.local_hcb_code.signed_id(expires_in: 2.weeks, purpose: :receipt_upload)
     )
-    @receipt_status_url = Rails.application.routes.url_helpers.receipt_status_hcb_code_url(
-      id: @cpt.local_hcb_code.hashid,
-      format: :svg,
-      s: @cpt.local_hcb_code.signed_id(purpose: :receipt_status)
-    )
 
     to = @cpt.stripe_card.user.email_address_with_name
     subject = "#{@cpt.local_hcb_code.receipt_required? ? "Upload a receipt for your transaction" : "New transaction"} at #{@cpt.smart_memo}"
