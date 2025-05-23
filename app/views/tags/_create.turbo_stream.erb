@@ -1,4 +1,7 @@
-<%= turbo_stream.append "hcb_code_#{hcb_code.hashid}_tags", partial: "canonical_transactions/tag", locals: { tag:, hcb_code:, streamed: local_assigns[:streamed], compact: } %>
+<%= turbo_stream.update_all ".hcb_code_#{hcb_code.hashid}_tags" do %>
+  <%= render partial: "canonical_transactions/tag", collection: hcb_code.tags, locals: { hcb_code:, streamed: local_assigns[:streamed], compact:  } %>
+<% end %>
+
 <%= turbo_stream.update_all tag_dom_class(hcb_code, tag, "_toggle") do %>
   <div class="relative w-7 mr-2">
     <div class="tag__preview tag-<%= tag.color || "muted" %>"></div>
