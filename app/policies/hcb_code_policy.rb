@@ -34,7 +34,7 @@ class HcbCodePolicy < ApplicationPolicy
   end
 
   def receipt_status?
-    user&.admin? || gte_member_in_events? || user_made_purchase?
+    user&.admin? || present_in_events? || user_made_purchase?
   end
 
   def pin?
