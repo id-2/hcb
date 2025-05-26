@@ -49,4 +49,4 @@ LocalTime.start()
 
 import '@github/text-expander-element'
 import '@oddbird/popover-polyfill'
-import 'emoji-picker-element';
+import 'emoji-picker-element'

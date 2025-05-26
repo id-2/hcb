@@ -14,13 +14,13 @@ export default class extends Controller {
   }
 
   addEmoji(event) {
-    this.inputTarget.value = event.detail.unicode;
-    this.togglePicker();
+    this.inputTarget.value = event.detail.unicode
+    this.togglePicker()
   }
 
   togglePicker() {
     this.open = !this.open
-    this.pickerTarget.style = `display: ${this.open ? "block" : "none"};`
+    this.pickerTarget.style = `display: ${this.open ? 'block' : 'none'};`
   }
 
   handleDocumentClick(event) {

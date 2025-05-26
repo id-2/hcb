@@ -65,7 +65,7 @@
                     <%= form.text_field :emoji, placeholder: "🏦", value: tag.emoji, class: "!w-10", autocomplete: "off", data: { "emoji-picker-target": "input", "action": "focus->emoji-picker#togglePicker" } %>
                     <emoji-picker data-emoji-picker-target="picker" data-action="emoji-click->emoji-picker#addEmoji" class="fixed mt-3 z-[300]" style="display: none;"></emoji-picker>
                   </div>
-                  
+
                   <%= form.text_field :label, autofocus: true, placeholder: "Tag name", value: tag.label, style: "max-width: 100%", autocomplete: "off", required: true %>
                 </div>
                 <div class="flex gap-3">
