@@ -97,7 +97,8 @@ class ReceiptsController < ApplicationController
   def create
     streams = []
 
-    params.require(:file)
+    file_param = params[:ledger_instance].present? ? "file_#{params[:ledger_instance]}" : "file"
+    params.require(file_param)
     params.require(:upload_method)
 
     begin
@@ -108,11 +109,11 @@ class ReceiptsController < ApplicationController
       raise unless @receiptable.is_a?(HcbCode) && HcbCode.find_signed(params[:s], purpose: :receipt_upload) == @receiptable
     end
 
-    return unless params[:file].present?
+    return unless params[file_param].present?
 
     streams = []
 
-    params[:file].map do |file|
+    params[file_param].map do |file|
       (receipt, ) = ::ReceiptService::Create.new(
         receiptable: @receiptable,
         uploader: current_user,
@@ -139,7 +140,7 @@ class ReceiptsController < ApplicationController
         upload_method: params[:upload_method].sub("_drag_and_drop", ""),
         restricted_dropzone: params[:upload_method] != :transaction_page,
         include_spacing: params[:upload_method] != :receipt_center,
-        success: "#{"Receipt".pluralize(params[:file].length)} added!",
+        success: "#{"Receipt".pluralize(params[file_param].length)} added!",
         global_paste: !@receiptable,
         turbo: true
       }
@@ -162,9 +163,9 @@ class ReceiptsController < ApplicationController
 
     flash_type = :success
     if params[:show_link]
-      flash_message = { text: "#{"Receipt".pluralize(params[:file].length)} added!", link: (hcb_code_path(@receiptable) if @receiptable.instance_of?(HcbCode)), link_text: "View" }
+      flash_message = { text: "#{"Receipt".pluralize(params[file_param].length)} added!", link: (hcb_code_path(@receiptable) if @receiptable.instance_of?(HcbCode)), link_text: "View" }
     else
-      flash_message = "#{"Receipt".pluralize(params[:file].length)} added!"
+      flash_message = "#{"Receipt".pluralize(params[file_param].length)} added!"
     end
 
   rescue => e

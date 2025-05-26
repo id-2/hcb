@@ -37,7 +37,6 @@
                 receipt_upload_form_config[:popover] = "HcbCode:#{@hcb_code.hashid}" if @frame
                 receipt_upload_form_config[:show_receipt_button] = @transaction_show_receipt_button
                 receipt_upload_form_config[:show_author_img] = @transaction_show_author_img
-                receipt_upload_form_config[:ledger_instance] = @ledger_instance
                 render partial: "receipts/form_v3", locals: receipt_upload_form_config end %>
     <% end %>
   <% end %>
