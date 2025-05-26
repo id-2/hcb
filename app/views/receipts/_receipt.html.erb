@@ -97,7 +97,6 @@
             reverse_receipt_path(receipt, { popover: local_assigns[:popover], format: (:html unless local_assigns[:turbo_for_deletion]) }.compact),
             data: {
               behavior: "modal_ignore",
-              turbo_method: :post,
             },
             size: 24,
             class: "ai tooltipped tooltipped--w",
