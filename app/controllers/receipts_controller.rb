@@ -212,8 +212,12 @@ class ReceiptsController < ApplicationController
   def reverse
     authorize @receipt
 
-    pairing = @receipt.suggested_pairings.accepted.first
-    success = pairing.mark_reversed!
+    if @receipt.suggested_pairings.accepted.any?
+      pairing = @receipt.suggested_pairings.accepted.first
+      success = pairing.mark_reversed!
+    else
+      @receipt.update!(receiptable: nil)
+    end
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: generate_streams }
