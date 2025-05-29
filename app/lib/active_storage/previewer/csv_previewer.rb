@@ -15,7 +15,10 @@ module ActiveStorage
         tempfile = Tempfile.new(["preview", ".png"])
         png.save(tempfile.path)
 
-        yield io: tempfile, filename: "preview.png", content_type: "image/png", **options
+        original_name = blob.filename.base
+        filename = "#{original_name}_preview.png"
+
+        yield io: tempfile, filename: filename, content_type: "image/png", **options
       end
     end
 
