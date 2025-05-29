@@ -93,7 +93,7 @@ class CardGrant < ApplicationRecord
       "muted"
     elsif pending_invite?
       "info"
-    elsif stripe_card.frozen?
+    elsif stripe_card.frozen? || stripe_card.inactive?
       "info"
     else
       "success"
@@ -107,7 +107,7 @@ class CardGrant < ApplicationRecord
       "Expired"
     elsif pending_invite?
       "Invitation sent"
-    elsif stripe_card.frozen?
+    elsif stripe_card.frozen? || stripe_card.inactive?
       "Frozen"
     else
       "Active"
@@ -199,7 +199,7 @@ class CardGrant < ApplicationRecord
   def cancel!(canceled_by = User.find_by!(email: "bank@hackclub.com"), expired: false)
     raise ArgumentError, "Grant is already #{status}" unless active?
 
-    zero!(custom_memo: "Return of funds from #{expired ? "expiration" : "cancellation"} of grant to #{user.name}", requested_by: canceled_by) if balance > 0
+    zero!(custom_memo: "Returning #{expired ? "expired" : "canceled"} grant to #{user.name}", requested_by: canceled_by) if balance > 0
 
     update!(status: :canceled) unless expired
     update!(status: :expired) if expired
@@ -257,6 +257,22 @@ class CardGrant < ApplicationRecord
 
   def last_time_change_to(...)
     versions.where_object_changes_to(...).last&.created_at
+  end
+
+  def convert_to_reimbursement_report!
+    raise ArgumentError, "card grant should have a non-zero balance" if balance.zero?
+    raise ArgumentError, "card grant should have a positive balance" unless balance.positive?
+
+    maximum_amount_cents = balance.cents
+
+    cancel!
+
+    event.reimbursement_reports.create!(
+      user:,
+      report_name: "Reimbursement for #{purpose.presence || "previously issued card grant"}",
+      maximum_amount_cents:,
+      invite_message: "This reimbursement report replaces #{Rails.application.routes.url_helpers.url_for(self)}."
+    )
   end
 
   private

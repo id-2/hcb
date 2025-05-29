@@ -476,6 +476,7 @@ Rails.application.routes.draw do
     resources :reports, only: [:show, :create, :edit, :update, :destroy] do
       post "request_reimbursement"
       post "admin_approve"
+      post "reverse"
       post "approve_all_expenses"
       post "request_changes"
       post "reject"
@@ -754,6 +755,7 @@ Rails.application.routes.draw do
         post "topup"
         post "withdraw"
         post "cancel"
+        post "convert_to_reimbursement_report"
       end
     end
 
@@ -784,6 +786,10 @@ Rails.application.routes.draw do
     end
 
     get "balance_by_date"
+  end
+
+  scope module: "referral" do
+    resources :programs, only: [:show], path: "referrals"
   end
 
   # rewrite old event urls to the new ones not prefixed by /events/
