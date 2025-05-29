@@ -25,8 +25,6 @@ module ActiveStorage
     private
 
     def render_table_as_image(rows)
-      require "chunky_png"
-
       cell_width = 150
       cell_height = 40
       cols = rows.map(&:size).max
