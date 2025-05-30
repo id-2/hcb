@@ -15,11 +15,14 @@ export default class extends Controller {
 
   validateInput(event) {
     const value = this.inputTarget.value
-    const segments = [...new Intl.Segmenter().segment(value)];
+    const segments = [...new Intl.Segmenter().segment(value)]
 
-    if (segments.length > 1 || (value.length > 0 && !value.match(/^\p{Emoji}/u))) {
-      const oldValue = value.slice(0, value.length - event.data.length);
-      this.inputTarget.value = oldValue;
+    if (
+      segments.length > 1 ||
+      (value.length > 0 && !value.match(/^\p{Emoji}/u))
+    ) {
+      const oldValue = value.slice(0, value.length - event.data.length)
+      this.inputTarget.value = oldValue
     }
   }
 
