@@ -13,6 +13,16 @@ export default class extends Controller {
     document.removeEventListener('click', this.handleDocumentClick.bind(this))
   }
 
+  validateInput(event) {
+    const value = this.inputTarget.value
+    const segments = [...new Intl.Segmenter().segment(value)];
+
+    if (segments.length > 1 || (value.length > 0 && !value.match(/^\p{Emoji}/u))) {
+      const oldValue = value.slice(0, value.length - event.data.length);
+      this.inputTarget.value = oldValue;
+    }
+  }
+
   addEmoji(event) {
     this.inputTarget.value = event.detail.unicode
     this.togglePicker()
