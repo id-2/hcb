@@ -68,7 +68,7 @@
         </div>
 
         <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) && !@event&.demo_mode? %>
-          <div class="flex flex-wrap tags" style="gap: 0.25rem" id="hcb_code_<%= ct.local_hcb_code.hashid %>_tags">
+          <div class="flex flex-wrap tags hcb_code_<%= ct.local_hcb_code.hashid %>_tags" style="gap: 0.25rem">
             <%= render partial: "canonical_transactions/tag", collection: tagged_with, locals: { hcb_code: ct.local_hcb_code } %>
           </div>
         <% end %>
@@ -202,7 +202,7 @@
                 <%= pop_icon_to "edit",
                     my_inbox_path,
                     class: "mr2 align-middle", "aria-label": "Rename transaction",
-                    data: { turbo: true } if organizer_signed_in? %>
+                    data: { turbo: true } if organizer_signed_in?(as: :member) %>
                 <span class="align-middle"
                       data-controller="navigation"
                       data-action="dblclick->navigation#navigate"
