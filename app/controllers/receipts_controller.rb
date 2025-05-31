@@ -217,7 +217,7 @@ class ReceiptsController < ApplicationController
       pairing = @receipt.suggested_pairings.accepted.first
       success = pairing.mark_reversed!
     else
-      @receipt.update!(receiptable: nil)
+      success = @receipt.update(receiptable: nil)
     end
 
     respond_to do |format|
@@ -228,10 +228,14 @@ class ReceiptsController < ApplicationController
         end
 
         if success
-          flash[:success] = "Moved receipt to receipt bin"
+          flash[:success] = {
+            text: "Moved receipt to your",
+            link: my_inbox_path,
+            link_text: "receipt bin"
+          }
           redirect_back fallback_location: @receiptable || my_inbox_path
         else
-          flash[:error] = "Failed to move receipt to receipt bin"
+          flash[:error] = "Failed to move receipt to your receipt bin"
           redirect_back fallback_location: @receiptable || my_inbox_path
         end
       }
