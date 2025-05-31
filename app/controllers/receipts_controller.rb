@@ -129,7 +129,7 @@ class ReceiptsController < ApplicationController
       streams.append(turbo_stream.prepend(
                        :receipts_list,
                        partial: "receipts/receipt",
-                       locals: { receipt:, show_delete_button: true, show_reimbursements_button: true, link_to_file: true }
+                       locals: { receipt:, show_delete_button: true, show_reimbursements_button: true, show_bin_button: true, link_to_file: true }
                      ))
     end
 
@@ -332,7 +332,7 @@ class ReceiptsController < ApplicationController
       streams.append(turbo_stream.append(
                        :receipts_list,
                        partial: "receipts/receipt",
-                       locals: { receipt: @receipt, show_delete_button: true, link_to_file: true }
+                       locals: { receipt: @receipt, show_delete_button: true, show_bin_button: true, link_to_file: true }
                      ))
     elsif @receipt
       streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
