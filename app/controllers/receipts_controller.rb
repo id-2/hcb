@@ -211,6 +211,7 @@ class ReceiptsController < ApplicationController
 
   def reverse
     authorize @receipt
+    @receiptable = @receipt.receiptable
 
     if @receipt.suggested_pairings.accepted.any?
       pairing = @receipt.suggested_pairings.accepted.first
