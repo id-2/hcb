@@ -228,10 +228,10 @@ class ReceiptsController < ApplicationController
         end
 
         if success
-          flash[:success] = "Sent receipt to receipt bin"
+          flash[:success] = "Moved receipt to receipt bin"
           redirect_back fallback_location: @receiptable || my_inbox_path
         else
-          flash[:error] = "Failed to send receipt to receipt bin"
+          flash[:error] = "Failed to move receipt to receipt bin"
           redirect_back fallback_location: @receiptable || my_inbox_path
         end
       }
