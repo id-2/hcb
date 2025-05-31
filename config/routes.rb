@@ -56,7 +56,7 @@ Rails.application.routes.draw do
     end
 
     member do
-      get "reverse"
+      post "reverse"
     end
   end
 

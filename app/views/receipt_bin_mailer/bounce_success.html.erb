@@ -10,7 +10,7 @@ You can find <%= @receipts_count == 1 ? "it" : "them" %> in your <%= link_to("Re
 
   <ul>
     <% @pairs.map do |pair| %>
-      <li><%= link_to pair.memo, hcb_code_url(pair) %> from <%= time_ago_in_words pair.pt&.raw_pending_stripe_transaction&.created_at || Time.at(pair.raw_stripe_transaction.stripe_transaction["created"]) %> ago - <%= link_to "click to reverse this pairing", reverse_receipt_url(pair.receipts.last) %></li>
+      <li><%= link_to pair.memo, hcb_code_url(pair) %> from <%= time_ago_in_words pair.pt&.raw_pending_stripe_transaction&.created_at || Time.at(pair.raw_stripe_transaction.stripe_transaction["created"]) %> ago - <%= link_to "click to reverse this pairing", hcb_code_url(pair, reverse: pair.receipts.last.id) %></li>
     <% end %>
   </ul>
 <% end %>
