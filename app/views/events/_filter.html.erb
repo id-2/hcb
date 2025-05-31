@@ -63,8 +63,6 @@
     </div>
   <% end %>
 
-  <%= pop_icon_to "view-fill", upsert_query_params(compact: !local_assigns[:compact]), class: "tooltipped tooltipped--s", "aria-label": "Turn compact mode #{local_assigns[:compact] ? "off" : "on"}", data: { turbo_prefetch: "false", "turbo-frame": "_top" } %>
-
   <% admin_tool(@show_running_balance ? "" : "display-none") do %>
     <div data-controller="menu" data-menu-append-to-value="turbo-frame#ledger" data-menu-placement-value="bottom-end">
       <button

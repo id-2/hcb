@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_05_26_204516) do
+ActiveRecord::Schema[7.2].define(version: 2025_05_18_005427) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -1453,7 +1453,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_26_204516) do
     t.boolean "first_time", default: true
     t.boolean "is_signee", default: false
     t.integer "role", default: 100, null: false
-    t.boolean "compact_mode", default: false
     t.index ["event_id"], name: "index_organizer_positions_on_event_id"
     t.index ["user_id"], name: "index_organizer_positions_on_user_id"
   end

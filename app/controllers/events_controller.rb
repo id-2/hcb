@@ -225,12 +225,6 @@ class EventsController < ApplicationController
       @mock_total = @transactions.sum(&:amount_cents)
     end
 
-    @compact = @organizer_position.compact_mode
-    if params[:compact].present?
-      @compact = params[:compact] == "true"
-      @organizer_position.update(compact_mode: @compact)
-    end
-
     render layout: false
   end
 
