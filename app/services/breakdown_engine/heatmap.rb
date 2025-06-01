@@ -20,16 +20,14 @@ module BreakdownEngine
 
       transactions = TransactionGroupingEngine::Transaction::All.new(event_id: @event.id).run
 
-      transactions.reverse.select { |transaction| heatmap.key?(transaction.date) }.each do |transaction|
+      transactions.reverse.select { |transaction| heatmap.key?(transaction.date.to_s) }.each do |transaction|
         if transaction.amount > 0
-          heatmap[transaction.date][:positive] += transaction.amount_cents
+          heatmap[transaction.date.to_s][:positive] += transaction.amount_cents
         elsif transaction.amount < 0
-          heatmap[transaction.date][:negative] += transaction.amount_cents
+          heatmap[transaction.date.to_s][:negative] += transaction.amount_cents
         end
         transactions_count += 1
       end
-
-      last_date = heatmap.keys.max.to_date
 
       {
         heatmap:,
