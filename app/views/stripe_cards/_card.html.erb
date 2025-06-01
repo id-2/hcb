@@ -12,6 +12,7 @@
         <%= "canceled-right" if side == "right" && stripe_card.canceled? %>
         mt1
   "
+  aria-hidden="<%= "true" if side == "right" && stripe_card.canceled? %>"
   data-behavior="hover_tilt"
   style="background-image: <%= GeoPattern.generate(stripe_card.public_id).to_data_uri unless stripe_card.platinum? || stripe_card.personalization_design.present? %>">
   <% if stripe_card.platinum? %>
