@@ -110,11 +110,19 @@ class EventPolicy < ApplicationPolicy
   end
 
   def create_transfer?
-    !record.demo_mode?
+    admin_or_manager? && !record.demo_mode?
   end
 
   def new_transfer?
-    !record.demo_mode?
+    admin_or_manager? && !record.demo_mode?
+  end
+
+  def create_disbursement?
+    admin_or_member? && !record.demo_mode?
+  end
+
+  def new_disbursement?
+    admin_or_member? && !record.demo_mode?
   end
 
   def g_suite_overview?
