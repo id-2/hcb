@@ -469,10 +469,10 @@ class EventsController < ApplicationController
     authorize @event
 
     @all_stripe_cards = @event.stripe_cards.where.associated(:card_grant)
-    @paginated_stripe_cards = Kaminari.paginate_array(@all_stripe_cards).page(page).per(per_page)
+    @paginated_stripe_cards = @all_stripe_cards.page(page).per(per_page)
 
     @hcb_codes = HcbCode.where(id: @all_stripe_cards.flat_map(&:hcb_codes))
-    @paginated_hcb_codes = Kaminari.paginate_array(@hcb_codes).page(params[:page]).per(25)
+    @paginated_hcb_codes = @hcb_codes.page(params[:page]).per(25)
   end
 
   def documentation
