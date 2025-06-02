@@ -459,6 +459,22 @@ class EventsController < ApplicationController
     @all_unique_cardholders = @event.stripe_cards.on_main_ledger.map(&:stripe_cardholder).uniq
   end
 
+  def card_grants_overview
+    cookies[:card_overview_view] = params[:view] if params[:view]
+    @view = cookies[:card_overview_view] || "grid"
+
+    page = (params[:page] || 1).to_i
+    per_page = (params[:per] || 20).to_i
+
+    authorize @event
+
+    @all_stripe_cards = @event.stripe_cards.where.associated(:card_grant)
+    @paginated_stripe_cards = Kaminari.paginate_array(@all_stripe_cards).page(page).per(per_page)
+
+    @hcb_codes = HcbCode.where(id: @all_stripe_cards.flat_map(&:hcb_codes))
+    @paginated_hcb_codes = Kaminari.paginate_array(@hcb_codes).page(params[:page]).per(25)
+  end
+
   def documentation
     @event_name = @event.name
 
