@@ -4,17 +4,6 @@
 <%= render "card_grants/create_modal" %>
 
 <% @show_card_popovers = Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && organizer_signed_in? && !@event.demo_mode %>
-<% if current_user.try(:full_name).try(:blank?) %>
-
-  <h1 class="heading">
-    <span class="flex items-center">
-      Card grants
-    </span>
-  </h1>
-
-  <%= render "cards/name_required" %>
-<% else %>
-
   <h1 class="flex heading items-center">
     <span class="flex-grow flex items-center flex-1">
       Card grants
