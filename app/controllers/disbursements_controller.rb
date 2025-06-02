@@ -88,7 +88,7 @@ class DisbursementsController < ApplicationController
       scheduled_on:,
       requested_by_id: current_user.id,
       should_charge_fee: disbursement_params[:should_charge_fee] == "1",
-      fronted: @source_event.plan.front_disbursements_enabled?
+      fronted: @source_event.plan.front_disbursements_enabled? && OrganizerPosition.role_at_least?(current_user, @source_event, :manager)
     ).run
 
     if disbursement_params[:file]
