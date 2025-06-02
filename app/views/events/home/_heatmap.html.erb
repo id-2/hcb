@@ -11,7 +11,7 @@
           <% 53.times do |y| %>
             <% entry = @heatmap.to_a[y * 7 + x][1] %>
             <% label = DateTime.parse(@heatmap.to_a[y * 7 + x][0]).strftime("%B %d, %Y") %>
-            
+
             <% if entry > 0 %>
               <div class="grid-item tooltipped tooltipped--s border-transparent"
                    aria-label="<%= "#{label}: #{render_money(entry)}" %>"
@@ -20,7 +20,7 @@
             <% elsif entry < 0 %>
               <div class="grid-item tooltipped tooltipped--s border-transparent"
                    aria-label="<%= "#{label}: #{render_money(entry)}" %>"
-                   style="background-color: rgba(248, 81, 73, <%= Math.log(entry.abs) / Math.log(@maximum_negative_change.abs)%>)">
+                   style="background-color: rgba(248, 81, 73, <%= Math.log(entry.abs) / Math.log(@maximum_negative_change.abs) %>)">
               </div>
             <% else %>
               <div class="grid-item tooltipped tooltipped--s bg-snow border dark:border-dark dark:bg-darkless"
