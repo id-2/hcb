@@ -87,7 +87,7 @@
     <%= dock_item "Card grants",
       event_card_grants_overview_path(event_id: @event.slug),
       tooltip: "Manage card grants",
-      icon: "card",
+      icon: "bag",
       selected: local_assigns[:selected] == :card_grants if policy(@event).card_grants_overview? %>
     <hr>
     <%= dock_item "Team",
