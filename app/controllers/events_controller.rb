@@ -471,7 +471,7 @@ class EventsController < ApplicationController
     @all_stripe_cards = @event.stripe_cards.where.associated(:card_grant)
     @paginated_stripe_cards = @all_stripe_cards.page(page).per(per_page)
 
-    @hcb_codes = HcbCode.where(id: @all_stripe_cards.flat_map(&:hcb_codes))
+    @hcb_codes = HcbCode.where(hcb_code: @all_stripe_cards.flat_map(&:all_hcb_codes))
     @paginated_hcb_codes = @hcb_codes.page(params[:page]).per(25)
   end
 
