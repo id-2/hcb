@@ -9,6 +9,7 @@ class EventsController < ApplicationController
   include Rails::Pagination
   before_action :set_event, except: [:index, :new, :create]
   before_action :set_transaction_filters, only: [:transactions, :ledger]
+  before_action :set_card_view, only: [:card_overview, :card_grants_overview]
   before_action except: [:show, :index] do
     render_back_to_tour @organizer_position, :welcome, event_path(@event)
   end
@@ -360,9 +361,6 @@ class EventsController < ApplicationController
     @status = %w[active inactive frozen canceled].include?(params[:status]) ? params[:status] : nil
     @type = %w[virtual physical].include?(params[:type]) ? params[:type] : nil
 
-    cookies[:card_overview_view] = params[:view] if params[:view]
-    @view = cookies[:card_overview_view] || "grid"
-
     @user = User.friendly.find_by_friendly_id(params[:user]) if params[:user]
 
     @has_filter = @status.present? || @type.present? || @user.present?
@@ -460,9 +458,6 @@ class EventsController < ApplicationController
   end
 
   def card_grants_overview
-    cookies[:card_overview_view] = params[:view] if params[:view]
-    @view = cookies[:card_overview_view] || "grid"
-
     page = (params[:page] || 1).to_i
     per_page = (params[:per] || 20).to_i
 
@@ -1066,6 +1061,12 @@ class EventsController < ApplicationController
     # Also used in Transactions page UI (outside of Ledger)
     @organizers = @event.organizer_positions.joins(:user).includes(:user).order(Arel.sql("CONCAT(preferred_name, full_name) ASC"))
   end
+
+  def set_card_view
+    cookies[:card_overview_view] = params[:view] if params[:view]
+    @view = cookies[:card_overview_view] || "grid"
+  end
+
 
   def _show_pending_transactions
     return [] if params[:page] && params[:page] != "1"
