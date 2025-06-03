@@ -1,5 +1,5 @@
 require "csv"
-require "chunky_png"
+require "imgkit"
 
 module ActiveStorage
   class Previewer::CSVPreviewer < Previewer
@@ -9,40 +9,68 @@ module ActiveStorage
 
     def preview(**options)
       download_blob_to_tempfile do |file|
-        rows = CSV.read(file.path).first(5)
+        rows = CSV.read(file.path).first(10)
 
-        png = render_table_as_image(rows)
-        tempfile = Tempfile.new(["preview", ".png"])
-        png.save(tempfile.path)
+        html = render_html_table(rows)
+
+        kit = IMGKit.new(html, quality: 100, width: 1000, height: 500)
+        image_path = Tempfile.new(["preview", ".png"])
+        kit.to_file(image_path.path)
 
         original_name = blob.filename.base
         filename = "#{original_name}_preview.png"
 
-        yield io: tempfile, filename: filename, content_type: "image/png", **options
+        yield io: File.open(image_path.path), filename: filename, content_type: "image/png", **options
       end
     end
 
     private
 
-    def render_table_as_image(rows)
-      cell_width = 150
-      cell_height = 40
-      cols = rows.map(&:size).max
-      width = cell_width * cols
-      height = cell_height * rows.size
+    def render_html_table(rows)
+      headers = rows.first
+      body_rows = rows[1..]
 
-      png = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::WHITE)
-
-      rows.each_with_index do |row, y|
-        row.each_with_index do |cell, x|
-          px = x * cell_width
-          py = y * cell_height
-
-          png.rect(px, py, px + cell_width, py + cell_height, ChunkyPNG::Color::BLACK, ChunkyPNG::Color::WHITE)
-        end
-      end
-
-      png
+      <<~HTML
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: sans-serif; padding: 20px; }
+            table {
+              border-collapse: collapse;
+              width: 100%;
+              font-size: 14px;
+              table-layout: fixed;
+            }
+            th, td {
+              border: 1px solid #ccc;
+              padding: 8px;
+              text-align: left;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            th {
+              background-color: #f5f5f5;
+            }
+            tr:nth-child(even) {
+              background-color: #fafafa;
+            }
+          </style>
+        </head>
+        <body>
+          <table>
+            <thead>
+              <tr>#{headers.map { |h| "<th>#{h}</th>" }.join}</tr>
+            </thead>
+            <tbody>
+              #{body_rows.map { |row| "<tr>#{row.map { |cell| "<td>#{cell}</td>" }.join}</tr>" }.join}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      HTML
     end
   end
 end
