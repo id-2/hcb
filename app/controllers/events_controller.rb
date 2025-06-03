@@ -458,16 +458,19 @@ class EventsController < ApplicationController
   end
 
   def card_grants_overview
-    page = (params[:page] || 1).to_i
-    per_page = (params[:per] || 20).to_i
+    cards_page = (params[:cards_page] || 1).to_i
+    cards_per_page = (params[:cards_per_page] || 20).to_i
+
+    transactions_page = (params[:transactions_page] || 1).to_i
+    transactions_per_page = (params[:transactions_per_page] || 20).to_i
 
     authorize @event
 
     @all_stripe_cards = @event.stripe_cards.where.associated(:card_grant)
-    @paginated_stripe_cards = @all_stripe_cards.page(page).per(per_page)
+    @paginated_stripe_cards = @all_stripe_cards.page(cards_page).per(cards_per_page)
 
     @hcb_codes = HcbCode.where(hcb_code: @all_stripe_cards.flat_map(&:all_hcb_codes))
-    @paginated_hcb_codes = @hcb_codes.page(params[:page]).per(25)
+    @paginated_hcb_codes = @hcb_codes.page(transactions_page).per(transactions_per_page)
   end
 
   def documentation
