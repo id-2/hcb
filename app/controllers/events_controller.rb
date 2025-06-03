@@ -469,7 +469,7 @@ class EventsController < ApplicationController
     @all_stripe_cards = @event.stripe_cards.where.associated(:card_grant)
     @paginated_stripe_cards = @all_stripe_cards.page(cards_page).per(cards_per_page)
 
-    @hcb_codes = HcbCode.where(hcb_code: @all_stripe_cards.flat_map(&:all_hcb_codes))
+    @hcb_codes = HcbCode.where(hcb_code: @all_stripe_cards.flat_map(&:all_hcb_codes)).order(created_at: :desc)
     @paginated_hcb_codes = @hcb_codes.page(transactions_page).per(transactions_per_page)
   end
 
