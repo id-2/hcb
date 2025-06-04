@@ -20,8 +20,16 @@ class UsersController < ApplicationController
                                                :complete_sms_auth_verification,
                                                :start_sms_auth_verification]
   before_action :set_shown_private_feature_previews, only: [:edit, :edit_featurepreviews, :edit_security, :edit_admin]
-
+  before_action :load_activities, only: [:edit, :edit_address, :edit_payout, :edit_featurepreviews, :edit_security, :edit_notifications, :edit_admin]
   wrap_parameters format: :url_encoded_form
+
+  def load_activities
+    if auditor_signed_in? && cookies[:admin_activities] == "everyone"
+      @activities = PublicActivity::Activity.all.before(@before).order(created_at: :desc).page(params[:page]).per(25)
+    else
+      @activities = PublicActivity::Activity.for_user(current_user).before(@before).order(created_at: :desc).page(params[:page]).per(25)
+    end
+  end
 
   def impersonate
     authorize current_user
