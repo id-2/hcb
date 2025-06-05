@@ -1,4 +1,3 @@
-require "csv"
 require "imgkit"
 
 module ActiveStorage
