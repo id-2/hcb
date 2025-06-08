@@ -114,6 +114,15 @@ class CardGrant < ApplicationRecord
     end
   end
 
+  def status_badge_type
+    s = state.to_sym
+    return :success if s == :success
+    return :error if s == :muted
+    return :warning if s == :info
+
+    :muted
+  end
+
   def pending_invite?
     stripe_card.nil?
   end

@@ -18,17 +18,16 @@
 
         <%= render partial: "canceled_warning", locals: { card_grant: @card_grant } %>
         <%= render partial: "actions", locals: { card_grant: @card_grant } %>
-
-      </div>
-    <% end %>
-    <div class="flex flex-col g2">
-      <%= render partial: "details", locals: { card_grant: @card_grant } %>
-
       <% if @card_grant.active? && @card_grant.stripe_card %>
         <% admin_tool_if @card_grant.user != current_user do %>
           <%= render partial: "spending_instructions", locals: { card_grant: @card_grant } %>
         <% end %>
       <% end %>
+
+      </div>
+    <% end %>
+    <div class="flex flex-col g2">
+      <%= render partial: "details", locals: { card_grant: @card_grant } %>
       <%= render partial: "canceled_warning", locals: { card_grant: @card_grant } unless @card_grant.stripe_card %>
     </div>
   <%# Grantee view after accepting invite %>
