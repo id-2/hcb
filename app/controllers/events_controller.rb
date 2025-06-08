@@ -9,7 +9,7 @@ class EventsController < ApplicationController
   include Rails::Pagination
   before_action :set_event, except: [:index, :new, :create]
   before_action :set_transaction_filters, only: [:transactions, :ledger]
-  before_action :set_card_view, only: [:card_overview, :card_grants_overview]
+  before_action :set_card_view, only: [:card_overview, :card_grant_overview]
   before_action except: [:show, :index] do
     render_back_to_tour @organizer_position, :welcome, event_path(@event)
   end
@@ -457,7 +457,7 @@ class EventsController < ApplicationController
     @all_unique_cardholders = @event.stripe_cards.on_main_ledger.map(&:stripe_cardholder).uniq
   end
 
-  def card_grants_overview
+  def card_grant_overview
     cards_page = (params[:cards_page] || 1).to_i
     cards_per_page = (params[:cards_per_page] || 20).to_i
 
