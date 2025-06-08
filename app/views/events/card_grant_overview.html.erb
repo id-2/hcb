@@ -10,8 +10,6 @@
     <%= badge_for @event.card_grants.active.count, class: "bg-muted" %>
   </span>
 
-  <%= pop_icon_to @view == "list" ? "grid" : "list",
-                  "?view=#{@view == 'list' ? 'grid' : 'list'}#{"&q=#{@q}" if @q}#{"&status=#{@status}" if @status}" %>
   <% if organizer_signed_in?(as: :member) %>
     <%= link_to new_event_card_grant_path(@event), class: "btn bg-success", data: { behavior: "modal_trigger", modal: "create_card_grant" }, disabled: !policy(@event).create_transfer? do %>
       <%= inline_icon "card-add" %>
@@ -20,38 +18,65 @@
   <% end %>
 </h1>
 
-<% if @view == "list" %>
-  <%= render "event_cards_table", stripe_cards: @paginated_stripe_cards %>
-<% else %>
-  <article class="mixed-grid grid--spacious">
-    <%= render partial: "stripe_cards/stripe_card", collection: @paginated_stripe_cards %>
-  </article>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Date</th>
+        <th>To</th>
+        <th>Purpose</th>
+        <th>Amount</th>
+        <th class="text-right">Balance</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @paginated_card_grants.each do |card_grant| %>
+        <tr>
+          <td>
+            <span class="ml0 badge bg-<%= card_grant.state %>"><%= card_grant.state_text %></span>
+          </td>
+          <td>
+            <%= format_date card_grant.created_at %>
+          </td>
+          <td>
+            <%= mail_to card_grant.email %>
+          </td>
+          <td>
+            <%= card_grant.purpose %>
+          </td>
+          <td>
+            <%= render_money card_grant.amount_cents %>
+          </td>
+          <td class="text-right">
+            <%= render_money card_grant.balance %>
+          </td>
+          <td>
+            <%= link_to "View", card_grant_url(card_grant) %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 
-  <% if @paginated_stripe_cards.blank? %>
-    <% if organizer_signed_in? %>
-      <%= blankslate "You don't have any card grants yet." %>
-    <% else %>
-      <%= blankslate "This organization doesn't have any card grants" %>
-    <% end %>
-  <% end %>
-<% end %>
-
-<%= paginate @paginated_stripe_cards %>
+  <%= paginate @paginated_card_grants %>
+</div>
 
 <h2 class="heading mt4 pb1">Card grant transactions</h2>
 
 <div class="table-container">
-<table>
-  <tbody data-behavior="transactions">
-    <% @hcb_codes.each do |hcb_code| %>
-      <% if hcb_code.canonical_transactions.any? %>
-        <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: hcb_code, force_display_details: true } %>
-      <% else %>
-        <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: hcb_code.canonical_pending_transactions, as: :pt %>
+  <table>
+    <tbody data-behavior="transactions">
+      <% @hcb_codes.each do |hcb_code| %>
+        <% if hcb_code.canonical_transactions.any? %>
+          <%= render partial: "canonical_transactions/canonical_transaction", locals: { ct: hcb_code, force_display_details: true } %>
+        <% else %>
+          <%= render partial: "canonical_pending_transactions/canonical_pending_transaction", collection: hcb_code.canonical_pending_transactions, as: :pt %>
+        <% end %>
       <% end %>
-    <% end %>
-  </tbody>
-</table>
+    </tbody>
+  </table>
 
-<%= paginate @paginated_hcb_codes %>
+  <%= paginate @paginated_hcb_codes %>
 </div>
