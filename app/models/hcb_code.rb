@@ -458,7 +458,11 @@ class HcbCode < ApplicationRecord
   # HCB-600: Stripe card charges (always required)
   # @sampoder
 
-  scope :receipt_required, -> {
+  scope :of_type, ->(code) {
+    where("hcb_code LIKE 'HCB-#{code}%'")
+  }
+
+  scope :deprecated_receipt_required, -> {
     joins("LEFT JOIN canonical_pending_transactions ON canonical_pending_transactions.hcb_code = hcb_codes.hcb_code")
       .joins("LEFT JOIN canonical_pending_declined_mappings ON canonical_pending_declined_mappings.canonical_pending_transaction_id = canonical_pending_transactions.id")
       .where("(hcb_codes.hcb_code LIKE 'HCB-600%' AND canonical_pending_declined_mappings.id IS NULL)
@@ -469,9 +473,19 @@ class HcbCode < ApplicationRecord
               OR (hcb_codes.hcb_code LIKE 'HCB-310%' AND canonical_pending_declined_mappings.id IS NULL)
               ")
   }
+  
+  scope :without_receipt, -> {
+    left_outer_joins(:receipts).where(receipts: { id: nil })
+  }
+
+  scope :with_receipt, -> {
+    left_outer_joins(:receipts).where.not(receipts: { id: nil })
+  }
+
 
   def receipt_required?
     return false if pt&.declined?
+    return false if event.plan.type == Event::Plan::SalaryAccount.name
 
     (type == :card_charge) ||
       # starting from Feb. 2024, receipts have been required for ACHs & checks

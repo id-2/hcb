@@ -309,16 +309,20 @@ class User < ApplicationRecord
   def hcb_code_ids_missing_receipt
     @hcb_code_ids_missing_receipt ||= begin
       user_cards = stripe_cards.includes(event: :plan).where.not(plan: { type: Event::Plan::SalaryAccount.name }) + emburse_cards.includes(:emburse_transactions)
-      user_cards.flat_map { |card| card.hcb_codes.missing_receipt.receipt_required.pluck(:id) }
+      user_cards.flat_map { |card| card.hcb_codes.missing_receipt.deprecated_receipt_required.pluck(:id) }
     end
   end
 
-  def transactions_missing_receipt
+  def deprecated_transactions_missing_receipt
     @transactions_missing_receipt ||= begin
       return HcbCode.none unless hcb_code_ids_missing_receipt.any?
 
       user_hcb_codes = HcbCode.where(id: hcb_code_ids_missing_receipt).order(created_at: :desc)
     end
+  end
+
+  def transactions_missing_receipt
+    HcbCode.where(id: tasks.where(type: "Task::Receiptable::Upload", taskable_type: "HcbCode").incomplete.select(:taskable_id)).of_type(600)
   end
 
   def transactions_missing_receipt_count
