@@ -2,7 +2,7 @@ module TaskService
   class Nightly
     def initialize
       @tasks = Task::Receiptable::Upload.incomplete
-      @hcb_codes_without_task = HcbCode.deprecated_receipt_required.where.not(id: Task::Receiptable::Upload.select(:taskable_id))
+      @hcb_codes_without_task = HcbCode.receipt_required.where.not(id: Task::Receiptable::Upload.select(:taskable_id))
     end
 
     def run
@@ -17,7 +17,7 @@ module TaskService
       count = @hcb_codes_without_task.count
       i = 0
 
-       @hcb_codes_without_task.find_each(batch_size: 100) do |hcb_code|
+      @hcb_codes_without_task.find_each(batch_size: 100) do |hcb_code|
         hcb_code.ensure_task_exists!
         i += 1
         puts "Processed HCB Code #{i} of #{count}" if i % 100 == 0
@@ -40,8 +40,8 @@ module TaskService
       i = 0
 
       User.find_each(batch_size: 100) do |user|
-        old = user.deprecated_transactions_missing_receipt
-        current = user.transactions_missing_receipt
+        old = user.transactions_missing_receipt
+        current = user.transactions_missing_receipt_v2
 
         if old.count != current.count
           Airbrake.notify("User #{user.id} has #{old.count} old, but #{current.count} new")
@@ -52,5 +52,6 @@ module TaskService
         puts "Checked User #{i} of #{count}" if i % 100 == 0
       end
     end
+
   end
 end
