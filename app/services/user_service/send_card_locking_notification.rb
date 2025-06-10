@@ -13,6 +13,13 @@ module UserService
 
       if count.in?([5, 7, 9])
         CardLockingMailer.warning(email: @user.email, missing_receipts: count).deliver_later
+
+        if @user.phone_number.present? && @user.phone_number_verified?
+          message = "You now have #{count}/10 transactions missing receipts. After 10, your cards will be locked. You can manage your receipts at #{Rails.application.routes.url_helpers.my_inbox_url}."
+
+          TwilioMessageService::Send.new(@user, message).run!
+        end
+
       end
     end
 
