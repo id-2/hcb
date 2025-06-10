@@ -87,7 +87,7 @@ class Receipt < ApplicationRecord
   end
 
   after_commit do
-    User::CardLockingJob.perform_later
+    User::UpdateCardLockingJob.perform_later
   end
 
   validate :has_owner
