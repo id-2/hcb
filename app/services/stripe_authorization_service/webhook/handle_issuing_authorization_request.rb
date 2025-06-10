@@ -13,6 +13,10 @@ module StripeAuthorizationService
         approve?
       end
 
+      def card
+        @card ||= StripeCard.includes(:card_grant).find_by(stripe_id: stripe_card_id)
+      end
+
       private
 
       def auth
@@ -29,10 +33,6 @@ module StripeAuthorizationService
 
       def stripe_card_id
         auth[:card][:id]
-      end
-
-      def card
-        @card ||= StripeCard.includes(:card_grant).find_by(stripe_id: stripe_card_id)
       end
 
       def card_balance_available
