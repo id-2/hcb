@@ -85,6 +85,11 @@ class Receipt < ApplicationRecord
       Receipt::SuggestPairingsJob.perform_later(self)
     end
   end
+
+  after_commit do
+    User::CardLockingJob.perform_later
+  end
+
   validate :has_owner
 
   enum :upload_method, {

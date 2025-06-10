@@ -35,6 +35,11 @@ class StripeController < ActionController::Base
 
     approved = ::StripeAuthorizationService::Webhook::HandleIssuingAuthorizationRequest.new(stripe_event: event).run
 
+    if approved
+      ::User::UpdateCardLockingJob.perform_later
+      ::User::SendCardLockingNotificationJob.perform_later
+    end
+
     response.set_header "Stripe-Version", "2022-08-01"
 
     render json: {

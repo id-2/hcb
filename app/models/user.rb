@@ -7,6 +7,7 @@
 #  id                            :bigint           not null, primary key
 #  access_level                  :integer          default("user"), not null
 #  birthday_ciphertext           :text
+#  cards_locked                  :boolean          default(FALSE), not null
 #  charge_notifications          :integer          default("email_and_sms"), not null
 #  comment_notifications         :integer          default("all_threads"), not null
 #  creation_method               :integer
@@ -313,17 +314,28 @@ class User < ApplicationRecord
     end
   end
 
-  def transactions_missing_receipt
+  def transactions_missing_receipt(since: nil)
     @transactions_missing_receipt ||= begin
       return HcbCode.none unless hcb_code_ids_missing_receipt.any?
 
-      user_hcb_codes = HcbCode.where(id: hcb_code_ids_missing_receipt).order(created_at: :desc)
+      user_hcb_codes = HcbCode.where(id: hcb_code_ids_missing_receipt)
+      user_hcb_codes = user_hcb_codes.where("created_at >= ?", since) if since
+      user_hcb_codes = user_hcb_codes.order(created_at: :desc)
     end
   end
 
-  def transactions_missing_receipt_count
-    @transactions_missing_receipt_count ||= begin
-      transactions_missing_receipt.size
+  def transactions_missing_receipt_count(since: nil)
+    unless since
+      @transactions_missing_receipt_count ||= begin
+        transactions_missing_receipt.size
+      end
+
+      return @transactions_missing_receipt_count
+    end
+
+    @transactions_missing_receipt_count_since ||= {}
+    @transactions_missing_receipt_count_since[since] ||= begin
+      transactions_missing_receipt(since:).size
     end
   end
 
