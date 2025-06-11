@@ -141,7 +141,12 @@ class Disbursement < ApplicationRecord
     event :mark_approved do
       after do |fulfilled_by|
         update(fulfilled_by:)
-        canonical_pending_transactions.update_all(fronted: true)
+        if is_v2
+          outgoing.canonical_pending_transactions.update_all(fronted: true)
+          incoming.canonical_pending_transactions.update_all(fronted: true)
+        else
+          canonical_pending_transactions.update_all(fronted: true)
+        end
       end
       transitions from: [:reviewing, :scheduled], to: :pending
     end
@@ -206,10 +211,13 @@ class Disbursement < ApplicationRecord
     approved_at || in_transit_at
   end
 
+  def outgoing = Outgoing.new(self)
+  def incoming = Incoming.new(self)
+
   def hcb_code
     if is_v2
       ap ActiveSupport::BacktraceCleaner.new.clean(Thread.current.backtrace)
-      raise ArgumentError, "Disbursement is v2, use outgoing_hcb_code or incoming_hcb_code instead"
+      raise ArgumentError, "Disbursement is v2, call hcb_code on the appropriate class instead"
     end
 
     "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::DISBURSEMENT_CODE}-#{id}"
@@ -218,33 +226,8 @@ class Disbursement < ApplicationRecord
   def local_hcb_code
     if is_v2
       # binding.pry
-      debugger
-      raise ArgumentError, "Disbursement is v2, use outgoing_local_hcb_code or incoming_local_hcb_code instead"
+      raise ArgumentError, "Disbursement is v2, call local_hcb_code on the appropriate class instead"
     end
-
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
-  end
-
-  def outgoing_hcb_code
-    raise ArgumentError, "Disbursement is v2, use outgoing_local_hcb_code instead" unless is_v2
-
-    "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::OUTGOING_DISBURSEMENT_CODE}-#{id}"
-  end
-
-  def outgoing_local_hcb_code
-    raise ArgumentError, "Disbursement is v2, use outgoing_local_hcb_code instead" unless is_v2
-
-    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
-  end
-
-  def incoming_hcb_code
-    raise ArgumentError, "Disbursement is v2, use local_hcb_code instead" unless is_v2
-
-    "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::INCOMING_DISBURSEMENT_CODE}-#{id}"
-  end
-
-  def incoming_local_hcb_code
-    raise ArgumentError, "Disbursement is v2, use local_hcb_code instead" unless is_v2
 
     @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
@@ -255,7 +238,7 @@ class Disbursement < ApplicationRecord
 
   def canonical_pending_transactions
     if is_v2
-      @canonical_pending_transactions ||= ::CanonicalPendingTransaction.where(hcb_code: [incoming_hcb_code, outgoing_hcb_code])
+      raise ArgumentError, "Disbursement is v2, call canonical_pending_transactions on the appropriate class instead"
     else
       @canonical_pending_transactions ||= ::CanonicalPendingTransaction.where(hcb_code:)
     end

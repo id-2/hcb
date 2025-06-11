@@ -8,5 +8,5 @@ Rails.application.configure do
 
   StatsD::Instrument::Environment.setup
 
-  StatsD.increment("startup", 1)
+  # StatsD.increment("startup", 1)
 end
