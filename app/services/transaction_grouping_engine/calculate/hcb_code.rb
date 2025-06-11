@@ -51,7 +51,12 @@ module TransactionGroupingEngine
         return ach_transfer_hcb_code if ach_transfer
         return check_hcb_code if check
         return check_deposit_hcb_code if check_deposit
-        return disbursement_hcb_code if disbursement
+        if disbursement&.is_v2?
+          return outgoing_disbursement_hcb_code if @ct_or_cp.amount_cents.negative?
+          return incoming_disbursement_hcb_code
+        else
+          return disbursement_hcb_code if disbursement
+        end
         return stripe_card_hcb_code if raw_stripe_transaction
         return stripe_card_hcb_code_pending if raw_pending_stripe_transaction
         return reimbursement_expense_payout_hcb_code if reimbursement_expense_payout
@@ -177,6 +182,22 @@ module TransactionGroupingEngine
 
       def check_deposit
         @check_deposit ||= @ct_or_cp.check_deposit
+      end
+
+      def outgoing_disbursement_hcb_code
+        [
+          HCB_CODE,
+          OUTGOING_DISBURSEMENT_CODE,
+          disbursement.id
+        ].join(SEPARATOR)
+      end
+
+      def incoming_disbursement_hcb_code
+        [
+          HCB_CODE,
+          INCOMING_DISBURSEMENT_CODE,
+          disbursement.id
+        ].join(SEPARATOR)
       end
 
       def disbursement_hcb_code
