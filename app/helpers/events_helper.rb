@@ -104,6 +104,15 @@ module EventsHelper
         selected: selected == :reimbursements
       }
     end
+    if Flipper.enabled?(:payroll_2025_02_13, @event)
+      items << {
+        name: "Contractors",
+        path: event_employees_path(event_id: @event.slug),
+        tooltip: "Manage payroll",
+        icon: "person-badge",
+        selected: selected == :payroll
+      }
+    end
     if Flipper.enabled?(:grants_2023_06_21, event)
       items << {
         name: "Grants",

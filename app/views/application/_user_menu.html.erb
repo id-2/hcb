@@ -6,7 +6,7 @@
         data-action="menu#toggle click@document->menu#close keydown@document->menu#keydown"
         data-menu-target="toggle"
         class="user-menu-trigger max-w-full">
-        <%= avatar_for current_user, 32 %>
+        <%= avatar_for current_user %>
         <div class="text-left flex-1 truncate hidden lg:block" style="flex:1;overflow: hidden;">
           <span class="truncate"><%= @current_user.name %></span>
           <span class="text-xs -mt-0.5 block opacity-60 truncate" style="font-weight: 400"><%= @current_user.email %></span>
