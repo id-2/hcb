@@ -1,4 +1,8 @@
-<div data-controller="menu" data-menu-placement-value="<%= content_for?(:nav) || request.path.include?("auth") || request.path.include?("logins") ? "bottom-start" : "bottom-center" %>">
+<div 
+  style="height: <%= @home_size || 36 %>px;"
+  data-controller="menu"
+  data-menu-placement-value="bottom-start"
+>
   <%= link_to root_path,
     class: "header-center text-decoration-none flex inline-flex items-center #{'tooltipped tooltipped--e' if tooltipped_logo?}",
     'aria-label': tooltipped_logo? ?
