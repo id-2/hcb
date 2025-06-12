@@ -43,9 +43,6 @@ summary > svg {
   fill: map-get($palette, muted);
   height: 28px;
 }
-summary:hover > .settings-icon {
-  transform: rotate(45deg);
-}
 
 details > summary > .drawer-chevron {
   transform: rotate(90deg);
@@ -54,8 +51,7 @@ details[open] > summary > .drawer-chevron {
   transform: rotate(180deg);
 }
 
-.drawer-chevron,
-.settings-icon {
+.drawer-chevron {
   transition: transform 0.2s;
 }
 
@@ -92,6 +88,19 @@ details[open] > summary > .drawer-chevron {
 
 .pwa__prompt__icon {
   transform: translateY(2.5px);
+}
+
+.dock__section {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: map-get($palette, muted);
+  margin: 1.5rem 0 0.25rem 0;
+  line-height: 1.5;
+
+  &:empty {
+    display: none;
+  }
 }
 
 .dock__item {

@@ -10,14 +10,19 @@
   <div class="bg-gray-800 text-white flex-1 h-full overflow-hidden rounded-xl">
     <div class="h-full overflow-y-auto overflow-x-hidden p-5">
       <% events_mobile_nav(@event, selected: local_assigns[:selected]).each do |item| %>
-        <div>
-          <%= dock_item item[:name],
-            item[:path],
-            tooltip: item[:tooltip],
-            icon: item[:icon],
-            async_badge: item[:async_badge],
-            selected: item[:selected] %>
-        </div>
+        <% if item[:section] %>
+          <span class="dock__section"><%= item[:section] %></span>
+          <hr />
+        <% else %>
+          <div>
+            <%= dock_item item[:name],
+              item[:path],
+              tooltip: item[:tooltip],
+              icon: item[:icon],
+              async_badge: item[:async_badge],
+              selected: item[:selected] %>
+          </div>
+        <% end %>
       <% end %>
       <%= render partial: "events/settings_dropdown" %>
     </div>

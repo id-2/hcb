@@ -25,6 +25,10 @@ module EventsHelper
       selected: selected == :transactions,
     }
 
+    if policy(@event).donation_overview? || ( @event.approved? && @event.plan.invoices_enabled? ) || policy(@event).account_number? || policy(@event.check_deposits.build).index?
+      items << { section: "Receive" }
+    end
+
     if policy(event).activation_flow?
       items <<
         {
@@ -74,6 +78,9 @@ module EventsHelper
         selected: selected == :deposit_check,
       }
     end
+    if policy(@event).transfers? || policy(@event).reimbursements? || policy(@event).card_overview? || Flipper.enabled?(:grants_2023_06_21, @event)
+      items << { section: "Spend" }
+    end
     if policy(event).card_overview?
       items <<
         {
@@ -113,6 +120,9 @@ module EventsHelper
         selected: selected == :payroll
       }
     end
+
+    items << { section: "" }
+
     if Flipper.enabled?(:grants_2023_06_21, event)
       items << {
         name: "Grants",
