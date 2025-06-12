@@ -94,7 +94,7 @@ class CardGrant < ApplicationRecord
     elsif pending_invite?
       "info"
     elsif stripe_card.frozen? || stripe_card.inactive?
-      "info"
+      "warning"
     else
       "success"
     end

@@ -25,27 +25,12 @@
   </section>
   <section class="details details--wide pt2 pb2 details--tall">
     <p>
-      <strong>Grant status</strong>
+      <strong>Card grant status</strong>
       <span class="flex items-baseline g-1">
         <%= status_badge card_grant.status_badge_type %>
         <%= card_grant.state_text %>
       </span>
     </p>
-    <% if (stripe_card = card_grant.stripe_card).present? %>
-      <p>
-        <strong>Card status</strong>
-        <span class="flex items-baseline g-1">
-
-          <%= status_badge stripe_card.status_badge_type %>
-          <%= stripe_card.state_text %>
-
-          <% if stripe_card.frozen? %>
-            <%# The condition above is written this way because `frozen?` is a method on `nil` %>
-            by <%= user_mention card_grant.stripe_card.last_frozen_by %>
-          <% end %>
-        </span>
-      </p>
-    <% end %>
     <p>
       <strong>Grant amount</strong>
       <span><%= render_money card_grant.amount %></span>
