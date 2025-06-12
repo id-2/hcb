@@ -184,10 +184,9 @@
     <%= render "application/support_button" unless @no_app_shell %>
 
     <%= yield(:mobile_nav) %>
-    <article class="flex-1 pt-16 lg:pt-0 lg:pl-72 w-screen m-0">
+    <article class="flex-1 pt-16 lg:pt-0 lg:pl-72 w-screen m-0 -mt-10">
       <div class="container <%= content_for :container_class %> mx-auto" style="<%= content_for :container_style %>">
         <%= yield(:container) %>
-
         <%= yield %>
         <%= render "application/footer" unless @no_app_shell || @hide_footer %>
       </div>
