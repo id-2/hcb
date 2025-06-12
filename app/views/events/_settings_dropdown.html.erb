@@ -9,11 +9,6 @@
                 tooltip: "Manage your team",
                 selected: @settings_tab == "details" || (@settings_tab.nil? && local_assigns[:selected] == :settings),
                 data: { turbo: true, turbo_action: "advance" } %>
-  <%= dock_item "Team",
-                event_team_path(event_id: @event.slug),
-                tooltip: "Manage your team",
-                selected: local_assigns[:selected] == :team,
-                data: { turbo: true, turbo_action: "advance" } %>
   <% unless @event.unapproved? %>
     <%= dock_item "Donations",
                   edit_event_path(@event, tab: "donations"),
