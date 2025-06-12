@@ -50,6 +50,7 @@ class User < ApplicationRecord
   include Turbo::Broadcastable
 
   include ApplicationHelper
+  prepend MemoWise
 
   include PublicActivity::Model
   tracked owner: proc{ |controller, record| record }, recipient: proc { |controller, record| record }, only: [:create, :update]
@@ -314,33 +315,16 @@ class User < ApplicationRecord
     end
   end
 
-  def transactions_missing_receipt(since: nil)
+  memo_wise def transactions_missing_receipt(since: nil)
     return HcbCode.none unless hcb_code_ids_missing_receipt.any?
 
-    transactions_missing_receipt = begin
-      user_hcb_codes = HcbCode.where(id: hcb_code_ids_missing_receipt)
-      user_hcb_codes = user_hcb_codes.where("created_at >= ?", since) if since
-      user_hcb_codes = user_hcb_codes.order(created_at: :desc)
-    end
-
-    return transactions_missing_receipt if since.present?
-
-    @transactions_missing_receipt ||= transactions_missing_receipt
+    user_hcb_codes = HcbCode.where(id: hcb_code_ids_missing_receipt)
+    user_hcb_codes = user_hcb_codes.where("created_at >= ?", since) if since
+    user_hcb_codes.order(created_at: :desc)
   end
 
-  def transactions_missing_receipt_count(since: nil)
-    unless since
-      @transactions_missing_receipt_count ||= begin
-        transactions_missing_receipt.size
-      end
-
-      return @transactions_missing_receipt_count
-    end
-
-    @transactions_missing_receipt_count_since ||= {}
-    @transactions_missing_receipt_count_since[since] ||= begin
-      transactions_missing_receipt(since:).size
-    end
+  memo_wise def transactions_missing_receipt_count(since: nil)
+    transactions_missing_receipt(since:).size
   end
 
   def build_payout_method(params)
