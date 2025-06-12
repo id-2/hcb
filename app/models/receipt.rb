@@ -59,7 +59,7 @@ class Receipt < ApplicationRecord
   # - @sampoder
   PREPROCESSED_SIZES = ["1024x1024"].freeze
 
-  CARD_LOCKING_START_DATE = Date.new(2025, 6, 9)
+  CARD_LOCKING_START_DATE = Date.new(2025, 6, 13)
 
   has_one_attached :file do |attachable|
     PREPROCESSED_SIZES.each do |resize|
