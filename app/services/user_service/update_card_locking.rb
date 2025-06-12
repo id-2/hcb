@@ -11,12 +11,12 @@ module UserService
 
       count = @user.transactions_missing_receipt(since: Receipt::CARD_LOCKING_START_DATE).count
 
-      if count >= 10 && !@user.cards_locked?
+      cards_should_lock = count >= 10
+      if cards_should_lock && !@user.cards_locked?
         CardLockingMailer.cards_locked(email: @user.email, missing_receipts: count).deliver_later
       end
-
-      cards_locked = count >= 10
-      @user.update!(cards_locked:)
+      
+      @user.update!(cards_locked: cards_should_lock)
     end
 
   end
