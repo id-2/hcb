@@ -9,15 +9,14 @@
 </h1>
 
 <% if Flipper.enabled?(:card_locking_2025_06_09, current_user) %>
-  <section class="card mb-4 border border-info">
-    <h3 class="mt-0">Card locking <%= badge_for("Beta", class: "bg-muted") %></h3>
+  <%= render "callout", type: "info", title: "Card locking", badge: badge_for("Beta", class: "bg-muted"), footer: :questions do %>
     <p class="h5 muted my-0">
       Starting Tuesday, June 10th, 2025, HCB will beta test locking cards for users who have more than 10 missing receipts at any given time. Receipts before this beta period do not count towards the limit, though they still need to be submitted.
     </p>
     <p class="h5 muted mb-0">
       Your cards are currently <%= current_user.cards_locked? ? "locked" : "active" %>.
     </p>
-  </section>
+  <% end %>
 <% end %>
 
 <section class="grid grid--split grid--spacious">
