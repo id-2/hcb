@@ -745,7 +745,7 @@ class Event < ApplicationRecord
   private
 
   def set_country_alpha2
-    reverse_enum = CountryEnumable::country_enum_list.invert
+    reverse_enum = CountryEnumable.country_enum_list.invert
     self.country_alpha2 = reverse_enum[country]&.to_s
   end
 
