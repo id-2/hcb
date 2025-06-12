@@ -181,6 +181,8 @@
       </div>
       <%= render "application/user_menu" %>
     </aside>
+    <%= render "application/support_button" unless @no_app_shell %>
+    
     <%= yield(:mobile_nav) %>
     <article class="flex-1 pt-16 lg:pt-0 lg:pl-72" style="margin:0;">
       <div class="container <%= content_for :container_class %> mx-auto" style="<%= content_for :container_style %>">
