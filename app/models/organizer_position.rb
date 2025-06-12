@@ -75,7 +75,7 @@ class OrganizerPosition < ApplicationRecord
     return if old_role.nil?
 
     if OrganizerPosition.roles[old_role] > OrganizerPosition.roles[new_role] &&
-      new_role == "reader"
+       new_role == "reader"
       stripe_cards.where(event: event).each do |card|
         card.cancel! unless card.stripe_status == "canceled"
       end
