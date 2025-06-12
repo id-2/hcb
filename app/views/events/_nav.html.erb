@@ -23,7 +23,7 @@
     <% events_mobile_nav(@event, selected: local_assigns[:selected]).each do |item| %>
       <% if item[:section] %>
         <span class="dock__section"><%= item[:section] %></span>
-        <hr />
+        <hr>
       <% else %>
         <%= dock_item item[:name],
             item[:path],
