@@ -17,6 +17,7 @@
 #  approved_at               :datetime
 #  bic_code_bidx             :string           not null
 #  bic_code_ciphertext       :string           not null
+#  address_country_alpha2    :string
 #  currency                  :string           default("USD"), not null
 #  memo                      :string           not null
 #  payment_for               :string           not null
@@ -50,7 +51,7 @@ class Wire < ApplicationRecord
   has_encrypted :account_number, :bic_code
   blind_index :account_number, :bic_code
 
-  before_save :set_country_alpha2
+  before_save :set_address_country_alpha2
 
   has_one :reimbursement_payout_holding, class_name: "Reimbursement::PayoutHolding", inverse_of: :wire, required: false
 
@@ -233,9 +234,9 @@ class Wire < ApplicationRecord
 
   private
 
-  def set_country_alpha2
+  def set_address_country_alpha2
     reverse_enum = CountryEnumable.country_enum_list.invert
-    self.country_alpha2 = reverse_enum[recipient_country]&.to_s
+    self.address_country_alpha2 = reverse_enum[recipient_country]&.to_s
   end
 
 end

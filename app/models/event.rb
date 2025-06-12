@@ -10,6 +10,7 @@
 #  address                                      :text
 #  can_front_balance                            :boolean          default(TRUE), not null
 #  country                                      :integer
+#  country_alpha2                               :string
 #  deleted_at                                   :datetime
 #  demo_mode                                    :boolean          default(FALSE), not null
 #  demo_mode_request_meeting_at                 :datetime

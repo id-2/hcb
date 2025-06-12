@@ -2250,7 +2250,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_08_034034) do
     t.string "address_postal_code"
     t.text "column_id"
     t.text "return_reason"
-    t.string "country_alpha2"
+    t.string "address_country_alpha2"
     t.index ["column_id"], name: "index_wires_on_column_id", unique: true
     t.index ["event_id"], name: "index_wires_on_event_id"
     t.index ["user_id"], name: "index_wires_on_user_id"
