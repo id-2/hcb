@@ -315,13 +315,17 @@ class User < ApplicationRecord
   end
 
   def transactions_missing_receipt(since: nil)
-    @transactions_missing_receipt ||= begin
-      return HcbCode.none unless hcb_code_ids_missing_receipt.any?
+    return HcbCode.none unless hcb_code_ids_missing_receipt.any?
 
+    transactions_missing_receipt = begin
       user_hcb_codes = HcbCode.where(id: hcb_code_ids_missing_receipt)
       user_hcb_codes = user_hcb_codes.where("created_at >= ?", since) if since
       user_hcb_codes = user_hcb_codes.order(created_at: :desc)
     end
+
+    return transactions_missing_receipt if since.present?
+
+    @transactions_missing_receipt ||= transactions_missing_receipt
   end
 
   def transactions_missing_receipt_count(since: nil)
