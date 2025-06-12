@@ -15,7 +15,7 @@ module UserService
       if cards_should_lock && !@user.cards_locked?
         CardLockingMailer.cards_locked(email: @user.email, missing_receipts: count).deliver_later
       end
-      
+
       @user.update!(cards_locked: cards_should_lock)
     end
 
