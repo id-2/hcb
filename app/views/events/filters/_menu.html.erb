@@ -61,7 +61,7 @@
                                   class: "border mb1",
                                   value: params["#{filter[:key].sub('_*', '')}_before"] %>
               <% request.query_parameters
-                  .except(:start, :end, *["#{filter[:key].sub('_*', '')}_after", "#{filter[:key].sub('_*', '')}_before"].map(&:to_sym))
+                  .except(:start, :end, *["#{filter[:key].sub('_*', '')}_after", "#{filter[:key].sub('_*', '')}_before", "commit"].map(&:to_sym))
                   .each do |key, value| %>
                 <%= hidden_field_tag key, value %>
               <% end %>
@@ -79,7 +79,7 @@
                                     class: "border mb1",
                                     value: params["#{filter[:key].sub('_*', '')}_greater_than"] %>
               <% request.query_parameters
-                  .except(:start, :end, *["#{filter[:key].sub('_*', '')}_less_than", "#{filter[:key].sub('_*', '')}_greater_than"].map(&:to_sym))
+                  .except(:start, :end, *["#{filter[:key].sub('_*', '')}_less_than", "#{filter[:key].sub('_*', '')}_greater_than", "commit"].map(&:to_sym))
                   .each do |key, value| %>
                 <%= hidden_field_tag key, value %>
               <% end %>
