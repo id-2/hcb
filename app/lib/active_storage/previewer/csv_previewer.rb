@@ -1,4 +1,5 @@
-require "imgkit"
+require "csv"
+require "rmagick"
 
 module ActiveStorage
   class Previewer::CSVPreviewer < Previewer
@@ -9,67 +10,48 @@ module ActiveStorage
     def preview(**options)
       download_blob_to_tempfile do |file|
         rows = CSV.read(file.path).first(10)
-
-        html = render_html_table(rows)
-
-        kit = IMGKit.new(html, quality: 100, width: 1000, height: 500)
-        image_path = Tempfile.new(["preview", ".png"])
-        kit.to_file(image_path.path)
-
-        original_name = blob.filename.base
-        filename = "#{original_name}_preview.png"
-
-        yield io: File.open(image_path.path), filename: filename, content_type: "image/png", **options
+        png = render_table_as_image(rows)
+        tempfile = Tempfile.new(["preview", ".png"])
+        png.write(tempfile.path)
+        yield io: tempfile, filename: "preview.png", content_type: "image/png", **options
       end
     end
 
     private
 
-    def render_html_table(rows)
-      headers = rows.first
-      body_rows = rows[1..]
+    def render_table_as_image(rows)
+      include Magick
 
-      <<~HTML
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: sans-serif; padding: 20px; }
-            table {
-              border-collapse: collapse;
-              width: 100%;
-              font-size: 14px;
-              table-layout: fixed;
-            }
-            th, td {
-              border: 1px solid #ccc;
-              padding: 8px;
-              text-align: left;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            th {
-              background-color: #f5f5f5;
-            }
-            tr:nth-child(even) {
-              background-color: #fafafa;
-            }
-          </style>
-        </head>
-        <body>
-          <table>
-            <thead>
-              <tr>#{headers.map { |h| "<th>#{h}</th>" }.join}</tr>
-            </thead>
-            <tbody>
-              #{body_rows.map { |row| "<tr>#{row.map { |cell| "<td>#{cell}</td>" }.join}</tr>" }.join}
-            </tbody>
-          </table>
-        </body>
-        </html>
-      HTML
+      cell_width = 150
+      cell_height = 40
+      rows = rows.map { |row| row.first(5) } 
+      cols = rows.map(&:size).max
+      width = cell_width * cols
+      height = cell_height * rows.size
+
+      canvas = Image.new(width, height) { self.background_color = 'white' }
+      draw = Draw.new
+      draw.stroke('black').stroke_width(1).fill_opacity(0)
+
+      rows.each_with_index do |row, y|
+        row.each_with_index do |cell, x|
+          px = x * cell_width
+          py = y * cell_height
+
+          draw.rectangle(px, py, px + cell_width, py + cell_height)
+
+          text = cell.to_s[0...18]
+
+          draw.annotate(canvas, 0, 0, px + 5, py + 25, text) do
+            self.fill = 'black'
+            self.pointsize = 12
+            self.gravity = NorthWestGravity
+          end
+        end
+      end
+
+      draw.draw(canvas)
+      canvas
     end
   end
 end
