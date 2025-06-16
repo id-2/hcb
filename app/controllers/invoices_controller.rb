@@ -48,10 +48,10 @@ class InvoicesController < ApplicationController
       relation = relation.unarchived
     end
 
-    relation = relation.where("item_amount >= ?", params[:amount_greater_than]) if params[:amount_greater_than].present?
-    relation = relation.where("item_amount <= ?", params[:amount_less_than]) if params[:amount_less_than].present?
-    relation = relation.where("created_at >= ?", params[:created_after]) if params[:created_after].present?
-    relation = relation.where("created_at <= ?", params[:created_before]) if params[:created_before].present?
+    relation = relation.where("item_amount >= ?", params[:amount_greater_than].to_i * 100) if params[:amount_greater_than].present?
+    relation = relation.where("item_amount <= ?", params[:amount_less_than].to_i * 100) if params[:amount_less_than].present?
+    relation = relation.where("invoices.created_at >= ?", params[:created_after]) if params[:created_after].present?
+    relation = relation.where("invoices.created_at <= ?", params[:created_before]) if params[:created_before].present?
 
     relation = relation.search_description(params[:q]) if params[:q].present?
 
