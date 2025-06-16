@@ -88,6 +88,8 @@ class MyController < ApplicationController
 
   def inbox
     @count = current_user.transactions_missing_receipt.count
+    @locking_count = current_user.transactions_missing_receipt(since: Receipt::CARD_LOCKING_START_DATE).count
+
     hcb_code_ids_missing_receipt = current_user.hcb_code_ids_missing_receipt
     @hcb_codes = Kaminari.paginate_array(HcbCode.where(id: hcb_code_ids_missing_receipt)
                  .includes(:canonical_transactions, canonical_pending_transactions: :raw_pending_stripe_transaction) # HcbCode#card uses CT and PT
@@ -99,11 +101,10 @@ class MyController < ApplicationController
                               # Order by cards with least transactions first
                               .sort_by { |card| @card_hcb_codes[card.to_global_id.to_s].count }
 
-    if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
-      @mailbox_address = current_user.active_mailbox_address
-      @receipts = Receipt.in_receipt_bin.with_attached_file.where(user: current_user)
-      @pairings = current_user.receipt_bin.suggested_receipt_pairings
-    end
+    @mailbox_address = current_user.active_mailbox_address
+    @receipts = Receipt.in_receipt_bin.with_attached_file.where(user: current_user)
+    @pairings = current_user.receipt_bin.suggested_receipt_pairings
+
 
     if flash[:popover]
       @popover = flash[:popover]
