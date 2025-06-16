@@ -6,12 +6,7 @@
 <% end %>
 
 <% content_for(:nav) do %>
-  <h1 class="flex items-center xs-hide border-none h1 mt0 mb0 pt2">
-    <%= avatar_for current_user, size: 36, class: "mr1" %>
-    <%= current_user.initial_name %>
-  </h1>
-
-  <div>
+  <div class="mt-5 mb-3">
     <button
       class="btn h-10 bg-none bg-smoke shadow-none w-100 justify-start mt1 px-3 hover:shadow-none display-none-not-important md:flex"
       style="border-radius: 8px"
