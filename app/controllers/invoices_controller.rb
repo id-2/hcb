@@ -51,10 +51,10 @@ class InvoicesController < ApplicationController
     relation = relation.search_description(params[:q]) if params[:q].present?
 
     allowed_sorts = {
-      "created_at" => "invoices.created_at",
-      "status" => "invoices.status",
+      "created_at"    => "invoices.created_at",
+      "status"        => "invoices.status",
       "sponsors.name" => "sponsors.name",
-      "amount_due" => "invoices.amount_due"
+      "amount_due"    => "invoices.amount_due"
     }
     allowed_directions = %w[asc desc]
 
