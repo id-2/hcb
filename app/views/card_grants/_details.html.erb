@@ -13,7 +13,7 @@
           data: { turbo: true, "menu-target": "toggle", action: "menu#toggle click@document->menu#close keydown@document->menu#keydown" } %>
       <div class="menu__content menu__content--2 h5 menu__content--compact" data-menu-target="content">
          <%= render "card_grants/actions/convert_to_reimbursement_report", as_menu: true, card_grant:, label: card_grant.user == current_user ? "Get reimbursed" : "Create reimbursement report" %>
-         
+
         <%= render "card_grants/actions/toggle_one_time_use", card_grant: %>
         <% if card_grant.active? %>
           <%= link_to "#",
