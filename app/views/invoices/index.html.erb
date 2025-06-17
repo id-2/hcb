@@ -68,25 +68,25 @@
   <thead>
     <tr>
       <th>
-        <%= link_to upsert_query_params(sort: "status", order: "asc"), class: "sort-button" do %>
+        <%= link_to upsert_query_params(sort: "status", direction: "asc"), class: "sort-button" do %>
           Status
           <%= inline_icon "up-caret", size: 16 %>
         <% end %>
       </th>
       <th>
-        <%= link_to upsert_query_params(sort: nil, order: "asc"), class: "sort-button sort-button--active" do %>
+        <%= link_to upsert_query_params(sort: nil, direction: "asc"), class: "sort-button sort-button--active sort-button--desc" do %>
           Date
           <%= inline_icon "up-caret", size: 16 %>
         <% end %>
       </th>
       <th>
-        <%= link_to upsert_query_params(sort: "to", order: "asc"), class: "sort-button" do %>
+        <%= link_to upsert_query_params(sort: "to", direction: "asc"), class: "sort-button" do %>
           To
           <%= inline_icon "up-caret", size: 16 %>
         <% end %>
       </th>
       <th class="text-right">
-        <%= link_to upsert_query_params(sort: "amount", order: "asc"), class: "sort-button sort-button--right" do %>
+        <%= link_to upsert_query_params(sort: "amount", direction: "asc"), class: "sort-button sort-button--right" do %>
           Amount
           <%= inline_icon "up-caret", size: 16 %>
         <% end %>

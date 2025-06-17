@@ -50,7 +50,13 @@ class InvoicesController < ApplicationController
 
     relation = relation.search_description(params[:q]) if params[:q].present?
 
-    @invoices = relation.order(created_at: :desc)
+    allowed_sorts = %w[created_at status to amount]
+    allowed_directions = %w[asc desc]
+
+    @sort = allowed_sorts.include?(params[:sort]) ? params[:sort] : "created_at"
+    @sort_direction = allowed_directions.include?(params[:direction]) ? params[:direction] : "desc"
+
+    relation = relation.order(Arel.sql("#{@sort} #{@sort_direction}"))
 
     @sponsor = Sponsor.new(event: @event)
     @invoice = Invoice.new(sponsor: @sponsor, event: @event)
@@ -89,6 +95,8 @@ class InvoicesController < ApplicationController
         @invoices[i].state_text = "Sent"
         @stats[:pending] += @invoices[i].item_amount
       end
+    else
+      @invoices = relation
     end
   end
 
