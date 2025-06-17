@@ -50,13 +50,19 @@ class InvoicesController < ApplicationController
 
     relation = relation.search_description(params[:q]) if params[:q].present?
 
-    allowed_sorts = ["created_at", "status", "sponsors.name", "amount_due"]
+    allowed_sorts = {
+      "created_at" => "invoices.created_at",
+      "status" => "invoices.status",
+      "sponsors.name" => "sponsors.name",
+      "amount_due" => "invoices.amount_due"
+    }
     allowed_directions = %w[asc desc]
 
-    @sort = allowed_sorts.include?(params[:sort]) ? params[:sort] : "created_at"
-    @sort_direction = allowed_directions.include?(params[:direction]) ? params[:direction] : "desc"
+    sort_column = allowed_sorts[params[:sort]] || "invoices.created_at"
+    sort_direction = allowed_directions.include?(params[:direction]) ? params[:direction] : "desc"
 
-    relation = relation.order(Arel.sql("#{@sort} #{@sort_direction}"))
+    relation = relation.joins(:sponsor) if sort_column == "sponsors.name"
+    relation = relation.order("#{sort_column} #{sort_direction}")
 
     @sponsor = Sponsor.new(event: @event)
     @invoice = Invoice.new(sponsor: @sponsor, event: @event)
