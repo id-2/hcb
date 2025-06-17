@@ -13,13 +13,7 @@
         </div>
       </button>
       <div class="menu__content menu__content--2 h5" data-menu-target="content" style="z-index: 999;">
-        <a
-          href="#!"
-          data-behavior="toggle_theme"
-          tabindex="0">
-          <%= inline_icon "moon", size: 23 %>
-          <span style="font-weight: 400">Toggle theme</span>
-        </a>
+        <%= render partial: "application/theme_toggle" %>
         <% if signed_in? %>
           <%= link_to logout_users_path, method: :delete do %>
             <%= inline_icon "door-leave", size: 23 %>
