@@ -24,14 +24,14 @@ module ActiveStorage
 
       cell_width = 150
       cell_height = 40
-      rows = rows.map { |row| row.first(5) } 
+      rows = rows.map { |row| row.first(5) }
       cols = rows.map(&:size).max
       width = cell_width * cols
       height = cell_height * rows.size
 
-      canvas = Image.new(width, height) { self.background_color = 'white' }
+      canvas = Image.new(width, height) { self.background_color = "white" }
       draw = Draw.new
-      draw.stroke('black').stroke_width(1).fill_opacity(0)
+      draw.stroke("black").stroke_width(1).fill_opacity(0)
 
       rows.each_with_index do |row, y|
         row.each_with_index do |cell, x|
@@ -43,7 +43,7 @@ module ActiveStorage
           text = cell.to_s[0...18]
 
           draw.annotate(canvas, 0, 0, px + 5, py + 25, text) do
-            self.fill = 'black'
+            self.fill = "black"
             self.pointsize = 12
             self.gravity = NorthWestGravity
           end
@@ -53,5 +53,6 @@ module ActiveStorage
       draw.draw(canvas)
       canvas
     end
+
   end
 end
