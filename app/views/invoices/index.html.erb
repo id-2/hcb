@@ -68,28 +68,16 @@
   <thead>
     <tr>
       <th>
-        <%= link_to upsert_query_params(sort: "status", direction: "asc"), class: "sort-button" do %>
-          Status
-          <%= inline_icon "up-caret", size: 16 %>
-        <% end %>
+        <%= render "events/sort_table_header", sort: "status" %>
       </th>
       <th>
-        <%= link_to upsert_query_params(sort: nil, direction: "asc"), class: "sort-button sort-button--active sort-button--desc" do %>
-          Date
-          <%= inline_icon "up-caret", size: 16 %>
-        <% end %>
+        <%= render "events/sort_table_header", sort: "date", default: true %>
       </th>
       <th>
-        <%= link_to upsert_query_params(sort: "to", direction: "asc"), class: "sort-button" do %>
-          To
-          <%= inline_icon "up-caret", size: 16 %>
-        <% end %>
+        <%= render "events/sort_table_header", sort: "sponsors.name", display: "To" %>
       </th>
       <th class="text-right">
-        <%= link_to upsert_query_params(sort: "amount", direction: "asc"), class: "sort-button sort-button--right" do %>
-          Amount
-          <%= inline_icon "up-caret", size: 16 %>
-        <% end %>
+        <%= render "events/sort_table_header", sort: "amount_due", right: true, display: "Amount" %>
       </th>
       <th></th>
     </tr>
