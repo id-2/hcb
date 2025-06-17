@@ -12,7 +12,8 @@
           class: "align-middle", "aria-label": "More Options",
           data: { turbo: true, "menu-target": "toggle", action: "menu#toggle click@document->menu#close keydown@document->menu#keydown" } %>
       <div class="menu__content menu__content--2 h5 menu__content--compact" data-menu-target="content">
-        <%= render "stripe_cards/actions/freeze", as_menu: true, stripe_card: card_grant.stripe_card if card_grant.stripe_card.present? %>
+         <%= render "card_grants/actions/convert_to_reimbursement_report", as_menu: true, card_grant:, label: card_grant.user == current_user ? "Get reimbursed" : "Create reimbursement report" %>
+         
         <%= render "card_grants/actions/toggle_one_time_use", card_grant: %>
         <% if card_grant.active? %>
           <%= link_to "#",
@@ -28,14 +29,7 @@
             <%= inline_icon "minus", size: 24 %> Withdraw
           <% end %>
         <% end %>
-        <%= render "card_grants/actions/convert_to_reimbursement_report", as_menu: true, card_grant:, label: card_grant.user == current_user ? "Get reimbursed" : "Create reimbursement report" %>
-        <%= link_to edit_card_grant_path(card_grant),
-                    class: "menu__action",
-                    data: { behavior: "modal_trigger", modal: "edit_card_grant", action: "menu#close" },
-                    disabled: !policy(card_grant).edit? do %>
-          <%= inline_icon "edit", size: 24 %>
-          Set purpose
-        <% end %>
+
         <% if card_grant.user != current_user %>
           <%= render "card_grants/actions/cancel", card_grant: %>
         <% end %>
@@ -46,7 +40,6 @@
 
   <%= render "card_grants/actions/topup", card_grant: %>
   <%= render "card_grants/actions/withdraw", card_grant: %>
-  <%= render "card_grants/actions/edit", card_grant: %>
 
   <section class="card__banner card__darker details-horiz border-top border-bottom">
     <p>
