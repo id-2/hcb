@@ -29,10 +29,10 @@ To mitigate this we want to implement a process similar to GitHub's [sudo mode][
 ### Session storage
 
 - `UserSession` records have a `session_token` property which is stored encrypted alongside its hash https://github.com/hackclub/hcb/blob/d293e57763729f69a1612606e22095761650eccd/db/schema.rb#L2140-L2141 using the [`blind_index` gem](https://github.com/ankane/blind_index).
-- This session token is stored in an encrypted cookie https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/helpers/sessions_helper.rb#L25-L49 allowing us to retrieve the `UserSession` on subsequent requests https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/helpers/sessions_helper.rb#L107-L116.
-- The session duration is determined by `User#session_duration_seconds` which defaults to 30 days https://github.com/hackclub/hcb/blob/d293e57763729f69a1612606e22095761650eccd/db/schema.rb#L2173.
+- This session token is stored in an encrypted cookie https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/helpers/sessions_helper.rb#L25-L49 allowing us to retrieve the `UserSession` on subsequent requests https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/helpers/sessions_helper.rb#L107-L116
+- The session duration is determined by `User#session_duration_seconds` which defaults to 30 days https://github.com/hackclub/hcb/blob/d293e57763729f69a1612606e22095761650eccd/db/schema.rb#L2173
   - This value is user-configurable from a pre-defined set of options https://github.com/hackclub/hcb/blob/ad940d9b29be634ff412b6f88f1a8e58bb624444/app/views/users/edit.html.erb#L222-L225
   - We don't currently validate this value (see https://github.com/hackclub/hcb/pull/10660)
-  - When a session is created we compute the expiry time using this value and set it on both the cookie and `UserSession` https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/helpers/sessions_helper.rb#L28.
+  - When a session is created we compute the expiry time using this value and set it on both the cookie and `UserSession` https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/helpers/sessions_helper.rb#L28
 - The session duration is fixed upon creation and isn't affected by user activity. There is interest in changing this: https://github.com/hackclub/hcb/issues/7258
 - We don't currently clear out older sessions but this may be something worth looking into ([internal discussion](https://hackclub.slack.com/archives/C047Y01MHJQ/p1750259883680629)).
