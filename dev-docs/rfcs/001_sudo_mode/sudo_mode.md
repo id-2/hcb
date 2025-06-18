@@ -35,4 +35,50 @@ To mitigate this we want to implement a process similar to GitHub's [sudo mode][
   - We don't currently validate this value (see https://github.com/hackclub/hcb/pull/10660)
   - When a session is created we compute the expiry time using this value and set it on both the cookie and `UserSession` https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/helpers/sessions_helper.rb#L28
 - The session duration is fixed upon creation and isn't affected by user activity. There is interest in changing this: https://github.com/hackclub/hcb/issues/7258
+  - We do however update `UserSession#last_seen_at` on every request https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/controllers/application_controller.rb#L21-L22
 - We don't currently clear out older sessions but this may be something worth looking into ([internal discussion](https://hackclub.slack.com/archives/C047Y01MHJQ/p1750259883680629)).
+
+## Design considerations
+
+> [!NOTE]
+> We will assume a user is in sudo mode if they are logged in and last authenticated within the last 2 hours.
+
+```mermaid
+flowchart LR
+    A["Log in"] -- Time passes --> B["Initiate sudo action"]
+    B --> C["Authentication older than 2 hours?"]
+    C -- Yes --> D["Re-authenticate"]
+    D --> E["Proceed"]
+    C -- No --> E
+```
+
+**Assumptions**
+
+1. Users who initiate a sudo action and subsequently abandon it (e.g. because they don't have access to their email or TOTP) should remain logged in.
+2. Re-authentication only requires a single factor of the user's choosing
+3. Once they are re-authenticated we won't require them to do so for another two hours
+
+**Open questions**
+
+1. We currently show users a list of their sessions including how long ago they logged in. Should we also surface information about re-authentications?
+
+   <img src="sessions.png" width="200"/>
+2. We send users an email when there is a new login on their account. Would we want to do the same for re-authentications?
+
+   <img src="login_notification_email.png" width="200"/>
+3. How do we want to handle sudo actions for users that are being impersonated? Is re-authenticating the impersonator enough?
+    - _Opinion_: We should strongly consider making this question go away by capping impersonated sessions to 2 hours. I don't think there's a use case for having these persist for longer than that. 
+
+### How do we model the re-authentication?
+
+**Option 1 - Treat it as a new `Login`**
+
+Given that we have an existing flow for authenticating users, we could treat re-authentication as a new login flow which, once complete, swaps in a new `UserSession`.
+
+We would ideally link the new `Login` to the previous one so we can distinguish it as a re-authentication, apply different rules (e.g. only requiring one factor), and maintain a chain of `Login` records (for auditing purposes).
+
+**Option 2 - Model re-authentications separately**
+
+Rather than overload the concept of a login, we could introduce something like `ReAuthentication` of which `UserSession` would have 0 or more.
+
+This would require similar but more straightforward logic to `Login` (given that there's only one factor required) and store similar metadata to `UserSession` so we have an audit trail (e.g. if you re-authenticate 28 days into your session from a completely different side of the world we may want to know about that).
