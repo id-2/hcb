@@ -89,3 +89,16 @@ We would ideally link the new `Login` to the previous one so we can distinguish 
 Rather than overload the concept of a login, we could introduce something like `ReAuthentication` of which `UserSession` would have 0 or more.
 
 This would require similar but more straightforward logic to `Login` (given that there's only one factor required) and store similar metadata to `UserSession` so we have an audit trail (e.g. if you re-authenticate 28 days into your session from a completely different side of the world we may want to know about that).
+
+### UX
+
+1. We need to introduce an additional step to specific actions, ideally with as little code duplication as necessary.
+   1. Maybe there's a good way to model this at the controller-level (https://github.com/markets/sudo_rails might prove inspiring)
+   2. For actions that don't need to carry additional context around (e.g. view this page), it may be sufficient to use redirects
+   3. For actions that carry context (e.g. set this attribute to a value) we'll have to do some experimentation
+2. We need to display the reauthentication form (which could be multi-step in the case of email) between the action being initiated and completed.
+   - Based on (1.iii) we'll know whether full page redirects are possible 
+   - We may be able to leverage [turbo streams](https://turbo.hotwired.dev/handbook/streams) as well if we want the form to appear on the page itself. This might solve the context problem as we may be able to re-submit the same form.
+
+> [!NOTE]
+> We should prototype something here to help us make a more informed decision.
