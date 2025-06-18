@@ -37,11 +37,16 @@ To mitigate this we want to implement a process similar to GitHub's [sudo mode][
 - The session duration is fixed upon creation and isn't affected by user activity. There is interest in changing this: https://github.com/hackclub/hcb/issues/7258
   - We do however update `UserSession#last_seen_at` on every request https://github.com/hackclub/hcb/blob/8508ac95625ca08aef11b7919596ddb8f68c0665/app/controllers/application_controller.rb#L21-L22
 - We don't currently clear out older sessions but this may be something worth looking into ([internal discussion](https://hackclub.slack.com/archives/C047Y01MHJQ/p1750259883680629)).
+- `UserSession` creation is tracked using the [`public_activity` gem](https://github.com/public-activity/public_activity) so it can be displayed under "Recent activity"
+
+    <img src="login_activity.png" width="200"/>
+    
+    This is configured here https://github.com/hackclub/hcb/blob/cbfccf8975fd8a9c258f916034ef8e7836e80229/app/models/user_session.rb#L47-L48 and displayed here https://github.com/hackclub/hcb/blob/d293e57763729f69a1612606e22095761650eccd/app/controllers/my_controller.rb#L6-L13
 
 ## Design considerations
 
 > [!NOTE]
-> We will assume a user is in sudo mode if they are logged in and last authenticated within the last 2 hours.
+> We will assume a user is in sudo mode if they are logged in and last authenticated less than 2 hours ago
 
 ```mermaid
 flowchart LR
@@ -68,6 +73,8 @@ flowchart LR
    <img src="login_notification_email.png" width="200"/>
 3. How do we want to handle sudo actions for users that are being impersonated? Is re-authenticating the impersonator enough?
     - _Opinion_: We should strongly consider making this question go away by capping impersonated sessions to 2 hours. I don't think there's a use case for having these persist for longer than that. 
+4. Should re-authentications appear in activities?
+5. How should this work within https://github.com/hackclub/hcb-mobile? Should we return a known error code so the mobile app can prompt the user to re-authenticate?
 
 ### How do we model the re-authentication?
 
