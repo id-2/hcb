@@ -47,6 +47,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_19_154630) do
     t.text "routing_number_ciphertext"
     t.string "account_number_bidx"
     t.string "routing_number_bidx"
+    t.date "invoiced_at"
     t.index ["account_number_bidx"], name: "index_ach_transfers_on_account_number_bidx"
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
