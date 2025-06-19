@@ -6,6 +6,10 @@
   <%= render partial: "select_organization", locals: { form: form, field_name: "source_event_id", disabled: disabled, events: @allowed_source_events, default_event: @source_event, sending: true } %>
   <%= render partial: "select_organization", locals: { form: form, field_name: "event_id", disabled: disabled, events: @allowed_destination_events, default_event: nil, receiving: true, allow_custom_events: @source_event&.plan&.unrestricted_disbursements_enabled? } %>
 
+  <button onclick="event.preventDefault(); document.querySelector('[data-disbursement-target=sourceEvent]').classList.toggle('hidden'); document.querySelector('[data-disbursement-target=destinationEvent]').classList.toggle('hidden');">
+    Switch events
+  </button>
+
   <% if admin_signed_in? %>
     <div class="admin-tools field field--checkbox">
       <%= form.check_box :should_charge_fee %>
