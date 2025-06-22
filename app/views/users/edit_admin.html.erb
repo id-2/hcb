@@ -8,6 +8,12 @@
   <% admin_tool override_pretend: true do %>
     <section>
       Updating <%= user_mention @user %>'s profile that was created on <%= @user.created_at.strftime("%B %d, %Y at %I:%M %P") %>
+      <p>
+        <strong>User ID:</strong> <%= @user.id %> (<%= @user.public_id %>)
+      </p>
+      <p>
+        <strong>Email:</strong> <%= mail_to @user.email %>
+      </p>
       <h2 id="admin">Admin configurations</h2>
 
       <%= form_with(model: @user, local: true, html: { onsubmit: "onSubmit()" }, data: { turbo_frame: "_top" }) do |form| %>
@@ -21,6 +27,10 @@
         <% end %>
 
         <% if current_user.admin? %>
+          <p>
+            <%= link_to "Impersonate", impersonate_user_path(@user.id), data: { turbo_confirm: "Are you sure?", turbo_method: "post" } unless current_session&.impersonated? %>
+          </p>
+
           <div class="field field--checkbox">
             <%= form.check_box :locked, checked: @user.locked? %>
             <%= form.label :locked, "Lock user from signing into HCB" %>
@@ -38,6 +48,7 @@
             <%= form.select :access_level,
                             [
                               ["👤 Regular user", "user"],
+                              ["📚 Auditor", "auditor"],
                               ["🛡️ Admin", "admin"],
                               ["👑 Superadmin (can manage other users' admin status)", "superadmin"],
                             ],
@@ -51,7 +62,7 @@
         </div>
       <% end %>
     </section>
-    <% if admin_signed_in? %>
+    <% if auditor_signed_in? %>
       <section>
         <% if @user.transactions_missing_receipt.any? %>
           <h2>Missing Receipts</h2>

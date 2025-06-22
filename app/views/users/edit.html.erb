@@ -72,12 +72,14 @@
           </div>
           <%= form.label :profile_picture %>
           <div class="flex items-center mt1">
-            <%= avatar_for @user, 48, { class: "mr2" } %>
+            <%= avatar_for @user, size: 48, class: "mr2" %>
             <div class="field--fileupload">
-              <%= form.label :profile_picture, "Choose File", class: "field--fileupload__label" %>
+              <%= form.label :profile_picture, "Choose file", class: "field--fileupload__label" %>
               <%= form.file_field :profile_picture, accept: "image/png, image/jpeg", class: "field--fileupload__field" %>
             </div>
           </div>
+          <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to] %>
+
           <div class="actions flex">
             <button type="submit" class="btn w-full gap-2">
               Start using HCB
@@ -184,7 +186,7 @@
         </div>
         <div class="field">
           <%= form.label :email %>
-          <%= form.email_field :email, disabled: !Flipper.enabled?(:email_updates_2024_05_24, current_user) %>
+          <%= form.email_field :email %>
           <% if @user.email_updates.active.any? %>
             <p style="max-width: 420px;">
               <small>
@@ -198,7 +200,7 @@
         <div class="field">
           <%= form.label :profile_picture %>
           <p class="flex items-center mt1">
-            <%= avatar_for @user, 48, { class: "mr2" } %>
+            <%= avatar_for @user, size: 48, class: "mr2" %>
             <span>
               <% if @user.profile_picture.attached? %>
               You're currently using an uploaded profile picture.<br>

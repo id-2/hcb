@@ -52,6 +52,7 @@
 class StripeCard < ApplicationRecord
   include Hashid::Rails
   include PublicIdentifiable
+  include Freezable
   set_public_id_prefix :crd
 
   include HasStripeDashboardUrl
@@ -59,14 +60,17 @@ class StripeCard < ApplicationRecord
 
   has_paper_trail
 
+  validate :within_card_limit, on: :create
+
   after_create_commit :notify_user, unless: :skip_notify_user
 
   attr_accessor :skip_notify_user
 
   scope :deactivated, -> { where.not(stripe_status: "active") }
   scope :canceled, -> { where(stripe_status: "canceled") }
-  scope :frozen, -> { where(stripe_status: "inactive") }
+  scope :frozen, -> { where(stripe_status: "inactive", initially_activated: true) }
   scope :active, -> { where(stripe_status: "active") }
+  scope :inactive, -> { where(stripe_status: "inactive", initially_activated: false) }
   scope :physical_shipping, -> { physical.includes(:user, :event).reject { |c| c.stripe_obj[:shipping][:status] == "delivered" } }
   scope :platinum, -> { where(is_platinum_april_fools_2023: true) }
 
@@ -198,6 +202,7 @@ class StripeCard < ApplicationRecord
     StripeService::Issuing::Card.update(self.stripe_id, status: :active)
     sync_from_stripe!
     save!
+    card_grant.update(one_time_use: false) if card_grant&.one_time_use
   end
 
   def cancel!
@@ -222,8 +227,8 @@ class StripeCard < ApplicationRecord
     stripe_status == "active"
   end
 
-  def deactivated?
-    stripe_status != "active"
+  def inactive?
+    !initially_activated? && stripe_status == "inactive"
   end
 
   def canceled?
@@ -241,7 +246,7 @@ class StripeCard < ApplicationRecord
   def stripe_obj
     @stripe_obj ||= ::Stripe::Issuing::Card.retrieve(id: stripe_id)
   rescue => e
-    OpenStruct.new({ number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered", carrier: "USPS", eta: 2.weeks.ago, tracking_number: "12345678s9" } })
+    RecursiveOpenStruct.new({ number: "XXXX", cvc: "XXX", created: Time.now.utc.to_i, shipping: { status: "delivered", carrier: "USPS", eta: 2.weeks.ago, tracking_number: "12345678s9" } })
   end
 
   def secret_details
@@ -252,6 +257,14 @@ class StripeCard < ApplicationRecord
 
   def shipping_has_tracking?
     stripe_obj&.shipping&.tracking_number&.present?
+  end
+
+  def shipping_eta
+    return unless (stripe_eta = stripe_obj&.shipping&.eta)
+
+    # We've found Stripe's ETA for USPS standard is fairly inaccurate. So, I'm
+    # padding their estimate to set more realistic expectations for our users.
+    Time.at(stripe_eta) + 2.days
   end
 
   def self.new_from_stripe_id(params)
@@ -411,6 +424,22 @@ class StripeCard < ApplicationRecord
   def personalization_design_must_be_of_the_same_event
     if personalization_design&.event.present? && personalization_design.event != event
       errors.add(:personalization_design, "must be of the same event")
+    end
+  end
+
+  def within_card_limit
+    return if subledger.present?
+
+    # card grants don't count against the limit, hence the subledger_id: nil check
+    user_cards_today = user.stripe_cards.where(subledger_id: nil, created_at: 1.day.ago..).count
+    event_cards_today = event.stripe_cards.where(subledger_id: nil, created_at: 1.day.ago..).count
+
+    if user_cards_today > 20
+      errors.add(:base, "Your account has been rate-limited from creating new cards. Please try again tomorrow; for help, email hcb@hackclub.com.")
+    end
+
+    if event_cards_today > 20
+      errors.add(:base, "Your organization has been rate-limited from creating new cards. Please try again tomorrow; for help, email hcb@hackclub.com.")
     end
   end
 

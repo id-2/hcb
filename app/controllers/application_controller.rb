@@ -29,10 +29,35 @@ class ApplicationController < ActionController::Base
     cookies.permanent[:first_visit] = 1
   end
 
+  before_action do
+    # Disallow indexing
+    response.set_header("X-Robots-Tag", "noindex")
+  end
+
+  before_action do
+    # Disallow all external redirects
+    # https://hackclub.slack.com/archives/C047Y01MHJQ/p1743530368138499
+    params[:return_to] = url_from(params[:return_to])
+  end
+
+  # Enable Rack::MiniProfiler for admins
+  before_action do
+    if current_user&.admin?
+      Rack::MiniProfiler.authorize_request
+    end
+  end
+
   # Force usage of Pundit on actions
   after_action :verify_authorized, unless: -> { controller_path.starts_with?("doorkeeper/") || controller_path.starts_with?("audits1984/") }
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+
+  rescue_from Rack::Timeout::RequestTimeoutException do
+    respond_to do |format|
+      format.html { render "errors/timeout" }
+      format.all { render text: "This request timed out, sorry." }
+    end
+  end
 
   def hide_footer
     @hide_footer = true
@@ -46,7 +71,7 @@ class ApplicationController < ActionController::Base
   rescue_from ArgumentError do |exception|
     if request.format.html? && exception.message == "invalid base64"
       request.reset_session # reset your old existing session.
-      redirect_to auth_users_path # your login page.
+      redirect_to auth_users_path(require_reload: true) # your login page.
     else
       raise(exception)
     end
@@ -58,13 +83,13 @@ class ApplicationController < ActionController::Base
     if Rails.env.development?
       raise
     else
-      notify_airbrake(exception)
+      Rails.error.report(exception)
       redirect_to root_url
     end
   end
 
   def find_current_auditor
-    current_user if admin_signed_in?
+    current_user if auditor_signed_in?
   end
 
   private
@@ -81,7 +106,7 @@ class ApplicationController < ActionController::Base
     if current_user || !request.get?
       redirect_to root_path
     else
-      redirect_to auth_users_path(return_to: request.url)
+      redirect_to auth_users_path(return_to: request.url, require_reload: true)
     end
   end
 
