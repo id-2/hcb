@@ -34,10 +34,10 @@
 
   <div
     class="grid grid--wide mb-12"
-    data-controller="sortable event-sort"
+    data-controller="sortable sort-card"
     data-sortable-append-to-value="body"
-    data-event-sort-organizer-positions-value="<%= @organizer_positions.pluck(:id).to_json %>"
-    data-action="sortable:stop->event-sort#sort"
+    data-sort-card-card-grant-value="<%= current_user.card_grants.activated.pluck(:id).to_json %>"
+    data-action="sortable:stop->card-grant#sort"
   >
     <% current_user.card_grants.includes(:stripe_card).activated.each do |grant| %>
       <div class="draggable">
