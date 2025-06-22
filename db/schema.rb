@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_08_034034) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_19_045020) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -47,6 +47,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_08_034034) do
     t.text "routing_number_ciphertext"
     t.string "account_number_bidx"
     t.string "routing_number_bidx"
+    t.date "invoiced_at"
     t.index ["account_number_bidx"], name: "index_ach_transfers_on_account_number_bidx"
     t.index ["column_id"], name: "index_ach_transfers_on_column_id", unique: true
     t.index ["creator_id"], name: "index_ach_transfers_on_creator_id"
@@ -2186,6 +2187,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_08_034034) do
     t.boolean "use_two_factor_authentication", default: false
     t.boolean "teenager"
     t.integer "creation_method"
+    t.boolean "cards_locked", default: false, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end
