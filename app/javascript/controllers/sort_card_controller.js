@@ -18,7 +18,7 @@ export default class extends Controller {
 
     this.orderValue = copy
 
-    await fetch(`/card_grants/${id}/set_index`, {
+    await fetch(`/grants/${id}/set_index`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

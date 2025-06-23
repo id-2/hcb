@@ -36,8 +36,8 @@
     class="grid grid--wide mb-12"
     data-controller="sortable sort-card"
     data-sortable-append-to-value="body"
-    data-sort-card-order-value="<%= current_user.card_grants.activated.pluck(:id).to_json %>"
-    data-action="sortable:stop->card-grant#sort"
+    data-sort-card-order-value='<%= current_user.card_grants.includes(:stripe_card).map(&:hashid).to_json %>'
+    data-action="sortable:stop->sort-card#sort"
   >
     <% current_user.card_grants.includes(:stripe_card).activated.each do |grant| %>
       <div class="draggable">
