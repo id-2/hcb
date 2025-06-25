@@ -4,7 +4,7 @@
   <%= turbo_frame_tag :raffle_modal do %>
     <%= modal_header "Join the raffle" %>
       <strong>Name:</strong> <%= current_user&.name %>
-      <br/>
+      <br>
       <strong>Email:</strong> <%= current_user&.email %>
     <%= render "raffles/raffle_form", program: %>
   <% end %>
