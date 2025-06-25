@@ -1,4 +1,4 @@
-<% @active = params[:sort] == sort || (params[:sort].nil? && defined?(default) && default) %>
+<% active = params[:sort] == sort || (params[:sort].nil? && defined?(default) && default) %>
 
 <%= link_to(
       upsert_query_params(
@@ -7,7 +7,7 @@
           (params[:direction] == "asc" ? "desc" : "asc") :
           params[:direction] || "asc"
       ),
-  class: "sort-button #{@active ? 'sort-button--active' : ''} #{'sort-button--right' if defined?(right) && right}"
+  class: "sort-button #{active ? 'sort-button--active' : ''} #{'sort-button--right' if defined?(right) && right}"
     ) do %>
   <%= defined?(display) && display ? display : sort.humanize %>
   <%= inline_icon(
