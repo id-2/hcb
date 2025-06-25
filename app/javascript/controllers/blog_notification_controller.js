@@ -27,7 +27,7 @@ export default class extends Controller {
         this.containerTarget.src = `/changelog?${featuredPosts.map(p => `urls[]=${encodeURIComponent(`${blogUrl}/embed/${p}`)}`).join("&")}`
       }
     } catch (error) {
-      console.error('Error fetching notification count', error)
+      console.error('Error fetching unreads', error)
     }
   }
 }
