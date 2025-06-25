@@ -60,6 +60,8 @@ class InvoicesController < ApplicationController
     @sponsor = Sponsor.new(event: @event)
     @invoice = Invoice.new(sponsor: @sponsor, event: @event)
 
+    @invoices = relation
+
     # @ma1ted: I have no clue how to use the above methods here.
     # Reimplementing logic is okay if you apolgise to every
     # future contributor. You can hold me to that.
@@ -94,8 +96,6 @@ class InvoicesController < ApplicationController
         @invoices[i].state_text = "Sent"
         @stats[:pending] += @invoices[i].item_amount
       end
-    else
-      @invoices = relation
     end
   end
 
