@@ -1,0 +1,18 @@
+<%= turbo_frame_tag :changelog do %>
+  <div class="welcome" data-controller="welcome" data-blog-notification-target="changelog">
+      <div class="welcome__image mb1">
+          <h1 class="welcome__shine_text mt0 border-none inline-flex flex-col items-center g2 text-center">
+              <span><%= @urls.size %> New HCB Changelog <%= "Post".pluralize(@urls.size) %></span>
+          </h1>
+      </div>
+
+      <div class="welcome__content w-full h-2/3 gap-5">
+        <div class="card rounded-lg p-7 w-2/3 flex-grow overflow-scroll flex flex-col gap-5">
+          <% @urls.map do |url| %>
+            <iframe src="<%= url %>" class="w-full min-h-<%= @urls.size == 1 ? "full" : "[90%]" %> border-2 border-dark rounded-md"></iframe>
+          <% end %>
+        </div>
+        <button class="btn min-h-10 min-w-20" data-action="welcome#dismiss">Close</button>
+      </div>
+  </div>
+<% end %>

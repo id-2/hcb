@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
-  static targets = ['badge']
+  static targets = ['badge', 'container']
 
   connect() {
     this.updateBadge()
@@ -9,8 +9,10 @@ export default class extends Controller {
 
   async updateBadge() {
     try {
-      const { count } = await fetch(
-        window.location.hostname === "hcb.hackclub.com" ? 'https://blog.hcb.hackclub.com/api/unreads' : "http://localhost:3001/api/unreads",
+      const blogUrl = window.location.hostname === "hcb.hackclub.com" ? 'https://blog.hcb.hackclub.com' : "http://localhost:3001"
+
+      const { count, featuredPosts } = await fetch(
+        `${blogUrl}/api/unreads`,
         {
           credentials: 'include',
         }
@@ -20,6 +22,10 @@ export default class extends Controller {
 
       this.badgeTarget.innerText = count
       this.badgeTarget.classList.remove('hidden')
+
+      if (featuredPosts.length > 0) {
+        this.containerTarget.src = `/changelog?${featuredPosts.map(p => `urls[]=${encodeURIComponent(`${blogUrl}/embed/${p}`)}`).join("&")}`
+      }
     } catch (error) {
       console.error('Error fetching notification count', error)
     }

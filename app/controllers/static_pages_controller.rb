@@ -193,4 +193,8 @@ class StaticPagesController < ApplicationController
     }
   end
 
+  def changelog
+    @urls = params[:urls]
+  end
+
 end

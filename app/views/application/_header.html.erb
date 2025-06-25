@@ -1,5 +1,5 @@
 <header class="header <%= "mt3" unless content_for?(:nav) %>">
-  <div class="header-left line-height-0 flex items-center justify-end">
+  <div class="header-left line-height-0 flex items-center justify-end" data-controller="blog-notification">
     <% unless request.path.include?("auth") || request.path.include?("logins") %>
       <%= render partial: "application/theme_toggle" %>
     <% end %>
@@ -12,9 +12,10 @@
         id="changelog-icon">
         <%= inline_icon "rep", size: home_action_size %>
         <% if Flipper.enabled?(:changelog_widget_2025_04_24, current_user) %>
-          <span class="badge bg-red hidden absolute top-[-2px] right-[-2px] block m-0 py-[2px] px-1" data-controller="blog-notification" data-blog-notification-target="badge"></span>
+          <span class="badge bg-red hidden absolute top-[-2px] right-[-2px] block m-0 py-[2px] px-1" data-blog-notification-target="badge"></span>
         <% end %>
       </a>
+      <%= turbo_frame_tag :changelog, data: { "blog-notification-target": "container" } %>
     <% end %>
   </div>
 

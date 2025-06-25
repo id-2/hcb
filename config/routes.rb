@@ -46,6 +46,7 @@ Rails.application.routes.draw do
   get "project_stats", to: "stats#project_stats"
   get "bookkeeping", to: "admin#bookkeeping"
   get "stripe_charge_lookup", to: "static_pages#stripe_charge_lookup"
+  get "changelog", to: "static_pages#changelog"
 
   resources :raffles, only: [:new, :create]
 
