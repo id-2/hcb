@@ -680,7 +680,6 @@ Rails.application.routes.draw do
     get :balance_transactions
     get :money_movement
     get :merchants_categories
-    get :top_categories
     get :tags_users
     get :transaction_heatmap
 
@@ -757,6 +756,7 @@ Rails.application.routes.draw do
         post "withdraw"
         post "cancel"
         post "convert_to_reimbursement_report"
+        post "toggle_one_time_use"
       end
     end
 
