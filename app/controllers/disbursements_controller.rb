@@ -9,7 +9,7 @@ class DisbursementsController < ApplicationController
 
     authorize @hcb_code, :show?, policy_class: HcbCodePolicy
 
-    redirect_to @hcb_code unless current_user.auditor?
+    return redirect_to @hcb_code unless current_user.auditor?
 
     authorize @disbursement
   end

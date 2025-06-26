@@ -2,7 +2,7 @@
 
 class DisbursementPolicy < ApplicationPolicy
   def show?
-    user.auditor? || record.reviewing?
+    user.auditor?
   end
 
   def can_send?(role: :member)
