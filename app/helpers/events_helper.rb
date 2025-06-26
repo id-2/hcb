@@ -93,14 +93,16 @@ module EventsHelper
 
   def check_filters?(filter_options, params)
     filter_options.any? do |opt|
-      k = opt[:key].to_s
+      k    = opt[:key].to_s
       base = k.chomp("_*")
 
       case opt[:type]
       when "date_range"
-        k.end_with?("_*") && (params["#{base}_before"] || params["#{base}_after"]).present?
+        k.end_with?("_*") &&
+          (params["#{base}_before"].present? || params["#{base}_after"].present?)
       when "amount_range"
-        k.end_with?("_*") && (params["#{base}_less_than"] || params["#{base}_greater_than"]).present?
+        k.end_with?("_*") &&
+          (params["#{base}_less_than"].present? || params["#{base}_greater_than"].present?)
       else
         params[k].present?
       end
