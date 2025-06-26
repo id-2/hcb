@@ -22,7 +22,11 @@ class DisbursementPolicy < ApplicationPolicy
     false
   end
 
-  def manager_approve?
+  def manager_authorize?
+    OrganizerPosition.role_at_least?(user, record.source_event, :manager)
+  end
+
+  def manager_reject?
     OrganizerPosition.role_at_least?(user, record.source_event, :manager)
   end
 

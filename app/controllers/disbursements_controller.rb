@@ -109,6 +109,8 @@ class DisbursementsController < ApplicationController
       redirect_to disbursement
     end
 
+    byebug
+
   rescue ArgumentError, ActiveRecord::RecordInvalid => e
     flash[:error] = e.message
     redirect_to new_disbursement_path(source_event_id: @source_event)
@@ -161,15 +163,28 @@ class DisbursementsController < ApplicationController
     redirect_to disbursement_path(@disbursement)
   end
 
-  def manager_approve
+  def manager_authorize
     @disbursement = Disbursement.find(params[:disbursement_id])
     authorize @disbursement
 
-    return redirect_to disbursement_path(@disbursement), flash: { error: "Already approved" } if @disbursement.reviewing?
+    return redirect_to disbursement_path(@disbursement), flash: { error: "Already authorized / rejected" } unless @disbursement.authorizing?
 
     @disbursement.authorize_by_manager(current_user)
 
-    flash[:success] = "Disbursement approved by manager"
+    flash[:success] = "Disbursement authorized"
+
+    redirect_back_or_to disbursement_path(@disbursement)
+  end
+
+  def manager_reject
+    @disbursement = Disbursement.find(params[:disbursement_id])
+    authorize @disbursement
+
+    return redirect_to disbursement_path(@disbursement), flash: { error: "Already authorized / rejected" } unless @disbursement.authorizing?
+
+    @disbursement.mark_rejected!(current_user)
+
+    flash[:success] = "Disbursement rejected"
 
     redirect_back_or_to disbursement_path(@disbursement)
   end
