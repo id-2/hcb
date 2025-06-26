@@ -141,8 +141,10 @@
             </div>
 
             <p>This transfer requires your authorization because <%= @hcb_code.disbursement.requested_by.name %> is a member. Authorize <%= render_money @hcb_code.disbursement.amount %> to <%= @hcb_code.disbursement.destination_event.name %>?</p>
-            <%= button_to "Authorize transfer", disbursement_manager_authorize_path(@hcb_code.disbursement), method: :post, class: "btn bg-success" %>
-            <%= button_to "Reject transfer", disbursement_manager_reject_path(@hcb_code.disbursement), method: :post, class: "btn bg-error" %>
+            <div class="flex items-center gap-2">
+              <%= button_to "Authorize", disbursement_manager_authorize_path(@hcb_code.disbursement), method: :post, class: "btn bg-success" %>
+              <%= button_to "Reject", disbursement_manager_reject_path(@hcb_code.disbursement), method: :post, class: "btn bg-error" %>
+            </div>
           </div>
         <% elsif is_requester %>
           <div>
