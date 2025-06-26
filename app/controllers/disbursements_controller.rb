@@ -165,9 +165,9 @@ class DisbursementsController < ApplicationController
     @disbursement = Disbursement.find(params[:disbursement_id])
     authorize @disbursement
 
-    return redirect_to disbursement_path(@disbursement), flash: { error: "Already approved" } if @disbursement.approved_by_manager || !@disbursement.reviewing?
+    return redirect_to disbursement_path(@disbursement), flash: { error: "Already approved" } if @disbursement.reviewing?
 
-    @disbursement.approve_by_manager(current_user)
+    @disbursement.authorize_by_manager(current_user)
 
     flash[:success] = "Disbursement approved by manager"
 

@@ -1,4 +1,4 @@
-class AddManagerApprovedByToDisbursements < ActiveRecord::Migration[7.2]
+class AddAuthorizedByToDisbursements < ActiveRecord::Migration[7.2]
   disable_ddl_transaction!
 
   def change

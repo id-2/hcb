@@ -604,7 +604,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_19_045020) do
     t.bigint "source_subledger_id"
     t.boolean "should_charge_fee", default: false
     t.date "scheduled_on"
-    t.jsonb "approved_by"
     t.bigint "authorized_by_id"
     t.index ["authorized_by_id"], name: "index_disbursements_on_authorized_by_id"
     t.index ["destination_subledger_id"], name: "index_disbursements_on_destination_subledger_id"

@@ -131,7 +131,7 @@
     <% is_manager = OrganizerPosition.role_at_least?(current_user, @hcb_code.disbursement.source_event, :manager) %>
     <% is_requester = current_user == @hcb_code.disbursement.requested_by %>
 
-    <% if @hcb_code.disbursement.needs_manager_review? && !@hcb_code.disbursement.approved_by_manager && (is_manager || is_requester) %>
+    <% if @hcb_code.disbursement.needs_manager_review? && !@hcb_code.disbursement.reviewing? && (is_manager || is_requester) %>
       <article class="border <%= is_manager ? "b--info" : "b--warning" %> card card--sunken--dark mb-4 flex flex-col gap-3 lg:flex-row justify-between items-center">
         <% if is_manager %>
           <div>

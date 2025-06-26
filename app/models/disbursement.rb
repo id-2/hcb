@@ -7,7 +7,6 @@
 #  id                       :bigint           not null, primary key
 #  aasm_state               :string
 #  amount                   :integer
-#  approved_by              :jsonb
 #  deposited_at             :datetime
 #  errored_at               :datetime
 #  in_transit_at            :datetime
@@ -52,8 +51,6 @@ class Disbursement < ApplicationRecord
   include Commentable
 
   include Freezable
-
-  store_accessor :approved_by, :manager, :hcb, prefix: true
 
   validate on: :create do
     if source_event.financially_frozen?
@@ -136,7 +133,8 @@ class Disbursement < ApplicationRecord
   tracked owner: proc{ |controller, record| controller&.current_user }, recipient: proc { |controller, record| record.destination_event }, event_id: proc { |controller, record| record.source_event.id }, only: [:create]
 
   aasm timestamps: true, whiny_persistence: true do
-    state :reviewing, initial: true # Being reviewed by an admin
+    state :authorizing, initial: true # Being reviewed by a manager
+    state :reviewing                # Being reviewed by an admin
     state :pending                  # Waiting to be processed by the TX engine
     state :scheduled                # Has been scheduled and will be sent!
     state :in_transit               # Transfer started on remote bank
@@ -144,15 +142,15 @@ class Disbursement < ApplicationRecord
     state :rejected                 # Rejected by admin
     state :errored                  # oh no! an error!
 
+    event :mark_authorized do
+      transitions from: :authorizing, to: :reviewing
+    end
+
     event :mark_approved do
       after do
         canonical_pending_transactions.update_all(fronted: true)
       end
-      transitions from: [:reviewing, :scheduled], to: :pending do
-        guard do
-          approved_by_hcb && (needs_manager_review? ? approved_by_manager : true)
-        end
-      end
+      transitions from: [:reviewing, :scheduled], to: :pending
     end
 
     event :mark_in_transit do
@@ -185,9 +183,7 @@ class Disbursement < ApplicationRecord
   end
 
   def approve_by_admin(user)
-    update(approved_by_hcb: true, fulfilled_by: user)
-
-    return unless may_mark_approved? # In case admin approves before manager
+    update(fulfilled_by: user)
 
     if scheduled_on.present?
       mark_scheduled!
@@ -197,16 +193,10 @@ class Disbursement < ApplicationRecord
 
   end
 
-  def approve_by_manager(user)
-    update(approved_by_manager: true, authorized_by: user)
+  def authorize_by_manager(user)
+    update(authorized_by: user)
 
-    return unless may_mark_approved? # In case admin approves before manager
-
-    if scheduled_on.present?
-      mark_scheduled!
-    else
-      mark_approved!
-    end
+    mark_authorized!
   end
 
   def pending_expired?
@@ -317,7 +307,9 @@ class Disbursement < ApplicationRecord
     elsif errored?
       "errored"
     elsif reviewing?
-      approved_by_manager || !needs_manager_review? ? "pending" : "awaiting manager review"
+      "pending"
+    elsif authorizing?
+      "awaiting manager review"
     else
       "pending"
     end
