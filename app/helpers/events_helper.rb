@@ -126,10 +126,8 @@ module EventsHelper
       when "amount_range"
         less_than = params["#{base}_less_than"]
         greater_than = params["#{base}_greater_than"]
-        if less_than.present? && greater_than.present?
-          if greater_than.to_f > less_than.to_f
-            flash[:error] = "Invalid amount range: minimum is greater than maximum"
-          end
+        if less_than.present? && greater_than.present? && (greater_than.to_f > less_than.to_f)
+          flash[:error] = "Invalid amount range: minimum is greater than maximum"
         end
       end
     end
