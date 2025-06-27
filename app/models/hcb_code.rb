@@ -102,6 +102,7 @@ class HcbCode < ApplicationRecord
     return :donation if donation?
     return :ach if ach_transfer?
     return :check if check? || increase_check?
+    return :card_grant if card_grant?
     return :disbursement if disbursement?
     return :card_charge if stripe_card?
     return :bank_fee if bank_fee?
@@ -114,7 +115,8 @@ class HcbCode < ApplicationRecord
 
   def humanized_type
     return "ACH" if ach_transfer?
-    return "Bank Fee" if bank_fee?
+    return "Bank fee" if bank_fee?
+    return "Card grant" if card_grant?
     return "Transfer" if disbursement?
 
     t = type || :transaction
@@ -138,7 +140,7 @@ class HcbCode < ApplicationRecord
     if canonical_transactions.any?
       return canonical_transactions
              .includes(:canonical_event_mapping)
-             .where(canonical_event_mapping: { event_id: event.id })
+             .where(canonical_event_mapping: { event_id: event.id, subledger_id: nil })
              .sum(:amount_cents)
     end
 
@@ -147,7 +149,7 @@ class HcbCode < ApplicationRecord
 
     canonical_pending_transactions
       .includes(:canonical_pending_event_mapping)
-      .where(canonical_pending_event_mapping: { event_id: event.id })
+      .where(canonical_pending_event_mapping: { event_id: event.id, subledger_id: nil })
       .sum(:amount_cents)
   end
 
@@ -195,15 +197,15 @@ class HcbCode < ApplicationRecord
       end
   end
 
-  def pretty_title(show_event_name: true, show_amount: false, event_name: event.name, amount_cents: self.amount_cents)
-    event_preposition = [:unknown, :invoice, :ach, :check, :card_charge, :bank_fee].include?(type || :unknown) ? "in" : "to"
-    amount_preposition = [:transaction, :donation, :disbursement, :card_charge, :bank_fee].include?(type || :unknown) ? "of" : "for"
+  def pretty_title(show_event_name: true, show_amount: false, event: self.event)
+    event_preposition = [:unknown, :invoice, :ach, :check, :card_charge, :bank_fee, :card_grant].include?(type || :unknown) ? "in" : "to"
+    amount_preposition = [:transaction, :donation, :disbursement, :card_charge, :bank_fee, :card_grant].include?(type || :unknown) ? "of" : "for"
 
     amount_preposition = "refunded" if stripe_refund?
 
     title = [humanized_type]
-    title << amount_preposition << ApplicationController.helpers.render_money(stripe_card? ? amount_cents.abs : amount_cents) if show_amount
-    title << event_preposition << event_name if show_event_name && event_name
+    title << amount_preposition << ApplicationController.helpers.render_money(amount_cents_by_event(event).abs) if show_amount
+    title << event_preposition << event.name if show_event_name && event
 
     title.join(" ")
   end
@@ -354,6 +356,10 @@ class HcbCode < ApplicationRecord
 
   def disbursement
     @disbursement ||= Disbursement.find_by(id: hcb_i2) if disbursement?
+  end
+
+  def card_grant
+    @card_grant ||= CardGrant.find_by(disbursement_id: hcb_i2) if card_grant?
   end
 
   def bank_fee
