@@ -109,4 +109,30 @@ module EventsHelper
     end
   end
 
+  def validate_filter_options(filter_options, params)
+    filter_options.each do |opt|
+      k    = opt[:key].to_s
+      base = k.chomp("_*")
+
+      case opt[:type]
+      when "date_range"
+        before = params["#{base}_before"]
+        after = params["#{base}_after"]
+        if before.present? && after.present?
+          if Date.parse(after) > Date.parse(before)
+            flash[:error] = "Invalid date range: after date is greater than before date"
+          end
+        end
+      when "amount_range"
+        less_than = params["#{base}_less_than"]
+        greater_than = params["#{base}_greater_than"]
+        if less_than.present? && greater_than.present?
+          if greater_than.to_f > less_than.to_f
+            flash[:error] = "Invalid amount range: minimum is greater than maximum"
+          end
+        end
+      end
+    end
+  end
+
 end

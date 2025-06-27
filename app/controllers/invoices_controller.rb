@@ -101,6 +101,7 @@ class InvoicesController < ApplicationController
       { key: "created_*", label: "Date", type: "date_range" },
       { key: "amount_*", label: "Amount", type: "amount_range" },
     ]
+    helpers.validate_filter_options(@filter_options, params)
     @has_filter = helpers.check_filters?(@filter_options, params)
   end
 
