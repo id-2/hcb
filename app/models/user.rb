@@ -165,6 +165,8 @@ class User < ApplicationRecord
 
   validates :preferred_name, length: { maximum: 30 }
 
+  validates(:session_duration_seconds, presence: true, inclusion: { in: SessionsHelper::SESSION_DURATION_OPTIONS.values })
+
   validate :profile_picture_format
 
   validate on: :update do
@@ -183,6 +185,12 @@ class User < ApplicationRecord
     slug "url" do |slug| "https://hcb.hackclub.com/users/#{slug}/admin" end
     email
     transactions_missing_receipt_count "Missing Receipts"
+  end
+
+  SYSTEM_USER_EMAIL = "bank@hackclub.com"
+
+  def self.system_user
+    User.find_by!(email: SYSTEM_USER_EMAIL)
   end
 
   after_save do
