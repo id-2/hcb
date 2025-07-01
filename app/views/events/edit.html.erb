@@ -21,8 +21,10 @@
           <%= link_to "Reimbursements", edit_event_path(@event, tab: "reimbursements"), data: { turbo: true, turbo_action: "advance" } %>
         <% end %>
       <% end %>
-      <%= settings_tab active: @settings_tab == "card_grants" do %>
-        <%= link_to "Card grants", edit_event_path(@event, tab: "card_grants"), data: { turbo: true, turbo_action: "advance" } %>
+      <% if @event.plan.card_grants_enabled? %>
+        <%= settings_tab active: @settings_tab == "card_grants" do %>
+          <%= link_to "Card grants", edit_event_path(@event, tab: "card_grants"), data: { turbo: true, turbo_action: "advance" } %>
+        <% end %>
       <% end %>
     <% end %>
     <% if Flipper.enabled?(:transaction_tags_2022_07_29, @event) %>
