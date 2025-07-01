@@ -367,6 +367,8 @@ class Event < ApplicationRecord
 
   after_update :generate_stripe_card_designs, if: -> { attachment_changes["stripe_card_logo"].present? && stripe_card_logo.attached? && !Rails.env.test? }
 
+  after_update :create_card_grant_setting
+
   comma do
     id
     name
@@ -796,6 +798,10 @@ class Event < ApplicationRecord
     unless eligible_for_indexing?
       self.is_indexable = false
     end
+  end
+
+  def create_card_grant_setting
+    CardGrantSetting.find_or_create_by!(event_id:)
   end
 
 end
