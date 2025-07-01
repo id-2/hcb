@@ -143,6 +143,9 @@ class Disbursement < ApplicationRecord
     state :errored                  # oh no! an error!
 
     event :mark_authorized do
+      after do
+        ::DisbursementService::CreateCanonicalPendingTransactions.new(disbursement: self, fronted: source_event.plan.front_disbursements_enabled?).run
+      end
       transitions from: :authorizing, to: :reviewing
     end
 
@@ -173,7 +176,7 @@ class Disbursement < ApplicationRecord
         canonical_pending_transactions.each { |cpt| cpt.decline! }
         create_activity(key: "disbursement.rejected", owner: fulfilled_by)
       end
-      transitions from: [:scheduled, :reviewing, :pending], to: :rejected
+      transitions from: [:scheduled, :authorizing, :reviewing, :pending], to: :rejected
     end
 
     event :mark_scheduled do
@@ -352,11 +355,6 @@ class Disbursement < ApplicationRecord
   def fee_waived?
     !should_charge_fee?
   end
-
-  def needs_manager_review?
-    source_event.organizer_positions.find_by(user: requested_by)&.member?
-  end
-
 
   private
 

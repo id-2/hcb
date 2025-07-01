@@ -81,6 +81,8 @@ class DisbursementsController < ApplicationController
                               disbursement_params["scheduled_on(3i)"].to_i)
     end
 
+    needs_manager_authorization = !OrganizerPosition.role_at_least?(current_user, @source_event, :manager)
+
     disbursement = DisbursementService::Create.new(
       name: disbursement_params[:name],
       destination_event_id: @destination_event.id,
@@ -89,7 +91,8 @@ class DisbursementsController < ApplicationController
       scheduled_on:,
       requested_by_id: current_user.id,
       should_charge_fee: disbursement_params[:should_charge_fee] == "1",
-      fronted: @source_event.plan.front_disbursements_enabled? && OrganizerPosition.role_at_least?(current_user, @source_event, :manager)
+      fronted: !needs_manager_authorization && @source_event.plan.front_disbursements_enabled?,
+      create_cpts: !needs_manager_authorization
     ).run
 
     if disbursement_params[:file]
@@ -108,8 +111,6 @@ class DisbursementsController < ApplicationController
     else
       redirect_to disbursement
     end
-
-    byebug
 
   rescue ArgumentError, ActiveRecord::RecordInvalid => e
     flash[:error] = e.message

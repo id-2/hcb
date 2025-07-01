@@ -35,7 +35,7 @@
       <td style="text-align: right;">Requested by:</td>
       <td><%= user_mention @disbursement.requested_by %></td>
     </tr>
-    <% if @disbursement.needs_manager_review? %>
+    <% if @disbursement.authorized_by.present? || @disbursement.authorizing? %>
       <tr>
         <td style="text-align: right;">Authorized by:</td>
         <% if @disbursement.authorized_by.present? %>
