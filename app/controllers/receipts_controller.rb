@@ -15,8 +15,6 @@ class ReceiptsController < ApplicationController
 
     success = @receipt.destroy
 
-    @destroyed = success
-
     respond_to do |format|
       format.turbo_stream { render turbo_stream: generate_streams }
       format.html         {
