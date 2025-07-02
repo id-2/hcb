@@ -698,7 +698,6 @@ Rails.application.routes.draw do
     post "remove_logo"
 
     get "team"
-    get "announcements"
     get "google_workspace", to: "events#g_suite_overview", as: :g_suite_overview
     post "g_suite_create"
     put "g_suite_verify"
@@ -706,6 +705,9 @@ Rails.application.routes.draw do
     get "cards", to: "events#card_overview", as: :cards_overview
     get "cards/new", to: "stripe_cards#new"
     get "stripe_cards/shipping", to: "stripe_cards#shipping", as: :stripe_cards_shipping
+
+    get "announcements"
+    get "announcements/new", to: "events#new_announcement"
 
     get "transfers/new", to: "events#new_transfer"
 
