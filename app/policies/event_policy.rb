@@ -84,14 +84,6 @@ class EventPolicy < ApplicationPolicy
     is_public || auditor_or_reader?
   end
 
-  def new_announcement?
-    admin_or_manager? && !record.demo_mode?
-  end
-
-  def create_announcement?
-    admin_or_manager? && !record.demo_mode?
-  end
-
   def emburse_card_overview?
     is_public || auditor_or_reader?
   end

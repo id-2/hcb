@@ -289,6 +289,8 @@ class Event < ApplicationRecord
   has_many :canonical_event_mappings, -> { on_main_ledger }
   has_many :canonical_transactions, through: :canonical_event_mappings
 
+  has_many :announcements
+
   scope :engaged, -> {
     Event.where(id: Event.joins(:canonical_transactions)
         .where("canonical_transactions.date >= ?", 6.months.ago)

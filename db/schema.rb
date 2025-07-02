@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -65,6 +63,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_02_194316) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["message_id", "message_checksum"], name: "index_action_mailbox_inbound_emails_uniqueness", unique: true
+  end
+
+  create_table "action_text_rich_texts", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "body"
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
   end
 
   create_table "active_storage_attachments", force: :cascade do |t|
@@ -191,7 +199,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_02_194316) do
   create_table "announcements", force: :cascade do |t|
     t.string "title"
     t.bigint "user_id"
-    t.text "content"
+    t.bigint "event_id"
     t.boolean "draft"
     t.boolean "published_at"
     t.datetime "deleted_at", precision: nil

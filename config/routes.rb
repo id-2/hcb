@@ -706,8 +706,7 @@ Rails.application.routes.draw do
     get "cards/new", to: "stripe_cards#new"
     get "stripe_cards/shipping", to: "stripe_cards#shipping", as: :stripe_cards_shipping
 
-    get "announcements"
-    get "announcements/new", to: "events#new_announcement"
+    resources :announcements
 
     get "transfers/new", to: "events#new_transfer"
 

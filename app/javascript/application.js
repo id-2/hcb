@@ -50,3 +50,7 @@ LocalTime.start()
 import '@github/text-expander-element'
 import '@oddbird/popover-polyfill'
 import 'emoji-picker-element'
+import 'trix'
+
+import "trix"
+import "@rails/actiontext"

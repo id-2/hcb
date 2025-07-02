@@ -5,13 +5,13 @@
 # Table name: announcements
 #
 #  id           :bigint           not null, primary key
-#  content      :text
 #  deleted_at   :datetime
 #  draft        :boolean
 #  published_at :boolean
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
+#  event_id     :bigint
 #  user_id      :bigint
 #
 class Announcement < ApplicationRecord
@@ -19,5 +19,8 @@ class Announcement < ApplicationRecord
   acts_as_paranoid
 
   belongs_to :user
+  belongs_to :event
+
+  has_rich_text :content
 
 end
