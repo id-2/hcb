@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_30_174849) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_02_175704) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -186,6 +186,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_30_174849) do
     t.datetime "started_at", precision: nil
     t.index ["user_id"], name: "index_ahoy_visits_on_user_id"
     t.index ["visit_token"], name: "index_ahoy_visits_on_visit_token", unique: true
+  end
+
+  create_table "announcements", force: :cascade do |t|
+    t.string "title"
+    t.bigint "user_id"
+    t.text "content"
+    t.boolean "draft"
+    t.boolean "published_at"
+    t.datetime "deleted_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "api_tokens", force: :cascade do |t|
