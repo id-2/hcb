@@ -288,6 +288,10 @@ class EventsController < ApplicationController
     @pending = @event.organizer_position_invites.pending.includes(:sender)
   end
 
+  def announcements
+    authorize @event
+  end
+
   # GET /events/1/edit
   def edit
     @settings_tab = params[:tab]

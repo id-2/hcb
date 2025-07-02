@@ -698,6 +698,7 @@ Rails.application.routes.draw do
     post "remove_logo"
 
     get "team"
+    get "announcements"
     get "google_workspace", to: "events#g_suite_overview", as: :g_suite_overview
     post "g_suite_create"
     put "g_suite_verify"
