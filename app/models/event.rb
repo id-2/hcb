@@ -238,6 +238,9 @@ class Event < ApplicationRecord
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
 
+  has_many :event_follows
+  has_many :followers, through: :event_follows, source: :user
+
   has_many :fee_relationships
   has_many :transactions, through: :fee_relationships, source: :t_transaction
 

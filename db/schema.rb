@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_02_175704) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_02_194316) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -864,6 +864,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_02_175704) do
     t.boolean "cover_donation_fees", default: false
     t.string "contact_email"
     t.index ["event_id"], name: "index_event_configurations_on_event_id"
+  end
+
+  create_table "event_follows", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "event_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_event_follows_on_event_id"
+    t.index ["user_id", "event_id"], name: "index_event_follows_on_user_id_and_event_id", unique: true
+    t.index ["user_id"], name: "index_event_follows_on_user_id"
   end
 
   create_table "event_plans", force: :cascade do |t|
@@ -2324,6 +2334,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_02_175704) do
   add_foreign_key "employee_payments", "employees"
   add_foreign_key "employees", "events"
   add_foreign_key "event_configurations", "events"
+  add_foreign_key "event_follows", "events"
+  add_foreign_key "event_follows", "users"
   add_foreign_key "event_plans", "events"
   add_foreign_key "events", "users", column: "point_of_contact_id"
   add_foreign_key "exports", "users", column: "requested_by_id"
