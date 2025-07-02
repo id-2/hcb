@@ -14,12 +14,12 @@ export default class extends Controller {
   }
 
   saveWithDebounce(event) {
-    clearTimeout(this.saveTimeout);
+    clearTimeout(this.saveTimeout)
     this.saveTimeout = setTimeout(() => {
-      const form = event.target.closest('form');
+      const form = event.target.closest('form')
       if (form) {
-        form.requestSubmit();
+        form.requestSubmit()
       }
-    }, 250);
+    }, 250)
   }
 }

@@ -24,7 +24,7 @@
       <% end %>
     </div>
   </div>
-  <% if @event.donation_tiers_enabled  %>
+  <% if @event.donation_tiers_enabled %>
     <div data-donation-tier-form-target="content">
       <div class="field mt-5">
         <%= form_with(url: event_donation_tiers_path(event), local: true, method: :patch) do |form| %>
@@ -54,7 +54,7 @@
                              value="1"
                              data-donation-tier-form-target="field"
                              <%= "checked" if tier.published? %>
-                             data-donation-tier-form-target="field" />
+                             data-donation-tier-form-target="field">
                       <span>Show on donation page?</span>
                     </label>
                   </div>
@@ -75,9 +75,8 @@
             <% end %>
             <button
               <%= "disabled" if event.donation_tiers.length >= 10 %>
-              type="submit" 
-              class="btn gap-4 pr-2 <%= "w-full !transform-none" if event.donation_tiers.empty? %>"
-            >
+              type="submit"
+              class="btn gap-4 pr-2 <%= "w-full !transform-none" if event.donation_tiers.empty? %>">
               Create tier
               <%= inline_icon "plus" %>
             </button>

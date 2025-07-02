@@ -44,5 +44,7 @@ class Donation
         errors.add(:base, "Limit of 10 donation tiers per event exceeded")
       end
     end
+
   end
+
 end
