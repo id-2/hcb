@@ -1,14 +1,16 @@
-import { Controller } from '@hotwired/stimulus';
+import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
-  static targets = ["field", "checkbox", "loader"];
+  static targets = ['field', 'checkbox', 'loader']
 
   connect() {
-    this.fieldTargets.forEach((field) => {
-      field.addEventListener('change', this.saveWithDebounce.bind(this));
-    });
+    this.fieldTargets.forEach(field => {
+      field.addEventListener('change', this.saveWithDebounce.bind(this))
+    })
 
-    this.checkboxTarget.addEventListener('change', () => this.loaderTarget.classList.remove('hidden'));
+    this.checkboxTarget.addEventListener('change', () =>
+      this.loaderTarget.classList.remove('hidden')
+    )
   }
 
   saveWithDebounce(event) {
@@ -18,6 +20,6 @@ export default class extends Controller {
       if (form) {
         form.requestSubmit();
       }
-    }, 500);
+    }, 250);
   }
 }

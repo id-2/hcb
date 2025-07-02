@@ -59,7 +59,6 @@ class DonationsController < ApplicationController
       redirect_to start_donation_donations_path(@event), flash: { error: "Donation tier could not be found." }
     end
 
-
     @donation = Donation.new(
       name: params[:name] || (organizer_signed_in? ? nil : current_user&.name),
       email: params[:email] || (organizer_signed_in? ? nil : current_user&.email),

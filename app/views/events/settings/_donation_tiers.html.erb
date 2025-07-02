@@ -47,6 +47,17 @@
                     </div>
                   </div>
                   <%= form.text_area "tiers[#{tier.id}][description]", value: tier.description, class: "w-100 max-w-full mt-1", placeholder: "Description", data: { "donation-tier-form-target": "field" } %>
+                  <div>
+                    <label class="inline-flex items-center gap-2 mt-2">
+                      <input type="checkbox"
+                             name="tiers[<%= tier.id %>][published]"
+                             value="1"
+                             data-donation-tier-form-target="field"
+                             <%= "checked" if tier.published? %>
+                             data-donation-tier-form-target="field" />
+                      <span>Show on donation page?</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div class="flex flex-col gap-1">
@@ -62,7 +73,11 @@
             <% unless event.donation_tiers.empty? %>
               <span class="muted block text-sm flex-1">Changes will be saved automatically</span>
             <% end %>
-            <button type="submit" class="btn gap-4 pr-2 <%= "w-full !transform-none" if event.donation_tiers.empty? %>">
+            <button
+              <%= "disabled" if event.donation_tiers.length >= 10 %>
+              type="submit" 
+              class="btn gap-4 pr-2 <%= "w-full !transform-none" if event.donation_tiers.empty? %>"
+            >
               Create tier
               <%= inline_icon "plus" %>
             </button>
