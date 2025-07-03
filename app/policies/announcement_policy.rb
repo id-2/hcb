@@ -25,6 +25,10 @@ class AnnouncementPolicy < ApplicationPolicy
     admin? || record.user == user
   end
 
+  def destroy?
+    admin? || record.user == user
+  end
+
   private
 
   def admin?

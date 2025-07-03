@@ -5,6 +5,8 @@ class AnnouncementsController < ApplicationController
 
   def index
     authorize @announcement
+
+    @announcements = Announcement.where(event: @event)
   end
 
   def new
@@ -47,6 +49,16 @@ class AnnouncementsController < ApplicationController
     if params[:announcement][:autosave] != "true"
       redirect_to event_announcement_path(@event, @announcement)
     end
+  end
+
+  def destroy
+    authorize @announcement
+
+    @announcement.destroy!
+
+    flash[:success] = "Deleted announcement"
+
+    redirect_to event_announcements_path(@event)
   end
 
   private
