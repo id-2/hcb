@@ -5,6 +5,7 @@
 # Table name: announcements
 #
 #  id           :bigint           not null, primary key
+#  content      :text
 #  deleted_at   :datetime
 #  draft        :boolean
 #  published_at :boolean

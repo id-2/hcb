@@ -1,8 +1,22 @@
-<%= form_with model: @announcement, url: event_announcements_path(@event) do |form| %>
+<%= form_with model: @announcement, url: event_announcements_path(@event), data: { controller: "tiptap", "tiptap-target": "form" } do |form| %>
   <div class="field">
     <%= form.label :title %>
-    <%= form.text_field :title %>
+    <%= form.text_field :title, placeholder: "#{@event.name}' June Update" %>
   </div>
 
-  <%= form.submit "Create" %>
+  <div class="field">
+    <%= form.label :content %>
+    <%= form.hidden_field :content, data: { "tiptap-target": "contentInput" } %>
+    <div>
+      <div class="flex gap-2 card p-2 rounded-b-none border-b-dark border-b-2 border-solid border-0">
+        <%= render partial: "announcements/format_menu" %>
+      </div>
+      <div data-tiptap-target="editor" class="bg-darkless p-2 rounded-md rounded-t-none"></div>
+    </div>
+    <div data-tiptap-target="bubbleMenu" class="flex gap-2 card p-2 hidden">
+      <%= render partial: "announcements/format_menu" %>
+    </div>
+  </div>
+
+  <button data-action="tiptap#submit" class="btn">Create</button>
 <% end %>
