@@ -239,7 +239,7 @@ class Event < ApplicationRecord
   has_many :g_suites
   has_many :g_suite_accounts, through: :g_suites
 
-  has_many :event_follows
+  has_many :event_follows, class_name: "Event::Follow"
   has_many :followers, through: :event_follows, source: :user
 
   has_many :fee_relationships

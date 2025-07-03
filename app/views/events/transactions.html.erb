@@ -39,6 +39,20 @@
 
 <h1 class="flex items-center">
   <span class="flex-grow">Transactions</span>
+  <% if @event.is_public %>
+    <% if !@event_follow.present? %>
+      <%= button_to event_follows_path(@event), method: :post, class: "btn bg-blue flex items-center" do %>
+        <%= inline_icon "event-check" %>
+        Follow
+      <% end %>
+    <% else %>
+      <%= button_to event_follow_path(id: @event_follow.id), method: :delete, class: "btn bg-blue flex items-center" do %>
+        <%= inline_icon "reply" %>
+        Unfollow
+      <% end %>
+    <% end %>
+  <% end %>
+
   <% admin_tool("p0 badge", "span") do %>
     <span class="m0 badge bg-muted">
       #<%= @event.id %>

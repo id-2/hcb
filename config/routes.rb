@@ -716,6 +716,8 @@ Rails.application.routes.draw do
 
     resources :announcements
 
+    resources :follows, only: [:create, :destroy], controller: "event/follows"
+
     get "transfers/new", to: "events#new_transfer"
 
     get "async_balance"
