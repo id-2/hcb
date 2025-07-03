@@ -214,16 +214,16 @@ class EventPolicy < ApplicationPolicy
     user&.auditor?
   end
 
-  def member?
-    OrganizerPosition.role_at_least?(user, record, :member)
-  end
-
   def reader?
     OrganizerPosition.role_at_least?(user, record, :reader)
   end
 
+  def member?
+    OrganizerPosition.role_at_least?(user, record, :member)
+  end
+
   def manager?
-    OrganizerPosition.find_by(user:, event: record)&.manager?
+    OrganizerPosition.role_at_least?(user, record, :manager)
   end
 
   def admin_or_manager?
