@@ -11,7 +11,7 @@ class Event
       follow = Event::Follow.new(attrs)
       if authorize follow
         Event::Follow.create(attrs)
-        redirect_to event_path(@event)
+        redirect_to event_announcements_path(@event)
       else
         flash[:error] = "You aren't allowed to follow this event."
       end
