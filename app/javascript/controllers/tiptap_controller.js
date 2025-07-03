@@ -34,7 +34,10 @@ export default class extends Controller {
       content: this.hasContentValue ? JSON.parse(this.contentValue) : null,
       editable: this.hasEditableValue,
       onUpdate: () => {
-        this.autosave = true
+        if (this.hasFormTarget && this.hasContentValue) {
+          this.autosave = true
+        }
+
         this.submit()
       }
     });
