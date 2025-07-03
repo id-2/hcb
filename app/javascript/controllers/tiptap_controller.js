@@ -36,9 +36,8 @@ export default class extends Controller {
       onUpdate: () => {
         if (this.hasFormTarget && this.hasContentValue) {
           this.autosave = true
+          this.submit()
         }
-
-        this.submit()
       }
     });
 
