@@ -6,13 +6,13 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 
 export default class extends Controller {
-  static targets = ['editor', 'bubbleMenu', 'form', 'contentInput']
+  static targets = ['editor', 'bubbleMenu', 'form', 'contentInput', 'autosaveInput']
   static values = { content: String, editable: Boolean }
 
   editor = null
+  autosave = true
 
-  connect() {
-    console.log(this.contentValue)
+  connect() {    
     this.editor = new Editor({
       element: this.editorTarget,
       extensions: [StarterKit.configure({
@@ -32,8 +32,13 @@ export default class extends Controller {
         }
       },
       content: this.hasContentValue ? JSON.parse(this.contentValue) : null,
-      editable: this.hasEditableValue
+      editable: this.hasEditableValue,
+      onUpdate: () => {
+        this.autosave = true
+        this.submit()
+      }
     });
+
     if (this.hasBubbleMenuTarget) {
       this.bubbleMenuTarget.classList.remove("hidden")
     }
@@ -56,6 +61,8 @@ export default class extends Controller {
   }
 
   submit() {
+    this.autosaveInputTarget.value = this.autosave ? "true" : "false"
+    this.autosave = false
     this.contentInputTarget.value = JSON.stringify(this.editor.getJSON());
     this.formTarget.requestSubmit();
   }

@@ -44,7 +44,9 @@ class AnnouncementsController < ApplicationController
 
     flash[:success] = "Updated announcement"
 
-    redirect_to event_announcement_path(@event, @announcement)
+    if params[:announcement][:autosave] != "true"
+      redirect_to event_announcement_path(@event, @announcement)
+    end
   end
 
   private

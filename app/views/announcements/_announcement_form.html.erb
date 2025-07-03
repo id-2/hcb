@@ -20,13 +20,22 @@
     </div>
   </div>
 
-  <%= dropdown_button form:,
-                      options: [
-                        ["Send now", false, "Send this post instantly."],
-                        ["Create draft", true, "Save as a draft to send later."]
-                      ],
-                      button_icon: "send",
-                      name: "draft",
-                      button_options: { data: { action: "tiptap#submit" }, type: "button" },
-                      template: ->(value) { value ? "Create draft" : "Send now" } %>
+  <%= form.hidden_field :autosave, data: { "tiptap-target": "autosaveInput" } %>
+
+  <% if content.present? %>
+    <div>
+      <button class="btn bg-success" type="button" data-action="tiptap#submit">Save</button>
+      <p class="italic text-muted">Your changes automatically save</p>
+    </div>
+  <% else %>
+    <%= dropdown_button form:,
+      options: [
+        ["Send now", false, "Send this post instantly."],
+        ["Create draft", true, "Save as a draft to send later."]
+      ],
+      button_icon: "send",
+      name: "draft",
+      button_options: { data: { action: "tiptap#submit" }, type: "button" },
+      template: ->(value) { value ? "Create draft" : "Send now" } %>
+  <% end %>
 <% end %>
