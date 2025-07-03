@@ -78,7 +78,7 @@ module EventsHelper
         selected: selected == :deposit_check,
       }
     end
-    if policy(@event).transfers? || policy(@event).reimbursements? || policy(@event).card_overview? || Flipper.enabled?(:grants_2023_06_21, @event)
+    if policy(@event).transfers? || policy(@event).reimbursements? || policy(@event).card_overview?
       items << { section: "Spend" }
     end
     if policy(event).card_overview?
@@ -123,15 +123,6 @@ module EventsHelper
 
     items << { section: "" }
 
-    if Flipper.enabled?(:grants_2023_06_21, event)
-      items << {
-        name: "Grants",
-        path: event_grants_path(event),
-        tooltip: "Send & manage grants",
-        icon: "idea",
-        selected: selected == :grants,
-      }
-    end
     items <<
       {
         name: "Team",

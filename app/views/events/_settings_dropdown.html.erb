@@ -28,6 +28,11 @@
                     data: { turbo: true, turbo_action: "advance" } %>
     <% end %>
   <% end %>
+  <%= dock_item "Tags",
+                  edit_event_path(@event, tab: "tags"),
+                  tooltip: "Manage your tags",
+                  selected: @settings_tab == "tags",
+                  data: { turbo: true, turbo_action: "advance" } %>
   <%= dock_item "Google Workspace",
                 event_g_suite_overview_path(event_id: @event.slug),
                 tooltip: "Manage your team",
@@ -35,7 +40,7 @@
                 data: { turbo: true, turbo_action: "advance" } %>
   <%= dock_item "Feature previews",
                 edit_event_path(@event, tab: "features"),
-                tooltip: "Manage your team",
+                tooltip: "Feature previews",
                 selected: @settings_tab == "features",
                 data: { turbo: true, turbo_action: "advance" } %>
   <%= dock_item "Audit log",
