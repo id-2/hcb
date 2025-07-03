@@ -17,6 +17,14 @@ class AnnouncementPolicy < ApplicationPolicy
     record.event.is_public || auditor_or_reader?
   end
 
+  def edit?
+    admin? || record.user == user
+  end
+
+  def update?
+    admin? || record.user == user
+  end
+
   private
 
   def admin?

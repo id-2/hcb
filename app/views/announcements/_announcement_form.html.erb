@@ -1,4 +1,6 @@
-<%= form_with model: @announcement, url: event_announcements_path(@event), data: { controller: "tiptap", "tiptap-target": "form" } do |form| %>
+<%# locals: (content: nil) %>
+
+<%= form_with model: @announcement, url: content.present? ? event_announcement_path(@event, @announcement) : event_announcements_path(@event), data: { controller: "tiptap", "tiptap-target": "form", "tiptap-content-value": content, "tiptap-editable-value": true, "turbo-frame": "_top" }.compact do |form| %>
   <div class="field">
     <%= form.label :title %>
     <%= form.text_field :title, placeholder: "#{@event.name}' June Update" %>

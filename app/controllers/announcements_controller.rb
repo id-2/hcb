@@ -31,10 +31,25 @@ class AnnouncementsController < ApplicationController
     authorize @announcement
   end
 
+  def edit
+    authorize @announcement
+
+    render "announcements/show", locals: { editing: true }
+  end
+
+  def update
+    authorize @announcement
+
+    @announcement.update!(params.require(:announcement).permit(:title, :content, :draft))
+
+    flash[:success] = "Updated announcement"
+
+    redirect_to event_announcement_path(@event, @announcement)
+  end
+
   private
 
   def set_announcement
-
     if params[:id].present?
       @announcement = Announcement.find(params[:id])
     else

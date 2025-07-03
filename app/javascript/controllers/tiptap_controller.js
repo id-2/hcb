@@ -7,7 +7,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 
 export default class extends Controller {
   static targets = ['editor', 'bubbleMenu', 'form', 'contentInput']
-  static values = { content: String }
+  static values = { content: String, editable: Boolean }
 
   editor = null
 
@@ -32,7 +32,7 @@ export default class extends Controller {
         }
       },
       content: this.hasContentValue ? JSON.parse(this.contentValue) : null,
-      editable: !this.hasContentValue
+      editable: this.hasEditableValue
     });
     if (this.hasBubbleMenuTarget) {
       this.bubbleMenuTarget.classList.remove("hidden")
