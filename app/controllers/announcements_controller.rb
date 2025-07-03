@@ -10,7 +10,7 @@ class AnnouncementsController < ApplicationController
   end
 
   def create
-    @announcement = @event.announcements.build(params.require(:announcement).permit(:title, :content).merge(user: current_user))
+    @announcement = @event.announcements.build(params.require(:announcement).permit(:title, :content, :draft).merge(user: current_user))
 
     authorize @announcement
 

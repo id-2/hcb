@@ -18,5 +18,13 @@
     </div>
   </div>
 
-  <button data-action="tiptap#submit" class="btn">Create</button>
+  <%= dropdown_button form:,
+                      options: [
+                        ["Send now", false, "Send this post instantly."],
+                        ["Create draft", true, "Save as a draft to send later."]
+                      ],
+                      button_icon: "send",
+                      name: "draft",
+                      button_container_options: { data: { action: "tiptap#submit" } },
+                      template: ->(value) { value ? "Create draft" : "Send now" } %>
 <% end %>

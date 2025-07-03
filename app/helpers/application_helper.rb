@@ -402,8 +402,8 @@ module ApplicationHelper
       end) +
       (content_tag :div, class: "dropdown-button__menu fade-card-hide", data: { "dropdown-button-target": "menu" } do
         content_tag :div do
-          (options[:options].map do |option|
-            (options[:form].radio_button options[:name], option[1], { data: { action: "change->dropdown-button#change", "dropdown-button-target": "select", "label": template.call(option[1]) } }) +
+          (options[:options].map.with_index do |option, index|
+            (options[:form].radio_button options[:name], option[1], { checked: index == 0, data: { action: "change->dropdown-button#change", "dropdown-button-target": "select", "label": template.call(option[1]) } }) +
             (options[:form].label options[:name], value: option[1] do
               (tag.strong option[0]) + (tag.p option[2])
             end)
