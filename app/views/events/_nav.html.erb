@@ -136,7 +136,7 @@
       selected: local_assigns[:selected] == :transactions %>
     <%= dock_item "Announcements",
       event_announcements_path(event_id: @event.slug),
-      tooltip: "View your organization's announcements",
+      tooltip: "View your announcements",
       icon: "post",
       selected: local_assigns[:selected] == :announcements if @event.is_public %>
     <% if policy(@event).donation_overview? || ( @event.approved? && @event.plan.invoices_enabled? ) || policy(@event).account_number? || policy(@event.check_deposits.build).index? %>
