@@ -25,6 +25,6 @@
                       ],
                       button_icon: "send",
                       name: "draft",
-                      button_container_options: { data: { action: "tiptap#submit" } },
+                      button_options: { data: { action: "tiptap#submit" }, type: "button" },
                       template: ->(value) { value ? "Create draft" : "Send now" } %>
 <% end %>

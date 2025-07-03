@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AnnouncementsController < ApplicationController
   before_action :set_announcement
 
@@ -32,8 +34,9 @@ class AnnouncementsController < ApplicationController
   private
 
   def set_announcement
-    if params[:announcement_id].present?
-      @announcement = Announcement.find(params[:announcement_id])
+
+    if params[:id].present?
+      @announcement = Announcement.find(params[:id])
     else
       @announcement = Announcement.new
     end

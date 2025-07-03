@@ -1,1 +1,9 @@
-<p>announcement</p>
+<% title @announcement.title %>
+<% page_md %>
+<%= render "events/nav" %>
+
+<h1><%= @announcement.title %></h1>
+
+<div data-controller="tiptap" data-tiptap-content-value="<%= @announcement.content %>">
+  <div data-tiptap-target="editor" class="bg-darkless p-2 rounded-md rounded-t-none"></div>
+</div>

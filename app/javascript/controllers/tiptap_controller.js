@@ -7,10 +7,12 @@ import Placeholder from '@tiptap/extension-placeholder'
 
 export default class extends Controller {
   static targets = ['editor', 'bubbleMenu', 'form', 'contentInput']
+  static values = { content: String }
 
   editor = null
 
   connect() {
+    console.log(this.contentValue)
     this.editor = new Editor({
       element: this.editorTarget,
       extensions: [StarterKit.configure({
@@ -19,18 +21,22 @@ export default class extends Controller {
             class: "my-0"
           }
         }
-      }), BubbleMenu.configure({
+      }), this.hasBubbleMenuTarget ? BubbleMenu.configure({
         element: this.bubbleMenuTarget,
-      }), Underline, Placeholder.configure({
+      }) : null, Underline, Placeholder.configure({
         placeholder: "Write a message to your followers..."
       })],
       editorProps: {
         attributes: {
           class: "outline-none",
         }
-      }
+      },
+      content: this.hasContentValue ? JSON.parse(this.contentValue) : null,
+      editable: !this.hasContentValue
     });
-    this.bubbleMenuTarget.classList.remove("hidden")
+    if (this.hasBubbleMenuTarget) {
+      this.bubbleMenuTarget.classList.remove("hidden")
+    }
   }
 
   disconnect() {
@@ -51,6 +57,6 @@ export default class extends Controller {
 
   submit() {
     this.contentInputTarget.value = JSON.stringify(this.editor.getJSON());
-    this.form.requestSubmit();
+    this.formTarget.requestSubmit();
   }
 }

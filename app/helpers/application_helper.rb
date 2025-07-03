@@ -392,7 +392,7 @@ module ApplicationHelper
   def dropdown_button(button_class: "bg-success", template: ->(value) { value }, **options)
     return content_tag :div, class: "relative w-fit #{options[:class]}", data: { controller: "dropdown-button", "dropdown-button-target": "container" } do
       (content_tag :div, class: "dropdown-button__container", **options[:button_container_options] do
-        (content_tag :button, class: "btn !transform-none rounded-l-xl rounded-r-none #{button_class}" do
+        (content_tag :button, class: "btn !transform-none rounded-l-xl rounded-r-none #{button_class}", **options[:button_options] do
           (inline_icon options[:button_icon]) +
           (content_tag :span, template.call(options[:options][0][1]), data: { "dropdown-button-target": "text", "template": template })
         end) +
