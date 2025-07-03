@@ -1119,7 +1119,6 @@ class EventsController < ApplicationController
 
   def set_event_follow
     @event_follow = Event::Follow.where({ user_id: current_user.id, event_id: @event.id }).first
-    puts "event_follow#{@event_follow}"
   end
 
 end
