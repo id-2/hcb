@@ -2,4 +2,10 @@
 <% page_md %>
 <%= render "users/nav", selected: :feed %>
 
-<h1 class="heading flex items-center">Feed</h1>
+<h1 class="heading flex items-center">
+  <span class="flex-grow">Feed</span>
+  <%= link_to nil, class: "btn bg-blue flex" do %>
+    <%= inline_icon "settings" %>
+    Manage
+  <% end %>
+</h1>
