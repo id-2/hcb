@@ -1510,7 +1510,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_02_221525) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["program", "user_id"], name: "index_raffles_on_program_and_user_id", unique: true
-    t.index ["user_id"], name: "index_raffles_on_user_id"
   end
 
   create_table "raw_column_transactions", force: :cascade do |t|
