@@ -6,7 +6,7 @@ class AnnouncementsController < ApplicationController
   def index
     authorize @announcement
 
-    @announcements = Announcement.where(event: @event)
+    @announcements = Announcement.where(event: @event).order(draft: :desc)
   end
 
   def new
