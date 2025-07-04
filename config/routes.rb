@@ -684,6 +684,8 @@ Rails.application.routes.draw do
 
   get "/search" => "search#index"
 
+  resources :follows, only: [:destroy], controller: "event/follows"
+
   get "/events" => "events#index"
   resources :events, except: [:new, :create, :edit], concerns: :commentable, path: "/" do
 
@@ -717,7 +719,7 @@ Rails.application.routes.draw do
 
     resources :announcements
 
-    resources :follows, only: [:create, :destroy], controller: "event/follows"
+    resources :follows, only: [:create], controller: "event/follows"
 
     get "transfers/new", to: "events#new_transfer"
 

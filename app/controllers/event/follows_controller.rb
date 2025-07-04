@@ -1,7 +1,7 @@
 class Event
   class FollowsController < ApplicationController
     include SetEvent
-    before_action :set_event
+    before_action :set_event, only: :create
 
     def create
       attrs = {
@@ -20,11 +20,13 @@ class Event
     def destroy
       @event_follow = Event::Follow.find(params[:id])
       if authorize @event_follow
+        slug = @event_follow.event.slug
         @event_follow.destroy
-        redirect_to event_path(@event)
+        redirect_to event_path(slug)
       else
         flash[:error] = "Failed to unfollow this event."
       end
+
     end
 
   end
