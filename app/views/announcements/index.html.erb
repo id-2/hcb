@@ -17,11 +17,11 @@
   <% @announcements.each do |announcement| %>
     <div class="card flex flex-col gap-2 <%= "border-warning border-solid" if announcement.draft %>" data-controller="tiptap" data-tiptap-content-value="<%= announcement.content %>">
       <div class="flex items-center justify-between">
-        <p class="font-bold text-xl my-0">
+        <p class="font-bold text-xl my-0 no-underline text-white">
           <% if announcement.draft %>
-            <span class="text-orange border-orange rounded-full border-solid border-[1px] text-sm p-[6px] mr-1">Draft</span>
+            <span class="text-orange border-orange rounded-full border-solid border-[1px] text-sm p-[6px] mr-1 no-underline">Draft</span>
           <% end %>
-          <%= announcement.title %>
+          <%= link_to announcement.title, event_announcement_path(@event, announcement) %>
         </p>
         <div class="flex gap-2">
           <%= pop_icon_to "edit", edit_event_announcement_path(@event, announcement), class: "tooltipped", "aria-label": "Edit announcement" %>
