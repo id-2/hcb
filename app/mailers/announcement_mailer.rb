@@ -5,8 +5,8 @@ class AnnouncementMailer < ApplicationMailer
     @announcement = params[:announcement]
     @event = @announcement.event
     @emails = @event.followers.map(&:email_address_with_name)
-    
-    mail to: @emails, subject: "#{@announcement.title} | #{@event.name}", from: hcb_email_with_name_of(@report.event)
+
+    mail to: @emails, subject: "#{@announcement.title} | #{@event.name}", from: hcb_email_with_name_of(@event)
   end
 
 end
