@@ -15,30 +15,7 @@
 
 <div class="flex flex-col gap-2">
   <% @announcements.each do |announcement| %>
-    <div class="card flex flex-col gap-2 <%= "border-warning border-solid" if announcement.draft %>" data-controller="tiptap" data-tiptap-content-value="<%= announcement.content %>">
-      <div class="flex items-center justify-between">
-        <p class="font-bold text-xl my-0 no-underline text-white">
-          <% if announcement.draft %>
-            <span class="text-orange border-orange rounded-full border-solid border-[1px] text-sm p-[6px] mr-1 no-underline">Draft</span>
-          <% end %>
-          <%= link_to announcement.title, event_announcement_path(@event, announcement) %>
-        </p>
-        <% if announcement.user == current_user %>
-          <div class="flex gap-2">
-            <% if announcement.draft %>
-              <%= pop_icon_to "send", publish_event_announcement_path(@event, announcement), data: { turbo_confirm: "Are you sure you would like to publish this announcement?", turbo_method: :post }, class: "tooltipped success", "aria-label": "Publish draft" %>
-            <% end %>
-            <%= pop_icon_to "edit", edit_event_announcement_path(@event, announcement), class: "tooltipped", "aria-label": "Edit announcement" %>
-            <%= pop_icon_to "delete", event_announcement_path(@event, announcement), data: { turbo_confirm: "Are you sure you would like to delete this announcement?", turbo_method: :delete }, class: "error tooltipped", "aria-label": "Delete announcement" %>
-          </div>
-        <% end %>
-      </div>
-      <p class="italic my-0">
-        <%= announcement.draft ? "Drafted" : "Published" %> by <%= user_mention announcement.author %> on <%= (announcement.draft ? announcement.created_at : announcement.published_at.presence || announcement.created_at).strftime("%B %e, %Y") %>
-      </p>
-      <hr class="my-1 dark:!border-slate border-smoke" />
-      <div data-tiptap-target="editor"></div>
-    </div>
+    <%= render partial: "announcement_card", locals: { event: @event, announcement: } %>
   <% end %>
 </div>
 
