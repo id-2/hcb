@@ -5,6 +5,10 @@ import StarterKit from '@tiptap/starter-kit'
 import BubbleMenu from '@tiptap/extension-bubble-menu'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
+import Link from '@tiptap/extension-link'
+import Code from '@tiptap/extension-code'
+import CodeBlock from '@tiptap/extension-code-block'
+import Image from '@tiptap/extension-image'
 
 export default class extends Controller {
   static targets = ['editor', 'bubbleMenu', 'form', 'contentInput', 'autosaveInput']
@@ -21,7 +25,7 @@ export default class extends Controller {
         element: this.bubbleMenuTarget,
       }) : null, Underline, Placeholder.configure({
         placeholder: "Write a message to your followers..."
-      })],
+      }), Link, Code, CodeBlock, Image],
       editorProps: {
         attributes: {
           class: "outline-none",
