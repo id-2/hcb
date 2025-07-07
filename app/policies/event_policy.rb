@@ -81,7 +81,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def announcements?
-    is_public || auditor_or_reader?
+    Flipper.enabled?(:organization_announcements_tier_1_2025_07_07, record)
   end
 
   def emburse_card_overview?
