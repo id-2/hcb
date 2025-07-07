@@ -15,7 +15,7 @@
 
 <div class="flex flex-col gap-2">
   <% @announcements.each do |announcement| %>
-    <%= render partial: "announcement_card", locals: { event: @event, announcement: } %>
+    <%= render partial: "announcement_card", locals: { announcement: } %>
   <% end %>
 </div>
 
