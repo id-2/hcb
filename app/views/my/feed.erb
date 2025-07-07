@@ -5,9 +5,11 @@
 
 <h1 class="heading flex items-center">
   <span class="flex-grow">Feed</span>
-  <%= link_to my_feed_path, class: "btn bg-blue flex", data: { behavior: "modal_trigger", modal: "edit_following" } do %>
-    <%= inline_icon "settings" %>
-    Manage
+  <% if @event_follows.any? %>
+    <%= link_to my_feed_path, class: "btn bg-blue flex", data: { behavior: "modal_trigger", modal: "edit_following" } do %>
+      <%= inline_icon "settings" %>
+      Manage
+    <% end %>
   <% end %>
 </h1>
 
