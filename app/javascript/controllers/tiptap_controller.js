@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { debounce } from 'lodash/function'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import BubbleMenu from '@tiptap/extension-bubble-menu'
@@ -10,9 +11,10 @@ export default class extends Controller {
   static values = { content: String }
 
   editor = null
-  autosave = true
 
-  connect() {    
+  connect() {   
+    const debouncedSubmit = debounce(this.submit.bind(this), 1000, { leading: true })
+
     this.editor = new Editor({
       element: this.editorTarget,
       extensions: [StarterKit, this.hasBubbleMenuTarget ? BubbleMenu.configure({
@@ -28,8 +30,7 @@ export default class extends Controller {
       content: this.hasContentValue ? JSON.parse(this.contentValue) : null,
       onUpdate: () => {
         if (this.hasContentValue) {
-          this.autosave = true
-          this.submit()
+          debouncedSubmit(true)
         }
       }
     });
@@ -55,9 +56,8 @@ export default class extends Controller {
     this.editor.chain().focus().toggleUnderline().run()
   }
 
-  submit() {
-    this.autosaveInputTarget.value = this.autosave ? "true" : "false"
-    this.autosave = false
+  submit(autosave) {
+    this.autosaveInputTarget.value = autosave ? "true" : "false"
     this.contentInputTarget.value = JSON.stringify(this.editor.getJSON());
     this.formTarget.requestSubmit();
   }
