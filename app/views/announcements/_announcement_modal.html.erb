@@ -2,7 +2,7 @@
   <%= turbo_frame_tag :create_announcement, target: "_top" do %>
     <%= modal_header "Create a new announcement" %>
 
-    <%= render "events/transfers/unauthorized_callout", locals: { action: "create announcements" } unless policy(@announcement).new? %>
+    <%= render partial: "events/unauthorized_callout", locals: { action: "create announcements" } unless policy(@announcement).new? %>
 
     <%= render "announcement_form" %>
   <% end %>
