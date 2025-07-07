@@ -28,17 +28,19 @@
       </div>
     </div>
 
-    <% if signed_in? %>
-      <a
-        href="https://changelog.hcb.hackclub.com"
-        target="_blank"
-        class="pop muted w-8 h-8 bg-transparent sm:-mr-2 tooltipped tooltipped--n"
-        aria-label="See what’s new with HCB"
-        style="box-shadow: none"
-        id="changelog-icon">
-        <%= inline_icon "rep", size: 32 %>
-      </a>
-    <% end %>
+    <div class="flex items-center gap-2">
+      <%= render "application/support_button" unless @no_app_shell %>
+      <% if signed_in? %>
+        <a
+          href="https://changelog.hcb.hackclub.com"
+          target="_blank"
+          class="pop muted w-8 h-8 bg-transparent mr-2 sm:-mr-2 tooltipped tooltipped--n"
+          aria-label="See what’s new with HCB"
+          id="changelog-icon">
+          <%= inline_icon "rep", size: 32 %>
+        </a>
+      <% end %>
+    </div>
   </div>
 
 </div>
