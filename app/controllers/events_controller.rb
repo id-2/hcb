@@ -1118,7 +1118,7 @@ class EventsController < ApplicationController
   end
 
   def set_event_follow
-    @event_follow = Event::Follow.where({ user_id: current_user.id, event_id: @event.id }).first
+    @event_follow = Event::Follow.where({ user_id: current_user.id, event_id: @event.id }).first if current_user
   end
 
 end

@@ -1,9 +1,15 @@
 class Event
   class FollowsController < ApplicationController
     include SetEvent
+    skip_before_action :signed_in_user, only: :create
     before_action :set_event, only: :create
 
     def create
+      if !signed_in?
+        skip_authorization
+        return redirect_to auth_users_path(return_to: event_url(@event), require_reload: true)
+      end
+
       attrs = {
         user_id: current_user.id,
         event: @event
