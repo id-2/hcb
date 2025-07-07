@@ -30,7 +30,7 @@
     <%= render partial: "announcement_form", locals: { content: @announcement.content } %>
   <% else %>
     <div data-controller="tiptap" data-tiptap-content-value="<%= @announcement.content %>">
-      <div data-tiptap-target="editor" class="bg-darkless p-2 rounded-md"></div>
+      <div data-tiptap-target="editor" class="dark:bg-darkless bg-white p-2 rounded-md"></div>
     </div>
   <% end %>
 <% end %>

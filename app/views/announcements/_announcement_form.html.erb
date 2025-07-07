@@ -10,10 +10,10 @@
     <%= form.label :content %>
     <%= form.hidden_field :content, data: { "tiptap-target": "contentInput" } %>
     <div>
-      <div class="flex gap-2 card p-2 rounded-b-none border-b-dark border-b-2 border-solid border-0">
+      <div class="flex gap-2 card p-2 rounded-b-none dark:border-b-dark border-b-snow border-b-2 border-solid border-0">
         <%= render partial: "announcements/format_menu" %>
       </div>
-      <div data-tiptap-target="editor" class="bg-darkless p-2 rounded-md rounded-t-none"></div>
+      <div data-tiptap-target="editor" class="dark:bg-darkless bg-white p-2 rounded-md rounded-t-none"></div>
     </div>
     <div data-tiptap-target="bubbleMenu" class="flex gap-2 card p-2 hidden">
       <%= render partial: "announcements/format_menu" %>
