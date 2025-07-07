@@ -49,9 +49,8 @@ class AnnouncementsController < ApplicationController
 
     @announcement.update!(params.require(:announcement).permit(:title, :content, :draft))
 
-    flash[:success] = "Updated announcement"
-
     if params[:announcement][:autosave] != "true"
+      flash[:success] = "Updated announcement"
       redirect_to event_announcement_path(@event, @announcement)
     end
   end
