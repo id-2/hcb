@@ -1,0 +1,52 @@
+<%== ap @referral_programs %>
+
+<ul>
+    <% @referral_programs.each do |program| %>
+        <li>
+            <div class="mb-3 flex flex-row items-center border p-4 gap-4 w-100">
+                <h5 class="m-0 p-0"><%= program.name %></h5>
+                <div class="flex flex-row gap-2 justify-between m-0">
+                    <span class="m-0"><%= pluralize(program.attributions.count, "attributions") %></span>
+                </div>
+
+                <div class="flex-grow"></div>
+
+                <%= form_with model: nil, local: true, url: referral_link_create_admin_index_path, class: "flex flex-row gap-3 items-center m-0" do |form| %>
+                    <label for="name" class="flex-shrink-0 m-0">Create referral link</label>
+                    <%= form.text_field :name, placeholder: "Link Name", required: true, class: "m-0" %>
+                    <%= form.hidden_field :referral_program_id, value: program.id %>
+                    <%= form.submit "Create", class: "btn bg-success m-0" %>
+                <% end %>
+            </div>
+
+            <ul>
+                <% program.links.each do |link| %>
+                    <li>
+                        <div class="flex flex-row items-center gap-2">
+                            <span><%= link.name %></span>
+                            <span class="m-0"><%= pluralize(0, "attributions") %></span>
+                            <span><%= link.hashid %></span>
+                            <% url = referral_link_url(link.hashid) %>
+                            <span><%= link_to(url, url) %></span>
+                            <span class="text-muted"><%= link.created_at.strftime("%Y-%m-%d") %></span>
+                        </div>
+                    </li>
+                <% end %>
+            </ul>
+        </li>
+    <% end %>
+</ul>
+
+<%= form_with model: nil, local: true, url: referral_program_create_admin_index_path, class: "flex flex-row gap-2" do |form| %>
+    <fieldset>
+        <legend>Create a referral program</legend>
+        <label for="name">Program name</label>
+        <%= form.text_field :name, placeholder: "Program Name", required: true, class: "w-100" %>
+        <p>
+            <%= form.check_box :show_explore_hack_club, { checked: false } %>
+            <%= form.label :show_explore_hack_club, "Show \"Explore Hack Club\"?" %>
+        </p>
+        <br>
+        <%= form.submit "Create", class: "btn bg-success" %>
+    </fieldset>
+<% end %>
