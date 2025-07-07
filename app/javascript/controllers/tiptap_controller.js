@@ -107,6 +107,10 @@ export default class extends Controller {
     this.editor.chain().focus().toggleOrderedList().run()
   }
 
+  blockquote() {
+    this.editor.chain().focus().toggleBlockquote().run()
+  }
+
   image() {
     const url = window.prompt('Image URL');
     
