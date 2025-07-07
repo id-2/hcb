@@ -24,6 +24,9 @@
           <%= link_to announcement.title, event_announcement_path(@event, announcement) %>
         </p>
         <div class="flex gap-2">
+          <% if announcement.draft %>
+            <%= pop_icon_to "send", publish_event_announcement_path(@event, announcement), data: { turbo_confirm: "Are you sure you would like to publish this announcement?", turbo_method: :post }, class: "tooltipped success", "aria-label": "Publish draft" %>
+          <% end %>
           <%= pop_icon_to "edit", edit_event_announcement_path(@event, announcement), class: "tooltipped", "aria-label": "Edit announcement" %>
           <%= pop_icon_to "delete", event_announcement_path(@event, announcement), data: { turbo_confirm: "Are you sure you would like to delete this announcement?", turbo_method: :delete }, class: "error tooltipped", "aria-label": "Delete announcement" %>
         </div>

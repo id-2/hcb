@@ -29,6 +29,10 @@ class AnnouncementPolicy < ApplicationPolicy
     admin? || record.user == user
   end
 
+  def publish?
+    admin? || record.user == user
+  end
+
   private
 
   def admin?

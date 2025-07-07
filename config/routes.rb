@@ -717,7 +717,11 @@ Rails.application.routes.draw do
     get "cards/new", to: "stripe_cards#new"
     get "stripe_cards/shipping", to: "stripe_cards#shipping", as: :stripe_cards_shipping
 
-    resources :announcements
+    resources :announcements do
+      member do
+        post "publish"
+      end
+    end
 
     resources :follows, only: [:create], controller: "event/follows"
 

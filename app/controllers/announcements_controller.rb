@@ -20,6 +20,10 @@ class AnnouncementsController < ApplicationController
 
     @announcement.save!
 
+    unless @announcement.draft
+      @announcement.publish
+    end
+
     flash[:success] = "Announcement successfully created!"
 
   rescue => e
@@ -59,6 +63,16 @@ class AnnouncementsController < ApplicationController
     flash[:success] = "Deleted announcement"
 
     redirect_to event_announcements_path(@event)
+  end
+
+  def publish
+    authorize @announcement
+
+    @announcement.publish
+
+    flash[:success] = "Published announcement"
+
+    redirect_to event_announcement_path(@event, @announcement)
   end
 
   private
