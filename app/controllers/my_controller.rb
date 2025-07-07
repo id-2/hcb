@@ -142,6 +142,8 @@ class MyController < ApplicationController
   end
 
   def feed
+    @event_follows = Event::Follow.where(user_id: current_user.id)
+    @announcements = Announcement.where(draft: false, event: @event_follows.map { |follow| follow.event })
   end
 
 end
