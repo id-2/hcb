@@ -1,7 +1,9 @@
 <%# locals: (announcement: nil, show_event: false) %>
 
 <div class="card flex flex-col gap-2 <%= "border-warning border-solid" if announcement.draft %>" data-controller="tiptap" data-tiptap-content-value="<%= announcement.content %>">
-  <%= link_to announcement.event.name,announcement.event %>
+  <% if show_event %>
+    <%= link_to announcement.event.name,announcement.event %>
+  <% end %>
   <div class="flex items-center justify-between">
     <p class="font-bold text-xl my-0 no-underline text-white">
       <% if announcement.draft %>
