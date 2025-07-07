@@ -17,7 +17,7 @@ class AnnouncementsController < ApplicationController
   end
 
   def create
-    @announcement = @event.announcements.build(params.require(:announcement).permit(:title, :content).merge(user: current_user, draft: true))
+    @announcement = @event.announcements.build(params.require(:announcement).permit(:title, :content, :draft).merge(user: current_user))
 
     authorize @announcement
 
@@ -27,7 +27,7 @@ class AnnouncementsController < ApplicationController
       @announcement.publish
     end
 
-    flash[:success] = "Announcement successfully created!"
+    flash[:success] = "Announcement successfully #{@announcement.draft ? "drafted" : "published"}!"
 
   rescue => e
     flash[:error] = "Something went wrong. #{e.message}"
