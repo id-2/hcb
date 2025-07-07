@@ -745,6 +745,10 @@ class Event < ApplicationRecord
     end
   end
 
+  def active_teenagers
+    organizer_positions.joins(:user).count { |op| op.user.teenager? && op.user.active? }
+  end
+
   private
 
   def point_of_contact_is_admin
@@ -768,7 +772,7 @@ class Event < ApplicationRecord
   end
 
   def contract_signed
-    return if organizer_position_contracts.signed.any? || organizer_position_contracts.none? || !plan.contract_required?
+    return if organizer_position_contracts.signed.any? || organizer_position_contracts.none? || !plan.contract_required? || Rails.env.development?
 
     errors.add(:base, "Missing a contract signee, non-demo mode organizations must have a contract signee.")
   end
