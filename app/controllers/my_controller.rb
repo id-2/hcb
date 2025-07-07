@@ -143,7 +143,8 @@ class MyController < ApplicationController
 
   def feed
     @event_follows = Event::Follow.where(user_id: current_user.id)
-    @announcements = Announcement.where(draft: false, event: @event_follows.map { |follow| follow.event })
+    @all_announcements = Announcement.where(draft: false, event: @event_follows.map { |follow| follow.event }).order(created_at: :desc, draft: :desc, published_at: :desc)
+    @announcements = Kaminari.paginate_array(@all_announcements).page(params[:page]).per(10)
   end
 
 end

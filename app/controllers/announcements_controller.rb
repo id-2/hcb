@@ -6,7 +6,8 @@ class AnnouncementsController < ApplicationController
   def index
     authorize @announcement
 
-    @announcements = Announcement.where(event: @event).order(draft: :desc)
+    @all_announcements = Announcement.where(event: @event).order(created_at: :desc, draft: :desc, published_at: :desc)
+    @announcements = Kaminari.paginate_array(@all_announcements).page(params[:page]).per(10)
   end
 
   def new

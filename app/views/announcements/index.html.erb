@@ -19,6 +19,8 @@
   <% end %>
 </div>
 
+<%= paginate @announcements %>
+
 <% if organizer_signed_in? %>
   <%= render "announcement_modal" %>
 <% end %>

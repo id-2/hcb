@@ -16,3 +16,5 @@
     <%= render partial: "announcements/announcement_card", locals: { announcement:, show_event: true } %>
   <% end %>
 </div>
+
+<%= paginate @announcements %>
