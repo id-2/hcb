@@ -6,8 +6,6 @@ import BubbleMenu from '@tiptap/extension-bubble-menu'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
-import Code from '@tiptap/extension-code'
-import CodeBlock from '@tiptap/extension-code-block'
 import Image from '@tiptap/extension-image'
 
 export default class extends Controller {
@@ -21,11 +19,15 @@ export default class extends Controller {
 
     this.editor = new Editor({
       element: this.editorTarget,
-      extensions: [StarterKit, this.hasBubbleMenuTarget ? BubbleMenu.configure({
+      extensions: [StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3]
+        }
+      }), this.hasBubbleMenuTarget ? BubbleMenu.configure({
         element: this.bubbleMenuTarget,
       }) : null, Underline, Placeholder.configure({
         placeholder: "Write a message to your followers..."
-      }), Link, Code, CodeBlock, Image],
+      }), Link, Image],
       editorProps: {
         attributes: {
           class: "outline-none",
@@ -48,6 +50,12 @@ export default class extends Controller {
     this.editor.destroy()
   }
 
+  submit(autosave) {
+    this.autosaveInputTarget.value = autosave ? "true" : "false"
+    this.contentInputTarget.value = JSON.stringify(this.editor.getJSON());
+    this.formTarget.requestSubmit();
+  }
+
   bold() {
     this.editor.chain().focus().toggleBold().run()
   }
@@ -60,9 +68,59 @@ export default class extends Controller {
     this.editor.chain().focus().toggleUnderline().run()
   }
 
-  submit(autosave) {
-    this.autosaveInputTarget.value = autosave ? "true" : "false"
-    this.contentInputTarget.value = JSON.stringify(this.editor.getJSON());
-    this.formTarget.requestSubmit();
+  h1() {
+    this.editor.chain().focus().toggleHeading({ level: 1 }).run()
+  }
+
+  h2() {
+    this.editor.chain().focus().toggleHeading({ level: 2 }).run()
+  }
+
+  h3() {
+    this.editor.chain().focus().toggleHeading({ level: 3 }).run()
+  }
+
+  strike() {
+    this.editor.chain().focus().toggleStrike().run()
+  }
+
+  link() {
+    const url = window.prompt('Link URL');
+    
+    if (url === null) {
+      return
+    }
+
+    if (url === '') {
+      this.editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    } else {
+      this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+    }
+  }
+
+  code() {
+    this.editor.chain().focus().toggleCode().run()
+  }
+
+  codeblock() {
+    this.editor.chain().focus().toggleCodeBlock().run()
+  }
+
+  bulletlist() {
+    this.editor.chain().focus().toggleBulletList().run()
+  }
+
+  orderedlist() {
+    this.editor.chain().focus().toggleOrderedList().run()
+  }
+
+  image() {
+    const url = window.prompt('Image URL');
+    
+    if (url === null || url === '') {
+      return
+    }
+
+    this.editor.chain().focus().setImage({ src: url }).run()
   }
 }
