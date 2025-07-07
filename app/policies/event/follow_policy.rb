@@ -3,7 +3,7 @@
 class Event
   class FollowPolicy < ApplicationPolicy
     def create?
-      user == record.user && record.event.is_public
+      user == record.user && Flipper.enabled?(:organization_announcements_tier_1_2025_07_07, record.event)
     end
 
     def destroy?

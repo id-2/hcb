@@ -1,4 +1,4 @@
-<% if @event.is_public %>
+<% if Flipper.enabled?(:organization_announcements_tier_1_2025_07_07, @event) %>
   <% if !@event_follow.present? %>
     <%= button_to event_follows_path(@event), method: :post, class: "btn bg-blue flex items-center" do %>
       <%= inline_icon "event-check" %>

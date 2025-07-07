@@ -8,6 +8,8 @@ class AnnouncementsController < ApplicationController
 
     @all_announcements = Announcement.where(event: @event).order(created_at: :desc, draft: :desc, published_at: :desc)
     @announcements = Kaminari.paginate_array(@all_announcements).page(params[:page]).per(10)
+
+    raise ActionController::RoutingError.new("Not Found") if !@event.is_public && @all_announcements.empty? && !organizer_signed_in?
   end
 
   def new

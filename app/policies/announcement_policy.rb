@@ -2,7 +2,7 @@
 
 class AnnouncementPolicy < ApplicationPolicy
   def index?
-    record.event.is_public || auditor_or_reader?
+    show?
   end
 
   def new?
@@ -14,7 +14,7 @@ class AnnouncementPolicy < ApplicationPolicy
   end
 
   def show?
-    record.event.is_public || auditor_or_reader?
+    Flipper.enabled?(:organization_announcements_tier_1_2025_07_07, record.event)
   end
 
   def edit?
