@@ -8,7 +8,7 @@
 #  content      :text
 #  deleted_at   :datetime
 #  draft        :boolean
-#  published_at :boolean
+#  published_at :datetime
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
@@ -29,5 +29,7 @@ class Announcement < ApplicationRecord
 
   belongs_to :user
   belongs_to :event
+
+  alias_method :author, :user
 
 end
