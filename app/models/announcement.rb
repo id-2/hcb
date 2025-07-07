@@ -33,7 +33,7 @@ class Announcement < ApplicationRecord
   alias_method :author, :user
 
   def publish
-    # send mailers
+    AnnouncementMailer.with(announcement: self).announcement_published.deliver_later
 
     self.draft = false
     self.published_at = Time.now
