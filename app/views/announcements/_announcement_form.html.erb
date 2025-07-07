@@ -30,14 +30,9 @@
       <% end %>
     </div>
   <% else %>
-    <%= dropdown_button form:,
-      options: [
-        ["Send now", false, "Send this post instantly."],
-        ["Create draft", true, "Save as a draft to send later."]
-      ],
-      button_icon: "send",
-      name: "draft",
-      button_options: { data: { action: "tiptap#submit" }, type: "button" },
-      template: ->(value) { value ? "Create draft" : "Send now" } %>
+    <button type="button" class="btn bg-success" data-action="tiptap#submit">
+      <%= inline_icon "post" %>
+      Save
+    </button>
   <% end %>
 <% end %>
