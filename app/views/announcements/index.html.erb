@@ -33,9 +33,10 @@
           </div>
         <% end %>
       </div>
-      <p class="italic mt-0">
+      <p class="italic my-0">
         <%= announcement.draft ? "Drafted" : "Published" %> by <%= user_mention announcement.author %> on <%= (announcement.draft ? announcement.created_at : announcement.published_at.presence || announcement.created_at).strftime("%B %e, %Y") %>
       </p>
+      <hr class="my-1 dark:!border-slate border-smoke" />
       <div data-tiptap-target="editor"></div>
     </div>
   <% end %>
