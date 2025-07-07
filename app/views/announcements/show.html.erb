@@ -15,6 +15,10 @@
   <% end %>
 </h1>
 
+<p class="italic mt-0">
+  <%= @announcement.draft ? "Drafted" : "Published" %> by <%= user_mention @announcement.author %> on <%= (@announcement.draft ? @announcement.created_at : @announcement.published_at).strftime("%B %e, %Y") %>
+</p>
+
 <%= turbo_frame_tag :post_editor do %>
   <% if editing %>
     <%= render partial: "announcement_form", locals: { content: @announcement.content } %>
