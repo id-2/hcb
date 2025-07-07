@@ -2,14 +2,13 @@ import { Controller } from '@hotwired/stimulus'
 import { debounce } from 'lodash/function'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
-import BubbleMenu from '@tiptap/extension-bubble-menu'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 
 export default class extends Controller {
-  static targets = ['editor', 'bubbleMenu', 'form', 'contentInput', 'autosaveInput']
+  static targets = ['editor', 'form', 'contentInput', 'autosaveInput']
   static values = { content: String }
 
   editor = null
@@ -23,9 +22,7 @@ export default class extends Controller {
         heading: {
           levels: [1, 2, 3]
         }
-      }), this.hasBubbleMenuTarget ? BubbleMenu.configure({
-        element: this.bubbleMenuTarget,
-      }) : null, Underline, Placeholder.configure({
+      }), Underline, Placeholder.configure({
         placeholder: "Write a message to your followers..."
       }), Link, Image],
       editorProps: {
@@ -40,10 +37,6 @@ export default class extends Controller {
         }
       }
     });
-
-    if (this.hasBubbleMenuTarget) {
-      this.bubbleMenuTarget.classList.remove("hidden")
-    }
   }
 
   disconnect() {
