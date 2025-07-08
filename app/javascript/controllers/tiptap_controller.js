@@ -13,30 +13,38 @@ export default class extends Controller {
 
   editor = null
 
-  connect() {   
-    const debouncedSubmit = debounce(this.submit.bind(this), 1000, { leading: true })
+  connect() {
+    const debouncedSubmit = debounce(this.submit.bind(this), 1000, {
+      leading: true,
+    })
 
     this.editor = new Editor({
       element: this.editorTarget,
-      extensions: [StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3]
-        }
-      }), Underline, Placeholder.configure({
-        placeholder: "Write a message to your followers..."
-      }), Link, Image],
+      extensions: [
+        StarterKit.configure({
+          heading: {
+            levels: [1, 2, 3],
+          },
+        }),
+        Underline,
+        Placeholder.configure({
+          placeholder: 'Write a message to your followers...',
+        }),
+        Link,
+        Image,
+      ],
       editorProps: {
         attributes: {
-          class: "outline-none",
-        }
+          class: 'outline-none',
+        },
       },
       content: this.hasContentValue ? JSON.parse(this.contentValue) : null,
       onUpdate: () => {
         if (this.hasContentValue) {
           debouncedSubmit(true)
         }
-      }
-    });
+      },
+    })
   }
 
   disconnect() {
@@ -44,9 +52,9 @@ export default class extends Controller {
   }
 
   submit(autosave) {
-    this.autosaveInputTarget.value = autosave ? "true" : "false"
-    this.contentInputTarget.value = JSON.stringify(this.editor.getJSON());
-    this.formTarget.requestSubmit();
+    this.autosaveInputTarget.value = autosave ? 'true' : 'false'
+    this.contentInputTarget.value = JSON.stringify(this.editor.getJSON())
+    this.formTarget.requestSubmit()
   }
 
   bold() {
@@ -78,8 +86,8 @@ export default class extends Controller {
   }
 
   link() {
-    const url = window.prompt('Link URL');
-    
+    const url = window.prompt('Link URL')
+
     if (url === null) {
       return
     }
@@ -87,7 +95,12 @@ export default class extends Controller {
     if (url === '') {
       this.editor.chain().focus().extendMarkRange('link').unsetLink().run()
     } else {
-      this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+      this.editor
+        .chain()
+        .focus()
+        .extendMarkRange('link')
+        .setLink({ href: url })
+        .run()
     }
   }
 
@@ -112,8 +125,8 @@ export default class extends Controller {
   }
 
   image() {
-    const url = window.prompt('Image URL');
-    
+    const url = window.prompt('Image URL')
+
     if (url === null || url === '') {
       return
     }
