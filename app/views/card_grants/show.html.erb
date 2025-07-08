@@ -22,6 +22,8 @@
     <div class="flex flex-col g2">
       <%= render partial: "details", locals: { card_grant: @card_grant } %>
 
+      <%= render partial: "card_grant/pre_authorizations/organizer_info", locals: { pre_authorization: @card_grant.pre_authorization, link_to_pre_authorization: true } if @card_grant.pre_authorization.present? && organizer_signed_in? %>
+
       <% if @card_grant.active? && @card_grant.stripe_card %>
         <% admin_tool_if @card_grant.user != current_user do %>
           <%= render partial: "spending_instructions", locals: { card_grant: @card_grant } %>
