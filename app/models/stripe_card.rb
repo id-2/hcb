@@ -202,6 +202,7 @@ class StripeCard < ApplicationRecord
     StripeService::Issuing::Card.update(self.stripe_id, status: :active)
     sync_from_stripe!
     save!
+    card_grant.update(one_time_use: false) if card_grant&.one_time_use
   end
 
   def cancel!
@@ -339,11 +340,8 @@ class StripeCard < ApplicationRecord
   end
 
   def hcb_codes
-    if Flipper.enabled?(:transaction_tags_2022_07_29, self.event)
-      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes).includes(:tags)
-    else
-      @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes)
-    end
+    all_hcb_codes = canonical_transaction_hcb_codes + canonical_pending_transaction_hcb_codes
+    @hcb_codes ||= ::HcbCode.where(hcb_code: all_hcb_codes).includes(:tags)
   end
 
   def remote_shipping_status
