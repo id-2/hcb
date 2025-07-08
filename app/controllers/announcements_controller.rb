@@ -30,6 +30,7 @@ class AnnouncementsController < ApplicationController
     end
 
     flash[:success] = "Announcement successfully #{@announcement.draft ? "drafted" : "published"}!"
+    confetti! if !@announcement.draft
 
     redirect_to event_announcement_path(@event, @announcement)
   rescue => e
