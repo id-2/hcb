@@ -1,12 +1,12 @@
 <% 
   active = params[:sort] == sort || (params[:sort].nil? && (defined?(default) && default)) 
-  new_direction = params[:sort] == sort ? (params[:direction] == "asc" ? "desc" : "asc") : (params[:direction] || "desc")
+  direction = params[:sort] == sort ? (params[:direction] == "asc" ? "desc" : "asc") : (params[:direction] || "desc")
   classes = ["sort-button"]
   classes << "sort-button--active" if active
   classes << "sort-button--right" if defined?(right) && right 
 %>
 
-<%= link_to upsert_query_params(sort: sort, direction: new_direction), class: classes.join(" ") do %>
+<%= link_to upsert_query_params(sort:, direction:), class: classes.join(" ") do %>
   <%= (defined?(display) && display) || sort.humanize %>
   <%= inline_icon(params[:direction] == "desc" ? "down-caret" : "up-caret", size: 16) %>
 <% end %>
