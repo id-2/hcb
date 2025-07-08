@@ -15,7 +15,6 @@ module ProsemirrorService
       def create_renderer
         renderer = ProsemirrorToHtml::Renderer.new
         renderer.add_node ProsemirrorService::MissionStatementNode
-        renderer.add_node ProsemirrorService::DonationGoalNode
 
         renderer
       end

@@ -31,30 +31,6 @@ const MissionStatementNode = Node.create({
   }
 });
 
-const DonationGoalNode = Node.create({
-  name: 'donationGoal',
-  group: "block",
-  priority: 2000,
-  renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { class: "donationGoal flex flex-col" }), ['p', 'Your progress towards your goal will display here'], ['div', { class: 'bg-black rounded-full w-full' }]]
-  },
-  parseHTML() {
-    return [
-      {
-        tag: 'p',
-        getAttrs: node => node.classList.contains("donationGoal") && null
-      }
-    ]
-  },
-  addCommands() {
-    return {
-      addDonationGoal: () => ({ commands }) => {
-        return commands.insertContent({ type: this.name })
-      }
-    }
-  }
-});
-
 export default class extends Controller {
   static targets = ['editor', 'form', 'contentInput', 'autosaveInput']
   static values = { content: String }
@@ -72,7 +48,7 @@ export default class extends Controller {
         }
       }), Underline, Placeholder.configure({
         placeholder: "Write a message to your followers..."
-      }), Link, Image, MissionStatementNode, DonationGoalNode],
+      }), Link, Image, MissionStatementNode],
       editorProps: {
         attributes: {
           class: "outline-none",
@@ -171,9 +147,5 @@ export default class extends Controller {
 
   missionstatement() {
     this.editor.chain().focus().addMissionStatement().run()
-  }
-
-  donationgoal() {
-    this.editor.chain().focus().addDonationGoal().run()
   }
 }
