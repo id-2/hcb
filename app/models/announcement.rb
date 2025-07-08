@@ -41,8 +41,4 @@ class Announcement < ApplicationRecord
     save!
   end
 
-  def render_html
-    ProsemirrorService::Renderer.render_html(self.content, self.event)
-  end
-
 end

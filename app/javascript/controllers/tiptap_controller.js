@@ -10,8 +10,17 @@ import Image from '@tiptap/extension-image'
 const MissionStatementNode = Node.create({
   name: 'missionStatement',
   group: "block",
+  priority: 2000,
   renderHTML({ HTMLAttributes }) {
-    return ['p', mergeAttributes(HTMLAttributes, { class: "p-1 bg-white dark:bg-black rounded-md italic" }), "Your organization's mission statement will display here."]
+    return ['p', mergeAttributes(HTMLAttributes, { class: "missionStatement p-1 bg-white dark:bg-black rounded-md italic" }), "Your organization's mission statement will display here."]
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'p',
+        getAttrs: node => node.classList.contains("missionStatement") && null
+      }
+    ]
   },
   addCommands() {
     return {
@@ -47,7 +56,7 @@ export default class extends Controller {
           class: 'outline-none',
         },
       },
-      content: this.hasContentValue ? JSON.parse(this.contentValue) : null,
+      content: this.hasContentValue ? this.contentValue : null,
       onUpdate: () => {
         if (this.hasContentValue) {
           debouncedSubmit(true)
