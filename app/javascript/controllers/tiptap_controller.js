@@ -1,11 +1,26 @@
 import { Controller } from '@hotwired/stimulus'
 import { debounce } from 'lodash/function'
-import { Editor } from '@tiptap/core'
+import { Editor, Node, mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+
+const MissionStatementNode = Node.create({
+  name: 'missionStatement',
+  group: "block",
+  renderHTML({ HTMLAttributes }) {
+    return ['p', mergeAttributes(HTMLAttributes, { class: "p-1 bg-white dark:bg-black rounded-md italic" }), "Your organization's mission statement will display here."]
+  },
+  addCommands() {
+    return {
+      addMissionStatement: () => ({ commands }) => {
+        return commands.insertContent({ type: this.name })
+      }
+    }
+  }
+});
 
 export default class extends Controller {
   static targets = ['editor', 'form', 'contentInput', 'autosaveInput']
@@ -24,7 +39,7 @@ export default class extends Controller {
         }
       }), Underline, Placeholder.configure({
         placeholder: "Write a message to your followers..."
-      }), Link, Image],
+      }), Link, Image, MissionStatementNode],
       editorProps: {
         attributes: {
           class: "outline-none",
@@ -119,5 +134,9 @@ export default class extends Controller {
     }
 
     this.editor.chain().focus().setImage({ src: url }).run()
+  }
+
+  missionstatement() {
+    this.editor.chain().focus().addMissionStatement().run()
   }
 }
