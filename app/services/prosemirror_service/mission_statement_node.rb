@@ -6,7 +6,7 @@ module ProsemirrorService
     @tag_name = "p"
 
     def tag
-      [{ tag: self.class.tag_name, attrs: (@node.attrs || {}).merge({ class: "missionStatement p-1 bg-white border-2 border-black border-solid dark:bg-black rounded-md italic" }) }]
+      [{ tag: self.class.tag_name, attrs: (@node.attrs || {}).merge({ class: "p-1 bg-white border-2 border-black border-solid dark:bg-black rounded-md italic" }) }]
     end
 
     def matching

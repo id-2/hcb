@@ -17,9 +17,7 @@ class AnnouncementsController < ApplicationController
   end
 
   def create
-    json_content = params[:announcement][:content]
-    html_content = ProsemirrorService::Renderer.render_html(json_content, @event)
-    @announcement = @event.announcements.build(params.require(:announcement).permit(:title, :draft).merge(user: current_user, content: html_content))
+    @announcement = @event.announcements.build(params.require(:announcement).permit(:title, :content, :draft).merge(user: current_user))
 
     authorize @announcement
 
@@ -31,12 +29,11 @@ class AnnouncementsController < ApplicationController
 
     flash[:success] = "Announcement successfully #{@announcement.draft ? "drafted" : "published"}!"
 
-    redirect_to event_announcement_path(@event, @announcement)
   rescue => e
     flash[:error] = "Something went wrong. #{e.message}"
     Rails.error.report(e)
-    authorize @event
-    redirect_to event_announcements_path(@event)
+  ensure
+    redirect_to event_announcement_path(@event, @announcement)
   end
 
   def show
@@ -52,10 +49,7 @@ class AnnouncementsController < ApplicationController
   def update
     authorize @announcement
 
-    json_content = params[:announcement][:content]
-    html_content = ProsemirrorService::Renderer.render_html(json_content, @event)
-
-    @announcement.update!(params.require(:announcement).permit(:title, :draft).merge(content: html_content))
+    @announcement.update!(params.require(:announcement).permit(:title, :content, :draft))
 
     if params[:announcement][:autosave] != "true"
       flash[:success] = "Updated announcement"
