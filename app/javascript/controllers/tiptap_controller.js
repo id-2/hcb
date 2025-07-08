@@ -80,7 +80,14 @@ export default class extends Controller {
           class: 'outline-none',
         },
       },
-      content: this.hasContentValue ? this.contentValue : null,
+      content: this.hasContentValue ? this.contentValue : {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph"
+          }
+        ]
+      },
       onUpdate: () => {
         if (this.hasContentValue) {
           debouncedSubmit(true)
