@@ -1,13 +1,8 @@
 <span class="homepage-eyebrow px-1">Theme</span>
-<a data-dark-mode-toggle-target="toggle" data-value="system">
-  System
-  <%= inline_icon "check", class: "hidden ml-auto", size: 24, style: "margin-right: -5px" %>
-</a>
-<a data-dark-mode-toggle-target="toggle" data-value="dark" data-action="menu#close">
-  Dark
-  <%= inline_icon "check", class: "hidden ml-auto", size: 24, style: "margin-right: -5px" %>
-</a>
-<a data-dark-mode-toggle-target="toggle" data-value="light" data-action="menu#close">
-  Light
-  <%= inline_icon "check", class: "hidden ml-auto", size: 24, style: "margin-right: -5px" %>
-</a>
+
+<% %w[system dark light].each do |theme| %>
+  <a data-dark-mode-toggle-target="toggle" data-value="<%= theme %>">
+    <%= theme.humanize %>
+    <%= inline_icon "check", class: "hidden ml-auto", size: 24, style: "margin-right: -5px" %>
+  </a>
+<% end %>
