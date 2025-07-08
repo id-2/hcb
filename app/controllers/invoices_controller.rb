@@ -53,8 +53,8 @@ class InvoicesController < ApplicationController
     allowed_sorts = %w[created_at status sponsors.name amount_due]
     allowed_directions = %w[asc desc]
 
-    sort_column = allowed_sorts.include?(params[:sort]) ? params[:sort] : "created_at"
-    sort_direction = allowed_directions.include?(params[:direction]) ? params[:direction] : "desc"
+    sort_column = params[:sort].in?(allowed_sorts) ? params[:sort] : "created_at"
+    sort_direction = params[:direction].in?(allowed_directions) ? params[:direction] : "desc"
     relation = relation.order("#{sort_column} #{sort_direction}")
 
     @sponsor = Sponsor.new(event: @event)
