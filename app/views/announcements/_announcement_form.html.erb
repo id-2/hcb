@@ -33,14 +33,14 @@
     </div>
   <% else %>
     <%= dropdown_button form:,
-      options: [
-        ["Publish now", false, "Publish this post instantly."],
-        ["Create draft", true, "Save as a draft to publish later."]
-      ],
-      button_icon: "send",
-      name: "draft",
-      button_options: { data: { action: "tiptap#submit" }, type: "button" },
-      menu_class: "relative",
-      template: ->(value) { value ? "Create draft" : "Publish now" } %>
+                        options: [
+                          ["Publish now", false, "Publish this post instantly."],
+                          ["Create draft", true, "Save as a draft to publish later."]
+                        ],
+                        button_icon: "send",
+                        name: "draft",
+                        button_options: { data: { action: "tiptap#submit" }, type: "button" },
+                        menu_class: "relative",
+                        template: ->(value) { value ? "Create draft" : "Publish now" } %>
   <% end %>
 <% end %>

@@ -9,6 +9,7 @@ class Event
     def destroy?
       user == record.user
     end
+
   end
 
 end

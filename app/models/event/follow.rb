@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: event_follows
@@ -25,5 +27,7 @@ class Event
     belongs_to :event
 
     # TODO: validate :user uniqueness in scope :event_id
+
   end
+
 end
