@@ -41,7 +41,7 @@ const DonationGoalNode = Node.create({
   parseHTML() {
     return [
       {
-        tag: 'p',
+        tag: 'div',
         getAttrs: node => node.classList.contains("donationGoal") && null
       }
     ]
