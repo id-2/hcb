@@ -42,9 +42,7 @@ class Announcement < ApplicationRecord
   end
 
   def render_html
-    renderer = ProsemirrorToHtml::Renderer.new
-
-    renderer.render JSON.parse(self.content)
+    ProsemirrorService::Renderer.render_html(self.content, self.event)
   end
 
 end
