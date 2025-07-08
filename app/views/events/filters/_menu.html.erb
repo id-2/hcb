@@ -47,11 +47,10 @@
 
           <% when "date_range" %>
             <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
-              <label class="bold">After...</label>
-              <%= form.date_field "#{base_key}_after", class: "border mb1", value: params["#{base_key}_after"] %>
-
-              <label class="bold">Before...</label>
-              <%= form.date_field "#{base_key}_before", class: "border mb1", value: params["#{base_key}_before"] %>
+              <% ["after", "before"].each do |suffix| %>
+                <label class="bold"><%= suffix.humanize %>...</label>
+                <%= form.date_field "#{base_key}_#{suffix}", class: "border mb1", value: params["#{base_key}_#{suffix}"] %>
+              <% end %>
 
               <% request.query_parameters.except("#{base_key}_before", "#{base_key}_after").each do |k, v| %>
                 <%= hidden_field_tag k, v %>
@@ -62,13 +61,13 @@
 
           <% when "amount_range" %>
             <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
-              <% { "less_than" => "Less Than", "greater_than" => "Greater Than" }.each do |suffix, label| %>
-                <label class="bold"><%= label %>...</label>
-                <div class="input p-0 mb-2 flex border border-gray-200 dark:bg-darkless dark:border-0 rounded-lg px-3 items-center">
-                  <span class="bold muted text-md" style="width: 1rem;">$</span>
-                  <%= form.number_field "#{base_key}_#{suffix}", class: "bg-transparent !border-none", value: params["#{base_key}_#{suffix}"] %>
-                </div>
-              <% end %>
+                <% ["less_than", "greater_than"].each do |suffix| %>
+                  <label class="bold"><%= suffix.humanize %>...</label>
+                  <div class="input p-0 mb-2 flex border border-gray-200 dark:bg-darkless dark:border-0 rounded-lg px-3 items-center">
+                    <span class="bold muted text-md" style="width: 1rem;">$</span>
+                    <%= form.number_field "#{base_key}_#{suffix}", class: "bg-transparent !border-none", value: params["#{base_key}_#{suffix}"] %>
+                  </div>
+                <% end %>
 
               <% request.query_parameters.except("#{base_key}_less_than", "#{base_key}_greater_than").each do |k, v| %>
                 <%= hidden_field_tag k, v %>
