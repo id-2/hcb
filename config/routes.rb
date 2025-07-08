@@ -666,6 +666,8 @@ Rails.application.routes.draw do
       resource :pre_authorizations, only: [:show, :update] do
         member do
           post "clear_screenshots"
+          post "organizer_approve"
+          post "organizer_reject"
         end
       end
     end
@@ -772,6 +774,16 @@ Rails.application.routes.draw do
         post "cancel"
         post "convert_to_reimbursement_report"
         post "toggle_one_time_use"
+
+        get "edit/overview", to: "card_grants#edit_overview"
+        get "edit/usage_restrictions", to: "card_grants#edit_usage_restrictions"
+        get "edit/purpose", to: "card_grants#edit_purpose"
+        get "edit/actions", to: "card_grants#edit_actions"
+        get "edit/balance", to: "card_grants#edit_balance"
+        get "edit/topup", to: "card_grants#edit_topup"
+        get "edit/withdraw", to: "card_grants#edit_withdraw"
+
+
       end
     end
 
