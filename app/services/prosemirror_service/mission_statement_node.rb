@@ -14,7 +14,7 @@ module ProsemirrorService
     end
 
     def text
-      ProsemirrorService::Renderer.event.description
+      $PROSEMIRROR_RENDERER_EVENT.description
     end
 
   end

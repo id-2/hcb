@@ -2,23 +2,18 @@
 
 module ProsemirrorService
   class Renderer
-    class << self
-      attr_reader :event
+    def self.render_html(json, event)
+      @renderer ||= create_renderer
+      $PROSEMIRROR_RENDERER_EVENT = event
 
-      def render_html(json, event)
-        @renderer ||= create_renderer
-        @event = event
+      @renderer.render JSON.parse(json)
+    end
 
-        @renderer.render JSON.parse(json)
-      end
+    def self.create_renderer
+      renderer = ProsemirrorToHtml::Renderer.new
+      renderer.add_node ProsemirrorService::MissionStatementNode
 
-      def create_renderer
-        renderer = ProsemirrorToHtml::Renderer.new
-        renderer.add_node ProsemirrorService::MissionStatementNode
-
-        renderer
-      end
-
+      renderer
     end
 
   end
