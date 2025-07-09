@@ -14,7 +14,7 @@
       </button>
       <div data-controller="dark-mode-toggle" class="menu__content menu__content--compact menu__content--2 h5" data-menu-target="content" style="z-index: 999;">
         <%= render partial: "application/theme_toggle" %>
-        <hr />
+        <hr>
         <% if signed_in? %>
           <%= link_to logout_users_path, method: :delete do %>
             <%= inline_icon "door-leave", size: 23 %>
