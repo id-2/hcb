@@ -5,8 +5,7 @@
         <%= stripe_card.status_text.downcase %>
         <%= "virtual" if stripe_card.virtual? %>
         <%= "platinum" if stripe_card.platinum? %>
-        <%= "stripe-card--white" if stripe_card.personalization_design&.white? %>
-        <%= "stripe-card--black" if stripe_card.personalization_design&.black? %>
+        <%= "stripe-card--#{stripe_card.personalization_design.color}" if stripe_card.personalization_design %>
         <%= "deactivated" if stripe_card.canceled? %>
         <%= "canceled-left" if side == "left" && stripe_card.canceled? %>
         <%= "canceled-right" if side == "right" && stripe_card.canceled? %>
