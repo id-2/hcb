@@ -13,6 +13,13 @@ module UsersHelper
         tooltip: "See all your organizations",
         selected: selected == :home
       },
+      (current_user.followed_events.any? ? {
+        name: "Feed",
+        path: my_feed_path,
+        tooltip: "See announcements for organizations you're following",
+        icon: "announcement",
+        selected: selected == :feed
+      } : nil),
       {
         name: "Cards",
         path: my_cards_path,
@@ -36,7 +43,7 @@ module UsersHelper
         async_badge: my_reimbursements_icon_path,
         selected: selected == :reimbursements
       }
-    ]
+    ].compact
   end
 
   def gravatar_url(email, name, id, size)
