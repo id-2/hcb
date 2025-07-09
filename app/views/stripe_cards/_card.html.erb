@@ -3,7 +3,7 @@
 <div
   class="stripe-card
         <%= stripe_card.status_text.downcase %>
-        <%= stripe_card.virtual? ? "virtual" : "" %>
+        <%= "virtual" if stripe_card.virtual? %>
         <%= "platinum" if stripe_card.platinum? %>
         <%= "stripe-card--white" if stripe_card.personalization_design&.white? %>
         <%= "stripe-card--black" if stripe_card.personalization_design&.black? %>
