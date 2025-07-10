@@ -43,7 +43,8 @@ details.dock {
   }
 }
 
-summary > svg, summary.dock__item {
+summary > svg,
+summary.dock__item {
   padding-right: 0.5rem;
 
   &::marker {
