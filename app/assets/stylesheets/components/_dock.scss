@@ -58,7 +58,10 @@ summary.dock__item {
     transform: rotate(45deg);
   }
   & .drawer-chevron {
-    transform: rotate(-90deg);
+    padding: 0px;
+    margin-left: 0.5rem;
+    transform: rotate(180deg);
+    color: map-get($palette, muted);
   }
   details[open] & .drawer-chevron {
     transform: rotate(0deg);
