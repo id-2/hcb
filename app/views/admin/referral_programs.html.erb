@@ -3,8 +3,11 @@
 <ul>
     <% @referral_programs.each do |program| %>
         <li>
-            <div class="mb-3 flex flex-row items-center border p-4 gap-4 w-100">
-                <h5 class="m-0 p-0"><%= program.name %></h5>
+            <div class="flex flex-row items-center border p-4 gap-4 w-100 mb-0">
+                <div class="flex flex-col">
+                    <h5 class="m-0 p-0"><%= program.name %></h5>
+                    <small class="text-muted"><%= program.created_at.strftime("%Y-%m-%d") %></small>
+                </div>
                 <div class="flex flex-row gap-2 justify-between m-0">
                     <span class="m-0"><%= pluralize(program.attributions.count, "attributions") %></span>
                 </div>
@@ -21,14 +24,20 @@
 
             <ul>
                 <% program.links.each do |link| %>
-                    <li>
-                        <div class="flex flex-row items-center gap-2">
-                            <span><%= link.name %></span>
-                            <span class="m-0"><%= pluralize(0, "attributions") %></span>
-                            <span><%= link.hashid %></span>
+                    <li class="mt-0">
+                        <div class="mt-0 flex flex-row items-center gap-4 border border-t-0 p-2">
+                            <div class="flex flex-col">
+                                <h5 class="m-0 p-0"><%= link.name %></h5>
+                                <small class="text-muted"><%= link.created_at.strftime("%Y-%m-%d") %></small>
+                            </div>
+                            <div class="flex flex-row gap-2 justify-between m-0">
+                                <span class="m-0"><%= pluralize(0, "clicks") %></span>
+                            </div>
+
+                            <div class="flex-grow"></div>
+
                             <% url = referral_link_url(link.hashid) %>
                             <span><%= link_to(url, url) %></span>
-                            <span class="text-muted"><%= link.created_at.strftime("%Y-%m-%d") %></span>
                         </div>
                     </li>
                 <% end %>
