@@ -202,16 +202,18 @@
     </article>
   </main>
 <% else %>
-  <% unless @no_app_shell %>
-    <div class="flex justify-center">
-      <%= render "application/logo" %>
-    </div>
-  <% end %>
-  <%= yield(:header) %>
-  <main class="container <%= content_for :container_class %>" style="<%= content_for :container_style %>">
-    <%= render "application/flash" unless @hide_flash %>
-    <%= yield %>
-  </main>
+  <div class="py-8">
+    <% unless @no_app_shell %>
+      <div class="flex justify-center">
+        <%= render "application/logo" %>
+      </div>
+    <% end %>
+    <%= yield(:header) %>
+    <main class="container <%= content_for :container_class %>" style="<%= content_for :container_style %>">
+      <%= render "application/flash" unless @hide_flash %>
+      <%= yield %>
+    </main>
+  </div>
 <% end %>
 
 <% if Rails.env.production? %>
