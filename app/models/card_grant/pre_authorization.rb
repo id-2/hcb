@@ -31,6 +31,8 @@ class CardGrant
   class PreAuthorization < ApplicationRecord
     has_many_attached :screenshots, dependent: :destroy
     belongs_to :card_grant
+    has_one :event, through: :card_grant
+    has_one :user, through: :card_grant
 
     include Turbo::Broadcastable
 
@@ -43,6 +45,8 @@ class CardGrant
       state :draft, initial: true
       state :submitted
       state :approved
+      state :fraudulent
+      state :rejected
 
       event :mark_submitted do
         transitions from: :draft, to: :submitted
@@ -52,16 +56,43 @@ class CardGrant
       end
 
       event :mark_approved do
-        transitions from: :submitted, to: :approved
+        transitions from: [:submitted, :fraudulent], to: :approved do
+          guard do
+            screenshots.attached? && product_url.present?
+          end
+        end
+      end
+
+      event :mark_fraudulent do
+        transitions from: :submitted, to: :fraudulent
+      end
+
+      event :mark_rejected do
+        transitions from: :fraudulent, to: :rejected
+        after do |rejected_by|
+          card_grant.cancel!(rejected_by)
+        end
       end
     end
 
-    def status_badge_type
+    def status_badge_type(organizer: false)
       return :muted if draft?
       return :pending if submitted?
-      return :success if approved?
+      return :success if approved? || (fraudulent? && !organizer)
+      return :error if fraudulent? && organizer
+      return :error if rejected?
 
       :muted
+    end
+
+    def status_text(organizer: false)
+      return "Draft" if draft?
+      return "Under review" if submitted?
+      return "Approved" if approved? || (fraudulent? && !organizer)
+      return "Flagged as fraudulent" if fraudulent? && organizer
+      return "Rejected" if rejected?
+
+      aasm_state.humanize
     end
 
     def analyze!
@@ -72,7 +103,7 @@ class CardGrant
       end
 
       prompt = <<~PROMPT
-        You are a helpful assistant that extracts information from a provided product URL and shopping cart screenshots. Once you've extracted the necessary information, you must decide whether the purchase is a valid use of funds based on a given purpose. You must respond in the following JSON format:
+        You are a helpful assistant that extracts information from a provided product URL and shopping cart screenshots. Once you've extracted the necessary information, you must decide whether the purchase is a valid use of funds based on a set of user-facing instructions. You must respond in the following JSON format:
 
         product_name // the name of the product, if available
         product_description // a short description of the product, if available
@@ -83,6 +114,10 @@ class CardGrant
         validity_reasoning // a short explanation of why the purchase is valid or not, based on the purpose provided. This should be a concise sentence explaining the reasoning behind the decision.
         valid_purchase // a boolean value indicating whether the purchase is a valid use of funds based on the purpose provided. This should be true or false.
         fraud_rating // a number between 1 and 10, where 1 is very likely to be valid and 10 is very likely to be fraudulent.
+
+        Please make sure that both the product URL and screenshots are in line with the instructions provided to the user. If there isn't enough information, or these 3 fields are not all aligned, you should reject the purchase as fraudulent. Here are the instructions provided to the user:
+
+        #{card_grant.instructions}
       PROMPT
 
       response = conn.post("/v1/responses", {
@@ -102,7 +137,7 @@ class CardGrant
                                  content: [
                                    {
                                      type: "input_text",
-                                     text: "Product URL: #{product_url}"
+                                     text: "The user was given the following instructions:\n\n#{card_grant.instructions}\n\nThe user provided the following URL: #{product_url}"
                                    },
                                    screenshots.map { |screenshot|
                                      {
@@ -118,13 +153,13 @@ class CardGrant
                            })
 
       raw_response = response.body.dig("output", 0, "content", 0, "text")
-      json_response = begin
-        JSON.parse(raw_response)
+      raw_params = begin
+        JSON.parse(raw_response).transform_keys { |key| "extracted_#{key}".to_sym }
       rescue JSON::ParserError
         {}
       end
 
-      params = ActionController::Parameters.new(json_response.transform_keys { |key| "extracted_#{key}".to_sym }).permit(
+      params = ActionController::Parameters.new(raw_params).permit(
         :extracted_product_name,
         :extracted_product_description,
         :extracted_product_price_cents,
@@ -137,7 +172,11 @@ class CardGrant
 
       update(**params)
 
-      mark_approved! if screenshots.attached? && product_url.present?
+      if params[:extracted_valid_purchase]
+        mark_approved!
+      else
+        mark_fraudulent!
+      end
 
       broadcast_refresh_to self
     end
