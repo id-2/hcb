@@ -43,10 +43,10 @@ export default class extends Controller {
     this.content = this.contentTarget.cloneNode(true)
     this.content.dataset.turboTemporary = true
     if (this.hasContentIdValue) this.content.id = this.contentIdValue
-    ;(
-      (this.appendToValue && document.querySelector(this.appendToValue)) ||
-      document.body
-    ).appendChild(this.content)
+      ; (
+        (this.appendToValue && document.querySelector(this.appendToValue)) ||
+        document.body
+      ).appendChild(this.content)
     Object.assign(this.content.style, {
       position: 'absolute',
       display: 'block',
@@ -131,7 +131,7 @@ export default class extends Controller {
       if (firstTime) {
         // Animate!
         gsap.from(this.content, {
-          y: placement.includes('top') ? 12 : -12,
+          y: placement.includes('top') ? -12 : 12,
           opacity: 0.75,
           duration: 0.15,
         })

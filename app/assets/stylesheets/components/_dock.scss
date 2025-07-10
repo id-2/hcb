@@ -108,7 +108,7 @@ summary.dock__item {
   font-weight: 700;
   text-transform: uppercase;
   color: map-get($palette, muted);
-  margin: 1.2rem 0 0.25rem 0;
+  margin-top: 1rem;
   line-height: 1.5;
 
   &:empty {
@@ -143,9 +143,7 @@ summary.dock__item {
     border-radius: var(--radius-lg);
     cursor: pointer;
     line-height: 1.75;
-    transition:
-      color 0.125s ease-in-out,
-      background-color 0.125s ease-in-out;
+    transition: all 0.125s ease-in-out;
     color: $black;
     line-height: 1.25;
     padding: 0.25rem;
@@ -164,6 +162,7 @@ summary.dock__item {
     &[aria-current='page'] {
       background-color: map-get($palette, white);
       box-shadow: var(--shadow-border-sm);
+      color: map-get($palette, primary) !important;
 
       svg {
         fill: map-get($palette, primary);

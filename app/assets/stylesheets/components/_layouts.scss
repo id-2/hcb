@@ -1,17 +1,14 @@
 .user-menu-trigger {
-  background-color: transparent;
   display: flex;
   align-items: center;
   border: 0;
-  padding: 0;
-  border-radius: 4px;
   flex: 1;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  padding: 0.5rem;
   font-weight: 600;
   color: inherit;
+  background-color: transparent;
   font-size: 15px;
-  cursor: pointer;
-  transition: background-color 0.3s;
 }
 
 .container {

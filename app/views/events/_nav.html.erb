@@ -2,7 +2,7 @@
 <% content_for(:header) do %>
   <div class="flex gap-3 items-center">
     <%= render partial: "logo" %>
-    <span class="-mr-1.5 -ml-1.5 text-xl opacity-40">/</span>
+    <span class="-mx-1.5 -mt-1 text-xl opacity-40">/</span>
     <%= render "events/title" %>
   </div>
 <% end %>
@@ -15,8 +15,8 @@
   <nav class="dock hidden sm:flex mt-4 font-medium">
     <% events_mobile_nav(@event, selected: local_assigns[:selected]).each do |item| %>
       <% if item[:section] %>
-        <span class="dock__section"><%= item[:section] %></span>
-        <hr>
+        <span class="mx-1 dock__section"><%= item[:section] %></span>
+        <hr class="opacity-40">
       <% else %>
         <%= dock_item item[:name],
             item[:path],
