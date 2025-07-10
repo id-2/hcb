@@ -54,22 +54,17 @@ summary.dock__item {
     display: none;
   }
 
-  &:hover .settings-icon {
-    transform: rotate(45deg);
-  }
   & .drawer-chevron {
     padding: 0px;
     margin-left: 0.5rem;
-    transform: rotate(180deg);
     color: map-get($palette, muted);
   }
   details[open] & .drawer-chevron {
-    transform: rotate(0deg);
+    transform: rotate(180deg);
   }
 }
 
-.drawer-chevron,
-.settings-icon {
+.drawer-chevron {
   transition: transform 0.125s;
 }
 
