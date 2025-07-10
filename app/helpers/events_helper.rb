@@ -8,10 +8,10 @@ module EventsHelper
 
     if Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event)
       items << {
-        name: "Overview",
+        name: "Home",
         path: event_path(id: event.slug),
         tooltip: "See everything at-a-glance",
-        icon: "grid",
+        icon: "home",
         selected: selected == :home,
         flipperEnabled: Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event),
       }
