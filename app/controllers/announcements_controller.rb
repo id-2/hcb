@@ -34,6 +34,8 @@ class AnnouncementsController < ApplicationController
 
   def show
     authorize @announcement
+
+    @announcement.mark_read current_user
   end
 
   def edit

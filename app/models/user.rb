@@ -133,6 +133,8 @@ class User < ApplicationRecord
   has_one :unverified_totp, -> { where(aasm_state: :unverified) }, class_name: "User::Totp", inverse_of: :user
   has_one :totp, -> { where(aasm_state: :verified) }, class_name: "User::Totp", inverse_of: :user
 
+  has_and_belongs_to_many :read_announcements, class_name: "Announcement"
+
   # a user does not actually belong to its payout method,
   # but this is a convenient way to set up the association.
 

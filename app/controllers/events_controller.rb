@@ -375,7 +375,13 @@ class EventsController < ApplicationController
     end
     @announcements = @all_announcements.page(params[:page]).per(10)
 
-    raise ActionController::RoutingError.new("Not Found") if !@event.is_public && @all_announcements.empty? && !organizer_signed_in?
+    @announcements.each do |announcement|
+      announcement.mark_read current_user
+    end
+
+    if !@event.is_public && @all_announcements.empty? && !organizer_signed_in?
+      raise ActionController::RoutingError.new("Not Found")
+    end
   end
 
   def card_overview

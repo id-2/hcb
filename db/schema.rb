@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,9 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_09_020702) do
-  create_schema "google_sheets"
-
+ActiveRecord::Schema[7.2].define(version: 2025_07_11_145429) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_stat_statements"
@@ -201,6 +197,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_020702) do
     t.datetime "published_at"
     t.index ["author_id"], name: "index_announcements_on_author_id"
     t.index ["event_id"], name: "index_announcements_on_event_id"
+  end
+
+  create_table "announcements_users", id: false, force: :cascade do |t|
+    t.bigint "announcement_id", null: false
+    t.bigint "user_id", null: false
+    t.index ["announcement_id", "user_id"], name: "index_announcements_users_on_announcement_id_and_user_id", unique: true
   end
 
   create_table "api_tokens", force: :cascade do |t|
@@ -1539,6 +1541,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_020702) do
     t.string "program", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["program", "user_id"], name: "index_raffles_on_program_and_user_id", unique: true
   end
 
   create_table "raw_column_transactions", force: :cascade do |t|

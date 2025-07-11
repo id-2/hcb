@@ -34,6 +34,8 @@ class Announcement < ApplicationRecord
   belongs_to :author, class_name: "User"
   belongs_to :event
 
+  has_and_belongs_to_many :viewers, class_name: "User"
+
   scope :published, -> { where.not(published_at: nil) }
 
   def publish!
@@ -56,6 +58,12 @@ class Announcement < ApplicationRecord
 
   def published?
     !draft?
+  end
+
+  def mark_read(user)
+    unless user.read_announcements.where(id: self.id).exists?
+      user.read_announcements << self
+    end
   end
 
 end
