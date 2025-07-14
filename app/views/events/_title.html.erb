@@ -6,7 +6,7 @@
     <%= inline_icon "sort-vertical", size: 28, class: "fill-muted" if show_org_switcher? %>
   <% end %>
   <% if show_org_switcher? %>
-    <div class="menu__content menu__content--switcher sm:w-[275px] z-[11]" data-menu-target="content">
+    <div class="menu__content menu__content--switcher sm:w-[275px] z-[11] !rounded-xl" data-menu-target="content" style="bottom:unset!important">
       <% admin_tool("p0 mb1") do %>
         <button class="menu__action" data-controller="clipboard" data-clipboard-text-value="<%= @event.name %>" data-action="click->clipboard#copy">
           <%= inline_icon "copy", size: 24 %>

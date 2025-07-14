@@ -31,7 +31,7 @@
       <% end %>
     </div>
 
-    <div class="flex items-center pr-1.5">
+    <div class="flex items-center -mr-2 lg:mr-1.5">
       <%= render "application/support_button" unless @no_app_shell %>
       <% if signed_in? %>
         <%= render partial: "application/blog_widget" %>

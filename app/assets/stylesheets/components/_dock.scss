@@ -139,6 +139,14 @@ summary.dock__item {
     fill: map-get($palette, primary);
   }
 
+  &[aria-current='page'] {
+    color: map-get($palette, primary) !important;
+
+    svg {
+      fill: map-get($palette, primary);
+    }
+  }
+
   @media (min-width: 768px) {
     border-radius: var(--radius-lg);
     cursor: pointer;
@@ -162,11 +170,6 @@ summary.dock__item {
     &[aria-current='page'] {
       background-color: map-get($palette, white);
       box-shadow: var(--shadow-border-sm);
-      color: map-get($palette, primary) !important;
-
-      svg {
-        fill: map-get($palette, primary);
-      }
     }
   }
 

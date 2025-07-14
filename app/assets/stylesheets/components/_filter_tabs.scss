@@ -7,11 +7,9 @@
   cursor: pointer;
   font-size: inherit;
   font-weight: 500;
-  border-bottom: 2px solid transparent;
 
   &.active {
-    color: map-get($palette, primary);
-    border-color: map-get($palette, primary);
+    color: map-get($palette, info);
   }
 
   &:first-child {

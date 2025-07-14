@@ -184,7 +184,9 @@
       <div class="flex-1 overflow-y-auto scrollbar-hidden pointer-events-none flex items-center lg:items-start w-full lg:w-[70vw]" id="sidebar-scroll-container">
         <div class="w-full lg:w-72 py-6 px-4 pointer-events-auto">
           <%= yield(:header) %>
-          <%= render "application/flash" %>
+          <div class="hidden lg:block">
+            <%= render "application/flash" %>
+          </div>
           <div class="hidden lg:block flex-1">
             <%= yield(:nav) %>
           </div>
@@ -196,6 +198,9 @@
     <%= yield(:mobile_nav) %>
     <article class="flex-1 pt-16 lg:pt-0 lg:pl-72 w-screen m-0">
       <div class="container p-7 pt-4 <%= content_for :container_class %> mx-auto" style="<%= content_for :container_style %>">
+        <div class="lg:hidden">
+          <%= render "application/flash" unless @hide_flash %>
+        </div>
         <%= yield(:container) %>
         <%= yield %>
       </div>
