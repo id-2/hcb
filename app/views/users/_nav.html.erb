@@ -6,14 +6,14 @@
 <% content_for(:nav) do %>
   <div class="mt-5 mb-3">
     <button
-      class="btn h-10 bg-none bg-smoke shadow-none w-100 justify-start mt1 px-3 hover:shadow-none display-none-not-important md:flex"
+      class="btn h-10 bg-none bg-smoke dark:!bg-neutral-700 shadow-none w-100 justify-start mt1 px-3 hover:shadow-none display-none-not-important md:flex"
       style="border-radius: 8px"
       data-behavior="command_bar_trigger">
       <span class="flex-grow text-left font-medium">Jump to...</span>
-      <span class="bg-gray-300 dark:bg-gray-700 opacity-75 <%= request.user_agent.to_s.upcase.include?("MAC") ? "w-6" : "w-9" %> rounded-md mr-2 text-sm">
+      <span class="bg-gray-300 dark:bg-neutral-600 opacity-75 <%= request.user_agent.to_s.upcase.include?("MAC") ? "w-6" : "w-9" %> rounded-md mr-2 text-sm">
         <%= request.user_agent.to_s.upcase.include?("MAC") ? "⌘" : "Ctrl" %>
       </span>
-      <span class="bg-gray-300 dark:bg-gray-700 opacity-75 w-6 rounded-md text-sm">
+      <span class="bg-gray-300 dark:bg-neutral-600 opacity-75 w-6 rounded-md text-sm">
         K
       </span>
     </button>
