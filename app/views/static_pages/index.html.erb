@@ -20,26 +20,6 @@
   <span class="badge ml-0 text-sm caps <%= Rails.env.development? ? "bg-success" : by_season("bg-muted", fall: "bg-warning") %>" id="flavor-text" data-turbo-permanent><%= flavor_text %></span>
 </h1>
 
-<% if current_user.card_grants.not_activated.size > 0 %>
-  <% current_user.card_grants.not_activated.each do |grant| %>
-    <div class="card border b--info container--sm mx-auto mb-12 mt-6 text-center">
-      <p class="my-0 text-xl">You have a grant invitation from <strong><%= grant.event.name %></strong>!</p>
-      <p class="mt-0 text-md"><%= render_money grant.amount %><% if grant.purpose.present? %> for <strong><%= grant.purpose %></strong><% end %></p>
-      <%= link_to "Activate my grant", grant, class: "btn" %>
-    </div>
-  <% end %>
-<% end %>
-
-<% if current_user.card_grants.activated.size > 0 %>
-  <h2 class="heading h2 line-height-4 mt-0 ml-0 py-2 px-4 border-none">Grants</h2>
-
-  <div class="grid grid--wide mb-12">
-    <% current_user.card_grants.includes(:stripe_card).activated.each do |grant| %>
-      <%= render grant.stripe_card, headless: true, show_purpose: true, href: card_grant_path(grant) %>
-    <% end %>
-  </div>
-<% end %>
-
 <main class="flex flex-col items-center text-center pb-8">
   <% if signed_in? %>
 
