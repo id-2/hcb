@@ -38,11 +38,7 @@ module ApplicationHelper
   end
 
   def render_transaction_amount(amount)
-    if amount > 0
-      content_tag(:span, "+#{render_money amount}", class: "medium")
-    else
-      render_money amount
-    end
+    render_money amount
   end
 
   def render_percentage(decimal, params = {})
