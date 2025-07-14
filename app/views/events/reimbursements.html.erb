@@ -2,7 +2,7 @@
 <% page_md %>
 <%= render "events/nav", selected: :reimbursements %>
 
-<h1 class="heading">
+<h1 class="heading gap-2">
   <span class="flex-grow">Reimbursements</span>
   <%= pop_icon_to "download",
                   reimbursements_exports_path(@event, format: :csv),
