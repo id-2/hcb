@@ -11,8 +11,26 @@
       id: "card-logo",
       classes: ["feature-generic"],
       feature_flag: :card_logos_2024_08_27,
-      name: "HCB card logo",
-      description: "Add a custom logo to every HCB card printed for your organization",
+      name: "HCB Card Logo",
+      description: "Add a custom logo to every HCB card printed for your organization.",
+      event: @event
+    } %>
+
+<%= render partial: "features/preview", locals: {
+      id: "transaction-tags",
+      classes: ["feature-transaction-tags"],
+      feature_flag: :transaction_tags_2022_07_29,
+      name: "Transaction Tags",
+      description: "Categorize and filter transactions using tags!",
+      event: @event
+    } %>
+
+<%= render partial: "features/preview", locals: {
+      id: "donation-tiers",
+      classes: ["feature-generic"],
+      feature_flag: :donation_tiers_2025_06_24,
+      name: "Donation Tiers",
+      description: "Offer preset monthly donation options with custom names, prices, and perks.",
       event: @event
     } %>
 
