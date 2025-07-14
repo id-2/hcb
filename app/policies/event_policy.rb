@@ -74,6 +74,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def announcement_overview?
+    return false if !@event.is_public && @all_announcements.empty? && !organizer_signed_in?
     true
   end
 
