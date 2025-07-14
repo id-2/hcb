@@ -13,7 +13,16 @@ module EventsHelper
         tooltip: "See everything at-a-glance",
         icon: "home",
         selected: selected == :home,
-        flipperEnabled: Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event),
+      }
+    end
+
+    if policy(@event).announcement_overview?
+      items << {
+        name: "Announcements",
+        path: event_announcement_overview_path(event_id: event.slug),
+        tooltip: "View your announcements",
+        icon: "announcements",
+        selected: selected == :announcements,
       }
     end
 
@@ -45,7 +54,7 @@ module EventsHelper
         {
           name: "Donations",
           path: event_donation_overview_path(event_id: event.slug),
-          tooltip: "Receive donations online",
+          tooltip: "Support this organization",
           icon: "support",
           data: { tour_step: "donations" },
           selected: selected == :donations,
@@ -55,7 +64,7 @@ module EventsHelper
       items << {
         name: "Invoices",
         path: event_invoices_path(event_id: event.slug),
-        tooltip: "Request payments from sponsors",
+        tooltip: "Collect sponsor payments",
         icon: "payment-docs",
         selected: selected == :invoices,
       }
@@ -86,7 +95,7 @@ module EventsHelper
         {
           name: "Cards",
           path: event_cards_overview_path(event_id: event.slug),
-          tooltip: "Manage team debit cards",
+          tooltip: "Manage team HCB cards",
           icon: "card",
           data: { tour_step: "cards" },
           selected: selected == :cards,
@@ -146,7 +155,7 @@ module EventsHelper
       items << {
         name: "Documents",
         path: event_documents_path(event_id: event.slug),
-        tooltip: "View legal documents, financial statements, and FAQ",
+        tooltip: "View legal documents and financial statements",
         icon: "docs",
         selected: selected == :documentation,
       }
