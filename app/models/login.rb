@@ -10,6 +10,7 @@
 #  browser_token_ciphertext :text
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
+#  initial_login_id         :bigint
 #  user_id                  :bigint           not null
 #  user_session_id          :bigint
 #
@@ -17,6 +18,10 @@
 #
 #  index_logins_on_user_id          (user_id)
 #  index_logins_on_user_session_id  (user_session_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (initial_login_id => logins.id)
 #
 class Login < ApplicationRecord
   include AASM
@@ -39,7 +44,7 @@ class Login < ApplicationRecord
   validate do
     if user_session.present? && !complete?
       # how did we create session when it's not complete?!
-      Airbrake.notify("An incomplete login #{id} has a session #{session.id} present.")
+      Airbrake.notify("An incomplete login #{id} has a session #{user_session.id} present.")
       errors.add(:base, "An incomplete login has a session present.")
     end
   end

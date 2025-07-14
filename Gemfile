@@ -6,7 +6,7 @@ ruby File.read(File.join(File.dirname(__FILE__), ".ruby-version")).strip
 
 gem "dotenv-rails", groups: [:development, :test]
 
-gem "rails", "~> 7.2"
+gem "rails", git: "https://github.com/rails/rails.git", branch: "7-2-stable"
 
 gem "puma", "~> 6.6" # app server
 
@@ -43,7 +43,7 @@ gem "airrecord", "~> 1.0" # Airtable API for internal operations
 
 gem "twilio-ruby" # SMS notifications
 
-gem "google-apis-admin_directory_v1", "~> 0.60.0" # GSuite
+gem "google-apis-admin_directory_v1", "~> 0.66.0" # GSuite
 
 gem "pg_search" # full-text search
 
@@ -94,7 +94,7 @@ gem "grape-entity" # For Grape::Entity ( https://github.com/ruby-grape/grape-ent
 gem "grape-kaminari"
 gem "grape-route-helpers"
 gem "grape-swagger"
-gem "grape-swagger-entity", "~> 0.5"
+gem "grape-swagger-entity", "~> 0.6"
 
 gem "redcarpet" # markdown parsing
 gem "loofah" # html email parsing
@@ -106,6 +106,7 @@ gem "strong_migrations", "~> 1" # protects against risky migrations
 # [@garyhtou] ^ We still use Postgres 11 in dev (not in prod). Strong Migrations
 #               2.x is incompatible with Postgres 11.
 gem "xxhash" # fast hashing
+gem "memo_wise"
 
 gem "diffy" # rendering diffs (comments)
 
@@ -171,6 +172,8 @@ gem "query_count"
 gem "rack-mini-profiler", "~> 3.3"
 gem "stackprof" # used by `rack-mini-profiler` to provide flamegraphs
 
+gem "wkhtmltopdf-binary", "0.12.6.8"
+
 group :development do
   gem "annotate" # comment models with database schema
   gem "actual_db_schema" # rolls back phantom migrations
@@ -180,8 +183,6 @@ group :development do
   gem "web-console", ">= 3.3.0"
 
   gem "letter_opener_web" # preview emails
-
-  gem "wkhtmltopdf-binary", "0.12.6.8" # version must match the wkhtmltopdf Heroku buildpack version (0.12.3 by default)
 
   # Ruby language server
   gem "solargraph", require: false
@@ -224,6 +225,8 @@ gem "whitesimilarity"
 
 gem "rack-timeout", require: "rack/timeout/base"
 
-# IRB is pinned to 1.14.3 because Console1984 is incompatible with >=1.15.0.
-# https://github.com/basecamp/console1984/issues/127
-gem "irb", "~> 1.14.3"
+gem "irb"
+
+gem "pstore"
+
+gem "prosemirror_to_html"

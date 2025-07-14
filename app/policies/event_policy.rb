@@ -16,7 +16,6 @@ class EventPolicy < ApplicationPolicy
   alias_method :money_movement?, :show?
   alias_method :balance_transactions?, :show?
   alias_method :merchants_categories?, :show?
-  alias_method :top_categories?, :show?
   alias_method :tags_users?, :show?
   alias_method :transaction_heatmap?, :show?
 
@@ -47,7 +46,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def edit?
-    admin_or_reader?
+    auditor_or_member?
   end
 
   # pinning a transaction to an event
@@ -81,12 +80,16 @@ class EventPolicy < ApplicationPolicy
     is_public || auditor_or_reader?
   end
 
+  def announcement_overview?
+    true
+  end
+
   def emburse_card_overview?
     is_public || auditor_or_reader?
   end
 
   def card_overview?
-    (is_public || auditor_or_reader?) && record.approved? && record.plan.cards_enabled?
+    show? && record.approved? && record.plan.cards_enabled?
   end
 
   def new_stripe_card?
@@ -102,11 +105,11 @@ class EventPolicy < ApplicationPolicy
   end
 
   def statements?
-    is_public || auditor_or_reader?
+    show?
   end
 
   def async_balance?
-    is_public || auditor_or_reader?
+    show?
   end
 
   def create_transfer?
@@ -130,7 +133,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def transfers?
-    (is_public || auditor_or_reader?) && record.plan.transfers_enabled?
+    show? && record.plan.transfers_enabled?
   end
 
   def promotions?
@@ -138,7 +141,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def reimbursements_pending_review_icon?
-    is_public || auditor_or_reader?
+    show?
   end
 
   def reimbursements?
@@ -150,7 +153,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def donation_overview?
-    (is_public || auditor_or_reader?) && record.approved? && record.plan.donations_enabled?
+    show? && record.approved? && record.plan.donations_enabled?
   end
 
   def account_number?
@@ -199,6 +202,10 @@ class EventPolicy < ApplicationPolicy
     auditor? || reader?
   end
 
+  def auditor_or_member?
+    auditor? || member?
+  end
+
   def admin?
     user&.admin?
   end
@@ -207,16 +214,16 @@ class EventPolicy < ApplicationPolicy
     user&.auditor?
   end
 
-  def member?
-    OrganizerPosition.role_at_least?(user, record, :member)
-  end
-
   def reader?
     OrganizerPosition.role_at_least?(user, record, :reader)
   end
 
+  def member?
+    OrganizerPosition.role_at_least?(user, record, :member)
+  end
+
   def manager?
-    OrganizerPosition.find_by(user:, event: record)&.manager?
+    OrganizerPosition.role_at_least?(user, record, :manager)
   end
 
   def admin_or_manager?
