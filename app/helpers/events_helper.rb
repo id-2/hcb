@@ -21,7 +21,7 @@ module EventsHelper
         name: "Announcements",
         path: event_announcement_overview_path(event_id: event.slug),
         tooltip: "View your announcements",
-        icon: "announcements",
+        icon: "announcement",
         selected: selected == :announcements,
       }
     end

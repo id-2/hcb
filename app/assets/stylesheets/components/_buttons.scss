@@ -75,6 +75,14 @@ input[type='submit'],
   &.bg-primary {
     background-color: map-get($palette, primary);
     color: $white;
+
+    &:hover {
+      background-color: darken(map-get($palette, primary), 5%);
+    }
+
+    &:active, &:focus {
+      background-color: darken(map-get($palette, primary), 10%);
+    }
   }
 
   &.bg-smoke {
@@ -146,7 +154,15 @@ input[type='submit'],
 .btn.bg-info,
 input[type='submit'] {
   background-color: map-get($palette, info);
-  color: $white;
+  color: $white !important;
+
+  &:hover {
+    background-color: darken(map-get($palette, info), 5%);
+  }
+
+  &:active, &:focus {
+    background-color: darken(map-get($palette, info), 10%);
+  }
 }
 
 .btn-small {
