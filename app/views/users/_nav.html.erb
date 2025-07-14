@@ -30,7 +30,7 @@
       tooltip: "See announcements for organizations you're following",
       icon: "announcement",
       selected: local_assigns[:selected] == :feed if current_user.followed_events.any? %>
-    <%= dock_item "Cards",
+    <%= dock_item "Cards & Grants",
       my_cards_path,
       tooltip: "See all your cards",
       icon: "card",
@@ -77,7 +77,7 @@
       tooltip: "See all your organizations",
       icon: "home",
       selected: local_assigns[:selected] == :home %>
-    <%= dock_item "Cards",
+    <%= dock_item "Cards & Grants",
       my_cards_path,
       tooltip: "See all your cards",
       icon: "card",
