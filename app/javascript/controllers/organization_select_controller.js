@@ -10,7 +10,7 @@ export default class extends Controller {
     'wrapper',
     'field',
     'other',
-    'balance'
+    'balance',
   ]
   static values = {
     state: Boolean,
@@ -132,12 +132,14 @@ export default class extends Controller {
         if (this.hasBalanceTarget) {
           let usdFormatter = new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD'
-          });
+            currency: 'USD',
+          })
 
-          let formattedAmount = usdFormatter.format(Number(organization.dataset['balance']) / 100);
+          let formattedAmount = usdFormatter.format(
+            Number(organization.dataset['balance']) / 100
+          )
 
-          this.balanceTarget.innerText = formattedAmount;
+          this.balanceTarget.innerText = formattedAmount
         }
 
         close()
