@@ -4,6 +4,7 @@ class Event
   class FollowPolicy < ApplicationPolicy
     def create?
       return false if !record.event.is_public && !OrganizerPosition.role_at_least?(user, record.event, :reader)
+
       user == record.user
     end
 
