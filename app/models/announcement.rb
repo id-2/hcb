@@ -34,6 +34,8 @@ class Announcement < ApplicationRecord
   belongs_to :author, class_name: "User"
   belongs_to :event
 
+  before_save :autofollow_organizers
+
   scope :published, -> { where.not(published_at: nil) }
 
   def publish!
@@ -56,6 +58,20 @@ class Announcement < ApplicationRecord
 
   def published?
     !draft?
+  end
+
+  private
+
+  def autofollow_organizers
+    # is this the first announcement to be published?
+    if published? && event.announcements.published.none?
+      event.users.find_each do |user|
+        unless event.followers.contains(user)
+          EventFollow.create({ user:, event: event })
+        end
+      end
+    end
+
   end
 
 end
