@@ -69,8 +69,6 @@ class Announcement < ApplicationRecord
     end
   end
 
-  scope :published, -> { where.not(published_at: nil) }
-
   private
 
   def autofollow_organizers
