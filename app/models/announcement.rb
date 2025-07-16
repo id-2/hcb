@@ -33,7 +33,7 @@ class Announcement < ApplicationRecord
 
   has_paper_trail
   acts_as_paranoid
- 
+
   before_save :autofollow_organizers
 
   scope :published, -> { where.not(published_at: nil) }
