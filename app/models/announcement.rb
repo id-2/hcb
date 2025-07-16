@@ -55,10 +55,9 @@ class Announcement < ApplicationRecord
   belongs_to :author, class_name: "User"
   belongs_to :event
 
-  before_save
-      if draft?
-        self.rendered_email_html = ProsemirrorService::Renderer.render_html(content, event, is_email: true)
-      end
+  before_save do
+    if draft?
+      self.rendered_email_html = ProsemirrorService::Renderer.render_html(content, event, is_email: true)
     end
   end
 
