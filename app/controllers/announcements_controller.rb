@@ -19,7 +19,7 @@ class AnnouncementsController < ApplicationController
     json_content = params[:announcement][:json_content]
     @event = Event.friendly.find(params[:announcement][:event_id])
 
-    @announcement = authorize Announcement.build(announcement_params.merge(author: current_user, event: @event, content: json_content ))
+    @announcement = authorize Announcement.build(announcement_params.merge(author: current_user, event: @event, content: json_content))
 
     @announcement.save!
 

@@ -7,6 +7,7 @@ export const HcbCodeNode = Node.create({
   addAttributes() {
     return {
       code: {},
+      html: {}
     }
   },
   renderHTML({ HTMLAttributes }) {

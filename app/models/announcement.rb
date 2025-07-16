@@ -62,14 +62,24 @@ class Announcement < ApplicationRecord
   belongs_to :author, class_name: "User"
   belongs_to :event
 
-  before_save do
-    if content_changed?
-      self.rendered_html = ProsemirrorService::Renderer.render_html(content, event)
+  before_create :initial_render
 
-      if draft?
-        self.rendered_email_html = ProsemirrorService::Renderer.render_html(content, event, is_email: true)
-      end
+  def render_html
+    ProsemirrorService::Renderer.render_html(content, event)
+  end
+
+  def initial_render
+    document_hash = JSON.parse(self.content)
+
+    new_content = document_hash["content"].map do |node|
+      ProsemirrorService::Renderer.render_custom_node node, self.event
     end
+
+    document_hash[:content] = new_content
+
+    self.content = document_hash.to_json
+
+    self
   end
 
 end

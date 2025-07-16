@@ -8,7 +8,7 @@ module ProsemirrorService
     @tag_name = "div"
 
     def tag
-      [{ tag: self.class.tag_name, attrs: (@node.attrs.to_h || {}).merge({ class: "donationSummary relative card shadow-none border flex flex-col py-2 my-2" }) }]
+      [{ tag: self.class.tag_name, attrs: (@node.attrs.to_h&.except(:html) || {}).merge({ class: "donationSummary relative card shadow-none border flex flex-col py-2 my-2" }) }]
     end
 
     def matching
@@ -16,13 +16,17 @@ module ProsemirrorService
     end
 
     def text
-      event = ProsemirrorService::Renderer.context.fetch(:event)
+      if @node.attrs.html.present?
+        @node.attrs.html
+      else
+        event = ProsemirrorService::Renderer.context.fetch(:event)
 
-      start_date = @node.attrs.startDate.present? ? Date.parse(@node.attrs.startDate) : 1.month.ago
-      donations = event.donations.where(aasm_state: [:in_transit, :deposited], created_at: start_date..).order(:created_at)
-      total = donations.sum(:amount)
+        start_date = @node.attrs.startDate.present? ? Date.parse(@node.attrs.startDate) : 1.month.ago
+        donations = event.donations.where(aasm_state: [:in_transit, :deposited], created_at: start_date..).order(:created_at)
+        total = donations.sum(:amount)
 
-      AnnouncementsController.renderer.render partial: "announcements/nodes/donation_summary", locals: { donations:, total:, start_date: }
+        AnnouncementsController.renderer.render partial: "announcements/nodes/donation_summary", locals: { donations:, total:, start_date: }
+      end
     end
 
   end

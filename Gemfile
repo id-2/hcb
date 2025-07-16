@@ -230,3 +230,5 @@ gem "irb"
 gem "pstore"
 
 gem "prosemirror_to_html"
+
+gem "nokogiri", "~> 1.18"

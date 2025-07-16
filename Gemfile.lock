@@ -949,6 +949,7 @@ DEPENDENCIES
   monetize
   money-rails
   namae
+  nokogiri (~> 1.18)
   paper_trail (~> 16.0.0)
   pg (>= 0.18, < 2.0)
   pg_search
