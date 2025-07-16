@@ -64,8 +64,11 @@ class Announcement < ApplicationRecord
 
   before_save :autofollow_organizers
   before_save do
-    if draft?
-      self.rendered_email_html = ProsemirrorService::Renderer.render_html(content, event, is_email: true)
+    if content_changed?
+      self.rendered_html = ProsemirrorService::Renderer.render_html(content, event)
+      if draft?
+        self.rendered_email_html = ProsemirrorService::Renderer.render_html(content, event, is_email: true)
+      end
     end
   end
 
