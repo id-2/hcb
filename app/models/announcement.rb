@@ -79,8 +79,17 @@ class Announcement < ApplicationRecord
     # is this the first announcement to be published?
     if published? && event.announcements.published.none?
       event.users.find_each do |user|
-        unless event.followers.find(user.id)
-          Event::Follow.find_or_create_by({ user_id: user.id, event_id: event.id })
+        unless event.followers.where({ id: user.id }).any?
+          attrs = {
+            user_id: user.id,
+            event:
+          }
+          follow = Event::Follow.new(attrs)
+          begin
+            follow.save!
+          rescue ActiveRecord::RecordNotUnique
+            # Do nothing. The user already follows this event.
+          end
         end
       end
     end
