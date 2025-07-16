@@ -13,7 +13,7 @@
   <% end %>
 
   <nav class="dock hidden sm:flex mt-4 font-medium">
-    <% events_mobile_nav(@event, selected: local_assigns[:selected]).each do |item| %>
+    <% events_nav(@event, selected: local_assigns[:selected]).each do |item| %>
       <% if item[:section] %>
         <span class="mx-1 dock__section"><%= item[:section] %></span>
         <hr class="opacity-40 dark:bg-neutral-600 h-0.5">

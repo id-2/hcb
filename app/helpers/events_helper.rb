@@ -3,7 +3,7 @@
 require "cgi"
 
 module EventsHelper
-  def events_mobile_nav(event = @event, selected: nil)
+  def events_nav(event = @event, selected: nil)
     items = []
 
     if Flipper.enabled?(:event_home_page_redesign_2024_09_21, @event)
