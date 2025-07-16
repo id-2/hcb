@@ -71,13 +71,9 @@ class Announcement < ApplicationRecord
   def initial_render
     document_hash = JSON.parse(self.content)
 
-    new_content = document_hash["content"].map do |node|
-      ProsemirrorService::Renderer.render_custom_node node, self.event
-    end
+    new_document = ProsemirrorService::Renderer.process_document(document_hash, self.event)
 
-    document_hash[:content] = new_content
-
-    self.content = document_hash.to_json
+    self.content = new_document.to_json
 
     self
   end

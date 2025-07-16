@@ -46,13 +46,28 @@ module ProsemirrorService
         end
       end
 
-      def render_custom_node(node, event)
-        if CUSTOM_NODES.keys.include? node["type"].to_sym
-          if node["attrs"].nil?
-            node["attrs"] = {}
-          end
+      def process_document(document, event)
+        new_content = document["content"].map do |node|
+          process_custom_node node, event, render: true
+        end
 
-          node["attrs"]["html"] = render_html({ content: [node] }, event, single_node: true)
+        document[:content] = new_content
+
+        document
+      end
+
+      def process_custom_node(node, event, server_doc: nil)
+        if CUSTOM_NODES.keys.include? node["type"].to_sym
+          if render
+            if node["attrs"].nil?
+              node["attrs"] = {}
+            end
+
+            node["attrs"]["html"] = render_html({ content: [node] }, event, single_node: true)
+            node["attrs"]["id"] = SecureRandom.uuid
+          else
+            node["attrs"]&.delete("html")
+          end
         elsif node["content"].present? && node["content"].size > 0
           node["content"] = node["content"].map do |child|
             render_custom_node child
