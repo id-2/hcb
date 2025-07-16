@@ -53,6 +53,10 @@ class Event
       type == Event::Plan::Standard.name
     end
 
+    def receipts_required?
+      type == Event::Plan::SalaryAccount.name
+    end
+
     def was_backfilled?
       created_at < Date.new(2024, 8, 24)
     end

@@ -36,9 +36,7 @@ class StripeController < ActionController::Base
     service = ::StripeAuthorizationService::Webhook::HandleIssuingAuthorizationRequest.new(stripe_event: event)
     approved = service.run
 
-    try_lock_cards? = service.event.plan != Event::Plan::SalaryAccount.name
-
-    if approved && try_lock_cards?
+    if approved && service.event.plan.receipts_required?
       user = service.card.user
       ::User::UpdateCardLockingJob.perform_later(user:)
       ::User::SendCardLockingNotificationJob.perform_later(user:)
