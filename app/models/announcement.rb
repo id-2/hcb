@@ -79,8 +79,8 @@ class Announcement < ApplicationRecord
     # is this the first announcement to be published?
     if published? && event.announcements.published.none?
       event.users.find_each do |user|
-        unless event.followers.contains(user)
-          EventFollow.create({ user:, event: event })
+        unless event.followers.find(user.id)
+          Event::Follow.find_or_create_by({ user_id: user.id, event_id: event.id })
         end
       end
     end
