@@ -34,9 +34,6 @@ class Announcement < ApplicationRecord
   has_paper_trail
   acts_as_paranoid
 
-  before_save :autofollow_organizers
-
-  scope :published, -> { where.not(published_at: nil) }
   aasm timestamps: true do
     state :draft, initial: true
     state :published
@@ -55,11 +52,14 @@ class Announcement < ApplicationRecord
   belongs_to :author, class_name: "User"
   belongs_to :event
 
+  before_save :autofollow_organizers
   before_save do
     if draft?
       self.rendered_email_html = ProsemirrorService::Renderer.render_html(content, event, is_email: true)
     end
   end
+
+  scope :published, -> { where.not(published_at: nil) }
 
   private
 
