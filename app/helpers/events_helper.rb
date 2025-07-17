@@ -120,14 +120,14 @@ module EventsHelper
   private
 
   def validate_date_range(base, params)
-    before = params["#{base}_before"]
-    after = params["#{base}_after"]
-    return unless before.present? && after.present?
+    less = params["#{base}_before"]
+    greater = params["#{base}_after"]
+    return unless less.present? && greater.present?
 
     begin
-      before_date = Date.parse(before)
-      after_date  = Date.parse(after)
-      if after_date > before_date
+      less_date = Date.parse(less)
+      greater_date  = Date.parse(greater)
+      if greater_date < less_date
         flash[:error] = "Invalid date range: 'after' date is greater than 'before' date"
       end
     rescue ArgumentError
