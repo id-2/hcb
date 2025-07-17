@@ -32,7 +32,6 @@
       <div class="menu__divider"></div>
 
       <% filters.each do |filter| %>
-        <% base_key = filter[:key].to_s.sub("_*", "") %>
         <div data-tabs-target="tab" id="<%= filter[:label] %>">
           <% case filter[:type] %>
           <% when "select" %>
@@ -42,18 +41,18 @@
             <% filter[:options].each do |option| %>
               <% label, value = option.is_a?(Array) ? option : [option.humanize, option] %>
               <%= link_to label,
-                          upsert_query_params(base_key => value),
-                          class: "menu__action !border-none #{'menu__action--active' if params[base_key] == value.to_s}" %>
+                          upsert_query_params(filter[:key] => value),
+                          class: "menu__action !border-none #{'menu__action--active' if params[filter[:key]] == value.to_s}" %>
             <% end %>
 
           <% when "date_range" %>
             <%= form_with(model: nil, local: true, method: :get, class: "flex-auto p1") do |form| %>
               <% ["after", "before"].each do |suffix| %>
                 <label class="bold"><%= suffix.humanize %>...</label>
-                <%= form.date_field "#{base_key}_#{suffix}", class: "border mb1", value: params["#{base_key}_#{suffix}"] %>
+                <%= form.date_field "#{filter[:key_base]}_#{suffix}", class: "border mb1", value: params["#{filter[:key_base]}_#{suffix}"] %>
               <% end %>
 
-              <% request.query_parameters.except("#{base_key}_before", "#{base_key}_after").each do |k, v| %>
+              <% request.query_parameters.except("#{filter[:key_base]}_before", "#{filter[:key_base]}_after").each do |k, v| %>
                 <%= hidden_field_tag k, v %>
               <% end %>
 
@@ -66,11 +65,11 @@
                   <label class="bold"><%= suffix.humanize %>...</label>
                   <div class="input p-0 mb-2 flex border border-gray-200 dark:bg-darkless dark:border-0 rounded-lg px-3 items-center">
                     <span class="bold muted text-md" style="width: 1rem;">$</span>
-                    <%= form.number_field "#{base_key}_#{suffix}", class: "bg-transparent !border-none", value: params["#{base_key}_#{suffix}"] %>
+                    <%= form.number_field "#{filter[:key_base]}_#{suffix}", class: "bg-transparent !border-none", value: params["#{filter[:key_base]}_#{suffix}"] %>
                   </div>
                 <% end %>
 
-              <% request.query_parameters.except("#{base_key}_less_than", "#{base_key}_greater_than").each do |k, v| %>
+              <% request.query_parameters.except("#{filter[:key_base]}_less_than", "#{filter[:key_base]}_greater_than").each do |k, v| %>
                 <%= hidden_field_tag k, v %>
               <% end %>
 

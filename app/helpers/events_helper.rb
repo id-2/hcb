@@ -94,15 +94,12 @@ module EventsHelper
   def check_filters?(filter_options, params)
     filter_options.any? do |opt|
       key = opt[:key].to_s
-      base = key.delete_suffix("_*")
 
       case opt[:type]
       when "date_range"
-        key.end_with?("_*") &&
-          (params["#{base}_before"].present? || params["#{base}_after"].present?)
+          params["#{opt[:key_base]}_before"].present? || params["#{opt[:key_base]}_after"].present?
       when "amount_range"
-        key.end_with?("_*") &&
-          (params["#{base}_less_than"].present? || params["#{base}_greater_than"].present?)
+          params["#{opt[:key_base]}_less_than"].present? || params["#{opt[:key_base]}_greater_than"].present?
       else
         params[key].present?
       end
@@ -111,14 +108,11 @@ module EventsHelper
 
   def validate_filter_options(filter_options, params)
     filter_options.each do |opt|
-      key = opt[:key].to_s
-      base = key.delete_suffix("_*")
-
       case opt[:type]
       when "date_range"
-        validate_date_range(base, params)
+        validate_date_range(opt[:key_base], params)
       when "amount_range"
-        validate_amount_range(base, params)
+        validate_amount_range(opt[:key_base], params)
       end
     end
   end

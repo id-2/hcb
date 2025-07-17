@@ -6,6 +6,12 @@ class InvoicesController < ApplicationController
   before_action :set_event, only: [:index, :new, :create]
   skip_before_action :signed_in_user
 
+  INVOICE_FILTERS = [
+    { key: "status", label: "Status", type: "select", options: %w[paid unpaid archived voided] },
+    { key_base: "created", label: "Date", type: "date_range" },
+    { key_base: "amount", label: "Amount", type: "amount_range" }
+  ].freeze
+
   def index
     relation = @event.invoices
     authorize relation
@@ -96,13 +102,9 @@ class InvoicesController < ApplicationController
       end
     end
 
-    @filter_options = [
-      { key: "status", label: "Status", type: "select", options: %w[paid unpaid archived voided] },
-      { key: "created_*", label: "Date", type: "date_range" },
-      { key: "amount_*", label: "Amount", type: "amount_range" },
-    ]
-    helpers.validate_filter_options(@filter_options, params)
-    @has_filter = helpers.check_filters?(@filter_options, params)
+    @filter_options = INVOICE_FILTERS
+    helpers.validate_filter_options(INVOICE_FILTERS, params)
+    @has_filter = helpers.check_filters?(INVOICE_FILTERS, params)
   end
 
   def new
