@@ -545,6 +545,14 @@ html[data-ai-loading='true'] > .turbo-progress-bar {
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .user-home-section {
+    @extend .heading;
+    @extend .h2;
+    @apply line-height-4 my-2 mr-auto py-2 px-4 border-none ml-0 pl-0 text-left;
+  }
+}
+
 @layer base {
   pre,
   code {
