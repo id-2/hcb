@@ -37,6 +37,9 @@
     <% current_user.card_grants.includes(:stripe_card).activated.each do |grant| %>
       <%= render grant.stripe_card, headless: true, show_purpose: true, href: card_grant_path(grant) %>
     <% end %>
+    <% if current_user.card_grants.activated.size.odd? %>
+      <div></div>
+    <% end %>
   </div>
 <% end %>
 
