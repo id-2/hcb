@@ -126,7 +126,7 @@ module EventsHelper
 
     begin
       less_date = Date.parse(less)
-      greater_date  = Date.parse(greater)
+      greater_date = Date.parse(greater)
       if greater_date < less_date
         flash[:error] = "Invalid date range: 'after' date is greater than 'before' date"
       end
