@@ -5,6 +5,7 @@
 # Table name: announcements
 #
 #  id                  :bigint           not null, primary key
+#  aasm_state          :string
 #  content             :jsonb            not null
 #  deleted_at          :datetime
 #  published_at        :datetime
@@ -28,16 +29,40 @@
 #
 class Announcement < ApplicationRecord
   include Hashid::Rails
+  include AASM
+
   has_paper_trail
   acts_as_paranoid
+
+  aasm timestamps: true do
+    # When we create a template and prompt it to users, it's in this
+    # `template_draft` so that it's "unlisted" on the index page.
+    state :template_draft
+
+    state :draft, initial: true
+    state :published
+
+    event :mark_published do
+      transitions from: :draft, to: :published
+
+      after do
+        AnnouncementPublishedJob.perform_later(announcement: self)
+      end
+    end
+
+    event :mark_draft do
+      transitions from: :template_draft, to: :draft
+    end
+  end
+
+  scope :saved, -> { where.not(aasm_state: :template_draft) }
 
   validates :content, presence: true
 
   belongs_to :author, class_name: "User"
   belongs_to :event
 
-  scope :published, -> { where.not(published_at: nil) }
-
+  before_save :autofollow_organizers
   before_save do
     if content_changed?
       self.rendered_html = ProsemirrorService::Renderer.render_html(content, event)
@@ -48,18 +73,18 @@ class Announcement < ApplicationRecord
     end
   end
 
-  def publish!
-    update!(published_at: Time.now)
+  private
 
-    AnnouncementPublishedJob.perform_later(announcement: self)
-  end
+  def autofollow_organizers
+    # is this the first announcement to be published?
+    if published? && event.announcements.published.none?
+      event.users.excluding(event.followers).find_each do |user|
+        event.event_follows.create!(user:)
 
-  def draft?
-    published_at.nil?
-  end
-
-  def published?
-    !draft?
+      rescue ActiveRecord::RecordNotUnique
+        # Do nothing. The user already follows this event.
+      end
+    end
   end
 
 end
