@@ -7,17 +7,17 @@
     @apply fixed top-0 left-0 w-screen lg:w-72 lg:h-screen flex items-center lg:items-start lg:flex-col
       overflow-x-visible border border-t-0 border-x-0 lg:border-r lg:border-b-0 lg:border-l-0
       backdrop-blur-xl z-10 lg:shadow-lg;
-    
-      background-color: rgba(255, 255, 255, 0.8);
-      border-color: rgba(200, 200, 200, 0.5);
 
-      [data-dark='true'] & {
-        background-color: rgba(37, 36, 41, 0.5);
-      }
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(200, 200, 200, 0.5);
 
-      @media (max-width: 768px) {
-        height: 64px;
-      }
+    [data-dark='true'] & {
+      background-color: rgba(37, 36, 41, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      height: 64px;
+    }
 
     .sidebar--scroll-container {
       @apply flex-1 overflow-y-auto scrollbar-hidden pointer-events-none flex items-center lg:items-start w-full;
