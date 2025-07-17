@@ -10,7 +10,6 @@
         <th>Type</th>
         <th>Status</th>
         <th>Issued on</th>
-        <th></th>
       </tr>
       </thead>
       <tbody>
@@ -40,11 +39,7 @@
           <%# Date issued %>
           <td>
             <%= format_date c.created_at %>
-          </td>
-
-          <td>
-
-            <%= link_to "Details", stripe_card_path(c), class: "stretched-link", data: @show_card_popovers && { behavior: "modal_trigger", modal: "card_popover_#{c.id}" } if organizer_signed_in? && !@event.demo_mode %>
+            <%= link_to "", stripe_card_path(c), class: "stretched-link", data: @show_card_popovers && { behavior: "modal_trigger", modal: "card_popover_#{c.id}" } if organizer_signed_in? && !@event.demo_mode %>
           </td>
         </tr>
 

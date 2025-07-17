@@ -63,7 +63,6 @@
       <th>Date</th>
       <th>To</th>
       <th class="text-right">Amount</th>
-      <th></th>
     </tr>
   </thead>
 
@@ -81,10 +80,8 @@
         </td>
         <td style="text-align: right;">
           <%= render_money(i.item_amount) %>
+          <%= link_to "", hcb_code_url(i.local_hcb_code.hashid), class: "stretched-link", data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{i.local_hcb_code.hashid}" } if organizer_signed_in? %>
         </td>
-        <th scope="row">
-          <%= link_to "Details", hcb_code_url(i.local_hcb_code.hashid), class: "stretched-link", data: Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user) && { turbo_frame: "_top", behavior: "modal_trigger", modal: "transaction_details_#{i.local_hcb_code.hashid}" } if organizer_signed_in? %>
-        </th>
       </tr>
       <% if (Flipper.enabled?(:hcb_code_popovers_2023_06_16, current_user)) %>
         <section class="modal modal--scroll modal--popover bg-snow" data-behavior="modal" role="dialog" id="transaction_details_<%= i.local_hcb_code.hashid %>" data-state-url="<%= hcb_code_url(i.local_hcb_code.hashid) %>" data-state-title="<%= "#{i.sponsor.name} invoiced for #{render_money(i.item_amount)}" %>">

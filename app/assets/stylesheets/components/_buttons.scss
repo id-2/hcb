@@ -118,10 +118,28 @@ input[type='submit'],
 
   &.bg-purple {
     @include gradient(purple);
+    color: $white;
+
+    &:hover {
+      background: darken(map-get($palette, purple), 5%);
+    }
+    &:active,
+    &:focus {
+      background: darken(map-get($palette, purple), 10%);
+    }
   }
 
   &.bg-slate {
     @include gradient(slate);
+    color: $white;
+
+    &:hover {
+      background: darken(map-get($palette, slate), 5%);
+    }
+    &:active,
+    &:focus {
+      background: darken(map-get($palette, slate), 10%);
+    }
   }
 
   &.bg-ai {
@@ -144,7 +162,15 @@ input[type='submit'],
 
   &.bg-accent {
     background-color: map-get($palette, accent);
-    color: darken(map-get($palette, accent), 40%) !important;
+    color: darken(map-get($palette, accent), 50%);
+
+    &:hover {
+      background-color: darken(map-get($palette, accent), 5%);
+    }
+    &:active,
+    &:focus {
+      background-color: darken(map-get($palette, accent), 10%);
+    }
   }
 
   &.bg-error,
