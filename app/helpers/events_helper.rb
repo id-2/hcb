@@ -97,9 +97,9 @@ module EventsHelper
 
       case opt[:type]
       when "date_range"
-          params["#{opt[:key_base]}_before"].present? || params["#{opt[:key_base]}_after"].present?
+        params["#{opt[:key_base]}_before"].present? || params["#{opt[:key_base]}_after"].present?
       when "amount_range"
-          params["#{opt[:key_base]}_less_than"].present? || params["#{opt[:key_base]}_greater_than"].present?
+        params["#{opt[:key_base]}_less_than"].present? || params["#{opt[:key_base]}_greater_than"].present?
       else
         params[key].present?
       end
