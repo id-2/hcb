@@ -118,7 +118,7 @@
 
 // Circular button
 .pop {
-  border-radius: 9999px;
+  border-radius: 5px;
   color: map-get($palette, info);
   background-color: rgba(map-get($palette, info), 0.125);
   flex-shrink: 0;
@@ -131,7 +131,7 @@
   width: 36px;
   transition: box-shadow 0.125s ease-in-out;
   outline: none;
-  border: none;
+  border: 1px solid rgba(map-get($palette, info), 0.25);
 
   &[disabled] {
     opacity: 0.5;
@@ -140,7 +140,9 @@
 
   &:hover,
   &:focus {
-    box-shadow: 0 0 0 2px currentColor;
+    box-shadow:
+      var(--shadow-border-md),
+      inset 0 0 0px 0.5px rgba(0, 0, 0, 0.1);
   }
 
   &.no_hover:hover,
