@@ -137,7 +137,7 @@ class EventPolicy < ApplicationPolicy
   end
 
   def card_grant_overview?
-    (is_public || auditor_or_reader?) && record.plan.card_grants_enabled?
+    (is_public || auditor_or_reader?) && (record.plan.card_grants_enabled? || record.card_grants.any?)
   end
 
   def promotions?
