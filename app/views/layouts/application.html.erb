@@ -83,7 +83,7 @@
                     back_to_tour: @back_to_tour %>
     
 
-  <div class="pt-[64px] lg:pt-16 -mb-16 lg:pl-72 -mt-4 empty:hidden banner-container">
+  <div class="pt-[64px] lg:pt-0 -mb-16 lg:mb-0 lg:pl-72 -mt-4 empty:hidden banner-container">
     <%= render "application/maintenance_banner",
               datetime: "2025-05-07T00:00:00-08:00",
               duration: 30.minutes,
@@ -95,7 +95,7 @@
         </p>
       </div>
     <% end %>
-    <% if current_user&.cards_locked? %>
+    <% if !current_user&.cards_locked? %>
       <div class="w-100 px4 bg-white transparency-banner">
         <p class="h5 medium center py-2">
           Your cards are currently locked because you have 10 or more missing receipts. <%= link_to "Manage your receipts", my_inbox_path %>
