@@ -95,7 +95,7 @@
         </p>
       </div>
     <% end %>
-    <% if !current_user&.cards_locked? %>
+    <% if current_user&.cards_locked? %>
       <div class="w-100 px4 bg-white transparency-banner">
         <p class="h5 medium center py-2">
           Your cards are currently locked because you have 10 or more missing receipts. <%= link_to "Manage your receipts", my_inbox_path %>
