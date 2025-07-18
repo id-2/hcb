@@ -17,6 +17,7 @@
     border-top-width: 0px;
 
     [data-dark='true'] & {
+      border-color: rgba(200, 200, 200, 0.1);
       background-color: rgba(37, 36, 41, 0.5);
     }
 
