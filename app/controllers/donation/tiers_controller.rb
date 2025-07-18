@@ -119,7 +119,7 @@ class Donation
     private
 
     def set_event
-      @event = Event.where(slug: params[:event_name] || params[:event_id]).first
+      @event = Event.where(slug: params[:event_id]).first
       render json: { error: "Event not found" }, status: :not_found unless @event
     end
 
