@@ -3,6 +3,9 @@
   border-radius: var(--radius-md);
   height: 36px;
   padding: 4px;
+  overflow-x: auto;
+  display: flex;
+  max-width: 100%;
 }
 
 .pagination a,

@@ -30,7 +30,7 @@ html[data-dark='true'] {
   .input,
   textarea {
     color: map-get($palette, white);
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.1);
     border-width: 0.5px;
 
     &:focus-within {
@@ -61,7 +61,7 @@ html[data-dark='true'] {
   .details-horiz > div:not(:last-of-type),
   .details-horiz > .details-horiz__col,
   tr {
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.125);
   }
   tr.transaction--positive,
   tr.transaction--negative {

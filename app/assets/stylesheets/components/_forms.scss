@@ -9,10 +9,11 @@ input[type='url'],
 .input,
 select,
 textarea {
+  @apply dark:border-gray-700 border-gray-200;
   -webkit-appearance: none;
   background-color: transparent;
   border-radius: 6px;
-  border: 1px solid map-get($palette, smoke);
+  border: 1px solid rgba(200, 200, 200, 0.3);
   color: inherit;
   display: block;
   font-size: 1rem;

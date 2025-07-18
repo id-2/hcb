@@ -17,8 +17,17 @@
     border-top-width: 0px;
 
     [data-dark='true'] & {
-      border-color: rgb(37, 36, 41) !important;
+      border-color: rgba(200, 200, 200, 0.1) !important;
       background-color: rgba(37, 36, 41, 0.5);
+
+      & hr {
+        background: rgba(200, 200, 200, 0.3) !important;
+      }
+    }
+
+    & .command-bar-trigger {
+      @apply h-10 bg-smoke shadow-none w-100 justify-start px-3 hover:shadow-none hidden md:flex;
+      border: 0px !important;
     }
 
     @media (max-width: 768px) {
