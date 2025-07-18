@@ -26,8 +26,13 @@
     }
 
     & .command-bar-trigger {
-      @apply h-10 bg-smoke shadow-none w-100 justify-start px-3 hover:shadow-none hidden md:flex;
-      border: 0px !important;
+      @apply h-10 shadow-none w-100 justify-start px-3 hover:shadow-none hidden md:flex bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 border-none flex items-center cursor-pointer;
+      color: inherit;
+      font-size: 15px;
+
+      & .key {
+        background: rgba(200, 200, 200, 0.3);
+      }
     }
 
     @media (max-width: 768px) {

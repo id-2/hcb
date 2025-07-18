@@ -6,14 +6,14 @@
 <% content_for(:nav) do %>
   <div class="mt-5 mb-3">
     <button
-      class="command-bar-trigger btn"
-      style="border-radius: 8px"
+      class="command-bar-trigger "
+      style="border-radius: 8px;box-shadow: none;"
       data-behavior="command_bar_trigger">
       <span class="flex-grow text-left font-medium">Jump to...</span>
-      <span class="bg-gray-300 dark:bg-neutral-600 opacity-75 <%= request.user_agent.to_s.upcase.include?("MAC") ? "w-6" : "w-9" %> rounded-md mr-2 text-sm">
+      <span class="key opacity-75 <%= request.user_agent.to_s.upcase.include?("MAC") ? "w-6" : "w-9" %> rounded-md mr-2 text-sm">
         <%= request.user_agent.to_s.upcase.include?("MAC") ? "⌘" : "Ctrl" %>
       </span>
-      <span class="bg-gray-300 dark:bg-neutral-600 opacity-75 w-6 rounded-md text-sm">
+      <span class="key opacity-75 w-6 rounded-md text-sm">
         K
       </span>
     </button>
