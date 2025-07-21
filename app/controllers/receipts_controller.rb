@@ -298,7 +298,11 @@ class ReceiptsController < ApplicationController
     end
 
     if @receipt
-      streams.append(turbo_stream.remove("modal_receipt_#{@receipt.id}"))
+      if @frame
+        streams.append(turbo_stream.remove("modal_receipt_#{@receipt.id}"))
+      else
+        streams.append(turbo_stream.remove("receipt_#{@receipt.id}"))
+      end
     end
 
     # if @frame
