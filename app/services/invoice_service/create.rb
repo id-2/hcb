@@ -105,7 +105,7 @@ module InvoiceService
         item_description: @item_description,
         item_amount: clean_item_amount,
         sponsor:,
-        statement_descriptor: StripeService::StatementDescriptor.format(event.name, as: :full),
+        statement_descriptor: StripeService::StatementDescriptor.format(event.short_name, as: :full),
         creator: @current_user
       }
     end
@@ -143,7 +143,7 @@ module InvoiceService
     end
 
     def event
-      @event ||= Event.friendly.find(@event_id)
+      @event ||= Event.find(@event_id)
     end
 
   end

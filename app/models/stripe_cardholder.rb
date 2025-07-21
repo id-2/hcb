@@ -33,20 +33,26 @@ class StripeCardholder < ApplicationRecord
   include HasStripeDashboardUrl
   has_stripe_dashboard_url "issuing/cardholders", :stripe_id
 
-  enum cardholder_type: { individual: 0, company: 1 }
+  enum :cardholder_type, { individual: 0, company: 1 }
 
   belongs_to :user
   has_many :stripe_cards
-  alias_attribute :cards, :stripe_cards
+  alias_method :cards, :stripe_cards
   has_many :stripe_authorizations, through: :stripe_cards
-  alias_attribute :authorizations, :stripe_authorizations
-  alias_attribute :transactions, :stripe_authorizations
+  alias_method :authorizations, :stripe_authorizations
+  alias_method :transactions, :stripe_authorizations
 
   validates_uniqueness_of :stripe_id
 
   validates :stripe_billing_address_line1, presence: true, on: :update
   validates :stripe_billing_address_city, presence: true, on: :update
   validates :stripe_billing_address_country, presence: true, on: :update
+
+  validates_comparison_of :stripe_billing_address_country, equal_to: "US"
+  validates :stripe_billing_address_state, inclusion: {
+    in: ->(cardholder) { ISO3166::Country[cardholder.stripe_billing_address_country].subdivisions.keys },
+    message: ->(cardholder, data) { "is not a state/province in #{ISO3166::Country[cardholder.stripe_billing_address_country].common_name}" },
+  }, if: -> { stripe_billing_address_country.present? }
 
   alias_attribute :address_line1, :stripe_billing_address_line1
   alias_attribute :address_line2, :stripe_billing_address_line2
@@ -167,7 +173,7 @@ class StripeCardholder < ApplicationRecord
   def stripe_obj
     @stripe_obj ||= StripeService::Issuing::Cardholder.retrieve(stripe_id)
   rescue => e
-    Airbrake.notify(e)
+    Rails.error.report(e)
 
     { status: "active", requirements: {} } # https://stripe.com/docs/api/issuing/cardholders/object
   end

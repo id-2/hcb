@@ -2,34 +2,34 @@
 
 require "rails_helper"
 
-describe UsersController do
-  describe "#login_code" do
-    context "when not sent by sms" do
-      it "calls LoginCodeService::Request but does not call twilio" do
-        expect(LoginCodeService::Request).to receive(:new).and_call_original
-        expect(TwilioVerificationService).to_not receive(:new)
+RSpec.describe UsersController do
+  include SessionSupport
 
-        params = {
-          email: "test@example.com"
-        }
+  describe "#impersonate" do
+    it "allows admins to switch to an impersonated session" do
+      freeze_time do
+        # Manually set a long session expiration so we can make sure
+        # impersonated sessions are short
+        session_duration_seconds = 30.days.seconds.to_i
 
-        post :login_code, params:
-      end
-    end
+        admin_user = create(:user, :make_admin, full_name: "Admin User", session_duration_seconds:)
+        impersonated_user = create(:user, full_name: "Impersonated User", session_duration_seconds:)
 
-    context "when sent by sms" do
-      it "calls LoginCodeService::Request service in bank (which in turns calls twilio)" do
-        expect(LoginCodeService::Request).to receive(:new).and_call_original
-        expect(TwilioVerificationService).to receive_message_chain(:new, :send_verification_request) # this also stubs the call so it won't actually call Twilio's API
+        initial_session = sign_in(admin_user)
 
-        user = create(:user, phone_number: "+18005555555")
-        # need to update after the fact because of User callback on_phone_number_update resetting this value
-        user.update(use_sms_auth: true)
-        params = {
-          email: user.email
-        }
+        # This is a normal session which should last for the duration that the
+        # user configured
+        expect(initial_session.expiration_at).to eq(30.days.from_now)
 
-        post :login_code, params:
+        post(:impersonate, params: { id: impersonated_user.id })
+        expect(response).to redirect_to(root_path)
+        expect(flash[:info]).to eq("You're now impersonating Impersonated User.")
+
+        new_session = current_session!
+        expect(new_session.id).not_to eq(initial_session.id) # make sure the session was replaced
+        expect(new_session.user_id).to eq(impersonated_user.id)
+        expect(new_session.impersonated_by_id).to eq(admin_user.id)
+        expect(new_session.expiration_at).to eq(1.hour.from_now) # make sure we capped the session length
       end
     end
   end

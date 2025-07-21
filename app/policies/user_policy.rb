@@ -2,7 +2,7 @@
 
 class UserPolicy < ApplicationPolicy
   def show?
-    user.admin? || record == user
+    user.auditor? || record == user
   end
 
   def impersonate?
@@ -10,6 +10,10 @@ class UserPolicy < ApplicationPolicy
   end
 
   def edit?
+    user.auditor? || record == user
+  end
+
+  def generate_totp?
     user.admin? || record == user
   end
 
@@ -21,24 +25,40 @@ class UserPolicy < ApplicationPolicy
     user.admin? || record == user
   end
 
-  def edit_address?
+  def generate_backup_codes?
+    record == user
+  end
+
+  def activate_backup_codes?
+    record == user
+  end
+
+  def disable_backup_codes?
     user.admin? || record == user
+  end
+
+  def edit_address?
+    user.auditor? || record == user
   end
 
   def edit_payout?
-    user.admin? || record == user
+    user.auditor? || record == user
   end
 
   def edit_featurepreviews?
-    user.admin? || record == user
+    user.auditor? || record == user
   end
 
   def edit_security?
-    user.admin? || record == user
+    user.auditor? || record == user
+  end
+
+  def edit_notifications?
+    user.auditor? || record == user
   end
 
   def edit_admin?
-    user.admin? || (record == user && user.admin_override_pretend?)
+    user.auditor? || (record == user && user.admin_override_pretend?)
   end
 
   def update?
@@ -73,7 +93,11 @@ class UserPolicy < ApplicationPolicy
     user.admin? || record == user
   end
 
-  def wrapped?
+  def logout_session?
+    user.admin? || record == user
+  end
+
+  def logout_all?
     user.admin? || record == user
   end
 

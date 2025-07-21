@@ -3,7 +3,7 @@
 class CommentPolicy < ApplicationPolicy
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user.admin?
+      if user.auditor?
         scope.all
       else
         scope.not_admin_only
@@ -13,11 +13,11 @@ class CommentPolicy < ApplicationPolicy
   end
 
   def new?
-    user.admin? || users.include?(user)
+    user.auditor? || users.include?(user)
   end
 
   def create?
-    user.admin? || users.include?(user)
+    user.auditor? || users.include?(user)
   end
 
   def edit?
@@ -28,8 +28,12 @@ class CommentPolicy < ApplicationPolicy
     user.admin? || (users.include?(user) && record.user == user)
   end
 
+  def react?
+    show?
+  end
+
   def show?
-    user.admin? || (users.include?(user) && !record.admin_only)
+    user&.auditor? || (users.include?(user) && !record.admin_only)
   end
 
   def destroy?

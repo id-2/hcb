@@ -20,12 +20,14 @@ input[type='submit'],
   text-align: center;
   text-decoration: none;
   transform: scale(1);
-  transition: transform 0.125s ease-in-out, box-shadow 0.25s ease-in-out;
+  transition:
+    transform 0.125s ease-in-out,
+    box-shadow 0.25s ease-in-out;
   user-select: none;
 
   &:hover,
   &:focus,
-  &[aria-expanded=true]{
+  &[aria-expanded='true'] {
     color: $white;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1875);
     transform: scale(1.0625);
@@ -66,10 +68,18 @@ input[type='submit'],
 
   &.bg-warning {
     @include gradient(warning);
+
+    html[data-dark='true'] & {
+      color: darken(map-get($palette, warning), 33.3%) !important;
+    }
   }
 
   &.bg-purple {
     @include gradient(purple);
+  }
+
+  &.bg-slate {
+    @include gradient(slate);
   }
 
   &.bg-ai {
@@ -104,7 +114,8 @@ input[type='submit'],
   color: map-get($palette, info);
   background-color: rgba(map-get($palette, accent), 0.25);
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     color: map-get($palette, info);
   }
 

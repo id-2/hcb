@@ -10,6 +10,10 @@ module SessionsHelper
     "30 days" => 30.days.to_i
   }.freeze
 
+  # For security reasons we severely restrict the duration of impersonated
+  # sessions
+  IMPERSONATED_SESSION_DURATION = SESSION_DURATION_OPTIONS.fetch("1 hour")
+
   def impersonate_user(user)
     sign_out
     sign_in(user:, impersonate: true)
@@ -24,8 +28,15 @@ module SessionsHelper
   # DEPRECATED - begin to start deprecating and ultimately replace with sign_in_and_set_cookie
   def sign_in(user:, fingerprint_info: {}, impersonate: false, webauthn_credential: nil)
     session_token = SecureRandom.urlsafe_base64
-    expiration_at = Time.now + user.session_duration_seconds
+    session_duration =
+      if impersonate
+        IMPERSONATED_SESSION_DURATION
+      else
+        user.session_duration_seconds
+      end
+    expiration_at = Time.now + session_duration
     cookies.encrypted[:session_token] = { value: session_token, expires: expiration_at }
+    cookies.encrypted[:signed_user] = user.signed_id(expires_in: 2.months, purpose: :signin_avatar)
     user_session = user.user_sessions.build(
       session_token:,
       fingerprint: fingerprint_info[:fingerprint],
@@ -43,10 +54,16 @@ module SessionsHelper
 
     user_session.save!
     self.current_user = user
+
+    user_session
   end
 
   def signed_in?
     !current_user.nil?
+  end
+
+  def auditor_signed_in?
+    signed_in? && current_user&.auditor?
   end
 
   def admin_signed_in?
@@ -63,9 +80,9 @@ module SessionsHelper
     @current_user = user
   end
 
-  def organizer_signed_in?(event = @event, as: :member)
+  def organizer_signed_in?(event = @event, as: :reader)
     run = ->(inner_event:, inner_as:) do
-      next true if admin_signed_in?
+      next true if auditor_signed_in? && as == :reader
       next false unless signed_in? && inner_event.present?
 
       required_role_num = OrganizerPosition.roles[inner_as]
@@ -104,36 +121,23 @@ module SessionsHelper
 
     return nil if session_token.nil?
 
-    # Find a valid session token within all the ones currently in the table for this particular user
-    @current_session = UserSession.find_by(session_token:)
-
-    return nil unless @current_session
-
-    # check if the potential session is still valid
-    # If the session is greater than the expiration duration then the current
-    # user is no longer valid.
-    if Time.now > @current_session.expiration_at
-      @current_session.set_as_peacefully_expired
-      @current_session.destroy
-      return nil
-    end
-
-    @current_session
+    # Find a valid session (not expired) using the session token
+    @current_session = UserSession.not_expired.find_by(session_token:)
   end
 
   def signed_in_user
     unless signed_in?
       if request.fullpath == "/"
-        redirect_to auth_users_path
+        redirect_to auth_users_path(require_reload: true)
       else
-        redirect_to auth_users_path(return_to: request.original_url)
+        redirect_to auth_users_path(return_to: request.original_url, require_reload: true)
       end
     end
   end
 
   def signed_in_admin
-    unless admin_signed_in?
-      redirect_to auth_users_path, flash: { error: "You’ll need to sign in as an admin." }
+    unless auditor_signed_in?
+      redirect_to auth_users_path(require_reload: true), flash: { error: "You’ll need to sign in as an admin." }
     end
   end
 
@@ -141,18 +145,17 @@ module SessionsHelper
     current_user
       &.user_sessions
       &.find_by(session_token: cookies.encrypted[:session_token])
-      &.set_as_peacefully_expired
-      &.destroy
+      &.update(signed_out_at: Time.now, expiration_at: Time.now)
 
     cookies.delete(:session_token)
     self.current_user = nil
   end
 
-  def sign_out_of_all_sessions
+  def sign_out_of_all_sessions(user = current_user)
     # Destroy all the sessions except the current session
-    current_user
+    user
       &.user_sessions
       &.where&.not(id: current_session.id)
-      &.destroy_all
+      &.update_all(signed_out_at: Time.now, expiration_at: Time.now)
   end
 end

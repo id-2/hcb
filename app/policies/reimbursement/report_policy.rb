@@ -7,11 +7,11 @@ module Reimbursement
     end
 
     def create?
-      !record.event.demo_mode && (record.event.public_reimbursement_page_enabled? || admin || team_member)
+      !record.event.demo_mode && (record.event.public_reimbursement_page_available? || admin || OrganizerPosition.role_at_least?(user, record.event, :member))
     end
 
     def show?
-      admin || team_member || creator
+      admin || team_member || creator || auditor
     end
 
     def edit?
@@ -27,7 +27,7 @@ module Reimbursement
     end
 
     def draft?
-      (admin || manager || creator) && open
+      ((admin || manager || creator) && open) || ((admin || manager) && record.rejected?)
     end
 
     def request_reimbursement?
@@ -50,8 +50,12 @@ module Reimbursement
       admin && open
     end
 
+    def reverse?
+      admin
+    end
+
     def destroy?
-      ((manager || creator) && record.initial_draft?) || (admin && !record.reimbursed?)
+      ((manager || creator) && record.draft?) || (admin && !record.reimbursed?)
     end
 
     private
@@ -60,12 +64,16 @@ module Reimbursement
       user&.admin?
     end
 
+    def auditor
+      user&.auditor?
+    end
+
     def manager
-      OrganizerPosition.find_by(user:, event: record.event)&.manager?
+      record.event && OrganizerPosition.find_by(user:, event: record.event)&.manager?
     end
 
     def team_member
-      record.event.users.include?(user)
+      record.event&.users&.include?(user)
     end
 
     def creator

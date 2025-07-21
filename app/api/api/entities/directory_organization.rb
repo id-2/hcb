@@ -34,7 +34,14 @@ module Api
       end
 
       expose :category do |organization|
-        organization.category&.parameterize&.underscore
+        category = "nonprofit"
+        category = "climate" if organization.event_tags.where(name: EventTag::Tags::CLIMATE).exists?
+        category = "hack_club" if organization.event_tags.where(name: EventTag::Tags::HACK_CLUB).exists?
+        category = "hackathon" if organization.hackathon?
+        category = "robotics_team" if organization.robotics_team?
+        category = "hack_club_hq" if organization.plan.is_a?(Event::Plan::HackClubAffiliate)
+
+        category
       end
       expose :missions do |organization|
         # This is written with filtering in Ruby rather than SQL to use
@@ -66,7 +73,7 @@ module Api
         url_for_attached organization.background_image
       end
       expose :donation_link do |organization|
-        if organization.donation_page_enabled?
+        if organization.donation_page_available?
           Rails.application.routes.url_helpers.start_donation_donations_url(organization)
         else
           nil

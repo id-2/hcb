@@ -37,6 +37,8 @@ class Comment < ApplicationRecord
   has_encrypted :content
   acts_as_paranoid
 
+  has_many :reactions, dependent: :destroy
+
   validates :user, presence: true
   validates :content, presence: true, unless: :has_attached_file?
 
@@ -47,13 +49,14 @@ class Comment < ApplicationRecord
   scope :edited, -> { joins(:versions).where("has_untracked_edit IS TRUE OR versions.event = 'update' OR versions.event = 'destroy'") }
   scope :has_attached_file, -> { joins(:file_attachment) }
 
-  enum action: {
+  enum :action, {
     commented: 0,
-    changes_requested: 1 # used by reimbursements
+    changes_requested: 1, # used by reimbursements
+    rejected_transfer: 2
   }
 
   include PublicActivity::Model
-  tracked owner: proc{ |controller, record| controller&.current_user }, event_id: proc { |controller, record| record.admin_only? ? nil : record.commentable.try(:event)&.id }, only: [:create, :update, :destroy]
+  tracked owner: proc{ |controller, record| controller&.current_user || record&.user }, event_id: proc { |controller, record| record.admin_only? ? nil : record.commentable.try(:event)&.id }, only: [:create, :update, :destroy]
 
   after_create_commit :send_notification_email
 
@@ -61,7 +64,7 @@ class Comment < ApplicationRecord
 
   def edited?
     has_untracked_edit? or
-      versions.any? { |version| %w[update destroy].include?(version.event) }
+      versions.any? { |version| %w[update destroy].include?(version.event) && version.object_changes.present? }
     # we're doing this without SQL because versions is pre-loaded. - @sampoder
   end
 
@@ -69,8 +72,23 @@ class Comment < ApplicationRecord
     file.attached?
   end
 
+  def reactions_by_emoji
+    reactions.joins(:reactor)
+             .select("comment_reactions.reactor_id, comment_reactions.emoji, users.*")
+             .order(created_at: :asc)
+             .group_by(&:emoji)
+  end
+
+  def reacted_by(emoji)
+    max_users = 5
+    user_names = reactions_by_emoji[emoji]&.map(&:reactor)&.map(&:name) || []
+    user_names.count > max_users ? "#{user_names.first(max_users).join(", ")} +#{user_names.count - max_users} more" : user_names.to_sentence
+  end
+
   def action_text
     return "requested changes" if changes_requested?
+
+    return "rejected this transfer and commented" if rejected_transfer?
 
     return "commented"
   end

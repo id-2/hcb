@@ -3,7 +3,7 @@
 class InvoicesController < ApplicationController
   include SetEvent
 
-  before_action :set_event, only: [:index, :new]
+  before_action :set_event, only: [:index, :new, :create]
   skip_before_action :signed_in_user
 
   def index
@@ -100,18 +100,14 @@ class InvoicesController < ApplicationController
   end
 
   def create
-    @event = Event.friendly.find(params[:event_id])
-
     authorize @event, policy_class: InvoicePolicy
 
     sponsor_attrs = filtered_params[:sponsor_attributes]
 
-    due_date = Date.civil(filtered_params["due_date(1i)"].to_i,
-                          filtered_params["due_date(2i)"].to_i,
-                          filtered_params["due_date(3i)"].to_i)
+    due_date = Date.parse(filtered_params["due_date"])
 
     @invoice = ::InvoiceService::Create.new(
-      event_id: params[:event_id],
+      event_id: @event.id,
       due_date:,
       item_description: filtered_params[:item_description],
       item_amount: filtered_params[:item_amount],
@@ -135,10 +131,11 @@ class InvoicesController < ApplicationController
     end
 
     redirect_to @invoice
+  rescue Pundit::NotAuthorizedError
+    raise
   rescue => e
-    notify_airbrake(e)
+    Rails.error.report(e)
 
-    @event = Event.friendly.find(params[:event_id])
     @sponsor = Sponsor.new(event: @event)
     @invoice = Invoice.new(sponsor: @sponsor)
 
@@ -203,7 +200,7 @@ class InvoicesController < ApplicationController
     @invoice.sync_remote!
     @invoice.reload
 
-    redirect_to @invoice.hosted_invoice_url, allow_other_host: true
+    redirect_to URI.parse(@invoice.hosted_invoice_url).to_s, allow_other_host: true
   end
 
   def pdf
@@ -214,16 +211,35 @@ class InvoicesController < ApplicationController
     @invoice.sync_remote!
     @invoice.reload
 
-    redirect_to @invoice.invoice_pdf, allow_other_host: true
+    redirect_to URI.parse(@invoice.invoice_pdf).to_s, allow_other_host: true
   end
 
   def refund
     @invoice = Invoice.find(params[:id])
     @hcb_code = @invoice.local_hcb_code
 
-    ::InvoiceService::Refund.new(invoice_id: @invoice.id, amount: Monetize.parse(params[:amount]).cents).run
+    authorize @invoice
 
-    redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "The refund process has been queued for this invoice." }
+    if @invoice.canonical_transactions.any?
+      ::InvoiceService::Refund.new(invoice_id: @invoice.id, amount: Monetize.parse(params[:amount]).cents).run
+      redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "The refund process has been queued for this invoice." }
+    else
+      Invoice::RefundJob.set(wait: 1.day).perform_later(@invoice, Monetize.parse(params[:amount]).cents, current_user)
+      redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "This invoice hasn't settled, it's being queued to refund when it settles." }
+    end
+  end
+
+  def manually_mark_as_paid
+    @invoice = Invoice.friendly.find(params[:invoice_id])
+    @hcb_code = @invoice.local_hcb_code
+
+    authorize @invoice
+
+    ::InvoiceService::MarkVoid.new(invoice_id: @invoice.id, user: current_user).run
+
+    @invoice.update(manually_marked_as_paid_at: Time.now, manually_marked_as_paid_user: current_user, manually_marked_as_paid_reason: params[:manually_marked_as_paid_reason])
+
+    redirect_to hcb_code_path(@hcb_code.hashid), flash: { success: "Manually marked this invoice as paid." }
   end
 
   private

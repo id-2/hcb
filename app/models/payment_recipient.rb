@@ -4,14 +4,14 @@
 #
 # Table name: payment_recipients
 #
-#  id                        :bigint           not null, primary key
-#  account_number_ciphertext :text
-#  bank_name_ciphertext      :string
-#  name                      :string
-#  routing_number_ciphertext :string
-#  created_at                :datetime         not null
-#  updated_at                :datetime         not null
-#  event_id                  :bigint           not null
+#  id                     :bigint           not null, primary key
+#  email                  :text
+#  information_ciphertext :text
+#  name                   :string
+#  payment_model          :string
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  event_id               :bigint           not null
 #
 # Indexes
 #
@@ -30,9 +30,13 @@ class PaymentRecipient < ApplicationRecord
   belongs_to :event
   has_many :ach_transfers
 
-  has_encrypted :account_number, :routing_number, :bank_name
-
   scope :order_by_last_used, -> { includes(:ach_transfers).order("ach_transfers.created_at DESC") }
+
+  validates_email_format_of :email
+  normalizes :email, with: ->(email) { email.strip.downcase }
+
+  has_encrypted :information, type: :json
+  store :information, accessors: [:account_number, :routing_number, :bank_name]
 
   def masked_account_number
     return account_number if account_number.length <= 4
@@ -44,6 +48,7 @@ class PaymentRecipient < ApplicationRecord
     {
       id:,
       name:,
+      email:,
       masked_account_number:,
       bank_name:,
       routing_number:,

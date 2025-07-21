@@ -36,7 +36,7 @@ class OrganizerPosition < ApplicationRecord
   belongs_to :user
   belongs_to :event
 
-  has_one :organizer_position_invite
+  has_one :organizer_position_invite, required: true
   has_many :organizer_position_deletion_requests
   has_many :tours, as: :tourable
 
@@ -50,9 +50,16 @@ class OrganizerPosition < ApplicationRecord
   def tourable_options
     {
       demo: event.demo_mode?,
-      category: event.category,
       initial: initial?
     }
+  end
+
+  def self.role_at_least?(user, event, role)
+    return false unless event.present? && role.present?
+    return true if user&.admin?
+
+    current = find_by(user:, event:)&.role
+    current && roles[current] >= roles[role]
   end
 
   private

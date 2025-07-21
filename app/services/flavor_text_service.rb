@@ -17,7 +17,7 @@ class FlavorTextService
     return @random.rand > 0.5 ? spooky_flavor_texts.sample(random: @random) : flavor_texts.sample(random: @random) if fall? # ~50% chance of spookiness
     return birthday_flavor_texts.sample(random: @random) if @user&.birthday?
 
-    in_frc_team = @user&.events&.exists?(category: Event.categories["robotics team"])
+    in_frc_team = @user&.events&.robotics_team&.any?
 
     if in_frc_team
       flavor_text = (flavor_texts + frc_flavor_texts).sample(random: @random)
@@ -111,7 +111,7 @@ class FlavorTextService
 
   def frc_flavor_texts
     [
-      "Built by someone from team ##{[1759, 8724, 461, 6763, 1519].sample(random: @random)}!",
+      "Built by someone from team ##{[1759, 8724, 461, 6763, 1519, 6238].sample(random: @random)}!",
       "Safety FIRST!",
       "Safety glasses == invincible",
       "Stop! Where are your safety glasses?",
@@ -124,7 +124,12 @@ class FlavorTextService
       "Duct tape, ductape, duck tape",
       "🦆 📼",
       "Build season? HCB season!",
-      "Build season already?"
+      "Build season already?",
+      "Graciously accepting your team's donations",
+      "Your team may graciously decline, but your cards won't",
+      "<s>Not</s> held together with zip ties".html_safe,
+      "3, 2, 1, HCB!",
+      "If you have transparency mode on, is that money-pit-scouting?"
     ]
   end
 
@@ -495,7 +500,7 @@ class FlavorTextService
       "I would rather check my Facebook than face my checkbook.",
       "The only part not outstanding is our balance",
       "BOOOOOOOOOONNNNNNKKKKKKKKKKKKK",
-      "Wanna&nbsp;<a href='#{Rails.configuration.constants.hack_on_hcb_form_url}' target='_blank' style='color: inherit'>hack on hcb</a>?".html_safe,
+      "Wanna&nbsp;<a href='#{Rails.configuration.constants.github_url}' target='_blank' style='color: inherit'>hack on hcb</a>?".html_safe,
       "everyone's favorite money thing!",
       -> { "#{UserSession.where("last_seen_at > ?", 15.minutes.ago).count("DISTINCT(user_id)")} online" },
       "We Column like we see 'em!",
@@ -503,6 +508,12 @@ class FlavorTextService
       "original recipe!",
       "now sugar-free!",
       "low-sodium edition",
+      'we put the ":3" in "501(c)(3)"!',
+      'we put the "fun" in "restricted fund"!',
+      "we send checks <i>and</i> balances!".html_safe,
+      "do not adjust your television set.",
+      '#{FlavorTextService.new.generate}', # rubocop:disable Lint/InterpolationCheck
+      -> { missing_receipts = HcbCode.missing_receipt.receipt_required.count; "only #{missing_receipts} missing #{"receipt".pluralize(missing_receipts)}!" }, # => "only 20 missing receipts!"
     ]
   end
 

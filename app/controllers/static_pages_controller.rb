@@ -4,20 +4,34 @@ require "net/http"
 
 class StaticPagesController < ApplicationController
   skip_after_action :verify_authorized # do not force pundit
-  skip_before_action :signed_in_user, only: [:branding, :faq, :roles]
-  skip_before_action :redirect_to_onboarding, only: [:branding, :faq, :roles]
+  skip_before_action :signed_in_user, only: [:branding, :roles, :security]
+  skip_before_action :redirect_to_onboarding, only: [:branding, :roles, :security]
+
+  after_action only: [:index, :branding, :security] do
+    # Allow indexing home and branding pages
+    response.delete_header("X-Robots-Tag")
+  end
 
   def index
     if signed_in?
       @service = StaticPageService::Index.new(current_user:)
 
       @events = @service.events
+
+      featured_event_ids = %w[org_MpJurQ org_Y0zun7 org_Y1ZuDz org_DyuReR org_Jounxy org_0zuXDP org_1Zu4Jr org_5Gu7Lo org_E1uGdn org_G3uq7b]
+
+      @featured_events = featured_event_ids.map do |id|
+        Event.find_by_public_id(id)
+      end.select do |event|
+        event&.is_public? && event.is_indexable?
+      end.sample(6)
+
       @organizer_positions = @service.organizer_positions.not_hidden
       @invites = @service.invites
 
-      if admin_signed_in? && Flipper.enabled?(:recently_on_hcb_2024_05_23, current_user)
+      if auditor_signed_in? && cookies[:admin_activities] == "everyone"
         @activities = PublicActivity::Activity.all.order(created_at: :desc).page(params[:page]).per(25)
-      elsif Flipper.enabled?(:recently_on_hcb_2024_05_23, current_user)
+      else
         @activities = PublicActivity::Activity.for_user(current_user).order(created_at: :desc).page(params[:page]).per(25)
       end
 
@@ -26,16 +40,8 @@ class StaticPagesController < ApplicationController
       @hcb_expansion = Rails.cache.read("hcb_acronym_expansions")&.sample || "Hack Club Buckaroos"
 
     end
-    if admin_signed_in?
-      @transaction_volume = CanonicalTransaction.included_in_stats.sum("@amount_cents")
-    end
-  end
-
-  def my_activities
-    if admin_signed_in?
-      @activities = PublicActivity::Activity.all.order(created_at: :desc).page(params[:page]).per(25)
-    else
-      @activities = PublicActivity::Activity.for_user(current_user).order(created_at: :desc).page(params[:page]).per(25)
+    if auditor_signed_in?
+      @transaction_volume = CanonicalTransaction.included_in_stats.sum("abs(amount_cents)")
     end
   end
 
@@ -52,6 +58,8 @@ class StaticPagesController < ApplicationController
     ]
     @event_name = signed_in? && current_user.events.first&.name || "Hack Pennsylvania"
     @event_slug = signed_in? && current_user.events.first&.slug || "hack-pennsylvania"
+
+    render layout: "docs"
   end
 
   def roles
@@ -68,27 +76,27 @@ class StaticPagesController < ApplicationController
       Transfers: {
         Checks: {
           "Send a mailed check": :manager,
-          "View a mailed check": :member,
+          "View a mailed check": :reader,
         },
-        "Check Deposit": {
+        "Check deposits": {
           "Deposit a check": :member,
-          "View a check deposit": :member,
+          "View a check deposit": :reader,
           "View images of a check deposit": :manager,
           _preface: "For depositing a check by taking a picture of it"
         },
-        "ACH Transfers": {
+        "ACH transfers": {
           "Send an ACH Transfer": :manager,
           "Cancel an ACH Transfer": :manager,
-          "View an ACH Transfer": :member,
+          "View an ACH Transfer": :reader,
           "View recipient's payment details": :manager,
         },
-        "Account & Routing numbers": {
+        "Account & routing numbers": {
           "View the organization's account & routing numbers": :manager
         },
-        "HCB Transfers": {
-          "Create an HCB Transfer": :manager,
-          "Cancel an HCB Transfer": :manager,
-          "View an HCB Transfer": :member
+        "HCB transfers": {
+          "Create a HCB Transfer": :manager,
+          "Cancel a HCB Transfer": :manager,
+          "View a HCB Transfer": :reader
         },
         _preface: "As a general rule, only managers can create/modify financial transfers"
       },
@@ -99,12 +107,12 @@ class StaticPagesController < ApplicationController
         "Rename your own card": :member,
         "Rename another user's card": :manager,
         "View another user's card number": :manager,
-        "View card expiration date": :member,
-        "View card billing address": :member,
+        "View card expiration date": :reader,
+        "View card billing address": :reader,
       },
       Reimbursements: {
         "Get reimbursed through HCB": :member,
-        "View reimbursement reports": :member,
+        "View reimbursement reports": :reader,
         "Review, approve, and reject reports": :manager,
       },
       "Google Workspace": {
@@ -112,67 +120,20 @@ class StaticPagesController < ApplicationController
         "Suspend an account": :manager,
         "Reset an account's password": :manager,
       },
+      Documents: {
+        "View documents": :reader
+      },
       "Settings": {
-        "View settings": :member,
+        "View settings": :reader,
         "Edit settings": :manager,
       }
     }
+
+    render layout: "docs"
   end
 
-  def faq
-  end
-
-  def my_cards
-    @stripe_cards = current_user.stripe_cards.includes(:event)
-    @emburse_cards = current_user.emburse_cards.includes(:event)
-  end
-
-  # async frame
-  def my_missing_receipts_list
-    @missing = current_user.transactions_missing_receipt
-
-    if @missing.any?
-      render :my_missing_receipts_list, layout: !request.xhr?
-    else
-      head :ok
-    end
-  end
-
-  # async frame
-  def my_missing_receipts_icon
-    count = current_user.transactions_missing_receipt.count
-
-    emojis = {
-      "🤡": 300,
-      "💀": 200,
-      "😱": 100,
-    }
-
-    @missing_receipt_count = emojis.find { |emoji, value| count >= value }&.first || count
-
-    render :my_missing_receipts_icon, layout: false
-  end
-
-  def my_inbox
-    @count = current_user.transactions_missing_receipt.count
-    @hcb_codes = current_user.transactions_missing_receipt.page(params[:page]).per(params[:per] || 15)
-
-    @card_hcb_codes = @hcb_codes.includes(:canonical_transactions, canonical_pending_transactions: :raw_pending_stripe_transaction) # HcbCode#card uses CT and PT
-                                .group_by { |hcb| hcb.card.to_global_id.to_s }
-    @cards = GlobalID::Locator.locate_many(@card_hcb_codes.keys, includes: :event)
-                              # Order by cards with least transactions first
-                              .sort_by { |card| @card_hcb_codes[card.to_global_id.to_s].count }
-
-    if Flipper.enabled?(:receipt_bin_2023_04_07, current_user)
-      @mailbox_address = current_user.active_mailbox_address
-      @receipts = Receipt.in_receipt_bin.with_attached_file.where(user: current_user)
-      @pairings = current_user.receipt_bin.suggested_receipt_pairings
-    end
-
-    if flash[:popover]
-      @popover = flash[:popover]
-      flash.delete(:popover)
-    end
+  def security
+    render layout: "docs"
   end
 
   def suggested_pairings
@@ -180,20 +141,6 @@ class StaticPagesController < ApplicationController
       pairings: current_user.receipt_bin.suggested_receipt_pairings,
       current_slide: 0
     }
-  end
-
-  def my_reimbursements
-    @reports = current_user.reimbursement_reports unless params[:filter] == "review_requested"
-    @reports = Reimbursement::Report.submitted.where(event: current_user.events, reviewer_id: nil).or(current_user.assigned_reimbursement_reports.submitted) if params[:filter] == "review_requested"
-    @reports = @reports.search(params[:q]) if params[:q].present?
-    @payout_method = current_user.payout_method
-  end
-
-  def my_draft_reimbursements_icon
-    @draft_reimbursements_count = current_user.reimbursement_reports.draft.count
-    @review_requested_reimbursements_count = current_user.assigned_reimbursement_reports.submitted.count
-
-    render :my_draft_reimbursements_icon, layout: false
   end
 
   def receipt
@@ -216,7 +163,7 @@ class StaticPagesController < ApplicationController
     redirect_back
 
   rescue => e
-    notify_airbrake(e)
+    Rails.error.report(e)
 
     flash[:error] = e.message
     return redirect_to params[:redirect_url] if params[:redirect_url]
@@ -247,31 +194,6 @@ class StaticPagesController < ApplicationController
     render json: {
       event_id: nil
     }
-  end
-
-  def feedback
-    message = params[:message]
-    share_email = (params[:share_email] || "1") == "1"
-    url = share_email ? "#{request.base_url}#{params[:page_path]}" : ""
-
-    routing = Rails.application.routes.recognize_path(params[:page_path])
-    location = "#{routing[:controller]}##{routing[:action]} #{routing[:id] if routing[:id] && share_email}".strip
-
-    feedback = {
-      "Share your idea(s)" => message,
-      "URL"                => url,
-      "Location"           => location,
-    }
-
-    if share_email
-      feedback["Name"] = current_user.name
-      feedback["Email"] = current_user.email
-      feedback["Organization"] = current_user.events.first&.name
-    end
-
-    Feedback.create(feedback)
-
-    head :no_content
   end
 
 end
