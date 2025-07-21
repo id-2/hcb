@@ -5,7 +5,7 @@
 
 if [[ $* == *--pg15* ]]
 then
-  export COMPOSE_FILE=docker-compose.yml:docker-compose.postgres-12.yml
+  export COMPOSE_FILE=docker-compose.yml:docker-compose.postgres-15.yml
 fi
 
 echo "
