@@ -1,7 +1,7 @@
 <turbo-frame id="edit_<%= @card_grant.id %>" autoscroll data-autoscroll-behavior="smooth">
   <%= render "edit_nav", active: "overview" %>
 
-<section class="details details--wide pb2 details--tall">
+  <section class="details details--wide pb2 details--tall">
     <p>
       <strong>Grant sent to</strong>
       <span><%= mail_to @card_grant.user.email %></span>
@@ -20,11 +20,11 @@
       <% if @card_grant.allowed_merchants.any? %>
         <span class="font-mono h5"><%= @card_grant.allowed_merchant_names.join(", ") %><br>
           (IDs: <%= @card_grant.allowed_merchants.join(", ") %>)</span>
-    <% else %>
+      <% else %>
         <span>All merchants allowed</span>
       <% end %>
     </p>
 
-</section>
+  </section>
 
 </turbo-frame>
