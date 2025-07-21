@@ -668,7 +668,12 @@ class Event < ApplicationRecord
   end
 
   def revenue_fee
-    plan&.revenue_fee || (Airbrake.notify("#{id} is missing a plan!") && 0.07)
+    configured = plan&.revenue_fee
+    return configured if configured.present?
+
+    Rails.error.unexpected("#{id} is missing a plan!")
+
+    Event::Plan::FALLBACK_REVENUE_FEE
   end
 
   def generate_stripe_card_designs
@@ -763,6 +768,13 @@ class Event < ApplicationRecord
 
   def active_teenagers
     organizer_positions.joins(:user).count { |op| op.user.teenager? && op.user.active? }
+  end
+
+  def organizer_contact_emails
+    emails = users.map(&:email_address_with_name)
+    emails << config.contact_email if config.contact_email.present?
+
+    emails
   end
 
   private

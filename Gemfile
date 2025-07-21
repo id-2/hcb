@@ -102,7 +102,7 @@ gem "loofah" # html email parsing
 gem "namae" # multi-cultural human name parser
 gem "premailer-rails" # css to inline styles for emails
 gem "safely_block"
-gem "strong_migrations", "~> 1" # protects against risky migrations
+gem "strong_migrations", "~> 2" # protects against risky migrations
 # [@garyhtou] ^ We still use Postgres 11 in dev (not in prod). Strong Migrations
 #               2.x is incompatible with Postgres 11.
 gem "xxhash" # fast hashing
@@ -113,7 +113,6 @@ gem "diffy" # rendering diffs (comments)
 gem "webauthn", "~> 3.2"
 
 gem "ahoy_matey" # analytics
-gem "airbrake" # exception tracking
 gem "blazer" # business intelligence tool/dashboard
 
 gem "geo_pattern" # create procedurally generated patterns for Cards
@@ -175,7 +174,7 @@ gem "stackprof" # used by `rack-mini-profiler` to provide flamegraphs
 gem "wkhtmltopdf-binary", "0.12.6.8"
 
 group :development do
-  gem "annotate" # comment models with database schema
+  gem "annotaterb" # comment models with database schema
   gem "actual_db_schema" # rolls back phantom migrations
 
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
@@ -228,5 +227,7 @@ gem "rack-timeout", require: "rack/timeout/base"
 gem "irb"
 
 gem "pstore"
+
+gem "bcrypt", "~> 3.1.7"
 
 gem "prosemirror_to_html"
