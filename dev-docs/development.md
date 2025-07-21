@@ -224,3 +224,21 @@ client_secret=<SECRET>
 redirect_uri=http://localhost:3000/
 ```
 This request will return your OAuth access token. It can then be passed into future API requests in the Authorization header. Ex. `Authorization: Bearer <ACCESS TOKEN>`
+
+## Migrating Postgres in development
+
+HCB recently upgraded the version of PostgreSQL it uses in development from 11 to 15 to match what we use in production. If you set up your development instance of HCB before July 21st, 2025, you probably are using Postgres 11.
+
+### If you are running HCB natively
+Use [pg_upgrade](https://www.postgresql.org/docs/current/pgupgrade.html) to upgrade to Postgres 15
+
+### If you are using Docker or a Codespace
+First, make sure you are on the latest commit on the main branch. Then, if in a Codespace, run `./upgrade_docker_postgres_11_to_15.sh --codespace`, or just `./upgrade_docker_postgres_11_to_15.sh` if using Docker.
+
+Then, update your .env.development with the new database URL:
+```
+DATABASE_URL=postgres://postgres:postgres@db15:5432
+```
+
+All data should be copied over to the new database, which HCB will now use.
+
