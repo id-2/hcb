@@ -232,8 +232,16 @@ HCB recently upgraded the version of PostgreSQL it uses in development from 11 t
 ### If you are running HCB natively
 Use [pg_upgrade](https://www.postgresql.org/docs/current/pgupgrade.html) to upgrade to Postgres 15
 
-### If you are using Docker or a Codespace
-First, make sure you are on the latest commit on the main branch. Then, if in a Codespace, run `./upgrade_docker_postgres_11_to_15.sh --codespace`, or just `./upgrade_docker_postgres_11_to_15.sh` if using Docker.
+### If you are using Docker
+First, make sure you are on the latest commit on the main branch. Then, run `./upgrade_docker_postgres_11_to_15.sh` --codespace`, or just `./upgrade_docker_postgres_11_to_15.sh` if using Docker.`
+
+Then, update your .env.development with the new database URL:
+```
+DATABASE_URL=postgres://postgres:postgres@db15:5432
+```
+
+### If you are using a Codespace
+Rebuild your Codespace (NOT "Full Rebuild"), then run `./upgrade_docker_postgres_11_to_15.sh --codespace`.
 
 Then, update your .env.development with the new database URL:
 ```
