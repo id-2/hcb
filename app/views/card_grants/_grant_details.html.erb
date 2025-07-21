@@ -16,6 +16,13 @@
           <span><%= format_date card_grant.expires_on %></span>
         </p>
 
+        <% if card_grant.one_time_use %>
+          <p>
+            <strong>One time use</strong>
+            <span>Enabled</span>
+          </p>
+        <% end %>
+
         <p>
           <strong>Allowed merchants</strong>
           <% if card_grant.allowed_merchants.any? %>
