@@ -51,7 +51,7 @@
           <%= (form.hidden_field :ledger_instance, value: @ledger_instance) %>
           <%= (form.hidden_field :s, value: local_assigns[:secret]) %>
 
-          <%= form.file_field "file_#{@ledger_instance}",
+          <%= form.file_field @ledger_instance.present? ? "file_#{@ledger_instance}" : "file",
                               multiple: true,
                               include_hidden: false,
                               required: true,
@@ -68,7 +68,7 @@
                  array << "bg-error" if local_assigns[:error]
                  array << "disabled" if defined?(receiptable) && !ReceiptablePolicy.new(current_user, receiptable).upload?
                end.join(", ") %>
-            <%= form.label "file_#{@ledger_instance}", class: "btn m1 #{additional_classes}", id: "upload-receipt-button" do %>
+            <%= form.label @ledger_instance.present? ? "file_#{@ledger_instance}" : "file", class: "btn m1 #{additional_classes}", id: "upload-receipt-button" do %>
               <%= inline_icon "cloud-upload" %>
               <% if local_assigns[:success] || local_assigns[:error] %>
                 <span id="upload-receipt-button-text"><%= local_assigns[:success] || local_assigns[:error] %></span>
