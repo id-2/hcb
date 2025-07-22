@@ -121,7 +121,7 @@ class ReceiptsController < ApplicationController
       next if @receiptable && !on_transaction_page?
 
       streams.append(turbo_stream.prepend(
-                       "#{@ledger_instance}_receipts_list",
+                       @ledger_instance.present? ? "#{@ledger_instance}_receipts_list" : "receipts_list",
                        partial: "receipts/receipt",
                        locals: { receipt:, show_delete_button: true, show_reimbursements_button: true, link_to_file: true }
                      ))
