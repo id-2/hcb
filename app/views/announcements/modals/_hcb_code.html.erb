@@ -1,0 +1,9 @@
+<section class="modal modal--scroll bg-snow min-w-[50%]" data-behavior="modal" role="dialog" id="link_hcb_code_modal">
+  <%= modal_header "Link a transaction" %>
+  <div>
+    <%= label_tag "link_hcb_code_url", "Transaction link" %>
+    <%= url_field_tag "link_hcb_code_url" %>
+
+    <button type="button" class="btn mt-4" onclick="window.dispatchEvent(new Event('tiptap_hcbCode'))">Add</button>
+  </div>
+</section>

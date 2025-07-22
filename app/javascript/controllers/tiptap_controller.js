@@ -1,3 +1,5 @@
+/* global $ */
+
 import { Controller } from '@hotwired/stimulus'
 import { debounce } from 'lodash/function'
 import { Editor } from '@tiptap/core'
@@ -174,7 +176,7 @@ export default class extends Controller {
   }
 
   async hcbCode() {
-    const url = window.prompt('Transaction URL')
+    const url = document.getElementById("link_hcb_code_url").value
 
     if (url === null || url === '') {
       return
@@ -187,6 +189,8 @@ export default class extends Controller {
     })
 
     this.editor.chain().focus().addHcbCode(attrs).run()
+
+    $.modal.close();
   }
 
   async donationSummary() {
