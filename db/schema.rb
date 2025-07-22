@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_21_124328) do
   create_schema "google_sheets"
 
   # These are extensions that must be enabled in order to support this database
@@ -213,6 +213,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.text "rendered_email_html"
     t.text "rendered_html"
     t.string "aasm_state"
+    t.string "template_type"
     t.index ["author_id"], name: "index_announcements_on_author_id"
     t.index ["event_id"], name: "index_announcements_on_event_id"
   end
@@ -905,6 +906,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.datetime "updated_at", null: false
     t.boolean "cover_donation_fees", default: false
     t.string "contact_email"
+    t.boolean "generate_monthly_announcement", default: false, null: false
     t.index ["event_id"], name: "index_event_configurations_on_event_id"
   end
 
@@ -944,7 +946,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
   end
 
   create_table "events", force: :cascade do |t|
-    t.text "name"
+    t.text "name", null: false
     t.text "address"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -1560,6 +1562,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.string "program", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["program", "user_id"], name: "index_raffles_on_program_and_user_id", unique: true
   end
 
   create_table "raw_column_transactions", force: :cascade do |t|
@@ -1788,7 +1791,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.string "background_image_url"
     t.string "login_header_text"
     t.text "login_body_text"
-    t.string "login_text_color", default: "#ffffff"
+    t.string "login_text_color"
   end
 
   create_table "reimbursement_expense_payouts", force: :cascade do |t|
@@ -2198,7 +2201,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
   end
 
   create_table "user_sessions", force: :cascade do |t|
-    t.bigint "user_id"
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "fingerprint"
