@@ -176,7 +176,7 @@ export default class extends Controller {
   }
 
   async hcbCode() {
-    const url = document.getElementById("link_hcb_code_url").value
+    const url = document.getElementById("insert_hcb_code_url").value
 
     if (url === null || url === '') {
       return
