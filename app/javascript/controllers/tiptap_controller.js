@@ -194,8 +194,14 @@ export default class extends Controller {
   }
 
   async donationSummary() {
-    const attrs = await this.createBlock('Announcement::Block::DonationSummary')
+    const startDate = document.getElementById("insert_donation_summary_start_date").value
+
+    const attrs = await this.createBlock('Announcement::Block::DonationSummary', {
+      start_date: startDate,
+    })
     this.editor.chain().focus().addDonationSummary(attrs).run()
+
+    $.modal.close();
   }
 
   async createBlock(type, parameters) {
