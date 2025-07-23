@@ -175,20 +175,14 @@ export default class extends Controller {
     this.editor.chain().focus().addDonationGoal(attrs).run()
   }
 
-  async hcbCode() {
-    const url = document.getElementById("insert_hcb_code_url").value
+  async hcbCode(parameters, blockId) {
+    if (blockId) {
+      await this.editBlock(blockId, parameters)
+    } else {
+      const attrs = await this.createBlock('Announcement::Block::HcbCode', parameters)
 
-    if (url === null || url === '') {
-      return
+      this.editor.chain().focus().addHcbCode(attrs).run()
     }
-
-    const hcbCode = url.split('/').at(-1)
-
-    const attrs = await this.createBlock('Announcement::Block::HcbCode', {
-      hcb_code: hcbCode,
-    })
-
-    this.editor.chain().focus().addHcbCode(attrs).run()
 
     $.modal.close();
   }

@@ -24,11 +24,11 @@
 class Announcement
   class Block
     class DonationGoal < ::Announcement::Block
-      def locals
+      def custom_locals
         goal = announcement.event.donation_goal
         percentage = (goal.progress_amount_cents.to_f / goal.amount_cents) if goal.present?
 
-        { goal:, percentage:, block: self }
+        { goal:, percentage: }
       end
 
       def partial

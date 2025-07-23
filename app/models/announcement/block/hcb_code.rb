@@ -24,22 +24,18 @@
 class Announcement
   class Block
     class HcbCode < ::Announcement::Block
-      def locals
+      def custom_locals
         hcb_code = ::HcbCode.find_by_hashid(parameters["hcb_code"])
 
         unless hcb_code&.event == announcement.event
           hcb_code = nil
         end
 
-        { hcb_code:, event: announcement.event, block: self }
+        { hcb_code:, event: announcement.event }
       end
 
       def editable
         true
-      end
-
-      def partial
-        "announcements/blocks/hcb_code"
       end
 
     end

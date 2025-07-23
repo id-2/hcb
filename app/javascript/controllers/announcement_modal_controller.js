@@ -5,12 +5,19 @@ export default class extends Controller {
   static targets = ['input']
   static outlets = ['tiptap']
 
-  submit() {
-    const parameters = {}
-    for (const target of this.inputTargets) {
-      parameters[target.id] = target.value;
+  donationSummary() {
+    const parameters = {
+      start_date: this.inputTarget.value
     }
 
-    this.tiptapOutlet.donationSummary(parameters, this.blockIdValue);
+    this.tiptapOutlet.donationSummary(parameters, this.blockIdValue)
+  }
+
+  hcbCode() {
+    const parameters = {
+      hcb_code: this.inputTarget.value.split("/").at(-1)
+    }
+
+    this.tiptapOutlet.hcbCode(parameters, this.blockIdValue)
   }
 }

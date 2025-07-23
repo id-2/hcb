@@ -23,12 +23,7 @@ module Announcements
     def edit
       authorize @block, policy_class: Announcement::BlockPolicy
 
-      case @block.type
-      when "Announcement::Block::DonationSummary"
-        render "announcements/modals/_donation_summary", layout: false, locals: { block: @block }
-      else
-        head :bad_request
-      end
+      render @block.modal, layout: false, locals: { block: @block }
     end
 
     def update
@@ -36,7 +31,7 @@ module Announcements
 
       @block.update!(parameters: JSON.parse(params[:parameters]))
 
-      render turbo_stream: turbo_stream.replace("block_#{@block.id}", partial: @block.partial, locals: @block.locals )
+      render turbo_stream: turbo_stream.replace("block_#{@block.id}", partial: @block.partial, locals: @block.locals)
     end
 
     def refresh
