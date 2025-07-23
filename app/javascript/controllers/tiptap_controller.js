@@ -179,24 +179,30 @@ export default class extends Controller {
     if (blockId) {
       await this.editBlock(blockId, parameters)
     } else {
-      const attrs = await this.createBlock('Announcement::Block::HcbCode', parameters)
+      const attrs = await this.createBlock(
+        'Announcement::Block::HcbCode',
+        parameters
+      )
 
       this.editor.chain().focus().addHcbCode(attrs).run()
     }
 
-    $.modal.close();
+    $.modal.close()
   }
 
   async donationSummary(parameters, blockId) {
     if (blockId) {
       await this.editBlock(blockId, parameters)
     } else {
-      const attrs = await this.createBlock('Announcement::Block::DonationSummary', parameters)
+      const attrs = await this.createBlock(
+        'Announcement::Block::DonationSummary',
+        parameters
+      )
 
       this.editor.chain().focus().addDonationSummary(attrs).run()
     }
 
-    $.modal.close();
+    $.modal.close()
   }
 
   async createBlock(type, parameters) {
@@ -220,14 +226,16 @@ export default class extends Controller {
     const res = await fetch(`/announcements/blocks/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
-        parameters: JSON.stringify(parameters || {})
+        parameters: JSON.stringify(parameters || {}),
       }),
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-Token': csrf(),
       },
-    }).then(res => res.text()).then(html => Turbo.renderStreamMessage(html));
+    })
+      .then(res => res.text())
+      .then(html => Turbo.renderStreamMessage(html))
 
-    return res;
+    return res
   }
 }

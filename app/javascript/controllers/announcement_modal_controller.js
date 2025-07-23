@@ -7,7 +7,7 @@ export default class extends Controller {
 
   donationSummary() {
     const parameters = {
-      start_date: this.inputTarget.value
+      start_date: this.inputTarget.value,
     }
 
     this.tiptapOutlet.donationSummary(parameters, this.blockIdValue)
@@ -15,7 +15,7 @@ export default class extends Controller {
 
   hcbCode() {
     const parameters = {
-      hcb_code: this.inputTarget.value.split("/").at(-1)
+      hcb_code: this.inputTarget.value.split('/').at(-1),
     }
 
     this.tiptapOutlet.hcbCode(parameters, this.blockIdValue)
