@@ -24,7 +24,7 @@ class RawStripeTransaction < ApplicationRecord
 
   include ActiveSupport::NumberHelper
 
-  ZERO_DECIMAL_CURRENCIES = %w[BIF CLP DJF GNF JPY KMF KRW MGA PYG RWF UGX VND VUV XAF XOF XPF]
+  ZERO_DECIMAL_CURRENCIES = %w[BIF CLP DJF GNF JPY KMF KRW MGA PYG RWF UGX VND VUV XAF XOF XPF].freeze
 
   def memo
     @memo ||= stripe_transaction.dig("merchant_data", "name")
