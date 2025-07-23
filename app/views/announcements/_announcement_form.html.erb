@@ -1,6 +1,7 @@
 <%# locals: (content: nil, autosave: true) %>
 
-<%= form_with model: @announcement,
+<%= form_with id: "announcement-form",
+  model: @announcement,
   url: announcement_path(@announcement),
   data: {
     controller: "tiptap",

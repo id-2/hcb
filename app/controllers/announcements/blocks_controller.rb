@@ -20,6 +20,25 @@ module Announcements
       render json: { id: @block.id, html: @block.rendered_html }
     end
 
+    def edit
+      authorize @block, policy_class: Announcement::BlockPolicy
+
+      case @block.type
+      when "Announcement::Block::DonationSummary"
+        render "announcements/modals/_donation_summary", layout: false, locals: { block: @block }
+      else
+        head :bad_request
+      end
+    end
+
+    def update
+      authorize @block, policy_class: Announcement::BlockPolicy
+
+      @block.update!(parameters: JSON.parse(params[:parameters]))
+
+      render turbo_stream: turbo_stream.replace("block_#{@block.id}", partial: @block.partial, locals: @block.locals )
+    end
+
     def refresh
       authorize @block, policy_class: Announcement::BlockPolicy
 

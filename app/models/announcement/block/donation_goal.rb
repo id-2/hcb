@@ -24,11 +24,15 @@
 class Announcement
   class Block
     class DonationGoal < ::Announcement::Block
-      def render_html(is_email: false)
+      def locals
         goal = announcement.event.donation_goal
         percentage = (goal.progress_amount_cents.to_f / goal.amount_cents) if goal.present?
 
-        Announcements::BlocksController.renderer.render partial: "announcements/blocks/donation_goal", locals: { goal:, percentage:, is_email:, block: self }
+        { goal:, percentage:, block: self }
+      end
+
+      def partial
+        "announcements/blocks/donation_goal"
       end
 
     end

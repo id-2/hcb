@@ -1,4 +1,4 @@
-/* global $ */
+/* global Turbo, $ */
 
 import { Controller } from '@hotwired/stimulus'
 import { debounce } from 'lodash/function'
@@ -193,13 +193,14 @@ export default class extends Controller {
     $.modal.close();
   }
 
-  async donationSummary() {
-    const startDate = document.getElementById("insert_donation_summary_start_date").value
+  async donationSummary(parameters, blockId) {
+    if (blockId) {
+      await this.editBlock(blockId, parameters)
+    } else {
+      const attrs = await this.createBlock('Announcement::Block::DonationSummary', parameters)
 
-    const attrs = await this.createBlock('Announcement::Block::DonationSummary', {
-      start_date: startDate,
-    })
-    this.editor.chain().focus().addDonationSummary(attrs).run()
+      this.editor.chain().focus().addDonationSummary(attrs).run()
+    }
 
     $.modal.close();
   }
@@ -219,5 +220,20 @@ export default class extends Controller {
     }).then(r => r.json())
 
     return res
+  }
+
+  async editBlock(id, parameters) {
+    const res = await fetch(`/announcements/blocks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        parameters: JSON.stringify(parameters || {})
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrf(),
+      },
+    }).then(res => res.text()).then(html => Turbo.renderStreamMessage(html));
+
+    return res;
   }
 }
