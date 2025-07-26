@@ -1124,7 +1124,6 @@ class EventsController < ApplicationController
     @view = cookies[:card_overview_view] || "grid"
   end
 
-
   def _show_pending_transactions
     return [] if params[:page] && params[:page] != "1"
 
