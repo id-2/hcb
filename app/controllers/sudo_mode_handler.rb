@@ -216,7 +216,7 @@ class SudoModeHandler
         default_factor:,
         forwarded_params:
       },
-      status: :unprocessable_entity
+      status: :unauthorized
     )
   end
 
