@@ -1,4 +1,4 @@
-/* global Turbo, $ */
+/* global Turbo */
 
 import { Controller } from '@hotwired/stimulus'
 import { debounce } from 'lodash/function'
@@ -187,12 +187,14 @@ export default class extends Controller {
         parameters
       )
 
-      if (attrs !== null) {
+      if ('errors' in attrs) {
+        return attrs['errors']
+      } else {
         this.editor.chain().focus().addHcbCode(attrs).run()
+        
+        return null;
       }
     }
-
-    $.modal.close()
   }
 
   async donationSummary(parameters, blockId) {
@@ -204,12 +206,14 @@ export default class extends Controller {
         parameters
       )
 
-      if (attrs !== null) {
+      if ('errors' in attrs) {
+        return attrs['errors']
+      } else {
         this.editor.chain().focus().addDonationSummary(attrs).run()
+        
+        return null;
       }
     }
-
-    $.modal.close()
   }
 
   async createBlock(type, parameters) {
@@ -226,15 +230,7 @@ export default class extends Controller {
       },
     }).then(r => r.json())
 
-    if ('errors' in res) {
-      const message = `Could not insert block: ${res.errors.join(', ')}`
-
-      alert(message)
-
-      return null
-    } else {
-      return res
-    }
+    return res
   }
 
   async editBlock(id, parameters) {

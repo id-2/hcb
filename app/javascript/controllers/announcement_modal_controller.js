@@ -1,8 +1,10 @@
+/* global $ */
+
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
   static values = { blockId: Number }
-  static targets = ['input']
+  static targets = ['input', 'errors']
   static outlets = ['tiptap']
 
   donationSummary() {
@@ -10,7 +12,7 @@ export default class extends Controller {
       start_date: this.inputTarget.value,
     }
 
-    this.tiptapOutlet.donationSummary(parameters, this.blockIdValue)
+    this.tiptapOutlet.donationSummary(parameters, this.blockIdValue).then(this.handleErrors.bind(this))
   }
 
   hcbCode() {
@@ -18,6 +20,17 @@ export default class extends Controller {
       hcb_code: this.inputTarget.value.split('/').at(-1),
     }
 
-    this.tiptapOutlet.hcbCode(parameters, this.blockIdValue)
+    this.tiptapOutlet.hcbCode(parameters, this.blockIdValue).then(this.handleErrors.bind(this))
+  }
+
+  handleErrors(errors) {
+    if (errors) {
+      this.errorsTarget.innerText = errors.join('')
+      this.errorsTarget.parentElement.classList.remove('hidden')
+    } else {
+      this.inputTarget.value = '';
+      this.errorsTarget.parentElement.classList.add('hidden')
+      $.modal.close()
+    }
   }
 }
