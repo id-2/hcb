@@ -179,7 +179,7 @@ export default class extends Controller {
   }
 
   async hcbCode(parameters, blockId) {
-    let result;
+    let result
     if (blockId) {
       result = await this.editBlock(blockId, parameters)
     } else {
@@ -195,11 +195,11 @@ export default class extends Controller {
       this.editor.chain().focus().addHcbCode(result).run()
     }
 
-    return null;
+    return null
   }
 
   async donationSummary(parameters, blockId) {
-    let result;
+    let result
     if (blockId) {
       result = await this.editBlock(blockId, parameters)
     } else {
@@ -215,7 +215,7 @@ export default class extends Controller {
       this.editor.chain().focus().addDonationSummary(result).run()
     }
 
-    return null;
+    return null
   }
 
   async createBlock(type, parameters) {
@@ -245,17 +245,16 @@ export default class extends Controller {
         'Content-Type': 'application/json',
         'X-CSRF-Token': csrf(),
       },
+    }).then(res => {
+      if (res.status === 400) {
+        return res.json()
+      } else {
+        return res.text().then(html => {
+          Turbo.renderStreamMessage(html)
+          return null
+        })
+      }
     })
-      .then(res => {
-        if (res.status === 400) {
-          return res.json()
-        } else {
-          return res.text().then(html => {
-            Turbo.renderStreamMessage(html)
-            return null
-          })
-        }
-      })
 
     return res
   }
