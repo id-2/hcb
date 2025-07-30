@@ -20,8 +20,11 @@ module OneTimeJobs
     end
 
     def self.should_enable_monthly_announcements(event)
-      # filter more
-      event.is_public
+      has_donation_goal = event.donation_goal.present?
+      has_recent_merchants = BreakdownEngine::Merchants.new(event, timeframe: 1.month).run.any?
+      has_recent_donations = event.donations.any? { |donation| donation.created_at > 1.month.ago }
+
+      event.is_public && (has_donation_goal || has_recent_merchants || has_recent_donations)
     end
 
   end
