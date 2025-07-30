@@ -179,41 +179,43 @@ export default class extends Controller {
   }
 
   async hcbCode(parameters, blockId) {
+    let result;
     if (blockId) {
-      await this.editBlock(blockId, parameters)
+      result = await this.editBlock(blockId, parameters)
     } else {
-      const attrs = await this.createBlock(
+      result = await this.createBlock(
         'Announcement::Block::HcbCode',
         parameters
       )
-
-      if ('errors' in attrs) {
-        return attrs['errors']
-      } else {
-        this.editor.chain().focus().addHcbCode(attrs).run()
-        
-        return null;
-      }
     }
+
+    if (result !== null && 'errors' in result) {
+      return result['errors']
+    } else if (!blockId) {
+      this.editor.chain().focus().addHcbCode(result).run()
+    }
+
+    return null;
   }
 
   async donationSummary(parameters, blockId) {
+    let result;
     if (blockId) {
-      await this.editBlock(blockId, parameters)
+      result = await this.editBlock(blockId, parameters)
     } else {
-      const attrs = await this.createBlock(
+      result = await this.createBlock(
         'Announcement::Block::DonationSummary',
         parameters
       )
-
-      if ('errors' in attrs) {
-        return attrs['errors']
-      } else {
-        this.editor.chain().focus().addDonationSummary(attrs).run()
-        
-        return null;
-      }
     }
+
+    if (result !== null && 'errors' in result) {
+      return result['errors']
+    } else if (!blockId) {
+      this.editor.chain().focus().addDonationSummary(result).run()
+    }
+
+    return null;
   }
 
   async createBlock(type, parameters) {
@@ -244,8 +246,16 @@ export default class extends Controller {
         'X-CSRF-Token': csrf(),
       },
     })
-      .then(res => res.text())
-      .then(html => Turbo.renderStreamMessage(html))
+      .then(res => {
+        if (res.status === 400) {
+          return res.json()
+        } else {
+          return res.text().then(html => {
+            Turbo.renderStreamMessage(html)
+            return null
+          })
+        }
+      })
 
     return res
   }

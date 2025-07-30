@@ -31,7 +31,9 @@ module Announcements
     def update
       authorize @block, policy_class: Announcement::BlockPolicy
 
-      @block.update!(parameters: JSON.parse(params[:parameters]))
+      unless @block.update(parameters: JSON.parse(params[:parameters]))
+        return render json: { errors: @block.errors.map(&:full_message) }, status: :bad_request
+      end
 
       render turbo_stream: turbo_stream.replace("block_#{@block.id}", partial: @block.partial, locals: @block.locals)
     end
