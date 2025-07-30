@@ -10,7 +10,9 @@
                 "tiptap-content-value": content,
                 "tiptap-announcement-id-value": @announcement.id,
                 "tiptap-autosave-value": autosave,
-                "turbo-frame": "_top"
+                "tiptap-followers-value": @event.followers.size,
+                "tiptap-published-value": @announcement.published?,
+                "turbo-frame": "_top",
               }.compact do |form| %>
   <div class="field">
     <%= form.label :title, class: "text-lg" %>
