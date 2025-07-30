@@ -9,7 +9,8 @@ export default class extends Controller {
 
   donationSummary() {
     const parameters = {
-      start_date: this.inputTarget.value,
+      start_date: this.inputTargets.find(t => t.name == "start_date").value,
+      end_date: this.inputTargets.find(t => t.name == "end_date").value
     }
 
     this.tiptapOutlet.donationSummary(parameters, this.blockIdValue).then(this.handleErrors.bind(this))

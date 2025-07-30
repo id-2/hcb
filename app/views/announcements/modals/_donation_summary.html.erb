@@ -12,6 +12,11 @@
       <%= date_field_tag :start_date, block.present? ? block.parameters["start_date"] : nil, data: { "announcement-modal-target": "input" } %>
     </div>
 
+    <div>
+      <%= label_tag :end_date, "End date" %>
+      <%= date_field_tag :end_date, block.present? ? block.parameters["end_date"] : nil, data: { "announcement-modal-target": "input" } %>
+    </div>
+
     <button type="button" class="btn w-fit" data-action="announcement-modal#donationSummary"><%= block.present? ? "Edit" : "Add" %></button>
   </div>
 </section>
