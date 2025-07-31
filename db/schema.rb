@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_31_140146) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_31_150352) do
   create_schema "google_sheets"
 
   # These are extensions that must be enabled in order to support this database
@@ -1373,7 +1373,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_31_140146) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "browser_token_ciphertext"
-    t.bigint "initial_login_id"
     t.bigint "referral_program_id"
     t.boolean "is_reauthentication", default: false, null: false
     t.index ["referral_program_id"], name: "index_logins_on_referral_program_id"
@@ -2445,7 +2444,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_31_140146) do
   add_foreign_key "invoices", "users", column: "voided_by_id"
   add_foreign_key "lob_addresses", "events"
   add_foreign_key "login_codes", "users"
-  add_foreign_key "logins", "logins", column: "initial_login_id"
   add_foreign_key "mailbox_addresses", "users"
   add_foreign_key "organizer_position_deletion_requests", "organizer_positions"
   add_foreign_key "organizer_position_deletion_requests", "users", column: "closed_by_id"
