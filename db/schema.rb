@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -12,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_28_132814) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_31_134844) do
   create_schema "google_sheets"
 
   # These are extensions that must be enabled in order to support this database
@@ -1377,6 +1375,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_28_132814) do
     t.text "browser_token_ciphertext"
     t.bigint "initial_login_id"
     t.bigint "referral_program_id"
+    t.boolean "is_reauthentication", default: false, null: false
     t.index ["referral_program_id"], name: "index_logins_on_referral_program_id"
     t.index ["user_id"], name: "index_logins_on_user_id"
     t.index ["user_session_id"], name: "index_logins_on_user_session_id"
