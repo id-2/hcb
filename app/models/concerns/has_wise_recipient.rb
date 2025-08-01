@@ -91,20 +91,23 @@ module HasWiseRecipient
         fields << { type: :text_field, key: "rut_number", placeholder: "12345678-9", label: "RUT number" }
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings", "Demand": "demand" } }
       when currency === "CNY"
-        # TODO: Implement conditional logic
         fields << { type: :select, key: "account_type", label: "Account type", options: { "AliPay": "alipay", "UnionPay": "unionpay" } }
-        fields << { type: :text_field, key: "account_number", label: "Destination", description: "For AliPay, please provide your AliPay ID (email or phone number). For UnionPay, please enter your UnionPay card." }
+        fields << { type: :text_field, key: "account_number", label: "UnionPay card", conditional: "account_type == 'unionpay'" }
+        fields << { type: :text_field, key: "alipay_id", label: "AliPay ID (email or phone number)", conditional: "account_type == 'alipay'" }
       when currency === "COP"
         fields << ACCOUNT_NUMBER_FIELD
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
       when currency === "IDR"
-        # TODO: Implement conditional logic
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "Bank Account": "bank_account", "goPay": "gopay", "OVO": "ovo", "DANA": "dana", "LinkAja": "linkaja", "ShopeePay": "shopeepay" } }
+        fields << { type: :text_field, key: "account_number", label: "Bank account number", conditional: "account_type == 'bank_account'" }
+        fields << { type: :text_field, key: "mobile_wallet_number", label: "E-wallet number", conditional: "account_type !== 'bank_account'" }
       when currency === "JPY"
         fields << { type: :text_field, key: "branch_name", label: "Branch name (if applicable)" }
         fields << { type: :select, key: "account_type", label: "Account type", options: { "(Futsuu) Savings/General": "futsuu", "(Chochiku) Savings deposit": "chochiku", "(Touza) Checking/Current": "touza" } }
         fields << ACCOUNT_NUMBER_FIELD
       when currency === "KES"
-        # TODO: Implement conditional logic
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "M-PESA": "mpesa", "Bank Account": " bank_account" } }
+        fields << ACCOUNT_NUMBER_FIELD
       when currency === "KRW"
         fields << { type: :date_field, key: "recipient_birthday", label: "Recipient's date of birth" }
         fields << ACCOUNT_NUMBER_FIELD
@@ -117,7 +120,9 @@ module HasWiseRecipient
         fields << { type: :text_field, key: "account_number", label: "Account number", description: "18-digit CLABE number" }
         fields << { type: :text_field, key: "tax_id", label: "CURP number", description: "18-character CURP" }
       when currency === "MYR"
-        # TODO: Implement conditional logic
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "Mobile Number (Duitnow)": "mobile_number_duitnow", "NRIC (Duitnow)": "nirc_duitnow", "BNR (Duitnow)": "bnr_duitnow", "Bank Account": "bank_account" } }
+        fields << { type: :text_field, key: "duitnow_id", label: "Duitnow ID", conditional: "account_type != 'bank_account'" }
+        fields << { type: :text_field, key: "account_number", label: "Account number", conditional: "account_type == 'bank_account'" }
       when currency === "UYU"
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
         fields << ACCOUNT_NUMBER_FIELD

@@ -20,7 +20,7 @@
 <% end %>
 
 <%= form_with(model: [@event, @wise_transfer], local: true, html: {
-                "x-data": "{ currency: #{@wise_transfer.currency ? "'#{@wise_transfer.currency}'" : "null"} }"
+                "x-data": "{ currency: #{@wise_transfer.currency ? "'#{@wise_transfer.currency}'" : "null"}, account_type: null }"
               }) do |form| %>
 
   <%= form_errors(@wise_transfer, "wise transfer", "We couldn't send this") %>

@@ -5,10 +5,10 @@
     <div>
       <% WiseTransfer.information_required_for(currency.nil? ? nil : currency).each do |field| %>
         <% unless (field[:key]).in?(excluded_fields) %>
-        <div class="field">
+        <div class="field" @input="<%= field[:key] %> = $event.target.value" <% if field[:conditional] %> x-show="<%= field[:conditional] %>" <% end %>>
           <%= form.label field[:key], field[:label] %>
           <% if field[:type] == :select %>
-            <%= form.select field[:key], field[:options], required: true, disabled: "", prompt: "Please select..." %>
+            <%= form.select field[:key], options_for_select(field[:options].to_a), required: true, disabled: "", selected: "", prompt: "Select one..." %>
           <% else %>
             <%= form.send(field[:type], field[:key], required: true, placeholder: field[:placeholder]) %>
           <% end %>
