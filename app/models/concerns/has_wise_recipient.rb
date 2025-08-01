@@ -67,9 +67,10 @@ module HasWiseRecipient
 
     def self.information_required_for(country) # country can be null, in which case, only the general fields will be returned.
       fields = []
+
       case country
       when "CAD"
-
+        fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
       end
       return fields
     end
