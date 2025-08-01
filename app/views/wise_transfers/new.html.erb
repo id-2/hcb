@@ -17,39 +17,16 @@
     title: "Important information about Wise transfers",
     class: "!border-[#9FE870] [&>div.flex]:text-[#163300] dark:[&>div.flex]:text-[#9FE870]",
     footer: link_to("Learn more about Wise on HCB →", "https://help.hcb.hackclub.com") do %>
-  HCB is partnering with Wise to offer international wire transfers to over 100 countries. HCB imposes no fees or minimums, but fees charged by Wise will be passed on to you.
+  HCB is partnering with Wise to offer international transfers to over 100 countries. HCB imposes no fees or minimums, but any fees charged by Wise will be passed on to your organization.
 <% end %>
 
 
-<h2>Current exchange rate</h2>
-
-<div class="flex items-center justify-center bg-[#163300] p-4">
-
-    <iframe
-  title="fx"
-  src="https://wise.com/gb/currency-converter/fx-widget/converter?sourceCurrency=GBP&targetCurrency=EUR"
-  height=490
-  width=100%
-  frameBorder="0"
-  allowtransparency="true"
-></iframe>
-  <script>
-    const frames = document.querySelectorAll('iframe');
-    const widgetFrame = frames[frames.length - 1];
-    window.addEventListener('message', message => {
-      if (message.source !== widgetFrame.contentWindow) {
-      return;
-      }
-      widgetFrame.setAttribute('height', message.data.height);
-    });
-  </script>
-</div>
 
 <%= form_with(model: [@event, @wise_transfer], local: true, html: {
-                "x-data": "{ country: #{@wise_transfer.recipient_country ? "'#{@wise_transfer.recipient_country}'" : "null"} }"
+                "x-data": "{ currency: #{@wise_transfer.currency ? "'#{@wise_transfer.currency}'" : "null"} }"
               }) do |form| %>
 
-  <%= form_errors(@wise_transfer, "wire", "We couldn't send this") %>
+  <%= form_errors(@wise_transfer, "wise transfer", "We couldn't send this") %>
 
   <div class="field">
     <%= form.label :memo %>
@@ -80,8 +57,8 @@
 
   <div class="field">
     <div class="flex items-center g1">
-      <div style="width: 72px">
-        <%= form.select :currency, ::EuCentralBank::CURRENCIES + ["EUR"], required: true, default: "USD", disabled: %>
+      <div style="width: 72px" >
+        <%= form.select :currency, WiseTransfer::AVAILABLE_CURRENCIES, { required: true, disabled: true }, { "@change" => "currency = $event.target.value" } %>
       </div>
       <div class="flex flex-col flex-grow">
         <%= form.number_field :amount,
@@ -98,15 +75,17 @@
     <% if @event.balance <= 0 %>
       <span class="error">There are no funds to transfer.<br>
     <% end %>
+
+    <%= link_to "Explore how much this costs in USD →", "https://wise.com/us/pricing/send-money", target: :_blank %>
   </div>
 
   <div class="field">
-    <%= form.label :payment_for, "What are you paying for with this wire?" %>
+    <%= form.label :payment_for, "What are you paying for with this transfer?" %>
     <%= form.text_field :payment_for, placeholder: "Event venue", required: true, disabled: %>
     <span class="muted">This is to help HCB keep record of our transactions.</span>
   </div>
 
-  <%= render partial: "country_specific_details", locals: { form:, disabled: } %>
+  <%= render partial: "currency_specific_details", locals: { form:, disabled: } %>
 
   <%= form.label :file, "Attach a receipt / invoice", class: "mt2 semibold" %>
   <div class="field field--fileupload mb1 mt1" data-controller="file-drop form" data-file-drop-title-value="Drop to add a receipt.">
@@ -134,7 +113,9 @@
 
   <p class="muted mt0 mb2">Required for reimbursements / goods & services payments.</p>
 
-  <div class="actions tooltipped tooltipped--n inline-block mt1" aria-label="Your wire will be sent out on the next business day.">
-    <%= form.submit "Send wire", disabled: %>
+  <div class="actions tooltipped tooltipped--n inline-block mt1" aria-label="Your transfer will be sent out on the next business day.">
+    <button type="submit" <%= "disabled" if disabled %> class="btn">
+      <%= inline_icon "wise", size: 16, class: "inline-block" %> Send transfer with Wise
+    </button>
   </div>
 <% end %>

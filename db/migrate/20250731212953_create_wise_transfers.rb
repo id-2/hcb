@@ -10,17 +10,17 @@ class CreateWiseTransfers < ActiveRecord::Migration[7.2]
       t.string :address_line2
       t.string :address_postal_code
       t.string :address_state
-      t.integer :amount_cents
+      t.integer :amount_cents, null: false
       t.datetime :approved_at
-      t.string :bic_code_bidx
-      t.string :bic_code_ciphertext
-      t.string :currency
-      t.string :memo
-      t.string :payment_for
-      t.integer :recipient_country
-      t.string :recipient_email
+      t.string :institution_number_bidx
+      t.string :institution_number_ciphertext
+      t.string :currency, null: false
+      t.string :memo, null: false
+      t.string :payment_for, null: false
+      t.integer :recipient_country, null: false
+      t.string :recipient_email, null: false
       t.jsonb :recipient_information
-      t.string :recipient_name
+      t.string :recipient_name, null: false
       t.text :recipient_phone_number
       t.text :recipient_birthday_ciphertext
       t.text :wise_id

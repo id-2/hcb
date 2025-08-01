@@ -6,7 +6,7 @@
     data-transfer-form-wire-value="<%= new_event_wire_path(@event) %>">
     <div data-transfer-form-target="home">
       <fieldset>
-        <legend class="heading h2 pt2 pb2">What type of transfer?</legend>
+        <legend class="heading h2 pb2">What type of transfer?</legend>
         <div class="field field--options fit">
           <%= link_to new_event_ach_transfer_path(@event), class: "text-decoration-none btn--form-option", data: { turbo_frame: "_top" } do %>
             <%= inline_icon "payment-transfer", size: 28 %>

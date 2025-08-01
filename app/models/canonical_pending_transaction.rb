@@ -29,6 +29,7 @@
 #  reimbursement_expense_payout_id                  :bigint
 #  reimbursement_payout_holding_id                  :bigint
 #  wire_id                                          :bigint
+#  wise_transfer_id                                 :bigint
 #
 # Indexes
 #
@@ -38,6 +39,7 @@
 #  index_canonical_pending_transactions_on_increase_check_id        (increase_check_id)
 #  index_canonical_pending_transactions_on_paypal_transfer_id       (paypal_transfer_id)
 #  index_canonical_pending_transactions_on_wire_id                  (wire_id)
+#  index_canonical_pending_transactions_on_wise_transfer_id         (wise_transfer_id)
 #  index_canonical_pending_txs_on_raw_pending_bank_fee_tx_id        (raw_pending_bank_fee_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_donation_tx_id        (raw_pending_donation_transaction_id)
 #  index_canonical_pending_txs_on_raw_pending_invoice_tx_id         (raw_pending_invoice_transaction_id)
