@@ -65,12 +65,70 @@ module HasWiseRecipient
       end
     end
 
-    def self.information_required_for(country) # country can be null, in which case, only the general fields will be returned.
+    def self.information_required_for(currency) # country can be null, in which case, only the general fields will be returned.
       fields = []
 
-      case country
-      when "CAD"
-        fields << { type: :text_field, key: "phone", label: "Phone number associated with account" }
+      case true
+      when currency.in?(%w[AED BGN CHF CZK DKK EGP EUR GBP GEL HUF ILS NOK PKR PLN RON SEK TRY UAH])
+        fields << { type: :text_field, key: "account_number", placeholder: "TR330006100519786457841326", label: "IBAN" }
+      when currency.in?(%w[HKD NGN NPR NZD PHP SGD THB])
+        fields << { type: :text_field, key: "account_number", placeholder: "123456789", label: "Account number" }
+      when currency === "ARS"
+        fields << { type: :text_field, key: "account_number", placeholder: "123456789", label: "Account number (CBU)" }
+      when currency === "AUD"
+        fields << { type: :text_field, key: "branch_number", placeholder: "123456", label: "BSB code" }
+        fields << ACCOUNT_NUMBER_FIELD
+      when currency === "BRL"
+        fields << { type: :text_field, key: "branch_number", label: "Branch code" }
+        fields << ACCOUNT_NUMBER_FIELD
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
+      when currency === "CAD"
+        fields << { type: :text_field, key: "institution_number", placeholder: "123", label: "Institution number" }
+        fields << { type: :text_field, key: "branch_number", placeholder: "45678", label: "Branch number" }
+        fields << ACCOUNT_NUMBER_FIELD
+      when currency === "CLP"
+        fields << ACCOUNT_NUMBER_FIELD
+        fields << { type: :text_field, key: "rut_number", placeholder: "12345678-9", label: "RUT number" }
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings", "Demand": "demand" } }
+      when currency === "CNY"
+        # TODO: Implement conditional logic
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "AliPay": "alipay", "UnionPay": "unionpay" } }
+        fields << { type: :text_field, key: "account_number", label: "Destination", description: "For AliPay, please provide your AliPay ID (email or phone number). For UnionPay, please enter your UnionPay card." }
+      when currency === "COP"
+        fields << ACCOUNT_NUMBER_FIELD
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
+      when currency === "IDR"
+        # TODO: Implement conditional logic
+      when currency === "JPY"
+        fields << { type: :text_field, key: "branch_name", label: "Branch name (if applicable)" }
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "(Futsuu) Savings/General": "futsuu", "(Chochiku) Savings deposit": "chochiku", "(Touza) Checking/Current": "touza" } }
+        fields << ACCOUNT_NUMBER_FIELD
+      when currency === "KES"
+        # TODO: Implement conditional logic
+      when currency === "KRW"
+        fields << { type: :date_field, key: "recipient_birthday", label: "Recipient's date of birth" }
+        fields << ACCOUNT_NUMBER_FIELD
+      when currency === "LKR"
+        fields << { type: :text_field, key: "branch_name", label: "Branch name" }
+        fields << ACCOUNT_NUMBER_FIELD
+      when currency === "MAD"
+        fields << { type: :text_field, key: "account_number", label: "Account number", description: "24-digit RIB number" }
+      when currency === "MXN"
+        fields << { type: :text_field, key: "account_number", label: "Account number", description: "18-digit CLABE number" }
+        fields << { type: :text_field, key: "tax_id", label: "CURP number", description: "18-character CURP" }
+      when currency === "MYR"
+        # TODO: Implement conditional logic
+      when currency === "UYU"
+        fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
+        fields << ACCOUNT_NUMBER_FIELD
+        fields << { type: :text_field, key: "tax_id", label: "National ID" }
+        fields << { type: :text_field, key: "branch_name", label: "Branch name (if applicable)" }
+      when currency === "VND"
+        fields << { type: :text_field, key: "institution_number", label: "Bank code (BIC/SWIFT)", placeholder: "AAAA-BB-CC-123" }
+        fields << ACCOUNT_NUMBER_FIELD
+      when currency === "ZAR"
+        fields << { type: :date_field, key: "recipient_birthday", label: "Recipient's date of birth" }
+        fields << ACCOUNT_NUMBER_FIELD
       end
       return fields
     end
@@ -389,6 +447,8 @@ module HasWiseRecipient
       "Sole proprietor": "sole_proprietor"
     }
   }.freeze
+
+  ACCOUNT_NUMBER_FIELD = { type: :text_field, key: "account_number", placeholder: "123456789", label: "Account number" }.freeze
 
   def bank_country
     ColumnService.get("/institutions/#{bic_code}")["country_code"] rescue recipient_country
