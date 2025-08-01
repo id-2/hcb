@@ -16,6 +16,8 @@
 #  amount_cents                  :integer          not null
 #  approved_at                   :datetime
 #  bank_name                     :string
+#  branch_number_bidx            :string
+#  branch_number_ciphertext      :string
 #  currency                      :string           not null
 #  institution_number_bidx       :string
 #  institution_number_ciphertext :string
