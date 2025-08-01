@@ -73,65 +73,65 @@ module HasWiseRecipient
         fields << { type: :text_field, key: "account_number", placeholder: "TR330006100519786457841326", label: "IBAN" }
       when currency.in?(%w[HKD NGN NPR NZD PHP SGD THB])
         fields << { type: :text_field, key: "account_number", placeholder: "123456789", label: "Account number" }
-      when currency === "ARS"
+      when currency == "ARS"
         fields << { type: :text_field, key: "account_number", placeholder: "123456789", label: "Account number (CBU)" }
-      when currency === "AUD"
+      when currency == "AUD"
         fields << { type: :text_field, key: "branch_number", placeholder: "123456", label: "BSB code" }
         fields << ACCOUNT_NUMBER_FIELD
-      when currency === "BRL"
+      when currency == "BRL"
         fields << { type: :text_field, key: "branch_number", label: "Branch code" }
         fields << ACCOUNT_NUMBER_FIELD
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
-      when currency === "CAD"
+      when currency == "CAD"
         fields << { type: :text_field, key: "institution_number", placeholder: "123", label: "Institution number" }
         fields << { type: :text_field, key: "branch_number", placeholder: "45678", label: "Branch number" }
         fields << ACCOUNT_NUMBER_FIELD
-      when currency === "CLP"
+      when currency == "CLP"
         fields << ACCOUNT_NUMBER_FIELD
         fields << { type: :text_field, key: "rut_number", placeholder: "12345678-9", label: "RUT number" }
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings", "Demand": "demand" } }
-      when currency === "CNY"
+      when currency == "CNY"
         fields << { type: :select, key: "account_type", label: "Account type", options: { "AliPay": "alipay", "UnionPay": "unionpay" } }
         fields << { type: :text_field, key: "account_number", label: "UnionPay card", conditional: "account_type == 'unionpay'" }
         fields << { type: :text_field, key: "alipay_id", label: "AliPay ID (email or phone number)", conditional: "account_type == 'alipay'" }
-      when currency === "COP"
+      when currency == "COP"
         fields << ACCOUNT_NUMBER_FIELD
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
-      when currency === "IDR"
+      when currency == "IDR"
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Bank Account": "bank_account", "goPay": "gopay", "OVO": "ovo", "DANA": "dana", "LinkAja": "linkaja", "ShopeePay": "shopeepay" } }
         fields << { type: :text_field, key: "account_number", label: "Bank account number", conditional: "account_type == 'bank_account'" }
         fields << { type: :text_field, key: "mobile_wallet_number", label: "E-wallet number", conditional: "account_type !== 'bank_account'" }
-      when currency === "JPY"
+      when currency == "JPY"
         fields << { type: :text_field, key: "branch_name", label: "Branch name (if applicable)" }
         fields << { type: :select, key: "account_type", label: "Account type", options: { "(Futsuu) Savings/General": "futsuu", "(Chochiku) Savings deposit": "chochiku", "(Touza) Checking/Current": "touza" } }
         fields << ACCOUNT_NUMBER_FIELD
-      when currency === "KES"
+      when currency == "KES"
         fields << { type: :select, key: "account_type", label: "Account type", options: { "M-PESA": "mpesa", "Bank Account": " bank_account" } }
         fields << ACCOUNT_NUMBER_FIELD
-      when currency === "KRW"
+      when currency == "KRW"
         fields << { type: :date_field, key: "recipient_birthday", label: "Recipient's date of birth" }
         fields << ACCOUNT_NUMBER_FIELD
-      when currency === "LKR"
+      when currency == "LKR"
         fields << { type: :text_field, key: "branch_name", label: "Branch name" }
         fields << ACCOUNT_NUMBER_FIELD
-      when currency === "MAD"
+      when currency == "MAD"
         fields << { type: :text_field, key: "account_number", label: "Account number", description: "24-digit RIB number" }
-      when currency === "MXN"
+      when currency == "MXN"
         fields << { type: :text_field, key: "account_number", label: "Account number", description: "18-digit CLABE number" }
         fields << { type: :text_field, key: "tax_id", label: "CURP number", description: "18-character CURP" }
-      when currency === "MYR"
+      when currency == "MYR"
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Mobile Number (Duitnow)": "mobile_number_duitnow", "NRIC (Duitnow)": "nirc_duitnow", "BNR (Duitnow)": "bnr_duitnow", "Bank Account": "bank_account" } }
         fields << { type: :text_field, key: "duitnow_id", label: "Duitnow ID", conditional: "account_type != 'bank_account'" }
         fields << { type: :text_field, key: "account_number", label: "Account number", conditional: "account_type == 'bank_account'" }
-      when currency === "UYU"
+      when currency == "UYU"
         fields << { type: :select, key: "account_type", label: "Account type", options: { "Checking": "checking", "Savings": "savings" } }
         fields << ACCOUNT_NUMBER_FIELD
         fields << { type: :text_field, key: "tax_id", label: "National ID" }
         fields << { type: :text_field, key: "branch_name", label: "Branch name (if applicable)" }
-      when currency === "VND"
+      when currency == "VND"
         fields << { type: :text_field, key: "institution_number", label: "Bank code (BIC/SWIFT)", placeholder: "AAAA-BB-CC-123" }
         fields << ACCOUNT_NUMBER_FIELD
-      when currency === "ZAR"
+      when currency == "ZAR"
         fields << { type: :date_field, key: "recipient_birthday", label: "Recipient's date of birth" }
         fields << ACCOUNT_NUMBER_FIELD
       end
