@@ -9,7 +9,7 @@ module HasWiseRecipient
     validates_length_of :remittance_info, maximum: 140
 
     validate do
-      unless bic_code.nil? || bic_code.match(/[A-Z]{4}([A-Z]{2})[A-Z0-9]{2}([A-Z0-9]{3})?$/)   # https://www.johndcook.com/blog/2024/01/29/swift/
+      unless bic_code.nil? || bic_code.match(/[A-Z]{4}([A-Z]{2})[A-Z0-9]{2}([A-Z0-9]{3})?$/) # https://www.johndcook.com/blog/2024/01/29/swift/
         errors.add(:bic_code, "is not a valid SWIFT / BIC code")
       end
     end
@@ -65,11 +65,11 @@ module HasWiseRecipient
       end
     end
 
-    def self.information_required_for(country)  # country can be null, in which case, only the general fields will be returned.
+    def self.information_required_for(country) # country can be null, in which case, only the general fields will be returned.
       fields = []
       case country
       when "CAD"
-        
+
       end
       return fields
     end

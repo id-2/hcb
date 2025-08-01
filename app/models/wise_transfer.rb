@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: wise_transfers
@@ -99,5 +101,6 @@ class WiseTransfer < ApplicationRecord
 
     @local_hcb_code |= HcbCode.find_or_create_by(hcb_code:)
   end
-  
+
+
 end
