@@ -2365,6 +2365,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_01_002813) do
     t.datetime "approved_at"
     t.string "institution_number_bidx"
     t.string "institution_number_ciphertext"
+    t.string "branch_number_bidx"
+    t.string "branch_number_ciphertext"
+    t.string "tax_id_bidx"
+    t.string "tax_id_ciphertext"
     t.string "currency", null: false
     t.string "memo", null: false
     t.string "payment_for", null: false

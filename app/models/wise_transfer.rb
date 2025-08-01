@@ -29,6 +29,8 @@
 #  recipient_information         :jsonb
 #  recipient_name                :string           not null
 #  recipient_phone_number        :text
+#  tax_id_bidx                   :string
+#  tax_id_ciphertext             :string
 #  created_at                    :datetime         not null
 #  updated_at                    :datetime         not null
 #  event_id                      :bigint           not null

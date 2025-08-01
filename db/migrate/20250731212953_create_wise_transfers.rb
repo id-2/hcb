@@ -16,6 +16,8 @@ class CreateWiseTransfers < ActiveRecord::Migration[7.2]
       t.string :institution_number_ciphertext
       t.string :branch_number_bidx
       t.string :branch_number_ciphertext
+      t.string :tax_id_bidx
+      t.string :tax_id_ciphertext
       t.string :currency, null: false
       t.string :memo, null: false
       t.string :payment_for, null: false
