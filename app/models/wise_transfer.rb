@@ -48,8 +48,14 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class WiseTransfer < ApplicationRecord
+  puts "WiseTransfer model loaded"
+
   include PgSearch::Model
   pg_search_scope :search_recipient, against: [:recipient_name, :recipient_email]
+
+
+  has_encrypted :account_number, :institution_number, :branch_number, :tax_id
+  blind_index :account_number, :institution_number, :branch_number, :tax_id
 
   validates_length_of :payment_for, maximum: 140
 
@@ -60,12 +66,11 @@ class WiseTransfer < ApplicationRecord
 
   belongs_to :event
   belongs_to :user
+  has_paper_trail
 
   has_one :canonical_pending_transaction
 
   monetize :amount_cents, as: "amount", with_model_currency: :currency
-
-  AVAILABLE_CURRENCIES = ::EuCentralBank::CURRENCIES + ["EUR"] - ["USD"]
 
   include PublicActivity::Model
   tracked owner: proc { |controller, record| controller&.current_user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
@@ -74,7 +79,8 @@ class WiseTransfer < ApplicationRecord
     create_canonical_pending_transaction!(
       event:,
       amount_cents: 0,
-      memo: "#{amount_cents} #{currency} Wire to #{recipient_name}", # this really _really_ sucks. I'm open to ideas here.
+      amount_pending: true,
+      memo: "#{amount_cents} #{currency} Wise to #{recipient_name}", # this really _really_ sucks. I'm open to ideas here.
       date: created_at
     )
   end
@@ -97,14 +103,13 @@ class WiseTransfer < ApplicationRecord
   alias_attribute :name, :recipient_name
 
   def hcb_code
-    "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::WISE_TRANSFER_CODE}"
+    "HCB-#{TransactionGroupingEngine::Calculate::HcbCode::WISE_TRANSFER_CODE}-#{id}"
   end
 
   def local_hcb_code
     return nil unless persisted?
 
-    @local_hcb_code |= HcbCode.find_or_create_by(hcb_code:)
+    @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
-
 
 end

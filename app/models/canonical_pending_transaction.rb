@@ -6,6 +6,7 @@
 #
 #  id                                               :bigint           not null, primary key
 #  amount_cents                                     :integer          not null
+#  amount_pending                                   :boolean          default(FALSE), not null
 #  custom_memo                                      :text
 #  date                                             :date             not null
 #  fee_waived                                       :boolean          default(FALSE)
@@ -77,6 +78,7 @@ class CanonicalPendingTransaction < ApplicationRecord
   belongs_to :increase_check, optional: true
   belongs_to :paypal_transfer, optional: true
   belongs_to :wire, optional: true
+  belongs_to :wise_transfer, optional: true
   belongs_to :check_deposit, optional: true
   belongs_to :reimbursement_expense_payout, class_name: "Reimbursement::ExpensePayout", optional: true
   belongs_to :reimbursement_payout_holding, class_name: "Reimbursement::PayoutHolding", optional: true
@@ -100,6 +102,7 @@ class CanonicalPendingTransaction < ApplicationRecord
   scope :outgoing_check, -> { where("raw_pending_outgoing_check_transaction_id is not null") }
   scope :increase_check, -> { where.not(increase_check_id: nil) }
   scope :wire, -> { where.not(wire: nil) }
+  scope :wise_transfer, -> { where.not(wise_transfer: nil) }
   scope :check_deposit, -> { where.not(check_deposit_id: nil) }
   scope :donation, -> { where("raw_pending_donation_transaction_id is not null") }
   scope :invoice, -> { where("raw_pending_invoice_transaction_id is not null") }
