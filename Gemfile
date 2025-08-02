@@ -113,7 +113,6 @@ gem "diffy" # rendering diffs (comments)
 gem "webauthn", "~> 3.2"
 
 gem "ahoy_matey" # analytics
-gem "airbrake" # exception tracking
 gem "blazer" # business intelligence tool/dashboard
 
 gem "geo_pattern" # create procedurally generated patterns for Cards
@@ -186,7 +185,7 @@ group :development do
 
   # Ruby language server
   gem "solargraph", require: false
-  gem "solargraph-rails", "~> 0.2.0", require: false
+  gem "solargraph-rails", "~> 1.2.0", require: false
 
   gem "htmlbeautifier", require: false # for https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb
 
@@ -228,5 +227,7 @@ gem "rack-timeout", require: "rack/timeout/base"
 gem "irb"
 
 gem "pstore"
+
+gem "bcrypt", "~> 3.1.7"
 
 gem "prosemirror_to_html"
