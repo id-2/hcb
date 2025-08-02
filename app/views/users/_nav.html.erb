@@ -1,6 +1,9 @@
 <%= render "users/mobile_nav", selected: local_assigns[:selected] %>
 <% content_for(:header) do %>
-  <%= render partial: "logo" %>
+  <div class="flex items-center gap-3 mb-2">
+    <%= render partial: "logo" %>
+    <h3 class="my-0">HCB</h3>
+  </div>
 <% end %>
 
 <% content_for(:nav) do %>
