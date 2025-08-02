@@ -1,9 +1,13 @@
-<header data-controller="menu" class="flex-1 min-w-0 w-full">
-  <%= link_to @event, class: "#{"pointer-events-none" unless signed_in?} dock__item text-xl text-decoration-none -mx-1 px-1 inline-flex w-auto  items-center", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
-    <span class="font-bold black line-height-2 line-clamp-1 text-balance tracking-tight truncate max-w-full">
-      <%= @event.short_name || @event.name %>
-    </span>
-    <%= inline_icon "sort-vertical", size: 28, class: "fill-muted" if show_org_switcher? %>
+<div class="muted">
+  <% @event.ancestors[1..].each do |ancestor| %>
+    <%= link_to ancestor.name, ancestor, class: "no-underline hover:underline" %> /
+  <% end %>
+</div>
+
+<div data-controller="menu">
+  <%= link_to @event, class: "#{"pointer-events-none" unless signed_in?} #{"mt-0" if @event.parent_id.present?} text-decoration-none gap-2 text-inherit event-title -ml-4 my-2 px-2 rounded-lg transition-colors flex items-center tracking-tight hover:text-primary", style: "font-weight: 600; word-break: break-word;", data: ({ action: "click->menu#toggle click@document->menu#close keydown@document->menu#keydown", menu_target: "toggle" } if show_org_switcher?) do %>
+    <%= @event.name %>
+    <%= inline_icon "down-caret", class: "event-title-dropdown-icon" if show_org_switcher? %>
   <% end %>
   <% if show_org_switcher? %>
     <div class="menu__content menu__content--switcher sm:w-[275px] z-[11] !rounded-xl" data-menu-target="content" style="bottom:unset!important">
@@ -29,4 +33,4 @@
       <% end %>
     </div>
   <% end %>
-</header>
+</div>

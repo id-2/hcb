@@ -237,3 +237,15 @@ tr.strikethrough td:before {
 .scrollbar-hidden {
   scrollbar-width: none; /* Firefox */
 }
+
+// https://piccalil.li/blog/link-button/
+.link-button {
+  display: inline;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  background: transparent;
+  color: currentColor;
+}
