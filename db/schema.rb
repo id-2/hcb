@@ -12,7 +12,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_31_174149) do
   create_schema "google_sheets"
 
   # These are extensions that must be enabled in order to support this database
@@ -190,6 +190,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.index ["visit_token"], name: "index_ahoy_visits_on_visit_token", unique: true
   end
 
+  create_table "announcement_blocks", force: :cascade do |t|
+    t.text "rendered_html"
+    t.text "rendered_email_html"
+    t.jsonb "parameters"
+    t.bigint "announcement_id", null: false
+    t.string "type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["announcement_id"], name: "index_announcement_blocks_on_announcement_id"
+  end
+
   create_table "announcements", force: :cascade do |t|
     t.string "title", null: false
     t.bigint "author_id", null: false
@@ -199,9 +210,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.jsonb "content", null: false
     t.bigint "event_id", null: false
     t.datetime "published_at"
-    t.text "rendered_email_html"
-    t.text "rendered_html"
     t.string "aasm_state"
+    t.string "template_type"
     t.index ["author_id"], name: "index_announcements_on_author_id"
     t.index ["event_id"], name: "index_announcements_on_event_id"
   end
@@ -388,11 +398,14 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.bigint "paypal_transfer_id"
     t.bigint "reimbursement_payout_holding_id"
     t.bigint "wire_id"
+    t.bigint "raw_pending_column_transaction_id"
     t.index ["check_deposit_id"], name: "index_canonical_pending_transactions_on_check_deposit_id"
     t.index ["hcb_code"], name: "index_canonical_pending_transactions_on_hcb_code"
     t.index ["increase_check_id"], name: "index_canonical_pending_transactions_on_increase_check_id"
     t.index ["paypal_transfer_id"], name: "index_canonical_pending_transactions_on_paypal_transfer_id"
     t.index ["raw_pending_bank_fee_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_bank_fee_tx_id"
+    t.index ["raw_pending_column_transaction_id"], name: "idx_on_raw_pending_column_transaction_id_ceea9a99e1", unique: true
+    t.index ["raw_pending_column_transaction_id"], name: "index_canonical_pending_txs_on_rpct_id"
     t.index ["raw_pending_donation_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_donation_tx_id"
     t.index ["raw_pending_incoming_disbursement_transaction_id"], name: "index_cpts_on_raw_pending_incoming_disbursement_transaction_id"
     t.index ["raw_pending_invoice_transaction_id"], name: "index_canonical_pending_txs_on_raw_pending_invoice_tx_id"
@@ -658,6 +671,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.bigint "archived_by_id"
     t.string "aasm_state"
     t.datetime "deleted_at", precision: nil
+    t.integer "category", default: 0, null: false
     t.index ["archived_by_id"], name: "index_documents_on_archived_by_id"
     t.index ["event_id"], name: "index_documents_on_event_id"
     t.index ["slug"], name: "index_documents_on_slug", unique: true
@@ -894,6 +908,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.datetime "updated_at", null: false
     t.boolean "cover_donation_fees", default: false
     t.string "contact_email"
+    t.boolean "generate_monthly_announcement", default: false, null: false
+    t.string "subevent_plan"
     t.index ["event_id"], name: "index_event_configurations_on_event_id"
   end
 
@@ -933,7 +949,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
   end
 
   create_table "events", force: :cascade do |t|
-    t.text "name"
+    t.text "name", null: false
     t.text "address"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -969,6 +985,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.integer "risk_level"
     t.boolean "financially_frozen", default: false, null: false
     t.boolean "donation_tiers_enabled", default: false, null: false
+    t.bigint "parent_id"
+    t.index ["parent_id"], name: "index_events_on_parent_id"
     t.index ["point_of_contact_id"], name: "index_events_on_point_of_contact_id"
   end
 
@@ -1549,6 +1567,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.string "program", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["program", "user_id"], name: "index_raffles_on_program_and_user_id", unique: true
   end
 
   create_table "raw_column_transactions", force: :cascade do |t|
@@ -1614,6 +1633,18 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.string "state"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "raw_pending_column_transactions", force: :cascade do |t|
+    t.string "column_id", null: false
+    t.integer "column_event_type", null: false
+    t.jsonb "column_transaction", null: false
+    t.text "description", null: false
+    t.date "date_posted", null: false
+    t.integer "amount_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["column_id"], name: "index_raw_pending_column_transactions_on_column_id", unique: true
   end
 
   create_table "raw_pending_donation_transactions", force: :cascade do |t|
@@ -1777,7 +1808,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
     t.string "background_image_url"
     t.string "login_header_text"
     t.text "login_body_text"
-    t.string "login_text_color", default: "#ffffff"
+    t.string "login_text_color"
   end
 
   create_table "reimbursement_expense_payouts", force: :cascade do |t|
@@ -2187,7 +2218,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
   end
 
   create_table "user_sessions", force: :cascade do |t|
-    t.bigint "user_id"
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "fingerprint"
@@ -2224,7 +2255,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.text "email"
+    t.text "email", null: false
     t.string "full_name"
     t.text "phone_number"
     t.string "slug"
@@ -2325,6 +2356,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_17_152952) do
   add_foreign_key "admin_ledger_audit_tasks", "admin_ledger_audits"
   add_foreign_key "admin_ledger_audit_tasks", "hcb_codes"
   add_foreign_key "admin_ledger_audit_tasks", "users", column: "reviewer_id"
+  add_foreign_key "announcement_blocks", "announcements"
   add_foreign_key "announcements", "events"
   add_foreign_key "announcements", "users", column: "author_id"
   add_foreign_key "api_tokens", "users"
