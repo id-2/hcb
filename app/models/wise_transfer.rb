@@ -71,6 +71,7 @@ class WiseTransfer < ApplicationRecord
   has_one :canonical_pending_transaction
 
   monetize :amount_cents, as: "amount", with_model_currency: :currency
+  monetize :usd_amount_cents, as: "usd_amount", allow_nil: true
 
   include PublicActivity::Model
   tracked owner: proc { |controller, record| controller&.current_user }, event_id: proc { |controller, record| record.event.id }, only: [:create]
@@ -96,6 +97,14 @@ class WiseTransfer < ApplicationRecord
     state :sent
     state :deposited
     state :failed
+
+    event :mark_approved do
+      transitions from: :pending, to: :approved
+    end
+
+    event :mark_rejected do
+      transitions from: [:pending, :approved], to: :rejected
+    end
   end
 
   validates :amount_cents, numericality: { greater_than: 0, message: "must be positive!" }
@@ -112,20 +121,28 @@ class WiseTransfer < ApplicationRecord
     @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 
-  def state
+  def status_color
     if pending?
-      :muted
+      :warning
+    elsif approved?
+      :blue
     elsif rejected? || failed?
       :error
     elsif deposited?
       :success
     else
-      :info
+      :muted
     end
   end
 
   def state_text
     aasm_state.humanize
+  end
+
+  def last_user_change_to(...)
+    user_id = versions.where_object_changes_to(...).last&.whodunnit
+
+    user_id && User.find(user_id)
   end
 
 end

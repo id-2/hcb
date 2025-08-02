@@ -9,6 +9,18 @@ class WiseTransferPolicy < ApplicationPolicy
     user_who_can_transfer?
   end
 
+  def approve?
+    user&.admin?
+  end
+
+  def reject?
+    user_who_can_transfer?
+  end
+
+  def update?
+    user&.admin?
+  end
+
   private
 
   def admin_or_user?

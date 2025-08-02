@@ -1,6 +1,6 @@
 <% title "Wise transfers" %>
 
-<%= form_with local: true, url: wires_admin_index_path, method: :get do |form| %>
+<%= form_with local: true, url: wise_transfers_admin_index_path, method: :get do |form| %>
   <%= form.text_field :q, value: params[:q], placeholder: "Search" %>
   <%= form.collection_select(:event_id, Event.reorder(Event::CUSTOM_SORT), :id, :admin_dropdown_description, { include_blank: "Select An Event", selected: @event_id }, { width: 250, style: "max-width: 250px" }) %>
   <%= form.submit "Search" %>
@@ -36,7 +36,7 @@
         <td><%= wise_transfer.aasm.human_state %></td>
         <td>
           <%= link_to "View", hcb_code_path(wise_transfer.hcb_code) %>
-          <%# link_to "Process", wise_transfer_process_admin_path(wire) %>
+          <%= link_to "Process", wise_transfer_process_admin_path(wise_transfer) %>
         </td>
       </tr>
     <% end %>

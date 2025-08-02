@@ -407,6 +407,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :wise_transfers, only: [:edit, :update] do
+    member do
+      post "approve"
+      post "reject"
+    end
+  end
+
   resources :ach_transfers, only: [:show] do
     member do
       post "cancel"

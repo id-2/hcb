@@ -4,7 +4,7 @@ class WiseTransfersController < ApplicationController
   include SetEvent
 
   before_action :set_event, only: %i[new create]
-  # before_action :set_wise_transfer, only: %i[approve reject send_wire edit update]
+  before_action :set_wise_transfer, only: %i[update approve reject]
 
   def new
     @wise_transfer = @event.wise_transfers.build
@@ -36,26 +36,66 @@ class WiseTransfersController < ApplicationController
     end
   end
 
+  def approve
+    authorize @wise_transfer
+
+    @wise_transfer.mark_approved!
+
+    redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { success: "You have assigned yourself to this Wise transfer." }
+  rescue => e
+    redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { error: e.message }
+  end
+
+  def edit
+    authorize @wise_transfer
+    @event = @wise_transfer.event
+  end
+
+  def update
+    authorize @wise_transfer
+    @event = @wise_transfer.event
+
+    if @wise_transfer.update(wise_transfer_params)
+      redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { success: "Edited the wire." }
+    else
+      redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { error: @wise_transfer.errors.full_messages.to_sentence }
+    end
+  end
+
+
+  def reject
+    authorize @wise_transfer
+
+    @wise_transfer.mark_rejected!
+
+    @wise_transfer.local_hcb_code.comments.create(content: params[:comment], user: current_user, action: :rejected_transfer) if params[:comment]
+
+    redirect_back_or_to wise_transfer_process_admin_path(@wise_transfer), flash: { success: "Wire has been canceled." }
+  end
+
   private
 
   def wise_transfer_params
-    params.require(:wise_transfer).permit(
-      [:memo,
-       :amount,
-       :payment_for,
-       :recipient_name,
-       :recipient_email,
-       :account_number,
-       :bic_code,
-       :recipient_country,
-       :currency,
-       :address_line1,
-       :address_line2,
-       :address_city,
-       :address_postal_code,
-       :address_state,
-       { file: [] }] + WiseTransfer.recipient_information_accessors
-    )
+    keys = [:memo,
+            :amount,
+            :payment_for,
+            :recipient_name,
+            :recipient_email,
+            :account_number,
+            :institution_number,
+            :branch_number,
+            :recipient_country,
+            :currency,
+            :address_line1,
+            :address_line2,
+            :address_city,
+            :address_postal_code,
+            :address_state,
+            { file: [] }] + WiseTransfer.recipient_information_accessors
+
+    keys << :usd_amount if current_user.admin?
+
+    params.require(:wise_transfer).permit(keys)
   end
 
   def set_wise_transfer
