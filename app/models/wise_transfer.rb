@@ -112,4 +112,20 @@ class WiseTransfer < ApplicationRecord
     @local_hcb_code ||= HcbCode.find_or_create_by(hcb_code:)
   end
 
+  def state
+    if pending?
+      :muted
+    elsif rejected? || failed?
+      :error
+    elsif deposited?
+      :success
+    else
+      :info
+    end
+  end
+
+  def state_text
+    aasm_state.humanize
+  end
+
 end

@@ -354,6 +354,10 @@ class HcbCode < ApplicationRecord
     @wire ||= Wire.find_by(id: hcb_i2) if wire?
   end
 
+  def wise_transfer
+    @wise_transfer ||= WiseTransfer.find_by(id: hcb_i2) if wise_transfer?
+  end
+
   def check
     @check ||= Check.find_by(id: hcb_i2) if check?
   end
@@ -490,7 +494,7 @@ class HcbCode < ApplicationRecord
 
     (type == :card_charge) ||
       # starting from Feb. 2024, receipts have been required for ACHs & checks
-      ([:ach, :check, :paypal_transfer, :wire].include?(type) && created_at > Time.utc(2024, 2, 1))
+      ([:ach, :check, :paypal_transfer, :wire, :wise_transfer].include?(type) && created_at > Time.utc(2024, 2, 1))
   end
 
   def receipt_optional?
@@ -576,6 +580,7 @@ class HcbCode < ApplicationRecord
     return reimbursement_expense_payout&.expense&.report&.user if reimbursement_expense_payout?
     return paypal_transfer&.user if paypal_transfer?
     return donation&.collected_by if donation? && donation&.in_person?
+    return wise_transfer&.user if wise_transfer?
   end
 
   def fallback_avatar
