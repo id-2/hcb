@@ -21,7 +21,6 @@
 #  currency                      :string           not null
 #  institution_number_bidx       :string
 #  institution_number_ciphertext :string
-#  memo                          :string           not null
 #  payment_for                   :string           not null
 #  recipient_birthday_ciphertext :text
 #  recipient_country             :integer          not null
@@ -31,6 +30,7 @@
 #  recipient_phone_number        :text
 #  tax_id_bidx                   :string
 #  tax_id_ciphertext             :string
+#  usd_amount_cents              :integer
 #  created_at                    :datetime         not null
 #  updated_at                    :datetime         not null
 #  event_id                      :bigint           not null
@@ -70,6 +70,8 @@ class WiseTransfer < ApplicationRecord
 
   has_one :canonical_pending_transaction
 
+  before_save :extract_wise_id
+
   monetize :amount_cents, as: "amount", with_model_currency: :currency
   monetize :usd_amount_cents, as: "usd_amount", allow_nil: true
 
@@ -81,12 +83,12 @@ class WiseTransfer < ApplicationRecord
       event:,
       amount_cents: 0,
       amount_pending: true,
-      memo: "#{amount_cents} #{currency} Wise to #{recipient_name}", # this really _really_ sucks. I'm open to ideas here.
+      memo: "#{Money.from_cents(amount_cents, currency).format} #{currency} Wise to #{recipient_name}", # this really _really_ sucks. I'm open to ideas here.
       date: created_at
     )
   end
 
-  validates_presence_of :memo, :payment_for, :recipient_name, :recipient_email
+  validates_presence_of :payment_for, :recipient_name, :recipient_email
   validates :recipient_email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }
   normalizes :recipient_email, with: ->(recipient_email) { recipient_email.strip.downcase }
 
@@ -103,7 +105,17 @@ class WiseTransfer < ApplicationRecord
     end
 
     event :mark_rejected do
+      after do
+        canonical_pending_transaction.decline!
+      end
       transitions from: [:pending, :approved], to: :rejected
+    end
+
+    event :mark_sent do
+      after do
+        canonical_pending_transaction.update(amount_cents: -usd_amount_cents, amount_pending: false)
+      end
+      transitions from: [:approved], to: :sent
     end
   end
 
@@ -126,6 +138,8 @@ class WiseTransfer < ApplicationRecord
       :warning
     elsif approved?
       :blue
+    elsif sent?
+      :purple
     elsif rejected? || failed?
       :error
     elsif deposited?
@@ -143,6 +157,16 @@ class WiseTransfer < ApplicationRecord
     user_id = versions.where_object_changes_to(...).last&.whodunnit
 
     user_id && User.find(user_id)
+  end
+
+  private
+
+  def extract_wise_id
+    url_prefix = "https://wise.com/transactions/activities/by-resource/TRANSFER/"
+
+    return unless wise_id.present? && wise_id.starts_with?(url_prefix)
+
+    self.wise_id = wise_id[url_prefix.length..]
   end
 
 end

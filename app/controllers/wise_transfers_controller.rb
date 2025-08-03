@@ -4,7 +4,7 @@ class WiseTransfersController < ApplicationController
   include SetEvent
 
   before_action :set_event, only: %i[new create]
-  before_action :set_wise_transfer, only: %i[update approve reject]
+  before_action :set_wise_transfer, only: %i[update approve reject mark_sent]
 
   def new
     @wise_transfer = @event.wise_transfers.build
@@ -56,12 +56,23 @@ class WiseTransfersController < ApplicationController
     @event = @wise_transfer.event
 
     if @wise_transfer.update(wise_transfer_params)
-      redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { success: "Edited the wire." }
+      redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { success: "Edited the Wise transfer." }
     else
       redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { error: @wise_transfer.errors.full_messages.to_sentence }
     end
   end
 
+  def mark_sent
+    authorize @wise_transfer
+
+    @wise_transfer.mark_sent!
+
+    if @wise_transfer.update(wise_transfer_params)
+      redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { success: "Marked as sent." }
+    else
+      redirect_to wise_transfer_process_admin_path(@wise_transfer), flash: { error: @wise_transfer.errors.full_messages.to_sentence }
+    end
+  end
 
   def reject
     authorize @wise_transfer

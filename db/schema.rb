@@ -2371,7 +2371,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_02_222150) do
     t.string "tax_id_bidx"
     t.string "tax_id_ciphertext"
     t.string "currency", null: false
-    t.string "memo", null: false
     t.string "payment_for", null: false
     t.integer "recipient_country", null: false
     t.string "recipient_email", null: false

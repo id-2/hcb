@@ -25,14 +25,6 @@
 
   <%= form_errors(@wise_transfer, "wise transfer", "We couldn't send this") %>
 
-  <div class="field">
-    <%= form.label :memo %>
-    <%= form.text_field :memo,
-        placeholder: "For venue payment...",
-        required: true,
-        disabled: %>
-  </div>
-
   <h2 class="mb2 mt3">Recipient details</h2>
 
   <div class="field mt2">

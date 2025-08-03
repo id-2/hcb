@@ -1,6 +1,9 @@
 <% if @hcb_code.wise_transfer.wise_id.present? %>
   <% admin_tool("mt3") do %>
-    <%= link_to "View transfer on Wise", "https://wise.com/transactions/activities/by-resource/TRANSFER/#{@hcb_code.wise_transfer.wise_id}", class: "btn bg-accent", target: "_blank" %>
+    <%= link_to "https://wise.com/transactions/activities/by-resource/TRANSFER/#{@hcb_code.wise_transfer.wise_id}", class: "btn bg-accent", target: "_blank" do %>
+      <%= inline_icon "wise" %>
+      View transfer on Wise
+    <% end %>
   <% end %>
 <% end %>
 
@@ -20,7 +23,7 @@
         <span class="regular"><%= Money.from_cents(@hcb_code.wise_transfer.amount_cents, @hcb_code.wise_transfer.currency).format %> <%= @hcb_code.wise_transfer.currency %></span>
       <% end %>
     </span>
-    <span class="badge h4 md-right bg-<%= @hcb_code.wise_transfer.state %> nowrap">
+    <span class="badge h4 md-right bg-<%= @hcb_code.wise_transfer.status_color %> nowrap">
       <%= @hcb_code.wise_transfer.state_text %>
     </span>
   <% end %>
@@ -35,12 +38,16 @@
       <%= format_datetime @hcb_code.wise_transfer.created_at %>
     </p>
   </section>
-  <section class="card__banner relative border-bottom bg-[#9FE870] dark:text-[#9FE870] text-[#163300] dark:bg-[#163300] flex flex-row items-center justify-start gap-2">
-    <%= inline_icon "wise", size: 16 %>
-    Funds have not been withdrawn from your account yet.
-    <span class="flex-grow"></span>
-    <%= link_to "Learn more about Wise transfers on HCB →", "https://help.hcb.hackclub.com/article/65-wise", class: "dark:!text-[#9FE870] !text-[#163300] bold no-underline after:content-[''] after:top-0 after:left-0 after:bottom-0 after:right-0 after:z-index-1 after:absolute", target: "_blank" %>
-  </section>
+  <% if @hcb_code.pt.amount_pending? %>
+    <section class="card__banner relative border-bottom bg-[#9FE870] dark:text-[#9FE870] text-[#163300] dark:bg-[#163300] flex flex-row items-center justify-start gap-4 md:gap-2">
+      <%= inline_icon "wise", size: 16 %>
+      <div class="flex md:flex-row flex-col items-start justify-start gap-1 flex-grow">
+        Funds have not been withdrawn from your account yet.
+        <span class="md:flex-grow"></span>
+        <%= link_to "Learn more about Wise transfers on HCB →", "https://help.hcb.hackclub.com/article/65-wise", class: "dark:!text-[#9FE870] !text-[#163300] bold no-underline after:content-[''] after:top-0 after:left-0 after:bottom-0 after:right-0 after:z-index-1 after:absolute", target: "_blank" %>
+      </div>
+    </section>
+  <% end %>
   <turbo-frame id="details">
     <section class="details pt2 pb2">
       <p>

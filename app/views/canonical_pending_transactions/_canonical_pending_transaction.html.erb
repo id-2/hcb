@@ -124,7 +124,7 @@
     </div>
   </td>
   <td class="nowrap text-right">
-    <% if pt.amount_pending? && pt.amount.zero? %>
+    <% if pt.amount_pending? %>
       PENDING
     <% else %>
       <%= render_transaction_amount pt.amount %>

@@ -21,6 +21,10 @@ class WiseTransferPolicy < ApplicationPolicy
     user&.admin?
   end
 
+  def mark_sent?
+    user&.admin?
+  end
+
   private
 
   def admin_or_user?

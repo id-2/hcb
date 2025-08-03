@@ -148,6 +148,7 @@ class CanonicalPendingTransaction < ApplicationRecord
   validates :custom_memo, presence: true, allow_nil: true
 
   before_validation { self.custom_memo = custom_memo.presence&.strip }
+  before_validation { amount_pending = false unless amount_cents.zero? }
 
   after_create :write_hcb_code
   after_create_commit :write_system_event
@@ -170,6 +171,7 @@ class CanonicalPendingTransaction < ApplicationRecord
     return false if declined?
 
     create_canonical_pending_declined_mapping!
+    update(amount_pending: false) if amount_pending?
     true
   rescue ActiveRecord::RecordNotUnique
     false
