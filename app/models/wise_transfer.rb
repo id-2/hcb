@@ -153,6 +153,10 @@ class WiseTransfer < ApplicationRecord
     aasm_state.humanize
   end
 
+  def state
+    aasm_state
+  end
+
   def last_user_change_to(...)
     user_id = versions.where_object_changes_to(...).last&.whodunnit
 
