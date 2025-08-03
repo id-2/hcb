@@ -14,6 +14,7 @@ class WiseTransfersController < ApplicationController
 
   def create
     @wise_transfer = @event.wise_transfers.build(wise_transfer_params.except(:file).merge(user: current_user))
+    @wise_transfer.recipient_information ||= {}
 
     authorize @wise_transfer
 
